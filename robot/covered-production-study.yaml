@@ -1,0 +1,32 @@
+schema_version: 1
+status: candidate_planning_only
+assemblies:
+  pip: artifacts/pip-shin-cover-composed-v3
+  scout: artifacts/scout-shin-cover-composed-v2
+baseline_bom: robot/prototype-bom.json
+baseline_print_inventory: artifacts/composed-print-inventory-v3
+cost_assumptions: robot/integrated-cost.yaml
+print_assumptions: robot/printing-cost.yaml
+# Explicit replacement scopes, not additional charges on top of those allowances.
+added_print_role: shin_cover
+hardware_allowance_treatment: Included within existing wiring_hardware range; no automatic price increase or qualification.
+handwork_treatment: Included within existing finishing/insert hour; added time is unresolved, not assumed free.
+hardware:
+  screw:
+    candidate: PTS A91202508
+    specification: M2.5 x 8 DIN 912 / ISO 4762 A2 stainless socket cap
+    count_per_robot: 8
+    source: https://www.pts-uk.com/products/socket-screws/socket-cap-screws/metric-a2/A91202508
+    retrieved: '2026-09-20'
+    currency: GBP
+    order_multiple: 500
+    tiers: [[500, 0.0466], [1000, 0.0443], [2000, 0.0421], [5000, 0.0400], [10000, 0.0375]]
+    price_scope: Published ex-VAT tier, excludes shipping/duty; not converted or added to USD hardware allowance.
+  insert:
+    candidate: ruthex GE-M25x57-001 / RX-M2.5x5.7
+    specification: M2.5 brass heat-set insert, 5.7 mm long, 4.6 mm maximum body diameter
+    count_per_robot: 8
+    source: https://www.ruthex.de/en/products/ruthex-gewindeeinsatz-m2-5-70-stuck-rx-m2-5x5-7-messing-gewindebuchsen
+    retrieved: '2026-09-20'
+    production_unit_price: null
+    price_scope: Exact product reference; no production tier captured. Retail pack pricing is not substituted for a production quote.

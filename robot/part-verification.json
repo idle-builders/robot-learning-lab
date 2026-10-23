@@ -1,0 +1,1280 @@
+{
+  "schema_version": "1",
+  "status_vocabulary": [
+    "pass",
+    "fail",
+    "partial",
+    "not_run"
+  ],
+  "scope": "Selected part-level checks for the inspector. Prefix entries match named groups in retained reports; they are not a claim that every assembly part is verified.",
+  "groups": [
+    {
+      "id": "logic_mount_fasteners",
+      "part_ids": [
+        "logic_screw_0",
+        "logic_screw_1",
+        "logic_screw_2",
+        "logic_screw_3",
+        "logic_insert_0",
+        "logic_insert_1",
+        "logic_insert_2",
+        "logic_insert_3"
+      ],
+      "role": "PCB mounting screws and heat-set inserts",
+      "evidence": [
+        {
+          "label": "Pip logic XH report",
+          "path": "artifacts/pip-logic-xh-v5/report.json",
+          "status": "pass",
+          "checks": [
+            "connector approach",
+            "board containment",
+            "body-pair collision scan"
+          ],
+          "scope": "Pip selected logic-XH candidate report; body/source hashes are retained in the report",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Scout logic XH report",
+          "path": "artifacts/scout-logic-xh-v5/report.json",
+          "status": "pass",
+          "checks": [
+            "connector approach",
+            "board containment",
+            "body-pair collision scan"
+          ],
+          "scope": "Scout selected logic-XH candidate report; body/source hashes are retained in the report",
+          "robots": [
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Board and connector approach are nominal CAD reservations; no screw engagement, torque, insert pull-out, harness bend or service-cycle limit is measured."
+      ],
+      "unverified": [
+        "physical board thickness/tolerance",
+        "post and insert material",
+        "fastener torque and retention",
+        "whole-body service path"
+      ]
+    },
+    {
+      "id": "forearm_covers_and_clamps",
+      "part_prefixes": [
+        "left_cover_",
+        "right_cover_",
+        "left_forearm_spine",
+        "right_forearm_spine",
+        "left_shoulder_roll_clamp",
+        "right_shoulder_roll_clamp",
+        "left_upper_arm_clamp",
+        "right_upper_arm_clamp",
+        "left_forearm_clamp",
+        "right_forearm_clamp",
+        "left_gripper_clamp",
+        "right_gripper_clamp",
+        "left_shoulder_roll_horn",
+        "right_shoulder_roll_horn",
+        "left_upper_arm_horn",
+        "right_upper_arm_horn",
+        "left_forearm_horn",
+        "right_forearm_horn",
+        "left_gripper_horn",
+        "right_gripper_horn",
+        "left_shoulder_roll_screw",
+        "right_shoulder_roll_screw",
+        "left_upper_arm_screw",
+        "right_upper_arm_screw",
+        "left_forearm_screw",
+        "right_forearm_screw",
+        "left_gripper_screw",
+        "right_gripper_screw"
+      ],
+      "role": "Printed forearm shells/spines plus actuator clamp, horn, yoke, spacer and screw geometry used by the arm modules",
+      "evidence": [
+        {
+          "label": "forearm producer",
+          "path": "artifacts/forearm-cover-candidate-v2-corrected/report.json",
+          "status": "fail",
+          "checks": [
+            "neutral fit/removal",
+            "sampled pose clearance"
+          ],
+          "scope": "candidate-level result retains failures; not complete-body qualification",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "integrated forearm composition",
+          "path": "artifacts/pip-forearm-integrated-v2/report.json",
+          "status": "fail",
+          "checks": [
+            "sampled clearance",
+            "task sampled clearance",
+            "STEP round-trip"
+          ],
+          "scope": "complete-body composition retains two shoulder-roll collision poses; task clearance is a separate sampled result",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "distal grip park task",
+          "path": "artifacts/pip-distal-grip-park-task-v1/report.json",
+          "status": "pass",
+          "checks": [
+            "supported contact pick/place"
+          ],
+          "scope": "supported torso contact task; does not qualify cover retention, whole-body clearance or physical contact",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "distal grip replay",
+          "path": "artifacts/pip-distal-grip-replay-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "rigid obstruction/contact flags"
+          ],
+          "scope": "replay against recorded scene boxes; retains unrun whole-body, continuous, force and physical checks",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Pip distal-grip park replay",
+          "path": "artifacts/pip-distal-grip-park-replay-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "scene check",
+            "added-material self check"
+          ],
+          "scope": "completed Pip park replay: scene fails while added-material self check passes; inherited self-collisions, continuous clearance, dynamics and physical qualification remain unrun",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Scout distal-grip park replay",
+          "path": "artifacts/scout-distal-grip-park-replay-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "scene check",
+            "added-material self check"
+          ],
+          "scope": "completed Scout park replay: scene fails while added-material self check passes; inherited self-collisions, continuous clearance, dynamics and physical qualification remain unrun",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "label": "forearm enclosure design",
+          "path": "docs/design/forearm-enclosure.md",
+          "status": "partial",
+          "checks": [
+            "named parts",
+            "16/16 neutral removal samples",
+            "31/33 sampled arm poses"
+          ],
+          "scope": "CAD samples only; no material, impact, continuous collision or physical retention evidence",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "The 1.428 mm minimum gap applies only to passing sampled poses; it is not a tolerance margin."
+      ],
+      "unverified": [
+        "printed strength and creep",
+        "insert installation",
+        "opposite-arm collision at failed poses",
+        "table/tray interference",
+        "harness and pinch protection"
+      ]
+    },
+    {
+      "id": "head_service_fasteners",
+      "part_ids": [
+        "head_cover_screw_0",
+        "head_cover_screw_1",
+        "head_cover_screw_2",
+        "head_cover_screw_3",
+        "head_cover_insert_0",
+        "head_cover_insert_1",
+        "head_cover_insert_2",
+        "head_cover_insert_3",
+        "pi_screw_0",
+        "pi_screw_1",
+        "pi_screw_2",
+        "pi_screw_3",
+        "pi_insert_0",
+        "pi_insert_1",
+        "pi_insert_2",
+        "pi_insert_3"
+      ],
+      "role": "Head cover and Pi carrier screws/inserts",
+      "evidence": [
+        {
+          "label": "Pip head service v9",
+          "path": "artifacts/pip-head-service-v9/report.json",
+          "status": "pass",
+          "checks": [
+            "geometry",
+            "screw removal",
+            "Pi removal",
+            "tool withdrawal",
+            "body motion",
+            "negative control"
+          ],
+          "scope": "nominal geometry and sampled service paths for the candidate head assembly",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "head service design",
+          "path": "docs/design/head-service.md",
+          "status": "partial",
+          "checks": [
+            "service sequence",
+            "conditional retention geometry"
+          ],
+          "scope": "physical retention, populated connector clearance, mass and wiring remain open",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "Scout head service v7",
+          "path": "artifacts/scout-head-service-v7/report.json",
+          "status": "pass",
+          "robots": [
+            "scout"
+          ],
+          "scope": "Retained Scout head candidate nominal geometry and sampled service checks; not physical retention or full current assembly qualification."
+        }
+      ],
+      "limits": [
+        "Removal/tool samples are conditional CAD checks; no torque, insert pull-out, printed strength or repeated service limit is established."
+      ],
+      "unverified": [
+        "real Pi/camera fit and connector",
+        "printed shell and insert durability",
+        "harness bend/strain relief",
+        "physical neck impact retention"
+      ]
+    },
+    {
+      "id": "carrier_pcb_and_posts",
+      "part_ids": [
+        "carrier",
+        "logic_board",
+        "shoulder_mount_hardware"
+      ],
+      "role": "Carrier board, board posts and PCB mounting hardware",
+      "evidence": [
+        {
+          "label": "carrier packaging",
+          "path": "docs/design/carrier-packaging.md",
+          "status": "partial",
+          "checks": [
+            "8/8 packaging checks",
+            "0 mm3 installed interference",
+            "17/17 removal samples"
+          ],
+          "scope": "nominal Pip/Moss/Scout carrier geometry; board, battery, actuators and harness are incomplete",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "current carrier build",
+          "path": "artifacts/carrier-v13/build-report.json",
+          "status": "pass",
+          "checks": [
+            "compilation",
+            "routing",
+            "pin checks",
+            "deliberate-short control"
+          ],
+          "scope": "logic carrier build; external power board and IMU remain separate",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "logic board design",
+          "path": "docs/design/logic-board.md",
+          "status": "partial",
+          "checks": [
+            "compiled nets",
+            "routed layout intent",
+            "DRC negative control"
+          ],
+          "scope": "no schematic ERC/parity, thermal, EMI, harness, retention or production-board claim",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "The 2.7 mm board bores, 6.4 mm posts and 2.2 mm pilots are CAD allocations; exact screw type, engagement, material and tolerance stack are unqualified."
+      ],
+      "unverified": [
+        "populated board and connectors",
+        "post strength",
+        "shell service with harness attached",
+        "RF/EMC",
+        "battery and motor distribution"
+      ]
+    },
+    {
+      "id": "imu_mount",
+      "part_prefixes": [
+        "imu_board",
+        "imu_screw_",
+        "imu_insert_",
+        "imu_post_"
+      ],
+      "role": "Side-wall IMU board, posts, screws and inserts",
+      "evidence": [
+        {
+          "label": "IMU mount design",
+          "path": "docs/design/imu-mount.md",
+          "status": "partial",
+          "checks": [
+            "nominal installation",
+            "67 conditional service samples",
+            "deliberate collision controls"
+          ],
+          "scope": "digital fit/service candidate; physical material, connector, calibration and vibration remain open",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "IMU/control validation",
+          "path": "artifacts/imu-control-validation-v1/report.json",
+          "status": "partial",
+          "checks": [
+            "firmware and simulation integration"
+          ],
+          "scope": "retained aggregate with intentional failures; no physical board or calibrated sensor",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "current IMU board build",
+          "path": "artifacts/imu-board-v2/build-report.json",
+          "status": "pass",
+          "checks": [
+            "pin/pad",
+            "layout"
+          ],
+          "scope": "candidate LSM6DSO daughterboard; physical qualification absent",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "The 0.5 mm board containment margin and 4.4 mm calculated screw engagement are nominal model values, not manufacturing or pull-out limits."
+      ],
+      "unverified": [
+        "board build recovery",
+        "actual header/cable bend",
+        "pin-1 and gravity calibration",
+        "insert deformation",
+        "vibration survival",
+        "continuous tool access"
+      ]
+    },
+    {
+      "id": "camera_head_parts",
+      "part_prefixes": [
+        "support_camera_",
+        "pi_substrate",
+        "head_shell",
+        "head_rear_cover"
+      ],
+      "role": "Camera support, SBC carrier and head service shell",
+      "evidence": [
+        {
+          "label": "camera vendor validation",
+          "path": "artifacts/camera-vendor-validation-v2/report.json",
+          "status": "pass",
+          "checks": [
+            "candidate support geometry and source bindings"
+          ],
+          "scope": "nominal candidate integration; no physical camera, SBC, calibration or cable qualification",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "head service v9",
+          "path": "artifacts/pip-head-service-v9/report.json",
+          "status": "pass",
+          "checks": [
+            "head geometry",
+            "screw/Pi removal",
+            "body motion"
+          ],
+          "scope": "CAD service candidate",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Scout head service v7",
+          "path": "artifacts/scout-head-service-v7/report.json",
+          "status": "pass",
+          "robots": [
+            "scout"
+          ],
+          "scope": "Retained Scout head candidate nominal geometry and sampled service checks; not physical retention or full current assembly qualification."
+        }
+      ],
+      "limits": [
+        "Camera and SBC solids are candidate visual/procurement geometry; physical mass, retention, optical calibration and synchronization are not verified."
+      ],
+      "unverified": [
+        "real module and Pi connector clearance",
+        "flex/USB/power strain relief",
+        "intrinsics/extrinsics",
+        "RF/thermal behavior",
+        "neck-motion stream timing"
+      ]
+    },
+    {
+      "id": "neck_protection_clearance",
+      "title": "Fixed neck skirt and moving-head clearance",
+      "status": "fail",
+      "part_ids": [
+        "neck_collar_front",
+        "neck_collar_rear",
+        "head_shell",
+        "head_rear_cover",
+        "support_camera_front_bezel"
+      ],
+      "scope": "Taller fixed skirts rejected. Existing 33 mm collar fails the new conservative 1.5 mm moving-clearance envelope in a tested extreme pose; actual-cover overlap is absent in that sample.",
+      "evidence": [
+        {
+          "path": "docs/design/neck-skirt-study.md",
+          "label": "Fixed-skirt design comparison",
+          "status": "fail"
+        },
+        {
+          "path": "artifacts/pip-neck-skirt-v4/report.json",
+          "label": "Pip collar height study",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-neck-skirt-v4/report.json",
+          "label": "Scout collar height study",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Rejected candidates stop at the first failure; remaining poses and all service checks are not_run.",
+        "No taller cover is released; source assembly, physical fit, strength, harness and complete protection remain unqualified."
+      ]
+    },
+    {
+      "id": "head_lower_cap_stock",
+      "title": "Recovered lower-head cover stock",
+      "status": "fail",
+      "part_ids": [
+        "head_shell",
+        "head_rear_cover",
+        "neck_yaw_housing",
+        "neck_yaw_clamp_lower",
+        "neck_yaw_clamp_upper",
+        "neck_yaw_clamp_hardware"
+      ],
+      "scope": "Four unmounted head-owned shell wings, full depth and 8 mm. Both designs show actual neck-mechanism interference; none added to the assembly.",
+      "evidence": [
+        {
+          "path": "docs/design/head-cap-study.md",
+          "label": "Stock rejection and subsequent relief study",
+          "status": "partial"
+        },
+        {
+          "path": "artifacts/pip-head-cap-stock-v1/report.json",
+          "label": "Pip full-depth shell wings",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/pip-head-cap-stock-v2/report.json",
+          "label": "Pip 8 mm shell wings",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-stock-v1/report.json",
+          "label": "Scout full-depth shell wings",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-stock-v2/report.json",
+          "label": "Scout 8 mm shell wings",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/head-cap-controls-v3/report.json",
+          "label": "Supplemental small-displacement collision controls",
+          "status": "pass"
+        }
+      ],
+      "limits": [
+        "Exact sampled collision screen only; no continuous sweep or physical validation.",
+        "Mounting, service, harness, updated mass and costs remain not_run.",
+        "Original 20 mm controls miss stock in three cases; supplemental 1 mm controls pass all four cases. These controls do not qualify installed-pose fit."
+      ]
+    },
+    {
+      "id": "head_lower_cap_relief",
+      "title": "Locally relieved lower-head covers",
+      "status": "partial",
+      "part_ids": [
+        "head_shell",
+        "head_rear_cover",
+        "neck_yaw_housing",
+        "neck_yaw_clamp_lower",
+        "neck_yaw_clamp_upper",
+        "neck_yaw_clamp_hardware"
+      ],
+      "scope": "Eight unmounted study pieces across Pip and Scout; nominal head screen, connected STEP geometry and all 37 sampled actual/1.5 mm envelope screens pass per robot. Existing assembly remains unchanged.",
+      "evidence": [
+        {
+          "path": "artifacts/pip-head-cap-relief-v3/report.json",
+          "label": "Pip relieved 8 mm wings",
+          "status": "partial",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-relief-v3/report.json",
+          "label": "Scout relieved 8 mm wings",
+          "status": "partial",
+          "robots": [
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "No attachment, removal, harness, continuous sweep or physical qualification.",
+        "Narrow recovered strips leave much of the neck mechanism exposed; not complete protection or finished styling.",
+        "Excluded from assembly, mass/cost model and print BOM; original stock and fixed-collar failures remain."
+      ]
+    },
+    {
+      "id": "head_lower_cap_mount_stock",
+      "title": "Cap attachment stock feasibility",
+      "status": "fail",
+      "part_ids": [
+        "head_shell",
+        "head_rear_cover",
+        "eye_shroud_1",
+        "eye_shroud_4"
+      ],
+      "scope": "Ribbed unbored stock connects nominally, but selected rear mounts fail the 1.5 mm moving allowance. Exact checked gaps reach 0.6385 mm for Pip and 0.1213 mm for Scout. Scout front locations remain blocked by eye shrouds.",
+      "evidence": [
+        {
+          "path": "docs/design/head-cap-mount-stock.md",
+          "label": "Mount stock geometry and remaining checks",
+          "status": "fail"
+        },
+        {
+          "path": "artifacts/pip-head-cap-mount-stock-v3/report.json",
+          "label": "Pip ribbed stock grid",
+          "status": "partial",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-mount-stock-v3/report.json",
+          "label": "Scout ribbed stock grid",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/pip-head-cap-mount-motion-v5/report.json",
+          "label": "Pip selected stock motion",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/pip-head-cap-mount-gap-v1/report.json",
+          "label": "Pip exact nominal gap witnesses",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-mount-motion-v2/report.json",
+          "label": "Scout selected stock motion",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-mount-gap-v1/report.json",
+          "label": "Scout exact nominal gap witnesses",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/head-cap-mount-controls-v1/report.json",
+          "label": "Supplemental witness-based detector controls",
+          "status": "pass"
+        }
+      ],
+      "limits": [
+        "Individual nominal stock fit is separate from combined assembly, mechanism motion and attachment qualification.",
+        "Bores, screw/insert engagement, anti-rotation, tool access and removal remain unverified.",
+        "Pip nominal insert wall is 1.2 mm before process tolerances; heat-setting and retention need physical tests.",
+        "No changes to robot assembly, mass model or print/purchase quantities.",
+        "Pip original center-alignment control misses the hollow target; separate witness-based controls pass all eleven pairs without clearing the installed geometry."
+      ]
+    },
+    {
+      "id": "integral_lower_head_wings",
+      "title": "Lower wings integrated into shell halves",
+      "status": "partial",
+      "part_ids": [
+        "head_shell",
+        "head_rear_cover"
+      ],
+      "scope": "Replacement-shell study: both heads have valid connected joins and retain original material; all 37 sampled moving-clearance checks and 12 conditional cover/board-removal offsets pass. Existing split-head fastening is retained; no extra lower-cover screws or inserts.",
+      "evidence": [
+        {
+          "path": "docs/design/integral-head-wings.md",
+          "label": "Integral-wing design and evidence boundaries",
+          "status": "partial"
+        },
+        {
+          "path": "docs/research/head-cap-low-profile-fasteners.md",
+          "label": "Alternative fastener dimensions and tradeoffs",
+          "status": "partial"
+        },
+        {
+          "path": "artifacts/pip-integral-head-wings-v5/report.json",
+          "label": "Pip integral shell joining, motion and conditional service",
+          "status": "partial",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/pip-head-cap-fasteners-v2/report.json",
+          "label": "Pip rejected separate socket-head path",
+          "status": "fail",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "path": "artifacts/scout-integral-head-wings-v4/report.json",
+          "label": "Scout integral shell joining, motion and conditional service",
+          "status": "partial",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "artifacts/scout-head-cap-fasteners-v2/report.json",
+          "label": "Scout rejected separate socket-head path",
+          "status": "fail",
+          "robots": [
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Study shells are not yet composed into the main 216/222-part assembly or print release.",
+        "Original whole-assembly failures remain; source relieved-wing clearance is reused only at identical poses.",
+        "Existing driver/screw withdrawal, populated connectors, bridge bolt/nut access and cable service remain to check.",
+        "Physical strength, fit, retention and continuous motion remain unqualified; no mass/cost update."
+      ]
+    },
+    {
+      "id": "integral_head_service_tools",
+      "part_ids": [
+        "head_shell",
+        "head_rear_cover",
+        "pi_substrate",
+        "head_cover_screw_0",
+        "head_cover_screw_1",
+        "head_cover_screw_2",
+        "head_cover_screw_3",
+        "pi_screw_0",
+        "pi_screw_1",
+        "pi_screw_2",
+        "pi_screw_3"
+      ],
+      "role": "Existing cover/Pi fasteners with revised head-shell service tooling",
+      "evidence": [
+        {
+          "label": "Head service tool comparison",
+          "path": "docs/design/integral-head-service.md",
+          "status": "partial",
+          "checks": [
+            "24 bearing witnesses",
+            "seated tool access",
+            "64 sampled withdrawals",
+            "80 exterior key-angle samples"
+          ],
+          "scope": "Per robot; straight driver fails rear Pi screws, right-angle allocation passes sampled CAD. Pi stage requires detached rear cover.",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "Pip straight driver failure",
+          "path": "artifacts/pip-integral-head-service-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "seated driver",
+            "withdrawal"
+          ],
+          "scope": "Tool allocation only; no thread/continuous/hand/physical qualification; original assembly failure retained.",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Pip right-angle key candidate",
+          "path": "artifacts/pip-integral-head-service-v2/report.json",
+          "status": "partial",
+          "checks": [
+            "seated driver",
+            "withdrawal",
+            "key exterior swing"
+          ],
+          "scope": "Tool allocation only; no thread/continuous/hand/physical qualification; original assembly failure retained.",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Scout straight driver failure",
+          "path": "artifacts/scout-integral-head-service-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "seated driver",
+            "withdrawal"
+          ],
+          "scope": "Tool allocation only; no thread/continuous/hand/physical qualification; original assembly failure retained.",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "label": "Scout right-angle key candidate",
+          "path": "artifacts/scout-integral-head-service-v2/report.json",
+          "status": "partial",
+          "checks": [
+            "seated driver",
+            "withdrawal",
+            "key exterior swing"
+          ],
+          "scope": "Tool allocation only; no thread/continuous/hand/physical qualification; original assembly failure retained.",
+          "robots": [
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Detached-cover Pi service assumes the cover and unmodeled harness were removed/disconnected.",
+        "Catalog key lengths/AF are sourced; bend and long-arm clearance envelopes are allocations."
+      ],
+      "unverified": [
+        "head-bridge socket/nut access",
+        "cable disconnection and flex",
+        "continuous service sequence and hand access",
+        "actual tool bend and torque",
+        "printed fit and retention"
+      ],
+      "status": "partial",
+      "scope": "The fuller straight driver fails two rear Pi screws. The right-angle allocation clears the modeled sockets and sampled exterior paths; it is a nominal interface approximation, not actual Hex-Plus tool qualification."
+    },
+    {
+      "id": "head_bridge_service",
+      "title": "Head-to-neck structural fasteners",
+      "part_ids": [
+        "head_bridge_bolt_-5",
+        "head_bridge_bolt_5",
+        "head_shell",
+        "head_rear_cover",
+        "head_yoke"
+      ],
+      "status": "partial",
+      "scope": "Nominal sockets, bearing seats and staged rear-opening service route pass for both robots. Closed-head wrench and axial nut routes remain failed. No physical/tool/hand/retention qualification. A removable level-held printed aid additionally passes nominal support and sampled insertion/release; physical handling remains untested.",
+      "evidence": [
+        {
+          "label": "Bridge assembly order and limits",
+          "path": "docs/design/head-bridge-service.md",
+          "status": "partial"
+        },
+        {
+          "label": "Pip bridge staged route",
+          "path": "artifacts/pip-head-bridge-service-v3/report.json",
+          "status": "partial",
+          "robots": [
+            "pip"
+          ]
+        },
+        {
+          "label": "Scout bridge staged route",
+          "path": "artifacts/scout-head-bridge-service-v3/report.json",
+          "status": "partial",
+          "robots": [
+            "scout"
+          ]
+        },
+        {
+          "path": "docs/design/head-bridge-carrier.md",
+          "label": "Printed positioning aid and physical bench",
+          "status": "partial"
+        },
+        {
+          "path": "docs/design/composed-head.md",
+          "label": "Complete head composition and planning mass",
+          "status": "partial"
+        }
+      ],
+      "limits": [
+        "Replacement socket geometry is a study, not promoted main assembly hardware.",
+        "Head support and rear cover/Pi removal required; front stack installed before rear.",
+        "Generic wrench outline is not manufacturer CAD; discrete positioning assumes retained nut/washer pair."
+      ],
+      "unverified": [
+        "physical nut/washer handling, aid stiffness and hand clearance",
+        "cable disconnection/flex",
+        "thread preload, printed retention and actual tools",
+        "main assembly/mass integration"
+      ]
+    },
+    {
+      "id": "balance_wheel_arm_pairs",
+      "role": "Wheel and arm rest-pose clearance",
+      "part_prefixes": [
+        "left_wheel_",
+        "left_forearm_",
+        "left_gripper_",
+        "right_wheel_",
+        "right_forearm_",
+        "right_gripper_"
+      ],
+      "evidence": [
+        {
+          "label": "Current composed CAD wheel/arm pair study",
+          "path": "artifacts/balance-arm-clearance-complete-v1/report.json",
+          "status": "fail",
+          "checks": [
+            "same-side wheel versus forearm/gripper groups",
+            "zero and both elbows -0.4 rad",
+            "exact intersection volume and distance"
+          ],
+          "scope": "Neutral intersections retained. All 210 selected parked pairs per robot have positive nominal gaps. Current composed geometry, not qualification of the earlier recorded motion.",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        },
+        {
+          "label": "Wheel/arm study explanation",
+          "path": "docs/design/balance-wheel-clearance.md",
+          "status": "partial",
+          "checks": [
+            "scope and failed-attempt provenance"
+          ],
+          "scope": "Thighs, covers, opposite-side pairs, intervening motion and physical fit excluded."
+        }
+      ],
+      "limits": [
+        "This two-pose study does not qualify the currently selected playback sample or the complete robot.",
+        "Separate cover groups and forearm/thigh contacts are not checked."
+      ],
+      "unverified": [
+        "continuous pose transition",
+        "printed tolerances",
+        "harness and strength",
+        "physical rest and transport posture"
+      ]
+    },
+    {
+      "id": "balance_mechanism_thigh_pairs",
+      "role": "Static mechanism / thigh clearance",
+      "part_ids": [
+        "left_forearm_clamp_lower",
+        "left_forearm_clamp_upper",
+        "left_forearm_horn",
+        "left_forearm_housing",
+        "left_forearm_screw",
+        "left_forearm_spacer",
+        "left_forearm_spine",
+        "left_forearm_yoke",
+        "left_gripper_clamp_lower",
+        "left_gripper_clamp_upper",
+        "left_gripper_finger",
+        "left_gripper_horn",
+        "left_gripper_housing",
+        "left_gripper_screw",
+        "left_gripper_spacer",
+        "left_thigh_clamp_hardware",
+        "left_thigh_clamp_lower",
+        "left_thigh_clamp_upper",
+        "left_thigh_horns",
+        "left_thigh_screws",
+        "left_thigh_servo",
+        "left_thigh_spacers",
+        "left_thigh_spine",
+        "left_thigh_yoke",
+        "right_forearm_clamp_lower",
+        "right_forearm_clamp_upper",
+        "right_forearm_horn",
+        "right_forearm_housing",
+        "right_forearm_screw",
+        "right_forearm_spacer",
+        "right_forearm_spine",
+        "right_forearm_yoke",
+        "right_gripper_clamp_lower",
+        "right_gripper_clamp_upper",
+        "right_gripper_finger",
+        "right_gripper_horn",
+        "right_gripper_housing",
+        "right_gripper_screw",
+        "right_gripper_spacer",
+        "right_thigh_clamp_hardware",
+        "right_thigh_clamp_lower",
+        "right_thigh_clamp_upper",
+        "right_thigh_horns",
+        "right_thigh_screws",
+        "right_thigh_servo",
+        "right_thigh_spacers",
+        "right_thigh_spine",
+        "right_thigh_yoke"
+      ],
+      "evidence": [
+        {
+          "label": "Explicit mechanism/thigh CAD pairs",
+          "path": "artifacts/arm-thigh-postures-v1/report.json",
+          "status": "pass",
+          "checks": [
+            "Exact distance and intersection at three declared poses"
+          ],
+          "scope": "Elbows -0.4 rad; shoulder rolls 0, \u00b10.04 and \u00b10.08 rad. Same-side named pairs only; unrelated to the earlier task replay.",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Fixed poses do not qualify continuous motion, complete self-clearance or physical fit."
+      ],
+      "unverified": [
+        "printed tolerances",
+        "harness and strength",
+        "physical posture"
+      ]
+    },
+    {
+      "id": "balance_cover_thigh_pairs",
+      "role": "Static cover / thigh clearance",
+      "part_ids": [
+        "left_cover_halves_front",
+        "left_cover_halves_rear",
+        "left_cover_inserts_0_0",
+        "left_cover_inserts_0_1",
+        "left_cover_inserts_1_0",
+        "left_cover_inserts_1_1",
+        "left_cover_screws_0_0",
+        "left_cover_screws_0_1",
+        "left_cover_screws_1_0",
+        "left_cover_screws_1_1",
+        "left_thigh_clamp_hardware",
+        "left_thigh_clamp_lower",
+        "left_thigh_clamp_upper",
+        "left_thigh_horns",
+        "left_thigh_screws",
+        "left_thigh_servo",
+        "left_thigh_spacers",
+        "left_thigh_spine",
+        "left_thigh_yoke",
+        "right_cover_halves_front",
+        "right_cover_halves_rear",
+        "right_cover_inserts_0_0",
+        "right_cover_inserts_0_1",
+        "right_cover_inserts_1_0",
+        "right_cover_inserts_1_1",
+        "right_cover_screws_0_0",
+        "right_cover_screws_0_1",
+        "right_cover_screws_1_0",
+        "right_cover_screws_1_1",
+        "right_thigh_clamp_hardware",
+        "right_thigh_clamp_lower",
+        "right_thigh_clamp_upper",
+        "right_thigh_horns",
+        "right_thigh_screws",
+        "right_thigh_servo",
+        "right_thigh_spacers",
+        "right_thigh_spine",
+        "right_thigh_yoke"
+      ],
+      "evidence": [
+        {
+          "label": "Explicit cover/thigh CAD pairs",
+          "path": "artifacts/cover-thigh-postures-v2/report.json",
+          "status": "pass",
+          "checks": [
+            "Exact distance and intersection at three declared poses"
+          ],
+          "scope": "Elbows -0.4 rad; shoulder rolls 0, \u00b10.04 and \u00b10.08 rad. Same-side named pairs only; unrelated to the earlier task replay.",
+          "robots": [
+            "pip",
+            "scout"
+          ]
+        }
+      ],
+      "limits": [
+        "Fixed poses do not qualify continuous motion, complete self-clearance or physical fit."
+      ],
+      "unverified": [
+        "printed tolerances",
+        "harness and strength",
+        "physical posture"
+      ]
+    },
+    {
+      "id": "spacer_handling_study",
+      "role": "Spacer assembly and part-count study",
+      "part_ids": [
+        "head_spacer",
+        "head_yoke",
+        "left_forearm_spacer",
+        "left_forearm_yoke",
+        "left_shin_spacers",
+        "left_shin_yoke",
+        "left_shoulder_roll_spacer",
+        "left_shoulder_roll_yoke",
+        "left_thigh_spacers",
+        "left_thigh_yoke",
+        "left_upper_arm_spacer",
+        "left_upper_arm_yoke",
+        "neck_yaw_spacer",
+        "neck_yaw_yoke",
+        "right_forearm_spacer",
+        "right_forearm_yoke",
+        "right_shin_spacers",
+        "right_shin_yoke",
+        "right_shoulder_roll_spacer",
+        "right_shoulder_roll_yoke",
+        "right_thigh_spacers",
+        "right_thigh_yoke",
+        "right_upper_arm_spacer",
+        "right_upper_arm_yoke"
+      ],
+      "evidence": [
+        {
+          "label": "Competing yoke/spacer module designs",
+          "path": "artifacts/yoke-spacer-study-v2/report.json",
+          "status": "partial",
+          "scope": "Fused yoke slide fails; two-carrier nominal module fit, shank passages and sampled installation pass. Not installed in the currently selected assembly."
+        },
+        {
+          "label": "Spacer design and physical bench",
+          "path": "docs/design/yoke-spacer-study.md",
+          "status": "partial"
+        },
+        {
+          "label": "Complete carrier candidates and production-cost consequence",
+          "path": "docs/design/carrier-composition.md",
+          "status": "partial",
+          "scope": "Complete STEP exports retain 216/222 groups with 114/116 printed solids. Geometry identity passes; inherited failures, clearance and physical qualification remain separate."
+        }
+      ],
+      "limits": [
+        "Twelve generic modules only; both grippers excluded.",
+        "Current robot retains original rings and its original failures."
+      ],
+      "unverified": [
+        "full robot assembly routes",
+        "temporary carrier retention",
+        "printed tolerances, strength and creep",
+        "physical horn/thread/spline/tool qualification"
+      ]
+    },
+    {
+      "id": "arm_clamp_lightening",
+      "role": "Separate lighter arm-clamp candidate",
+      "part_ids": [
+        "left_shoulder_roll_clamp_lower",
+        "left_shoulder_roll_clamp_upper",
+        "left_upper_arm_clamp_lower",
+        "left_upper_arm_clamp_upper",
+        "left_forearm_clamp_lower",
+        "left_forearm_clamp_upper",
+        "left_gripper_clamp_lower",
+        "left_gripper_clamp_upper",
+        "right_shoulder_roll_clamp_lower",
+        "right_shoulder_roll_clamp_upper",
+        "right_upper_arm_clamp_lower",
+        "right_upper_arm_clamp_upper",
+        "right_forearm_clamp_lower",
+        "right_forearm_clamp_upper",
+        "right_gripper_clamp_lower",
+        "right_gripper_clamp_upper"
+      ],
+      "evidence": [
+        {
+          "label": "Compare original, recessed and windowed clamps in 3D",
+          "path": "artifacts/arm-material-review-v3/index.html",
+          "status": "partial",
+          "scope": "Uninstalled proposal: selected nominal interface stock preserved; 24.10% material reduction, no strength qualification."
+        },
+        {
+          "label": "Clamp fit, load estimate and physical comparison procedure",
+          "path": "docs/design/clamp-lightening.md",
+          "status": "partial"
+        }
+      ],
+      "limits": [
+        "Selected robot still uses the original clamps. Candidate dynamics and physical verification are not run.",
+        "Combined accounting/material estimate remains above the configured shoulder torque limit."
+      ],
+      "unverified": [
+        "screw preload, case friction and retention",
+        "printed stiffness, fatigue and creep",
+        "exact actuator case interchange",
+        "complete candidate assembly and motion"
+      ]
+    },
+    {
+      "id": "shoulder_passive_assist_study",
+      "role": "Uninstalled passive shoulder mechanism study",
+      "part_ids": [
+        "left_shoulder_roll_housing",
+        "left_shoulder_roll_clamp_lower",
+        "left_shoulder_roll_clamp_upper",
+        "left_shoulder_roll_yoke",
+        "right_shoulder_roll_housing",
+        "right_shoulder_roll_clamp_lower",
+        "right_shoulder_roll_clamp_upper",
+        "right_shoulder_roll_yoke"
+      ],
+      "evidence": [
+        {
+          "label": "Passive assist torque comparison",
+          "path": "artifacts/shoulder-assist-review-v2/index.html",
+          "status": "partial",
+          "scope": "Left shoulder only. Original clamps and reconciled mass models. Static task targets and an unqualified joint-limit grid; no dynamic task success or spring installation."
+        },
+        {
+          "label": "Spring reservation geometry and physical evaluation",
+          "path": "docs/design/shoulder-assist-study.md",
+          "status": "partial"
+        }
+      ],
+      "limits": [
+        "0.4 Nm is a configured model cap, not measured C018 capability.",
+        "Right-arm mirrored mechanism, spring/bracket mass and production cost are unqualified."
+      ],
+      "unverified": [
+        "spring SKU and measured torque curve",
+        "mounted anchors, fasteners and strength",
+        "whole-body motion and actual servo duty"
+      ]
+    },
+    {
+      "id": "shin_cover_candidate",
+      "role": "Removable printed shin-cover proposal",
+      "part_ids": [
+        "left_shin_spine",
+        "left_shin_yoke",
+        "left_wheel_servo",
+        "left_wheel_clamp_lower",
+        "left_wheel_clamp_upper",
+        "left_wheel_hub",
+        "left_wheel_tire",
+        "right_shin_spine",
+        "right_shin_yoke",
+        "right_wheel_servo",
+        "right_wheel_clamp_lower",
+        "right_wheel_clamp_upper",
+        "right_wheel_hub",
+        "right_wheel_tire"
+      ],
+      "evidence": [
+        {
+          "label": "Compare original and covered robots in 3D",
+          "path": "artifacts/shin-cover-review-v1/index.html",
+          "status": "partial",
+          "scope": "Separate uninstalled geometry. Ten sampled poses, candidate interfaces and bounded service checks; primary CAD/BOM unchanged."
+        },
+        {
+          "label": "Shin mount, mass and production print delta",
+          "path": "docs/design/shin-cover-study.md",
+          "status": "partial"
+        }
+      ],
+      "limits": [
+        "Open back, knee interfaces and wheel relief do not establish full protection.",
+        "No continuous motion, physical strength or added-mass dynamics qualification."
+      ],
+      "unverified": [
+        "print process and retention",
+        "harness and heat",
+        "mass-reserve reconciliation and robot replay",
+        "hardware/assembly cost"
+      ]
+    }
+  ]
+}

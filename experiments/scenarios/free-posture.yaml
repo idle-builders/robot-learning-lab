@@ -1,0 +1,11 @@
+name: free-posture
+fixture: free
+duration_s: 4
+ramp_s: 1
+initial_pitch_rad: 0.03
+floor_friction: 0.8
+tracking_limit_rad: 0.15
+tilt_limit_rad: 0.35
+minimum_height_fraction: 0.7
+# Deliberately just position holding, not a hidden balance/walking controller.
+targets_rad: {}

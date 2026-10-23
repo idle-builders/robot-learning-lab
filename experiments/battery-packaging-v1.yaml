@@ -1,0 +1,37 @@
+schema_version: 1
+scope: Uninstalled battery envelopes against retained covered Pip/Scout assemblies
+position_torso_mm: [8, 0, 39]
+clearance_allowance_mm: 1.0
+cases:
+  - id: original-allocation
+    dimensions_torso_mm: [64, 74, 24]
+    evidence: Existing unquoted protected 3S1P packaging allocation; not an available SKU
+  - id: rrc2040-crosswise
+    dimensions_torso_mm: [59.04, 85.12, 22.39]
+    evidence: RRC2040 maximum datasheet body dimensions, long axis across torso
+  - id: rrc2040-lengthwise
+    dimensions_torso_mm: [85.12, 59.04, 22.39]
+    evidence: Same maximum body dimensions, long axis front to rear
+candidates:
+  - id: RRC2040
+    source: https://www.rrc-ps.com/fileadmin/Dokumente/Data-Sheets/DS_RRC2040.pdf
+    nominal_voltage_v: 10.8
+    full_charge_voltage_v: 12.6
+    nominal_energy_wh: 36.20
+    maximum_discharge_a: 4.0
+    maximum_dimensions_mm: [85.12, 59.04, 22.39]
+    mass_g: 170
+    volume_price_usd: null
+    use: Geometry benchmark; does not cover the simultaneous rated-current sizing case
+  - id: NC3040QE29
+    source: https://inspired-energy.com/products/details/3/256-nc3040qe29
+    nominal_voltage_v: 10.8
+    published_energy_wh: 30
+    published_current_a: 8.0
+    published_power_w: 60
+    listed_dimensions_mm: [85.1, 59.02, 22.4]
+    dimension_tolerances: null
+    retail_price_usd: 123.07
+    retail_quantity_range: [1, 11]
+    volume_price_usd: null
+    use: Higher-current alternative requiring its detailed discharge curve, tolerances and integration specification

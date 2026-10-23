@@ -1,0 +1,37 @@
+{
+  "schema": "robot-learning-lab.current-shell.v1",
+  "id": "cove-50-sculpted-shell-v0.1",
+  "name": "Cove-50 Sculpted Shell v0.1",
+  "selected_on": "2026-10-08",
+  "status": "provisional_visual_simulation_shell",
+  "frame_design_id": "cove-50-direct-frame",
+  "frame_selection_sha256": "c0d7dc5c4e8b71d8003d42676e02a530c64abdec5536a6962bd97787514de219",
+  "evidence": {
+    "report": {
+      "path": "artifacts/ape-frame50-cove-shell-v10/report.json",
+      "sha256": "6d71797cda68eb66b8322417193715add9912ae75b070bc304d1d2f9d92014f1"
+    },
+    "visual_body": {
+      "path": "artifacts/ape-frame50-cove-shell-v10/cove50-shell-visual.xml",
+      "sha256": "fb203139ea5123bd280dbd4b7a0ee6f308d076070dc743ffdfc6c5cab163845a"
+    },
+    "neutral_cad": {
+      "path": "artifacts/ape-frame50-cove-shell-v10/cove50-shell-neutral.step",
+      "sha256": "b2d2e6a4befbb4851c106ed3f9cced0ab1b4d00ff7b6b9ae16d4e480ac2314d6"
+    },
+    "motion_screen": {
+      "path": "artifacts/ape-frame50-cove-shell-v10/motion-screen.json",
+      "sha256": "bd862c76714c76b6fd6039743eccfa47ee56dfc00c97bc903703361e8f456a38"
+    },
+    "walk_video": {
+      "path": "artifacts/ape-frame50-cove-shell-v10/shell-walk.mp4",
+      "sha256": "315f009cb75f2be6e7322321be0c5703c7202c43e72636b3be567a6cd4dbb345"
+    }
+  },
+  "store_pointer": "experiments/compact_morphology/ape_frame50/cove-shell-v10_local-store.json",
+  "qualification_limits": [
+    "Visual-only shell geoms do not change mass, contacts or learned policy.",
+    "Five standing rigid-panel overlaps and 28 motor/shell intersections remain.",
+    "Dark joint envelopes have no validated flexible material model."
+  ]
+}

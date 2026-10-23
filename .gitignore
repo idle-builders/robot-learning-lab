@@ -1,0 +1,71 @@
+.venv*/
+.tools/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+artifacts/
+electronics/.ato/
+electronics/build/
+.DS_Store
+# Required artifact content; back up with artifacts/, never treat as disposable cache.
+.artifact-store/
+
+# Credentials and machine-specific archive configuration never belong in Git.
+.env
+.env.*
+!.env.example
+!.env.*.example
+.credentials/
+*.pem
+*.key
+/data/private-archive.json
+/publication/audits/
+/publication/exports/
+
+# Caches, logs and scratch output
+.cache/
+.flash/
+.ruff_cache/
+tmp/
+# Default working-directory outputs from MuJoCo and slicer tools.
+/MUJOCO_LOG.TXT
+/result.json
+/settings.json
+# Large data and generated study assets live in the private blob archive.
+/assets/real_indoor_scenes/
+/data/results.sqlite*
+/data/blob-store.sqlite*
+/studies/**/*.step
+/studies/**/*.stp
+/studies/**/*.stl
+/studies/**/*.glb
+/studies/**/*.gltf
+/studies/**/*.brep
+/studies/**/*.npz
+/studies/**/*.npy
+/studies/**/*.zip
+/studies/**/*.pdf
+/studies/**/*.png
+/studies/**/*.jpg
+/studies/**/*.jpeg
+/studies/**/*.webp
+/studies/**/*.mp4
+/studies/**/*.webm
+/studies/**/*.rrd
+/studies/**/*.msh
+/studies/**/*.xplt
+/studies/**/*.feb
+/studies/**/*.ply
+/studies/**/*.3mf
+/studies/**/*.svg
+/studies/**/*.html
+/studies/**/output/
+/studies/**/outputs/
+/studies/**/traces/
+/studies/**/snapshots/
+assets/vendor-motors/*.step
+
+# Large generated catalog data is recovered from the private archive.
+/studies/cove50-actuators/final-gallery/concepts.csv
+/studies/cove50-actuators/final-gallery/gallery.json
+/studies/cove50-actuators/final-gallery/studies.csv

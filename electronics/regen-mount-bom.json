@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "status": "candidate_quantities_only_not_order_release",
+  "date": "2026-09-21",
+  "scope": "One removable tray hypothesis; no installed robot BOM change",
+  "entries": [
+    {
+      "part": "Printed tray",
+      "quantity": 1,
+      "source": "electronics/regen-mount.yaml",
+      "material": "Unselected for powered service; X1 PETG reference may be used only for unpowered dimensional specimens",
+      "unit_price": null
+    },
+    {
+      "part": "M2 x 6 socket cap screw",
+      "quantity": 3,
+      "candidate": "PTS A9120206",
+      "source": "https://www.pts-uk.com/products/socket-screws/socket-cap-screws/metric-a2/a9120206",
+      "material": "A2 stainless",
+      "unit_tiers_gbp_ex_vat": [
+        [
+          500,
+          0.053
+        ],
+        [
+          1000,
+          0.0504
+        ],
+        [
+          2000,
+          0.0478
+        ],
+        [
+          5000,
+          0.0454
+        ],
+        [
+          10000,
+          0.0426
+        ]
+      ],
+      "order_minimum": 500,
+      "order_multiple": 500,
+      "prototype_note": "Published supplier pack is excessive for three screws; a small-pack exact equivalent remains to select. Do not interpret the unit price as a three-piece offer.",
+      "previous_observation_unit_tiers_gbp_ex_vat": [
+        [
+          500,
+          0.0601
+        ],
+        [
+          1000,
+          0.0571
+        ],
+        [
+          2000,
+          0.0542
+        ],
+        [
+          5000,
+          0.0515
+        ],
+        [
+          10000,
+          0.0484
+        ]
+      ],
+      "price_refresh_note": "Reopened supplier page on 2026-09-21: tiers differ from the earlier retrieval. Use this later observation; retain original cost artifact separately. Public price, not quote."
+    },
+    {
+      "part": "M2 x 12 socket cap screw",
+      "quantity": 2,
+      "candidate": "Vital Parts HSC912-M2-12-A4",
+      "source": "https://www.vital-parts.co.uk/socket-cap-screws-din-912/13081-hsc912-m2-12-a4",
+      "material": "A4 stainless",
+      "unit_tiers_gbp_ex_vat": [
+        [
+          1,
+          0.04
+        ],
+        [
+          1000,
+          0.03
+        ],
+        [
+          5000,
+          0.03
+        ]
+      ]
+    },
+    {
+      "part": "M2 DIN 934 hex nut",
+      "quantity": 5,
+      "candidate": "Vital Parts HN934-M2-A4",
+      "source": "https://www.vital-parts.co.uk/full-hex-nuts-din-934/12578-hn934-m2-a4",
+      "material": "A4 stainless",
+      "unit_tiers_gbp_ex_vat": [
+        [
+          1,
+          0.06
+        ],
+        [
+          100,
+          0.03
+        ],
+        [
+          1000,
+          0.03
+        ],
+        [
+          10000,
+          0.03
+        ]
+      ],
+      "height_note": "Use the specification table's 1.60 mm and PTS DIN934 dimension-table cross-reference. The marketing text inconsistently says 1 mm; verify received parts."
+    }
+  ],
+  "geometry_sources": {
+    "screw_head_and_drive": "PTS A9120206 dimension table: M2 pitch 0.4, head max 3.8 x 2.0 mm, 1.5 mm hex",
+    "nut_dimensions": "Vital specification table AF4.0 x 1.60 mm; PTS DIN934 table gives M2 AF3.82-4.00, height1.35-1.60",
+    "nut_cross_reference": "https://www.pts-uk.com/products/nuts/hexagon-full-nuts/metric-a2/A93420"
+  },
+  "price_boundary": "Public quantity tiers, not a binding quote or supply commitment. Volume uses actual fastener quantities: 3/2/5 per robot. No exchange conversion, VAT, freight, tray production, assembly or testing included.",
+  "excluded": [
+    "Pololu module and capacitor already have separate bench proposals",
+    "Capacitor restraint and harness",
+    "Thermal interface and strain relief",
+    "Crossbeam modification and physical qualification"
+  ]
+}

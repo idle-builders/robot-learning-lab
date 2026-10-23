@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "part_id": "pololu-3771",
+  "status": "supplier_reference_not_installed",
+  "frame": "Supplier STEP millimetres, board underside Z=0, top copper plane Z=1.5748",
+  "pinout_source": "https://a.pololu-files.com/picture/0J9549.1200.jpg?5d22984cfdd858af14f956fb540d0e8e",
+  "pinout_evidence": "Manufacturer fixed-version pinout inspected visually in browser; hole locations checked in vendor STEP. Physical polarity verification not_run.",
+  "ports": [
+    {"name": "VIN", "net": "MOTOR_BUS_AFTER_DISCONNECT", "center_mm": [2.3622, 12.659589, 1.5748], "hole_diameter_mm": 2.1844},
+    {"name": "GND", "net": "MOTOR_RETURN", "center_mm": [2.3622, 7.659599, 1.5748], "hole_diameter_mm": 2.1844}
+  ],
+  "connection_style": "Parallel shunt branch; no series motor-current path through this module",
+  "unconnected_options": ["external resistor pads", "external voltage-adjust potentiometer pads"],
+  "harness_status": "Wire, connector, strain relief, routing and current/temperature qualification unselected",
+  "quantity_proposal": {"initial_shared_bench": 1, "installed_pip": 0, "installed_scout": 0},
+  "production_status": "Not added to either robot or production estimate; supersede part of the aggregate power allowance if later adopted, do not double count"
+}

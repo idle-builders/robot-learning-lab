@@ -1,0 +1,10 @@
+schema_version: 1
+name: dwarf-concepts
+question: Compare three product silhouettes in the same CAD, control, load and budget workflow.
+cases:
+  - {name: pip, variant: variants/pip.yaml}
+  - {name: moss, variant: variants/moss.yaml}
+  - {name: scout, variant: variants/scout.yaml}
+scenarios:
+  - experiments/scenarios/supported-reach.yaml
+  - experiments/scenarios/free-posture.yaml

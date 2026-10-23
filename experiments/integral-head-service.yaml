@@ -1,0 +1,5 @@
+# Provisional hand-driver envelope, not a sourced tool or torque qualification.
+withdrawal_mm: [0, 3, 8, 20]
+handle_diameter_mm: 12
+handle_length_mm: 70
+handle_start_behind_socket_mm: 31

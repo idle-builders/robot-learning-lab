@@ -1,0 +1,4 @@
+name: companion-wheeled-5000
+morphology: wheeled
+production_units: 5000
+# Only fixed-cost amortization changes. No invented component volume discount.

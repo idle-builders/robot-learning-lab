@@ -1,0 +1,192 @@
+schema_version: 1
+scope: CAD-derived planning mass; materials, component centres and unfinished-part
+  allowances are unmeasured
+profiles:
+- lower
+- nominal
+- upper
+materials:
+  polymer:
+    density_kg_m3:
+    - 1150
+    - 1270
+    - 1350
+    evidence: PETG candidate effective-density planning range; not selected material
+      or print infill
+    source: https://wiki.polymaker.com/polymaker-products/polymaker-filaments/technical-data-at-a-glance
+  aluminum:
+    density_kg_m3:
+    - 2650
+    - 2710
+    - 2850
+    evidence: alloy planning range; nominal 6061 density, alloy/process unselected
+    source: https://www.thyssenkrupp-aerospace.com/en/materials/aluminium-plate/alloy-density-offerings
+  steel:
+    density_kg_m3:
+    - 7700
+    - 7860
+    - 8100
+    evidence: generic steel density range applied to nominal unthreaded fastener envelopes
+    source: https://www.canada.ca/en/conservation-institute/services/conservation-preservation-publications/canadian-conservation-institute-notes/metal-density.html
+  brass:
+    density_kg_m3:
+    - 8300
+    - 8520
+    - 8800
+    evidence: generic brass density range; solid insert envelope omits knurl/thread
+      detail
+    source: https://www.canada.ca/en/conservation-institute/services/conservation-preservation-publications/canadian-conservation-institute-notes/metal-density.html
+  tire:
+    density_kg_m3:
+    - 1050
+    - 1120
+    - 1300
+    evidence: TPU candidate density range; tire process and grade unselected
+    source: https://download.basf.com/p1/8a8081ec96f843480197313c3ec60464/en/Elastollan%25C2%25AE_E_1185_A_10FC000
+role_materials:
+  shell: polymer
+  clamp: polymer
+  clamp_lower: polymer
+  clamp_upper: polymer
+  yoke: polymer
+  adapter: polymer
+  spine: polymer
+  hub: polymer
+  spacer: polymer
+  horn: aluminum
+  screw: steel
+  clamp_hardware: steel
+  hardware: steel
+  tire: tire
+  insert: brass
+part_materials:
+  logic_insert_0: brass
+  logic_insert_1: brass
+  logic_insert_2: brass
+  logic_insert_3: brass
+  imu_insert_0: brass
+  imu_insert_1: brass
+purchased_allocations:
+  carrier:
+    mass_kg:
+    - 0.012
+    - 0.022
+    - 0.035
+    evidence: unweighed populated PCB/Pico/connector assembly; uniform proxy volume
+      distribution
+  logic_board:
+    mass_kg:
+    - 0.005
+    - 0.009
+    - 0.015
+    evidence: unweighed populated buck PCB; uniform proxy volume distribution
+  imu_board:
+    mass_kg:
+    - 0.0015
+    - 0.003
+    - 0.005
+    evidence: unweighed populated IMU PCB/header; uniform proxy volume distribution
+battery:
+  packaging_mass_kg:
+  - 0.025
+  - 0.045
+  - 0.07
+  cell_mass_kg:
+  - 0.045
+  - 0.046
+  - 0.047
+  evidence: nominal cell/pack from power manifest; lower/upper cell and packaging
+    figures are planning assumptions, not supplier tolerances
+reserves:
+  camera_and_face:
+    owners:
+    - head
+    mass_kg:
+    - 0.015
+    - 0.035
+    - 0.065
+    distribution: first_visual_envelope
+    evidence: unselected camera, expression parts and head harness; excludes already-counted
+      head shell
+  neck_cover_and_wire:
+    owners:
+    - neck_yaw
+    mass_kg:
+    - 0.008
+    - 0.015
+    - 0.03
+    distribution: first_visual_envelope
+    evidence: unfinished upper-neck protection and wiring; excludes explicit fixed
+      lower-neck collar and its mounting hardware
+  arm_covers_and_wire:
+    owners:
+    - left_shoulder_roll
+    - right_shoulder_roll
+    - left_upper_arm
+    - right_upper_arm
+    - left_forearm
+    - right_forearm
+    mass_kg:
+    - 0.012
+    - 0.023
+    - 0.04
+    distribution: first_visual_envelope
+    evidence: per-link allowance for unfinished arm covers/wires, in addition to detailed
+      clamps and spines
+  leg_covers_and_wire:
+    owners:
+    - left_thigh
+    - right_thigh
+    - left_shin
+    - right_shin
+    mass_kg:
+    - 0.015
+    - 0.028
+    - 0.045
+    distribution: first_visual_envelope
+    evidence: per-link allowance for unfinished leg covers and harness
+  finger_pads_and_retention:
+    owners:
+    - left_gripper
+    - right_gripper
+    mass_kg:
+    - 0.002
+    - 0.004
+    - 0.008
+    distribution: first_visual_envelope
+    evidence: unselected pads and remaining finger retention
+  wheel_retention:
+    owners:
+    - left_wheel
+    - right_wheel
+    mass_kg:
+    - 0.002
+    - 0.004
+    - 0.008
+    distribution: first_visual_envelope
+    evidence: remaining wheel retention; detailed hub/tire/horn counted separately
+  torso_power_harness_retention:
+    owners:
+    - torso
+    mass_kg:
+    - 0.04
+    - 0.09
+    - 0.18
+    distribution: first_visual_envelope
+    evidence: unselected protection/stop/charging interface, wire harness and battery
+      retention; excludes mounted boards and pack packaging
+limitations:
+- Profiles jointly choose all low/nominal/high inputs; they are not statistical confidence
+  bounds or an exhaustive COM/uncertainty search.
+- Actuator catalogue mass is assigned to the housing proxy at its CAD volume centroid.
+  Internal motor/gear distribution and rotor inertia are unknown.
+- Published actuator accessory inclusion is unresolved. External horn CAD is counted
+  separately and may overlap the vendor mass scope; the possible overlap remains explicit.
+- Polymer solids use effective-density assumptions, not a selected material, strength
+  qualification or slicer-derived infill.
+- Bought assemblies and reserves use uniform proxy distributions; their centres and
+  tensors need measured/component-level data.
+- Reserved missing parts contribute mass but have no qualified physical placement
+  or collision geometry.
+- Collision geometry, joint friction, actuator inner loop and rotor armature retain
+  the existing simulation assumptions.

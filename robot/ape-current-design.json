@@ -1,0 +1,491 @@
+{
+  "schema": "robot-learning-lab.current-design.v1",
+  "id": "cove-50-direct-frame",
+  "name": "Cove-50 Direct Frame",
+  "selected_on": "2026-10-08",
+  "idle_decision": "D-rnrzc4",
+  "status": "rejected_no_selected_mechanical_design",
+  "scope": "Historical rejected global Direct Frame. No complete mechanical robot is selected; accepted section designs are recorded in section_selections, with aesthetic hull retained separately.",
+  "reference_sketch": {
+    "path": "experiments/sketch_ape_shell/reference/sketch.png",
+    "sha256": "ad673d5fe41bd864f8064bb31d1e8db8c5b9b6b3bb88d5803d8c00a318791aab"
+  },
+  "generator": {
+    "path": "experiments/compact_morphology/ape_frame50/direct_skeleton_candidate.py",
+    "sha256": "4d895174183143cb51a63d4a6a2a4ce34b2b340442f65d512a7251f0be302ade",
+    "commit": "2f39a12"
+  },
+  "evidence": {
+    "artifact_root": "artifacts/ape-frame50-direct-skeleton",
+    "report": "artifacts/ape-frame50-direct-skeleton/report.json",
+    "report_sha256": "02bfa9f7f67cb60d73868a46a00dc2300b095dc15b8106ebe03daac892dec291",
+    "visual_body": "artifacts/ape-frame50-direct-skeleton/ape-frame50-direct-visual.xml",
+    "visual_body_sha256": "9b546efa9ebe04c3a06ea63dadb315158765af7eea9b693fb751de24a8359eb5",
+    "store_pointer": "experiments/compact_morphology/ape_frame50/direct-skeleton_local-store.json",
+    "store_manifest_sha256": "f9e5c15805a1a1cf55c65bfa6ef4e098095c42c7e48f3659434d5e9ae74bad65"
+  },
+  "physics": {
+    "source_body": "artifacts/ape-frame50-supported-body/ape-frame50-hip-contact-extended.xml",
+    "source_body_sha256": "db439c07bfdc63e4cf8709ebc971c94d7a89039ba357f8296f599facdf6bb223",
+    "match_status": "not_yet_transferred_to_selected_frame"
+  },
+  "qualification_limits": [
+    "The articulated viewer replays saved joint states; it is not a fresh policy rollout on this frame's mass and contacts.",
+    "Motor cases clear the 400 saved poses, but full moving-part clearance and buildable fastening/support are unqualified.",
+    "Hip and knee rated torque may be inadequate; motor impedance, thermal duty and physical behavior remain unmeasured."
+  ],
+  "selected_design_id": null,
+  "rejected_on": "2026-10-10",
+  "rejection_decision": "D-sznrsa",
+  "active_campaign": "studies/cove50-morphology/PLAN.md",
+  "historical_pointer": "studies/cove50-morphology/datum/rejected-design-pointer.json",
+  "section_selections": {
+    "Hip": {
+      "schema": "robot-learning-lab.section-selection.v1",
+      "section": "Hip",
+      "study_id": "hip-direct-serial-low-roll",
+      "result_id": "hip-direct-serial-low-roll:r3-rear-mount-lower-yaw-20261021",
+      "version": "r3-rear-mount-lower-yaw-20261021",
+      "selected_on": "2026-10-21",
+      "status": "user_desired_design_round",
+      "user_statement": "Alright that looks great lets look in r3 as the desired version. make sure all artifacts are commited and uploaded. Then finish the review for the task and mark the task as done.",
+      "idle_decision": "M-6hcvnd",
+      "scope": "Bilateral hip only. Accepted desired CAD and appearance for this design round; physical build and loaded operation remain unqualified.",
+      "source": {
+        "build": {
+          "path": "studies/cove50-engineering-competition/hip-body-first-20261020/rear-mount-r3/build.py",
+          "sha256": "5b770c785d8b8547c50a858f92073e4abcce3ac6885074301f97825a94d8c2fc"
+        },
+        "frames": {
+          "path": "studies/cove50-engineering-competition/hip-body-first-20261020/rear-mount-r3/frames.py",
+          "sha256": "bc0b7d402ce67228047cd91d6dc3e4da8390d0d9a680eb8ac9a9f76f21541b33"
+        }
+      },
+      "publication": {
+        "path": "artifacts/cove50-engineering-competition/hip-body-first-20261020/publication-rear-mount-r3/publication.json",
+        "sha256": "02a251e1933f92cdd2d193dab4fa03d0dc3b401d7e3ff3be8c155fca2fdc298d"
+      },
+      "qualification_limits": "Engineering iteration, not a build release. Requires explicit planning-bay change Z250..370\u2192258..378; no actual battery/compute selected. Thin dogleg/root and relieved bridge sections need structural work. Sampled commands leave visible/source-room mismatches, especially negative flexion; no continuous body travel claim. Invalid supplier case2 and unusable case5 room booleans remain separately bounded. ExactC047 rear threads/accessory revision, receiving torso/leg mates, wire routing, preload, print tolerances and loaded duty remain unqualified.",
+      "planning_bay": "Proposed unselected40x50x120mm bay is8mm higher, Z258..378; no real electronics selection/fit qualification.",
+      "dashboard_url": "http://127.0.0.1:8805/design/?result=hip-direct-serial-low-roll:r3-rear-mount-lower-yaw-20261021&section=Hip&group=hip-direct-serial-low-roll"
+    },
+    "Neck / head": {
+      "schema": "robot-learning-lab.section-selection.v1",
+      "section": "Neck / head",
+      "name": "Direct serial neck",
+      "study_id": "neck-double-moving-case-C-20261021",
+      "result_id": "neck-double-moving-case-C-20261021-r3",
+      "version": "r3",
+      "mechanical_source_version": "r2",
+      "selected_on": "2026-10-21",
+      "status": "user_final_design_solution",
+      "user_statement": "yeah perfect thats exactly the design we need. mark this as the final solution. make sure to commit everything and then go through the task review and mark the task as done.",
+      "idle_decision": "M-9k9y2b",
+      "scope": "Final neck design solution selected by the user for this design round. Concludes design exploration; does not assert fabrication, loaded mechanical or learned-control qualification.",
+      "source": {
+        "mechanical_STEP": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/r2/assembly.step",
+          "sha256": "26c81154c159cc7801f44c2ba857544449e836c975f83d5a025061dda5710071"
+        },
+        "inspection_GLB": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/r3-inspection/assembly.glb",
+          "sha256": "44bbed4f299c95eaaa82980c47f827430212ae3fc0598787a2c6041bfdecb691"
+        },
+        "inspection_manifest": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/r3-inspection/motion-manifest.json",
+          "sha256": "da33aea4c599bb283cf81f2e2a28dd13ea1baf82247df2f0886d13bd183530d9"
+        },
+        "native_report": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/r2/native-report-final.json",
+          "sha256": "367c0f47613a79141b834aa6b8b0e63d6f8c03572d7593483b8dd58f98090ab5"
+        },
+        "independent_review": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/lead/review-r2/review.md",
+          "sha256": "7b81b0109c37acb22db97feac77e8f3e2a3a11081ab17c71234a4a832f3c6da2"
+        },
+        "BOM": {
+          "path": "artifacts/cove50-engineering-competition/neck-studio/minimal-serial-20261021/r3-inspection/planning-bom.json",
+          "sha256": "800dd1917e729cff8d30133054a0eae7bf72d67155d07117b40c9e91e0ac6c3d"
+        }
+      },
+      "publication": {
+        "path": "studies/cove50-engineering-competition/neck-studio/finalize-20261021/accepted-r3-publication.json",
+        "sha256": "5bdd14f9f5596bea2ecd6d6c7b5416eb2dfa98589802463e8758daa0f61b8b90"
+      },
+      "acceptance": {
+        "path": "studies/cove50-engineering-competition/neck-studio/finalize-20261021/acceptance.json",
+        "sha256": "038f889edcfc593683edf88ff1b41df5ce8ab997d401711ed8b11c80a4a60a68"
+      },
+      "qualification_limits": "The front camera window, large torso neck recess, underside service opening and side/rear tool bores are user-accepted design/appearance choices for this round; service performance remains unqualified. The49-pose mesh trace records four provisional-range head/torso contacts of1.3\u201347.2mm\u00b3 at intermediate or corner combinations; independent native follow-up at the largest mesh-contact pose measures58.654mm\u00b3 actual overlap. Exact source-native corner clearance does not establish continuous motion or manufacturing tolerance. Local1.6mm printed case-screw seats and two-screw interfaces need preload/creep, pullout, prying and loaded gaze-stiffness evidence. Servo output radial/moment capacities and thermal duty are unqualified. Optical vignetting, heat, USB/TTL routing, stops and torso-to-waist attachment remain unresolved. Extra upward pitch\u221255\u00b0 is sensitivity evidence only. Consult the exact native and independent reports for remaining measured contacts and access limitations.",
+      "dashboard_url": "http://127.0.0.1:8805/design/?result=neck-double-moving-case-C-20261021-r3&section=Neck+%2F+head&group=neck-double-moving-case-C-20261021"
+    },
+    "Ankle / foot": {
+      "schema": "robot-learning-lab.section-selection.v1",
+      "section": "Ankle / foot",
+      "name": "Direct foot mount \u00b7 foot-fixed roll",
+      "study_id": "cove50-ankle-foot-fixed-roll",
+      "result_id": "cove50-ankle-foot-fixed-roll-r4",
+      "version": "r4",
+      "selected_on": "2026-10-21",
+      "status": "user_designated_ankle_design",
+      "user_statement": "Amazing that looks great lets lock that in as the designated ankle design. Please make sure to commit and upload all results. Then perform the review for the task and put it to done.",
+      "idle_decision": "M-g26gxz",
+      "scope": "User-designated final ankle design and appearance for this design round. Concludes ankle design exploration; physical build, installed support/duty and learned-control qualification remain separate.",
+      "source": {
+        "mechanical_STEP": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/direct-sole/final/assembly-neutral.step",
+          "sha256": "15af53948a7870b3c16edc660cccb25a6aeba2ef6a18c09b52c4e908200e45cc"
+        },
+        "inspection_GLB": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/direct-sole/final/neutral-with-shell-reference.glb",
+          "sha256": "92e8a9b60c280609896314e3c9df49da6aef743408841a8ac738d1cb1a0e711c"
+        },
+        "inspection_manifest": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/direct-sole/final/parts.json",
+          "sha256": "e7c4928d5658dbaba69697c4993bf2aeacaf6c293a2a96edd074f0dfe43aef17"
+        },
+        "native_report": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/direct-sole/final/report.json",
+          "sha256": "aeb33c763f20704cc3a91392687a3c3f466805e46f86825e1397e85ee5563ef2"
+        },
+        "independent_review": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/review/native-v1/report.md",
+          "sha256": "9cd5b18f960b91fbc2e2a16fba95192b5cd0f2c402fa53fcf0255c9a584a4c5f"
+        },
+        "BOM": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/direct-sole/final/bom.json",
+          "sha256": "568705f555254756459fd7ac2752a153fea0e07efa845ee782405184b75e4078"
+        },
+        "canonical_association": {
+          "path": "artifacts/cove50-engineering-competition/ankle-studio/narrow-round27/lead/publication-association.json",
+          "sha256": "2e604501b4ccdf7c339f0f5a829bfe9f19e35ea0c4a7218b23c99a7489ec3da8"
+        }
+      },
+      "publication": {
+        "path": "studies/cove50-engineering-competition/ankle-studio/finalize-20261021/accepted-r4-publication.json",
+        "sha256": "618d1aa889edc6e558ac04188ec0ca331c4af9f85c2080d9e4d27468f4e148e3"
+      },
+      "acceptance": {
+        "path": "studies/cove50-engineering-competition/ankle-studio/finalize-20261021/acceptance.json",
+        "sha256": "a6af26350e833b22cf8f053a2ee426a5d8ed70b14874a26d80411ebbf0202c06"
+      },
+      "qualification_limits": "Direct case attachment is a packaging and fixture iteration. Actual clamping, thread stripping, case/sole bending, pad attachment, harness and motor duty remain unvalidated. The retained direct horn coupler still has thin countersink seats. Finite geometry does not establish continuous or loaded clearance. The inherited horn countersink seats (0.6/1.1 mm bore-wall residual), small end-biased case bolt group, generic screw products/preload/thread strength, motor bearings/duty, pad removal/attachment, harness and physical body/contact motion remain unqualified. No fabrication, loaded-operation or learned-control release is inferred.",
+      "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-ankle-foot-fixed-roll-r4&section=Ankle+%2F+foot&group=cove50-ankle-foot-fixed-roll",
+      "connected_assembly_actuator_override": {
+        "schema": "robot-learning-lab.integration-actuator-override.v1",
+        "status": "user_authorized_continuous_CAD_profile_refinement",
+        "version": "v15",
+        "result_id": "cove50-simple-sheet-leg-chains-v15",
+        "study_id": "cove50-simple-sheet-leg-chains",
+        "task": "T-8zt3ff",
+        "idle_decision": "M-cfvzyh",
+        "actuator_decision": "M-ba6ep7",
+        "user_statement": "Adjust cutout spaces that make no sense; reduce sharp corners through more continuous parts, as shown in five annotated images.",
+        "scope": "Connected lower-body CAD profiles/openings only. No global robot or physics selection.",
+        "allocation": {
+          "C047": 12,
+          "XM335_T323_T": 0
+        },
+        "source": {
+          "mechanical_STEP": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/bilateral-continuous-neutral.step",
+            "sha256": "b2ab3791ae22ffcf964f5cfb33baedbb310a62fa34ad05e991843d7782f1ba32"
+          },
+          "inspection_manifest": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/parts.json",
+            "sha256": "3c6daf65cf35a02150d0a1ec4306ddacbb43e32de81c3fc4f89b7dd02035f120"
+          },
+          "inspection_GLB": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/assembly-with-full-shell.glb",
+            "sha256": "60bd0cb69a52dd77212d0d8af73a488cf4db212c42f212363ded73ef9edb7809"
+          },
+          "native_observations": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/finite-pose-report.json",
+            "sha256": "b2a674da11efb4965262ab293d7a9ec83020a275a5a322ba6562fddc52448854"
+          },
+          "contour_evidence": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/author-checklist.json",
+            "sha256": "b2e1e59963f49d8415f9a3b762ad4e275623f459ebd804ecb7b59f6449debf1e"
+          },
+          "manufacturing": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/manufacturing-selection.json",
+            "sha256": "7eebd226eb7c1a3899e0676101808fddbb917653ee65a4286ca2727ce24bb6e5"
+          },
+          "independent_review": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/continuous-contours-v15/independent-review/independent-review.json",
+            "sha256": "5a68a291ccfe849deb4bd3ec9b3bbe8790bfd4294a71166135c0bf866432b12a"
+          }
+        },
+        "previous_override": {
+          "schema": "robot-learning-lab.integration-actuator-override.v1",
+          "status": "user_authorized_CAD_contour_refinement",
+          "version": "v14",
+          "result_id": "cove50-simple-sheet-leg-chains-v14",
+          "study_id": "cove50-simple-sheet-leg-chains",
+          "task": "T-8zt3ff",
+          "idle_decision": "M-sp635h",
+          "actuator_decision": "M-ba6ep7",
+          "user_statement": "Round sharp corners across all pieces without increasing manufacturing complexity.",
+          "scope": "Connected lower-body contour detail only. Original standalone ankle and global robot selection remain distinct.",
+          "allocation": {
+            "C047": 12,
+            "XM335_T323_T": 0
+          },
+          "source": {
+            "mechanical_STEP": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/bilateral-continuous-neutral.step",
+              "sha256": "2c7c16619e9bd968121d4203c81f6b9a5d7f0b032b7fb44772d5f853aa1b4bec"
+            },
+            "inspection_manifest": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/parts.json",
+              "sha256": "65c145f42e8240055614fc4d431de2223a7b8cae5ef24fb4ed9c1ac27c72d3bb"
+            },
+            "inspection_GLB": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/assembly-with-full-shell.glb",
+              "sha256": "1874cfcd40faeeb6eb1833a7e0d03d852177b590c89cbc2eb8fe0c58935adf17"
+            },
+            "native_observations": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/finite-pose-report.json",
+              "sha256": "25c93185c9da8aacf43b72f76ab75341390782136e3c464a35590d403eee56bc"
+            },
+            "contour_evidence": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/edge-rounding-v14/author-checklist.json",
+              "sha256": "7379eb1efdd93eeba8a67eb8a98cd300509ade71f7ff9efd70c4ba51632b55e1"
+            },
+            "finishing": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/edge-rounding-v14/finishing-spec.json",
+              "sha256": "0307a4f1360a59fc7f2e40453f006acd0173424c98adccfc3fbb8c6d707c8466"
+            },
+            "manufacturing": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/edge-rounding-v14/manufacturing/final-r1/handoff.json",
+              "sha256": "89909c8551e2b8da20f30e08d6bebb9902ec35632878e53b6513375cb65adac3"
+            }
+          },
+          "previous_override": {
+            "schema": "robot-learning-lab.integration-actuator-override.v1",
+            "status": "user_authorized_CAD_actuator_change",
+            "version": "v13",
+            "result_id": "cove50-simple-sheet-leg-chains-v13",
+            "study_id": "cove50-simple-sheet-leg-chains",
+            "idle_decision": "M-ba6ep7",
+            "task": "T-8zt3ff",
+            "user_statement": "if you already did it continue and directly fix the foot motor as well",
+            "scope": "Connected Hip/Knee/Ankle CAD only. Twelve C047 allocations include both properly clocked foot-roll motors. Original standalone ankle selection and previous connected versions remain provenance; no whole-body selection.",
+            "allocation": {
+              "C047": 12,
+              "XM335_T323_T": 0
+            },
+            "source": {
+              "mechanical_STEP": {
+                "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/bilateral-continuous-neutral.step",
+                "sha256": "9cb6d3e13a912f7919b5c041ac6c97a57186439d5493080e6f8d6c4cdc95d784"
+              },
+              "inspection_manifest": {
+                "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/parts.json",
+                "sha256": "9ef9b0ca74a8d305371ab156c4539df6521e7af541b829f50f7a8d5f88fcd202"
+              },
+              "inspection_GLB": {
+                "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/assembly-with-full-shell.glb",
+                "sha256": "dbf0370bb6019fc7cba009269e2b484e4767cb76b0cc66de91cb4049af9e2fab"
+              },
+              "native_observations": {
+                "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/finite-pose-report.json",
+                "sha256": "6557cdc71b44245ed538dddfa94f02b5b69b1f17283899622ff8bb0a7599a4ac"
+              }
+            },
+            "previous_override": {
+              "schema": "robot-learning-lab.integration-actuator-override.v1",
+              "status": "user_authorized_CAD_actuator_change",
+              "version": "v12",
+              "result_id": "cove50-simple-sheet-leg-chains-v12",
+              "study_id": "cove50-simple-sheet-leg-chains",
+              "idle_decision": "M-jdqzzf",
+              "task": "T-8zt3ff",
+              "user_statement": "so lets switch the motor",
+              "scope": "Connected Hip/Knee/Ankle integration only: both ankle pitch positions now target the same exact Feetech 12 V ST-3215-C047 as Hip/Knee. Retain XM335 foot roll. Original standalone selected ankle remains provenance; this explicit integration override takes precedence for connected V12 CAD.",
+              "allocation": {
+                "C047": 10,
+                "XM335_T323_T": 2
+              },
+              "source": {
+                "mechanical_STEP": {
+                  "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/bilateral-continuous-neutral.step",
+                  "sha256": "49b3e839c5295581d4158da00185dd949ac438a1703af8e4f1bececa7d6a8f3e"
+                },
+                "inspection_manifest": {
+                  "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/parts.json",
+                  "sha256": "e3c07faf70ad1b5266ab8ca53326f6a668eb081268dbc815aedcf5181c07b5cf"
+                },
+                "inspection_GLB": {
+                  "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/assembly-with-full-shell.glb",
+                  "sha256": "fc85ec4a5efa53c9a77b0675c8409a9cf706f9bd0c371d3edb070fd454a49413"
+                },
+                "native_observations": {
+                  "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/finite-pose-report.json",
+                  "sha256": "76e1b2a3f2bacdd1746ca5a778dcfa0ddd70a9dd8ea3aea6e829440884e65fa6"
+                }
+              },
+              "qualification_limits": "CAD change only. Delivered accessory revision, PA2 receiver retention, structural strength, continuous torque/thermal duty and bench controller calibration remain unqualified. No whole-body mechanical or appearance selection inferred.",
+              "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-simple-sheet-leg-chains-v12&group=cove50-simple-sheet-leg-chains",
+              "geometry_refinement": "User requests broader ankle output links and slimmer plates. C047 choice remains the earlier explicit motor decision; no whole-body selection or physical qualification.",
+              "weighted_study": {
+                "version": "v12",
+                "source_manifest_sha256": "e3c07faf70ad1b5266ab8ca53326f6a668eb081268dbc815aedcf5181c07b5cf",
+                "findings": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/weighted-study-findings.json",
+                "FEM": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/structural-check-v12/weighted-r1/handoff.json",
+                "motor_load": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/motor-load-v12/report.json",
+                "independent_review": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v12/weighted-review-r1/review.json",
+                "working_mass_assumption_kg": 4,
+                "mass_sensitivity_kg": [
+                  3,
+                  4,
+                  5,
+                  6
+                ],
+                "scope": "Conditional local linear FEM and equivalent-static actuator sizing sensitivity. No measured mass, physical weight qualification, fabrication release or global design selection."
+              }
+            },
+            "geometry_refinement": "Inside3 mm top Hip sheet, two-sided2 mm lower Ls with4.2 mm minimum neck. Foot uses two one-bend case Ls and one one-bend output link; upper pitch rises14 mm, new60\u00d786 mm sole. Original53 shell meshes and12 functional controls retained.",
+            "qualification_limits": "Source revision, short-bend tooling, shallow PA2 receiver retention, actual preload/contact, cuff cover adjustment, continuous/loaded clearance and installed motor thermal/gear/bearing duty remain unqualified. Foot raw polarity/zero needs bench calibration. No fabrication release, safe weight, appearance acceptance or global selection.",
+            "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-simple-sheet-leg-chains-v13&group=cove50-simple-sheet-leg-chains",
+            "weighted_study": {
+              "version": "v13",
+              "source_manifest_sha256": "9ef9b0ca74a8d305371ab156c4539df6521e7af541b829f50f7a8d5f88fcd202",
+              "findings": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-study-findings.json",
+              "FEM": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/structural-check-v13/hip-r13-r14/final-r15-toprelief/handoff.json",
+              "motor_load": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/motor-load-v13/report.json",
+              "independent_review": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-review-r3/review.json",
+              "working_mass_assumption_kg": 4,
+              "mass_sensitivity_kg": [
+                3,
+                4,
+                5,
+                6
+              ],
+              "scope": "Conditional local linear FEM and equivalent-static load sensitivity; actual mass, attainable CoM and timed duty unmeasured. Nominal world CoP changes Y\u22124\u21923 mm."
+            }
+          },
+          "geometry_refinement": "206 profile radii across19 produced pieces. Source holes/head lands, functional slots/windows, sheet gauges, bend datums, purchased motor positions,53 shell nodes and12 controls retained. Same contour operations; separate protected deburr specification.",
+          "qualification_limits": "No V14 FEM strength improvement or finished handling qualification. Previous source retention/tooling/cover/continuous-loaded-clearance/motor-duty limitations remain. PriorV13 sizing is historical.",
+          "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-simple-sheet-leg-chains-v14&group=cove50-simple-sheet-leg-chains",
+          "weighted_study": {
+            "version": "v13",
+            "status": "historical_prior_geometry_not_current_V14",
+            "context": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/prior-weighted-context.json",
+              "sha256": "cec9afdace9cb0364130520a87b50fea9f53c11be24d26fe27b05fbf33131ac9"
+            },
+            "prior": {
+              "version": "v13",
+              "source_manifest_sha256": "9ef9b0ca74a8d305371ab156c4539df6521e7af541b829f50f7a8d5f88fcd202",
+              "findings": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-study-findings.json",
+              "FEM": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/structural-check-v13/hip-r13-r14/final-r15-toprelief/handoff.json",
+              "motor_load": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/motor-load-v13/report.json",
+              "independent_review": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-review-r3/review.json",
+              "working_mass_assumption_kg": 4,
+              "mass_sensitivity_kg": [
+                3,
+                4,
+                5,
+                6
+              ],
+              "scope": "Conditional local linear FEM and equivalent-static load sensitivity; actual mass, attainable CoM and timed duty unmeasured. Nominal world CoP changes Y\u22124\u21923 mm."
+            }
+          }
+        },
+        "geometry_refinement": "Actual Hip/green-knee and yellow-ankle profiles redrawn into broader/tapered transitions and purposeful cutouts. Required mounting and motor/tool/loading spaces retained. Source gauges and straight bend axes/radii retained; existing bend length may extend. Twelve purchased actuators/controls and53 shell nodes unchanged.",
+        "qualification_limits": "Physical retention, tooling/tolerance, CAM, edge finish, covers, continuous/loaded clearance and installed actuator duty remain unqualified. No currentV15 FEM or structural strength gain claimed.",
+        "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-simple-sheet-leg-chains-v15&group=cove50-simple-sheet-leg-chains",
+        "weighted_study": {
+          "version": "v13",
+          "status": "historical_prior_geometry_not_current_V15",
+          "context": {
+            "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v15/prior-weighted-context.json",
+            "sha256": "dadfcc28003e096606aa429a5a9d24c9651d3e09d91fc8215c0a43306eab81f1"
+          },
+          "prior": {
+            "version": "v13",
+            "status": "historical_prior_geometry_not_current_V14",
+            "context": {
+              "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v14/prior-weighted-context.json",
+              "sha256": "cec9afdace9cb0364130520a87b50fea9f53c11be24d26fe27b05fbf33131ac9"
+            },
+            "prior": {
+              "version": "v13",
+              "source_manifest_sha256": "9ef9b0ca74a8d305371ab156c4539df6521e7af541b829f50f7a8d5f88fcd202",
+              "findings": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-study-findings.json",
+              "FEM": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/structural-check-v13/hip-r13-r14/final-r15-toprelief/handoff.json",
+              "motor_load": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/motor-load-v13/report.json",
+              "independent_review": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v13/weighted-review-r3/review.json",
+              "working_mass_assumption_kg": 4,
+              "mass_sensitivity_kg": [
+                3,
+                4,
+                5,
+                6
+              ],
+              "scope": "Conditional local linear FEM and equivalent-static load sensitivity; actual mass, attainable CoM and timed duty unmeasured. Nominal world CoP changes Y\u22124\u21923 mm."
+            }
+          }
+        }
+      }
+    },
+    "Torso / shell": {
+      "schema": "robot-learning-lab.section-selection.v1",
+      "section": "Torso / shell",
+      "name": "Bent-aluminium upper body",
+      "study_id": "cove50-bent-aluminium-upper-body",
+      "result_id": "cove50-bent-aluminium-upper-body-v5",
+      "version": "v5",
+      "selected_on": "2026-10-23",
+      "status": "user_accepted_design_round",
+      "user_statement": "that looks great please upload and commit everything. that finish review and whatever is needed for the task and mark the task as done.",
+      "idle_decision": "M-fkj7pj",
+      "scope": "Accepted independent torso-up CAD assembly: torso frame, bilateral shoulders/arms and fixed neck-yaw mounting, with existing selected moving neck/head geometry. Concludes this design round; lower assembly and complete-robot selection remain separate.",
+      "robot_sections": [
+        "Torso / shell",
+        "Shoulder",
+        "Elbow",
+        "Neck / head"
+      ],
+      "source": {
+        "mechanical_STEP": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/assembly.step",
+          "sha256": "bd405cca1d00a80c0ed53069a768e6309647b42df648bb96f03b3eaac7a040d1",
+          "bytes": 128629119
+        },
+        "inspection_GLB": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/assembly-with-reference.glb",
+          "sha256": "8dfd2a5a1e7580cff15ffead0bc32058d1a0a4fa31acfa57d73f62a8b7c59b10",
+          "bytes": 88661076
+        },
+        "parts": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/parts.json",
+          "sha256": "5d61fa837bafd7da08ae5c34945ea5d4b26684fe91c58b166c3db8a9e4815729",
+          "bytes": 460640
+        },
+        "report": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/report.json",
+          "sha256": "16c2765985921b8802acec37352e5fa70c316f2cc96330721ca6d618a9e55d86",
+          "bytes": 42407
+        },
+        "source_seal": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/source-seal.json",
+          "sha256": "29bd81367fc2ce9ae9155c3a7c56196e223de8963e64d147c9ac1dcbf577b9ab",
+          "bytes": 1636
+        },
+        "interface": {
+          "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/interface.json",
+          "sha256": "90faadae7e508bd95a1aa3216e7e79c53c6169d6881275335eb5fd4c9a38f397",
+          "bytes": 3713
+        }
+      },
+      "physical_groups": 247,
+      "axes": 10,
+      "represented_mass_g": 920.2754370920117,
+      "separate_neck_yaw_mounting_brackets": 1,
+      "qualification_limits": "Nominal connected two-fold blank and conditional linear FEM. Actual tool/first article, preload/thread/bearing retention, severe support/stall, arm skin-motion envelope and sustained thermal duty remain unqualified. Original skin default; optional neckline proposal unselected. This acceptance is not a fabrication, physical-load or learned-control release.",
+      "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-bent-aluminium-upper-body-v5&group=cove50-bent-aluminium-upper-body"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+schema_version: 1
+scenarios:
+  - name: nominal-load
+    source_voltage_v: 10.8
+    current_a: 8.0
+    expected_within_limits: true
+  - name: low-pack-load
+    source_voltage_v: 9.6
+    current_a: 8.0
+    expected_within_limits: false
+  - name: all-rated
+    source_voltage_v: 10.8
+    actuator_load: rated
+    expected_within_limits: true
+  - name: all-stalled
+    source_voltage_v: 10.8
+    actuator_load: stall
+    expected_within_limits: false
+  - name: full-pack-regen-unprotected
+    source_voltage_v: 12.6
+    current_a: -4.0
+    clamp_enabled: false
+    expected_within_limits: false
+  - name: full-pack-regen-clamped
+    source_voltage_v: 12.6
+    current_a: -4.0
+    expected_within_limits: true
+  - name: disconnected-pack-regen-clamped
+    source_voltage_v: 12.6
+    current_a: -4.0
+    disconnect_source: true
+    expected_within_limits: true
+  - name: excess-regen
+    source_voltage_v: 12.6
+    current_a: -8.0
+    expected_within_limits: false

@@ -1,0 +1,16 @@
+{
+  "U1": "Disconnect",
+  "Q1": "PowerNFET",
+  "Q2": "PowerNFET",
+  "C1": "Cap100n",
+  "C2": "Cap100n",
+  "C3": "Cap100n",
+  "C4": "Cap100n",
+  "R1": "Res97k6",
+  "R2": "Res10k",
+  "R3": "Res100k",
+  "C5": "Cap100n",
+  "R4": "Res100",
+  "C6": "Cap100n",
+  "C7": "Cap100n"
+}

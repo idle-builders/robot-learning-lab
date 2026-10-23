@@ -1,0 +1,28 @@
+schema_version: 1
+status: drawing_based_mechanical_candidate
+source_drawing: docs/design/references/vision/camera-module-3-wide-mechanical-drawing.pdf
+source_sha256: c5f87a9b48d63857fb3d9c0a3deeec797325c56d198c80bcb77a2062e6925b92
+# Dimension-chain interpretation of the official side view; unmeasured.
+pcb_rear_depth_mm: 8.3
+pcb_thickness_mm: 1.12
+rear_component_depth_mm: 12.0
+lens_width_mm: 10.8
+rear_connector_width_mm: 19.61
+rear_connector_height_mm: 5.71
+carrier_front_depth_mm: 12.9
+support_diameter_mm: 4.0
+aperture_diameter_mm: 13.8
+fastener:
+  nominal_thread_mm: 2.0
+  length_mm: 10.0
+  head_diameter_mm: 4.0
+  head_height_mm: 2.0
+  nut_across_flats_mm: 4.0
+  nut_height_mm: 1.6
+  status: candidate_flat_bearing_hardware_with_conservative_head_envelope
+  screw_mpn: Ettinger_001.16.142
+  screw_source: https://www.ettinger.de/en/product-datasheet/d0e4b885b3a315e51c9bd6a7ff1e3924/create
+  screw_nominal_head_diameter_mm: 3.8
+  screw_published_mass_g: 0.3
+  nut_mpn: Ettinger_002.10.011
+  nut_source: https://www.buerklin.com/en/p/ettinger/nuts-washers-rings/002-10-011/14H9388/

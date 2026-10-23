@@ -1,0 +1,41 @@
+# Held-out conditions, not used to select gains. Failures define the current boundary.
+controller:
+  pitch_gain_m_s: 4
+  pitch_rate_gain_m: 0.2
+  position_gain_s_inv: 1
+  velocity_gain: 2.5
+  complementary_tau_s: 0.3
+  wheel_velocity_gain_nm_s: 0.2
+cases:
+  - name: noisy-seed-7
+    gyro_bias_rad_s: 0.005
+    gyro_noise_std_rad_s: 0.003
+    accel_noise_std_m_s2: 0.05
+    seed: 7
+  - name: noisy-seed-99
+    gyro_bias_rad_s: 0.005
+    gyro_noise_std_rad_s: 0.003
+    accel_noise_std_m_s2: 0.05
+    seed: 99
+  - name: reverse-gyro-bias
+    gyro_bias_rad_s: -0.005
+    gyro_noise_std_rad_s: 0.003
+    accel_noise_std_m_s2: 0.05
+    seed: 13
+  - name: combined-uncertainty
+    duration_s: 20
+    mass_scale: 1.2
+    wheel_gain_scale: 0.5
+    floor_friction: 0.3
+    command_delay_ms: 20
+    gyro_noise_std_rad_s: 0.002
+    accel_noise_std_m_s2: 0.03
+    seed: 8
+  - name: delay-40ms
+    command_delay_ms: 40
+  - name: delay-100ms
+    command_delay_ms: 100
+  - name: tilt-0-08rad
+    initial_pitch_rad: 0.08
+  - name: quarter-wheel-response
+    wheel_gain_scale: 0.25

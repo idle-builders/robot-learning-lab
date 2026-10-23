@@ -1,0 +1,34 @@
+# Full-battery counterpart to retained camera-inclusive cold-low case.
+schema_version: 1
+input_range_v:
+- 9.0
+- 12.6
+output_range_v:
+- 4.75
+- 5.25
+nominal_load_a: 1.6
+probe_load_a: 2.6
+reference_range_v:
+- 0.581
+- 0.596
+- 0.611
+switching_frequency_range_hz:
+- 290000
+- 400000
+- 510000
+source_resistance_ohm: 0.1
+solver:
+  method: gear
+  reltol: 0.003
+  maximum_step_s: 1.0e-07
+  timeout_s: 600
+cases:
+- name: vision-cold-high
+  input_v: 12.6
+  load_a: 2.6
+  duration_s: 0.01
+  steady_state: false
+  solver:
+    method: trap
+    timeout_s: 1800
+vision_manifest: electronics/vision.yaml

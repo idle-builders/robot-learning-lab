@@ -1,0 +1,43 @@
+schema_version: 1
+name: floor-cleanup-v0
+status: partially_executed_two_of_three_fixed_cases
+selected_evidence: artifacts/floor-learning-2f86cd18caaa
+controller_scope: authored_feedback_skills_with_learned_grasp_residual
+instruction: Find the known object on the floor, pick it up, carry it to its floor destination, and set it down.
+robot_candidates:
+  - variants/pip-floor-reach-v1.yaml
+  - variants/pip-carriers.yaml
+  - variants/pip-floor-feet-v0.yaml
+object:
+  id: cleanup-block
+  shape: cube
+  size_m: 0.030
+  mass_kg: 0.050
+  initial_support: floor
+  initial_center_z_m: 0.015
+  parameters_evidence: bounded_test_assumptions
+  dynamics: free_rigid_body
+  attachment_constraints: forbidden
+  motion_assignment_after_reset: forbidden
+destination:
+  type: marked_floor_region
+  minimum_transport_m: 0.30
+  inner_size_m: [0.15, 0.15]
+sequence:
+  - id: find_target
+    evidence: RGB-derived object identity and pose, with timestamp and uncertainty; no privileged pose input.
+  - id: move_to_target
+    evidence: Controlled approach into a grasp region validated for the selected posture and morphology.
+  - id: bend_and_pick_up
+    evidence: Controlled bend, bilateral finger contact, then lift the free object through physical contact.
+    minimum_lift_m: 0.02
+    minimum_contact_hold_s: 0.15
+  - id: move_to_destination
+    evidence: Robot and grasped object travel together without drops, falls or actuator-limit violations.
+  - id: set_down_target
+    evidence: Object released inside destination, physically supported by the floor, and settled.
+    settle_s: 0.5
+    maximum_object_speed_m_s: 0.02
+policy_requirement: Learned or model-based closed-loop skill execution; authored ordering and safeguards must be identified. No timed robot choreography represented as learned behavior.
+recording: Same episode links RGB, perception, skill state, policy outputs, joint state, IMU, contacts, applied effort, electrical estimates and evaluation truth.
+physical_validation: not_run

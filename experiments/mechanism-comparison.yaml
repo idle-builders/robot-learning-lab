@@ -1,0 +1,11 @@
+schema_version: 1
+name: leg-packaging-candidates
+question: Compare original and longer-leg wheeled concepts using common envelope, load and cost checks; detailed core/torso fit remains a separate check.
+cases:
+  - {name: pip-original, variant: variants/pip.yaml}
+  - {name: pip-mechanism, variant: variants/pip-mechanism.yaml}
+  - {name: scout-original, variant: variants/scout.yaml}
+  - {name: scout-mechanism, variant: variants/scout-mechanism.yaml}
+scenarios:
+  - experiments/scenarios/supported-reach.yaml
+  - experiments/scenarios/free-posture.yaml

@@ -1,0 +1,221 @@
+{
+  "Buck": {
+    "mpn": "TPS54302DDCR",
+    "manufacturer": "Texas Instruments",
+    "footprint": "TSOT-23-6.kicad_mod",
+    "kind": "ic",
+    "source": "https://www.ti.com/lit/ds/symlink/tps54302.pdf",
+    "value": "Buck",
+    "pins": {
+      "gnd": "1",
+      "sw": "2",
+      "vin": "3",
+      "fb": "4",
+      "en": "5",
+      "boot": "6"
+    }
+  },
+  "Inductor10u": {
+    "mpn": "7447714100",
+    "manufacturer": "Wurth Elektronik",
+    "footprint": "L_Wuerth_7447714100.kicad_mod",
+    "kind": "inductor",
+    "source": "https://www.we-online.com/components/products/datasheet/7447714100.pdf",
+    "value": "Inductor10u",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "inductance_h": 1e-05,
+    "dcr_ohm": 0.023,
+    "inductance_tolerance": 0.2,
+    "rated_current_a": 4.3,
+    "saturation_current_typ_a": 5.0,
+    "saturation_drop_fraction": 0.1,
+    "dcr_max_ohm": 0.027,
+    "footprint_note": "Custom land pattern from 7447714100 datasheet p1, rotated 90 degrees; fabrication, clearance and power layout unqualified.",
+    "model": {
+      "type": "datasheet_maximum_envelope",
+      "size_mm": [
+        10.5,
+        10.5,
+        5.0
+      ],
+      "note": "Conservative 10.5 mm square encloses either orientation of the 10.3 by 10.5 mm maximum body; no terminal detail or exact manufacturer solid."
+    }
+  },
+  "Cap100n": {
+    "mpn": "GCM188R71H104KA57D",
+    "manufacturer": "Murata",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://pim.murata.com/asset/pim4/ceramicCapacitorSMD/GCM188R71H104KA57-01A-EN_PDF_CERAMICCAPACITORSMD?lastModifiedDatetime=20250813115607",
+    "value": "Cap100n",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 1e-07,
+    "voltage_rating_v": 50,
+    "assumed_esr_ohm": 0,
+    "esr_evidence": "unmeasured_assumption",
+    "part_status": "active_candidate_not_bench_validated",
+    "replacement_note": "Replaces obsolete GRM188R71H104KA93D explicitly; nominal 100 nF / 50 V / X7R / 0603 unchanged, effective capacitance and parasitics still unmeasured."
+  },
+  "Cap10u": {
+    "mpn": "CL32B106KBJNNNE",
+    "manufacturer": "Samsung Electro-Mechanics",
+    "footprint": "C_1210_3225Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://product.samsungsem.com/mlcc/CL32B106KBJNNN.do",
+    "value": "Cap10u",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 1e-05,
+    "voltage_rating_v": 50,
+    "assumed_esr_ohm": 0.005,
+    "esr_evidence": "unmeasured_assumption",
+    "part_status": "sourced_candidate_not_bench_validated",
+    "capacitance_tolerance": 0.1,
+    "dielectric": "X7R",
+    "termination": "Nickel barrier with 100% tin plating",
+    "body_maximum_mm": [3.5, 2.7, 2.7],
+    "geometry_note": "Dimensions are documented maxima; exported KiCad capacitor model remains generic and does not establish tolerance-qualified assembly fit.",
+    "replacement_note": "C2 input bypass replaces NRND GRM32ER7YA106KA12L. Nominal 10 uF and 1210 footprint unchanged; rating increases from 35 V to 50 V. Manufacturer typical bias data is retained in artifacts/logic-capacitor-selection-v1/dc-bias.json; ESR and combined temperature/aging/tolerance remain unqualified."
+  },
+  "Cap22u": {
+    "mpn": "GRM32ER71E226KE15L",
+    "manufacturer": "Murata",
+    "footprint": "C_1210_3225Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://www.ti.com/lit/pdf/SLVUAP9",
+    "value": "Cap22u",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 2.2e-05,
+    "voltage_rating_v": 25,
+    "assumed_esr_ohm": 0.005,
+    "esr_evidence": "unmeasured_assumption"
+  },
+  "Cap75p": {
+    "mpn": "C0603C750J5GACTU",
+    "manufacturer": "KEMET",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://yageogroup.com/download/specsheet/C0603C750J5GACTU",
+    "value": "Cap75p",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 7.5e-11,
+    "voltage_rating_v": 50,
+    "assumed_esr_ohm": 0,
+    "esr_evidence": "unmeasured_assumption",
+    "part_status": "sourced_candidate_not_bench_validated",
+    "capacitance_tolerance": 0.05,
+    "dielectric": "C0G",
+    "termination": "Tin",
+    "body_maximum_mm": [1.75, 0.95, 0.87],
+    "geometry_note": "Dimensions are documented maxima; exported KiCad capacitor model remains generic and does not establish tolerance-qualified assembly fit.",
+    "replacement_note": "C6 feed-forward capacitor across the upper feedback resistor replaces GRM1885C1H750JA01D. Nominal 75 pF / 50 V / C0G / 0603 unchanged. Exact manufacturer specsheet verified; parasitics, assembly and physical behavior remain unqualified."
+  },
+  "Res100k": {
+    "mpn": "RT0603BRD07100KL",
+    "manufacturer": "Yageo",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "kind": "resistor",
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RT0603BRD07100KL",
+    "value": "Res100k",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 100000,
+    "tolerance": 0.001,
+    "part_status": "sourced_candidate_not_bench_validated"
+  },
+  "Res13k3": {
+    "mpn": "RT0603BRD0713K3L",
+    "manufacturer": "Yageo",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "kind": "resistor",
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RT0603BRD0713K3L",
+    "value": "Res13k3",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 13300,
+    "tolerance": 0.001,
+    "part_status": "sourced_candidate_not_bench_validated"
+  },
+  "Res511k": {
+    "mpn": "RC0603FR-07511KL",
+    "manufacturer": "Yageo",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "kind": "resistor",
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-07511KL",
+    "value": "Res511k",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 511000,
+    "tolerance": 0.01,
+    "part_status": "sourced_candidate_not_bench_validated"
+  },
+  "Res105k": {
+    "mpn": "RC0603FR-07105KL",
+    "manufacturer": "Yageo",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "kind": "resistor",
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-07105KL",
+    "value": "Res105k",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 105000,
+    "tolerance": 0.01,
+    "part_status": "sourced_candidate_not_bench_validated"
+  },
+  "Connector2": {
+    "mpn": "B2B-PH-K-S(LF)(SN)",
+    "manufacturer": "JST",
+    "footprint": "JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical.kicad_mod",
+    "kind": "connector",
+    "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf",
+    "value": "Connector2",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "current_rating_a": 2.0,
+    "current_rating_wire_awg": 24,
+    "current_rating_basis": "JST PH series specification; complete mated connection with specified wire, not a pulse overload rating"
+  },
+  "OutputConnector": {
+    "mpn": "B2B-XH-A",
+    "manufacturer": "JST",
+    "footprint": "JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical.kicad_mod",
+    "kind": "connector",
+    "source": "https://www.jst-mfg.com/product/index.php?lang=2&series=277",
+    "value": "OutputConnector",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "current_rating_a": 3.0,
+    "current_rating_wire_awg": 22,
+    "current_rating_basis": "JST XH published3A rating with AWG22; complete mated connection required",
+    "mating_housing": "XHP-2",
+    "mating_contact": "SXH-001T-P0.6",
+    "mating_contact_quantity": 2,
+    "mating_status": "selected family; wire routing, crimps and assembled thermal performance unqualified"
+  }
+}

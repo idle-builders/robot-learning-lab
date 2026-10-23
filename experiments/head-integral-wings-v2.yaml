@@ -1,0 +1,7 @@
+# Study only; do not promote to the printable robot until attachment/service checks agree.
+seam_bridge_translation_mm: 0.5
+moving_clearance_mm: 1.5
+rearward_service_offsets_mm: [0, 2, 5, 15, 35, 70, 110]
+pi_service_offsets_mm: [0, 2, 5, 15, 35]
+bridge_mode: top_strip
+seam_overlap_mm: 0.05

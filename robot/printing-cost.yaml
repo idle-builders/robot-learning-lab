@@ -1,0 +1,24 @@
+schema_version: 1
+evidence: illustrative_unmeasured_process_assumptions
+scope: FDM sensitivity for currently modeled print groups; not a slicer result or a manufacturing quote
+# Editable examples, not a selected material, printer, process or production bid.
+density_kg_m3: 1270
+extruded_to_cad_volume_ratio: 1.10
+filament_usd_per_kg: 20
+effective_extrusion_mm3_s: 8
+machine_usd_per_hour: 1.50
+accepted_robot_handwork_hours: 1
+handwork_usd_per_hour: 20
+print_yield_fraction: 0.90
+unmodeled_print_allowance_usd: 15
+production_days: 220
+machine_utilization_fraction: 0.60
+limitations:
+  - CAD material volume is not sliced extrusion volume. The ratio models infill, supports and waste only as an explicit assumption.
+  - Effective extrusion is averaged over a whole job including travel and idle motions; this is not a printer nozzle flow specification.
+  - Machine hourly charge includes electricity, depreciation and maintenance; filament and direct handwork are separate.
+  - Handwork is per accepted robot and includes removal, finish and insert installation; final assembly/test excludes those tasks.
+  - Yield repeats material and machine use uniformly; correlated failures, partial reprints and schedule interruptions are not modeled.
+  - Unmodeled print allowance reserves money only; absent geometry cannot establish its material, time or machine capacity.
+  - Optical face parts and unselected hub/tire processes may need different processes. A single FDM scenario does not qualify them.
+  - No supplier tier, slicer, material grade, printer, labor agreement or observed yield supports these example values.

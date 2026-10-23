@@ -1,0 +1,6 @@
+# Isolated Python 3.12 environment; exact transitive versions in requirements-lerobot.lock.
+lerobot[dataset]==0.6.1
+mujoco==3.13.0
+stable-baselines3==2.9.0
+imageio==2.37.3
+imageio-ffmpeg==0.6.0

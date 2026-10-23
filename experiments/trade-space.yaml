@@ -1,0 +1,20 @@
+schema_version: 1
+name: morphology-and-load
+question: How do legs, arm length, battery resistance and production quantity affect the same robot tests?
+cases:
+  - name: wheeled-1000
+    variant: variants/sts3215-wheeled.yaml
+  - name: walking-1000
+    variant: variants/sts3215-walking.yaml
+  - name: long-arms
+    variant: variants/sts3215-wheeled.yaml
+    overrides: [dimensions.upper_arm_m=0.095, dimensions.forearm_m=0.085]
+  - name: resistive-supply
+    variant: variants/sts3215-wheeled.yaml
+    overrides: [power.source_resistance_ohm=0.35]
+  - name: wheeled-5000
+    variant: variants/sts3215-wheeled.yaml
+    overrides: [production_units=5000]
+scenarios:
+  - experiments/scenarios/supported-reach.yaml
+  - experiments/scenarios/free-posture.yaml

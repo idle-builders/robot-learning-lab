@@ -1,0 +1,55 @@
+schema_version: 1
+units: mm
+status: separate_candidate_not_installed
+assemblies:
+  pip: artifacts/pip-covered-carriers-composed-v2
+  scout: artifacts/scout-covered-carriers-composed-v2
+outer_x: 60.0
+outer_y: 64.0
+wall: 1.8
+proximal_z: -34.0
+distal_below_elbow: 19.0
+rear_open_x: 0.0
+fold_opening_width: 56.0
+fold_opening_top_z: -61.0
+spine_face_x: 18.365
+mount_y:
+- -7.0
+- 7.0
+mount_z:
+- -39.0
+- -54.0
+boss_radius: 3.8
+clearance: 0.5
+driver_radius: 2.5
+driver_length: 30.0
+profiles:
+  pip:
+    corner_radius: 12.0
+  scout:
+    corner_radius: 8.0
+density_g_cm3: 1.27
+medial_opening_top_z: -61.0
+poses:
+  neutral: {}
+  driving_rest:
+    left_shoulder_roll_joint: 0.04
+    right_shoulder_roll_joint: -0.04
+    left_forearm_joint: -0.4
+    right_forearm_joint: -0.4
+  outward_reach:
+    left_shoulder_roll_joint: 0.3
+    right_shoulder_roll_joint: -0.3
+    left_upper_arm_joint: -0.5
+    right_upper_arm_joint: -0.5
+    left_forearm_joint: -1.5
+    right_forearm_joint: -1.5
+  elbows_folded:
+    left_forearm_joint: -1.8
+    right_forearm_joint: -1.8
+  upper_forward:
+    left_upper_arm_joint: -1
+    right_upper_arm_joint: -1
+  upper_back:
+    left_upper_arm_joint: 0.5
+    right_upper_arm_joint: 0.5

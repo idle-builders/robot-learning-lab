@@ -1,0 +1,59 @@
+schema_version: 1
+status: evaluation_candidate_not_installed
+candidate:
+  manufacturer: Pololu
+  part_id: '3771'
+  description: Fixed 13.2 V shunt regulator, 1.50 ohm, marketed 15 W
+  source: https://www.pololu.com/product/3771
+  specifications_source: https://www.pololu.com/product/3771/specs
+  threshold_v: 13.2
+  threshold_accuracy_fraction: 0.03
+  resistance_ohm: 1.5
+  quiescent_max_a: 0.0005
+  published_mass_kg: 0.003
+  thermal_status: No guaranteed pulse-energy, repetitive-duty or installed thermal limit established.
+  response_time_status: No guaranteed response/overshoot model found in reviewed manufacturer resources.
+  production_quote_status: unquoted_at_1000_and_5000
+  published_price_usd: {'1': 15.98, '5': 14.70}
+  price_date: '2026-09-20'
+  availability: Unconfirmed; live stock metadata and cached page/outlook displays conflict. Recheck before ordering.
+  reference_directory: docs/design/references/pololu-shunt
+interface:
+  connection: Parallel across motor rail and common return, downstream of motor disconnect.
+  full_pack_v: 12.6
+  maximum_motor_v: 14.0
+  auxiliary_logic_supply: none
+  isolation: Does not provide source reverse-current blocking or a motor disconnect.
+  frame: Supplier STEP, millimetres; board X long edge, Y short edge, Z normal; PCB underside Z=0.
+  pcb_size_mm: [28.575, 20.32, 1.5748]
+  drawing_edge_tolerance_mm: 0.3
+  drawing_drill_location_tolerance_mm: 0.1
+  mount_holes_mm: [[2.159, 2.159], [2.159, 18.161], [26.416, 2.159]]
+  mount_hole_radius_mm: 1.0922
+  screw_family: M2 or number 2 per manufacturer; length, heads, spacers and retention unselected.
+  thermal_mount: Bottom components present; no flush mounting or thermal contact with printed plastic qualified.
+  vendor_model_scope: Shared family model includes the optional trimmer absent on fixed 3771; do not treat it as exact purchased-part geometry.
+study:
+  source_power_system: electronics/power-system.yaml
+  source_regeneration_case: artifacts/shared-battery-v1/regeneration-motor-isolated/report.json
+  regeneration_currents_a: [4, 8]
+  pulse_duration_s: 0.04
+  capacitance_scales: [1.0, 0.8]
+  capacitor_esr_sensitivity_ohm: [0.0, 0.03, 0.05]
+  sensitivity_status: Capacitance derating and ESR are assumptions, not selected capacitor specifications.
+alternatives:
+  - name: ODrive Regen Clamp
+    source: https://docs.odriverobotics.com/v/latest/hardware/regen-clamp-datasheet.html
+    input_minimum_v: 10
+    activation_offset_typical_v: 2.35
+    activation_offset_maximum_v: 2.50
+    decision: Reject as the sole 3S overvoltage clamp; at 12.6 V its activation exceeds our 14 V window, and 9 V operation is below its input range.
+  - name: Pololu 3778 adjustable LV
+    source: https://www.pololu.com/product/3778
+    decision: Calibration alternative; adds a trim/retention process but does not resolve unqualified pulse/thermal limits.
+  - name: Custom comparator, local supply, MOSFET and resistor
+    source: https://www.ti.com/product/TLV3012
+    decision: Deferred pending module evaluation; requires component models, SOA, fault/thermal proof, layout and production quotes.
+  - name: Motor-winding flux braking
+    source: https://mjbots.github.io/moteus/guides/electrical-setup/
+    decision: Existing moteus feature, not established for the selected C018 smart servos; not a drop-in software remedy.

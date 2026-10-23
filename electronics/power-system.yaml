@@ -1,0 +1,48 @@
+schema_version: 1
+name: three-cell-power-exploration
+evidence: unmeasured_architecture_candidate
+cell:
+  part_id: molicel-inr18650-p28a
+  source: https://www.molicel.com/wp-content/uploads/INR18650P28A-V1-80093.pdf
+  nominal_v: 3.6
+  maximum_v: 4.2
+  minimum_capacity_ah: 2.6
+  typical_capacity_ah: 2.8
+  typical_energy_wh: 10.3
+  maximum_discharge_a: 35
+  dc_resistance_ohm: 0.020
+  resistance_note: Datasheet DC at 10 A / 1 s; not a temperature/SOC/aging model.
+  diameter_m: 0.0186
+  length_m: 0.0652
+  typical_mass_kg: 0.046
+pack:
+  series: 3
+  parallel: 1
+  external_resistance_ohm: 0.040
+  usable_energy_fraction: 0.8
+  # Finished pack dimensions, protection and mass remain allocations.
+  envelope_m: [0.064, 0.074, 0.024]
+  position_torso_m: [0.008, 0, 0.039]
+  added_pack_mass_kg: 0.045
+  cell_gap_m: 0.001
+  protection: Supplier-built protected pack; exact SKU, thresholds, FETs and charger unselected.
+motor:
+  minimum_v: 9.0
+  maximum_v: 14.0
+  harness_limit_a: 15.0
+  capacitance_f: 0.0022
+  bleed_resistance_ohm: 10000
+  # Behavioral shunt, not a selected comparator/FET/resistor circuit.
+  clamp_threshold_v: 13.0
+  clamp_conductance_s: 50.0
+  dump_resistance_ohm: 2.7
+  branch_joint_count_limit: 2
+logic:
+  output_v: 5.0
+  allocated_output_w: 3.0
+  assumed_efficiency: 0.85
+  regulator_candidate: TPS54302DDCR
+  source: https://www.ti.com/lit/ds/symlink/tps54302.pdf
+  carrier_j1: {'1': GND, '2': V5_IN, '3': VBAT_SENSE, '4': MOTION_OK_OUT}
+  sense_node: Protected pack before motor disconnect; not proof of motor-rail voltage.
+  permit: 3.3 V active high; reset/open wire low. Independent hardware stop path still required.

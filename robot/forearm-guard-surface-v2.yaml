@@ -1,0 +1,32 @@
+# Experimental open lateral rear guard; incomplete rear protection.
+schema_version: 1
+units: mm
+outer_x: 60.0
+upper_x: 60.0
+outer_y: 64.0
+corner_radius: 12.0
+upper_corner_radius: 12.0
+taper_upper_z: -69.0
+taper_lower_z: -75.0
+wall: 1.8
+proximal_z: -48.0
+distal_z: -106.0
+split_gap: 0.2
+finger_relief_y: -15.0
+finger_relief_z: -72.0
+fold_relief_x: 24.0
+fold_relief_width_y: 32.0
+fold_relief_bottom_z: -70.0
+fold_relief_top_z: -44.0
+fold_relief_radius: 2.0
+mount_x:
+- -8.0
+- 8.0
+mount_z:
+- -60.0
+- -80.0
+spine_face_y: 18.365
+boss_radius: 3.8
+clearance_target: 0.5
+density_g_cm3: 1.27
+rear_guard_extent_x: 16.0

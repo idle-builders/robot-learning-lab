@@ -1,0 +1,124 @@
+{
+  "Disconnect": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "LM74800QDRRRQ1",
+    "footprint": "WSON-12-1EP_3x3mm_P0.5mm_EP1.5x2.5mm.kicad_mod",
+    "source": "https://www.ti.com/lit/ds/symlink/lm7480-q1.pdf",
+    "pins": {
+      "dgate": "1",
+      "a": "2",
+      "vsns": "3",
+      "sw": "4",
+      "ov": "5",
+      "en": "6",
+      "gnd": "7",
+      "hgate": "8",
+      "out": "9",
+      "vs": "10",
+      "cap": "11",
+      "c": "12",
+      "rtn": "13"
+    },
+    "value": "Disconnect",
+    "status": "unqualified_power_stage_candidate"
+  },
+  "PowerNFET": {
+    "manufacturer": "Nexperia",
+    "mpn": "BUK7Y4R8-60EX",
+    "footprint": "LFPAK56.kicad_mod",
+    "source": "https://assets.nexperia.com/documents/data-sheet/BUK7Y4R8-60E.pdf",
+    "pins": {
+      "s1": "1",
+      "s2": "2",
+      "s3": "3",
+      "g": "4",
+      "d": "5"
+    },
+    "rdson_max_ohm_at_10v_25c": 0.0048,
+    "rdson_typ_ohm_at_10v_25c": 0.0029,
+    "limits": "No system current or thermal rating inferred from package current or typical resistance.",
+    "value": "PowerNFET",
+    "status": "unqualified_power_stage_candidate",
+    "rdson_max_ohm_at_10v_175c": 0.0108,
+    "ciss_max_f_at_25v_25c": 5.52e-09
+  },
+  "Cap100n": {
+    "mpn": "GCM188R71H104KA57D",
+    "manufacturer": "Murata",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://pim.murata.com/asset/pim4/ceramicCapacitorSMD/GCM188R71H104KA57-01A-EN_PDF_CERAMICCAPACITORSMD?lastModifiedDatetime=20250813115607",
+    "value": "Cap100n",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 1e-07,
+    "voltage_rating_v": 50,
+    "assumed_esr_ohm": 0,
+    "esr_evidence": "unmeasured_assumption",
+    "part_status": "active_candidate_not_bench_validated",
+    "replacement_note": "Replaces obsolete GRM188R71H104KA93D explicitly; nominal 100 nF / 50 V / X7R / 0603 unchanged, effective capacitance and parasitics still unmeasured.",
+    "status": "unqualified_power_stage_candidate"
+  },
+  "Res100k": {
+    "mpn": "RT0603BRD07100KL",
+    "manufacturer": "Yageo",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "kind": "resistor",
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RT0603BRD07100KL",
+    "value": "Res100k",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 100000,
+    "tolerance": 0.001,
+    "part_status": "sourced_candidate_not_bench_validated",
+    "status": "unqualified_power_stage_candidate"
+  },
+  "Res97k6": {
+    "manufacturer": "Vishay",
+    "mpn": "TNPW060397K6BEEN",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "source": "https://www.vishay.com/docs/28758/tnpw_e3.pdf",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 97600,
+    "tolerance": 0.001,
+    "tempco_ppm_per_c": 25,
+    "procurement_status": "candidate ordering code; exact supplier availability and volume quote unverified",
+    "value": "Res97k6",
+    "status": "unqualified_power_stage_candidate"
+  },
+  "Res10k": {
+    "manufacturer": "Vishay",
+    "mpn": "TNPW060310K0BEEN",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "source": "https://www.vishay.com/docs/28758/tnpw_e3.pdf",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "resistance_ohm": 10000,
+    "tolerance": 0.001,
+    "tempco_ppm_per_c": 25,
+    "procurement_status": "candidate ordering code; exact supplier availability and volume quote unverified",
+    "value": "Res10k",
+    "status": "unqualified_power_stage_candidate"
+  },
+  "Res100": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-07100RL",
+    "value": "100 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100RL",
+    "resistance_ohm": 100
+  }
+}

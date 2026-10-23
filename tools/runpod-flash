@@ -1,0 +1,4 @@
+#!/bin/sh
+# Use the isolated runtime; macOS system Python may predate tomllib.
+robot_lab_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec "$robot_lab_root/.venv-runpod/bin/python" "$robot_lab_root/workers/flash_cli.py" "$@"

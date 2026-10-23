@@ -1,0 +1,17 @@
+# Removable, level-held positioning aid; dimensions in head-local millimetres.
+head_length_mm: 10
+head_width_mm: 10
+floor_thickness_mm: 1
+nut_seat_z_mm: 24.6
+nut_guide_top_z_mm: 27
+washer_guide_top_z_mm: 27.4
+nut_slot_width_mm: 5.8
+nut_slot_back_x_mm: -3.4
+washer_slot_width_mm: 7.3
+washer_slot_back_x_mm: -3.75
+screw_slot_width_mm: 3.4
+handle_length_mm: 80
+handle_width_mm: 6
+handle_thickness_mm: 2
+minimum_nut_support_area_mm2: 5
+rear_offsets_mm: [0, 2, 4, 6, 8, 10, 15, 20, 30, 45, 60]

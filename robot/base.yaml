@@ -1,0 +1,91 @@
+schema_version: 1
+name: companion
+morphology: wheeled
+production_units: 1000
+dimensions:
+  yoke_spacer_mode: loose_rings
+  neck_collar_enabled: false
+  neck_collar_radius_m: 0.054
+  neck_collar_height_m: 0.033
+  neck_collar_wall_m: 0.002
+  torso_width_m: 0.130
+  torso_depth_m: 0.090
+  torso_height_m: 0.135
+  head_width_m: 0.105
+  head_depth_m: 0.086
+  head_height_m: 0.065
+  thigh_m: 0.085
+  shin_m: 0.085
+  upper_arm_m: 0.075
+  forearm_m: 0.065
+  hip_spacing_m: 0.085
+  wheel_radius_m: 0.035
+  foot_length_m: 0.095
+  foot_width_m: 0.060
+  foot_height_m: 0.020
+  shell_wall_m: 0.002
+  board_length_m: 0.070
+  board_width_m: 0.050
+  board_clearance_m: 0.003
+  rear_cap_depth_m: 0.018
+  rear_cap_gap_m: 0.0003
+  board_rear_offset_m: 0.012
+control:
+  physics_hz: 500
+  command_hz: 50
+  timeout_ms: 150
+  kp: 12.0
+  kd: 0.5
+actuators:
+  leg:
+    effort_limit_nm: 1.2
+    velocity_limit_rad_s: 4.0
+    effective_nm_per_a: 0.7
+    idle_current_a: 0.04
+    mass_kg: 0.071
+    evidence: unmeasured_design_assumption
+  arm:
+    effort_limit_nm: 0.4
+    velocity_limit_rad_s: 5.0
+    effective_nm_per_a: 0.35
+    idle_current_a: 0.025
+    mass_kg: 0.045
+    evidence: unmeasured_design_assumption
+  neck:
+    effort_limit_nm: 0.15
+    velocity_limit_rad_s: 5.0
+    effective_nm_per_a: 0.2
+    idle_current_a: 0.02
+    mass_kg: 0.02
+    evidence: unmeasured_design_assumption
+  wheel:
+    effort_limit_nm: 0.35
+    velocity_limit_rad_s: 20.0
+    effective_nm_per_a: 0.25
+    idle_current_a: 0.04
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+power:
+  battery_nominal_v: 11.1
+  battery_max_v: 12.6
+  logic_voltage_v: 3.3
+  source_resistance_ohm: 0.10
+  bus_capacitance_f: 0.0022
+  minimum_bus_v: 9.0
+  electronics_current_a: 0.5
+  harness_limit_a: 15.0
+  evidence: unmeasured_design_assumption
+cost:
+  # Production planning ranges; not supplier quotes or retail-derived discounts.
+  actuator_usd:
+    leg: [16, 26]
+    arm: [9, 16]
+    neck: [6, 12]
+    wheel: [12, 22]
+  other_parts_usd: [150, 230]
+  assembly_test_usd: [55, 100]
+  logistics_packaging_usd: [35, 65]
+  support_operations_usd: [70, 110]
+  development_tooling_total_usd: [40000, 100000]
+  contingency_fraction: 0.15
+  evidence: unquoted_production_planning_range

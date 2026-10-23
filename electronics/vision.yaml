@@ -1,0 +1,71 @@
+schema_version: 1
+status: prototype_component_manifest
+camera:
+  name: raspberry_pi_camera_module_3_wide
+  drawing: docs/design/references/vision/camera-module-3-wide-mechanical-drawing.pdf
+  drawing_url: https://datasheets.raspberrypi.com/camera/camera-module-3-wide-mechanical-drawing.pdf
+  product_brief_url: https://pip-assets.raspberrypi.com/categories/786/raspberry-pi-camera-module-3/documents/RP-008151-DS-1-camera-module-3-product-brief.pdf
+  launch_reference_url: https://www.raspberrypi.com/news/new-autofocus-camera-modules/
+  source_kind: published_mechanical_drawing_and_product_brief
+  dimensions_mm: [25.0, 24.0, 12.4]
+  drawing_planform_mm: [25.0, 23.862]
+  mounting_hole_diameter_mm: 2.2
+  mounting_holes_drawing_mm:
+    - [2.0, 2.0]
+    - [23.0, 2.0]
+    - [2.0, 14.5]
+    - [23.0, 14.5]
+  optic_datum_drawing_mm: [12.5, 14.4]
+  frame:
+    drawing_right: [+1, 0, 0]
+    drawing_up: [0, +1, 0]
+    lens_outward: [0, 0, +1]
+    origin: front_optical_allocation
+  intrinsics:
+    horizontal_fov_deg: 102.0
+    vertical_fov_deg: 67.0
+    minimum_focus_m: 0.05
+    pixels: [4608, 2592]
+  evidence:
+    - Camera Module 3 Wide product brief and official mechanical drawing
+  limitations:
+    - PCB datum and mount depth are not verified against a populated camera sample
+    - ribbon bend, connector mating and head aperture clearance are untested
+board:
+  name: raspberry_pi_zero_2_w
+  source_kind: published_board_outline_with_provisional_component_allocation
+  outline_mm: [65.0, 30.0]
+  occupied_z_mm: [-1.6, 8.0]
+  drawing_url: https://datasheets.raspberrypi.com/rpizero2/raspberry-pi-zero-2-w-mechanical-drawing.pdf
+  datum: centered_board_planform_substrate_plane
+  component_height_status: provisional_8mm_allocation_not_exact_cad
+  evidence:
+    - Raspberry Pi Zero 2 W mechanical outline is 65 x 30 mm
+  limitations:
+    - component height and connector keepouts are not exact component CAD
+    - mounting offsets, standoffs, antenna keepout and cable service loop are unverified
+bridge:
+  data_path: camera_csi_to_pi_zero_2_w_to_wifi_local_computer
+  supervisor_path: pi_zero_2_w_usb_otg_host_to_pico_2_w_usb_cdc
+  pico_gpio_or_uart_changes: false
+power:
+  voltage_v: 5.0
+  bridge_camera_nominal_a: 1.0
+  bridge_camera_startup_a: 2.0
+  existing_logic_probe_a: 1.0
+  existing_logic_allocation_w: 3.0
+  existing_logic_voltage_v: 5.0
+  logic_supply_verification_path: electronics/logic-supply/verification.yaml
+  power_system_path: electronics/power-system.yaml
+  source_guidance_a: [2.0, 2.5]
+  source_guidance_status: published_supply_recommendations_not_measured_rail_budget
+  limitations:
+    - bridge and camera allocations are planning values, not measured consumption
+    - existing logic budget is not a validated camera-inclusive rail budget
+pricing:
+  retail_reference_usd: [15.0, 35.0]
+  retail_reference_basis: Raspberry Pi Zero 2 W launch and Camera Module 3 Wide launch references
+  volume_usd_per_robot_1000: null
+  volume_usd_per_robot_5000: null
+  limitations:
+    - retail and launch references exclude cable, regulator, storage, enclosure and assembly

@@ -1,0 +1,3 @@
+# Optional display-export dependencies; core model requirements remain in pyproject.toml.
+trimesh==5.1.0
+fast-simplification==0.2.0

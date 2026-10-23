@@ -1,0 +1,11 @@
+name: supported-reach
+fixture: supported
+duration_s: 4
+ramp_s: 1.5
+payload_kg: 0.05
+targets_rad:
+  left_upper_arm_joint: -0.8
+  left_forearm_joint: -0.5
+  neck_yaw_joint: 0.2
+  head_joint: 0.15
+tracking_limit_rad: 0.15

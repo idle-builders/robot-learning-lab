@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "scope": "Component connectivity and static sizing only; not a completed motor power board",
+  "ov_rising_v": [1.195, 1.267],
+  "ov_falling_v": [1.091, 1.159],
+  "sw_resistance_ohm": [10, 46],
+  "ov_leakage_bound_a": 0.000001,
+  "leakage_note": "Conservative signed 1 uA: application prose says 1 uA although electrical table lists 200 nA maximum. Manufacturer clarification pending.",
+  "resistor_temperature_delta_c": 100,
+  "resistor_aging_fraction": 0.001,
+  "aging_note": "Study allowance only, not a lifetime guarantee",
+  "charge_pump_effective_fraction_assumption": 0.5,
+  "effective_capacitance_status": "not_run; bias, tolerance, temperature and aging need validation",
+  "hgate_current_a": [0.000039, 0.000055, 0.000075],
+  "thermal_status": "not_run",
+  "installed_quantity": 0,
+  "procurement_status": "hold; incomplete design",
+  "production_unit_cost_usd": {"1000": null, "5000": null}
+}

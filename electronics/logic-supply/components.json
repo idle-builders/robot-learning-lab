@@ -1,0 +1,17 @@
+{
+  "U1": "Buck",
+  "L1": "Inductor10u",
+  "C1": "Cap100n",
+  "C2": "Cap10u",
+  "C3": "Cap100n",
+  "C4": "Cap22u",
+  "C5": "Cap22u",
+  "C6": "Cap75p",
+  "R1": "Res100k",
+  "R2": "Res13k3",
+  "R3": "Res511k",
+  "R4": "Res105k",
+  "J1": "Connector2",
+  "J2": "OutputConnector",
+  "J3": "Connector2"
+}

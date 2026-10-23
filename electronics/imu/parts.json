@@ -1,0 +1,59 @@
+{
+  "IMU": {
+    "manufacturer": "STMicroelectronics",
+    "mpn": "LSM6DSOTR",
+    "value": "LSM6DSO",
+    "kind": "ic",
+    "footprint": "LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y.kicad_mod",
+    "source": "https://www.st.com/resource/en/datasheet/lsm6dso.pdf",
+    "pins": {
+      "sa0": "1",
+      "sdx": "2",
+      "scx": "3",
+      "int1": "4",
+      "vddio": "5",
+      "gnd1": "6",
+      "gnd2": "7",
+      "vdd": "8",
+      "int2": "9",
+      "ocs": "10",
+      "sdo_aux": "11",
+      "cs": "12",
+      "scl": "13",
+      "sda": "14"
+    },
+    "footprint_evidence": "KiCad 10.0.6 generic ST LGA-14 candidate; package/pad orientation and assembly process require qualification"
+  },
+  "Cap100n": {
+    "mpn": "GCM188R71H104KA57D",
+    "manufacturer": "Murata",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "kind": "capacitor",
+    "source": "https://pim.murata.com/asset/pim4/ceramicCapacitorSMD/GCM188R71H104KA57-01A-EN_PDF_CERAMICCAPACITORSMD?lastModifiedDatetime=20250813115607",
+    "value": "Cap100n",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "capacitance_f": 1e-07,
+    "voltage_rating_v": 50,
+    "assumed_esr_ohm": 0,
+    "esr_evidence": "unmeasured_assumption",
+    "part_status": "active_candidate_not_bench_validated",
+    "replacement_note": "Replaces obsolete GRM188R71H104KA93D explicitly; nominal 100 nF / 50 V / X7R / 0603 unchanged, effective capacitance and parasitics still unmeasured."
+  },
+  "JST5": {
+    "manufacturer": "JST",
+    "mpn": "B5B-PH-K-S(LF)(SN)",
+    "value": "PH 5pin",
+    "footprint": "JST_PH_B5B-PH-K_1x05_P2.00mm_Vertical.kicad_mod",
+    "pins": {
+      "p1": "1",
+      "p2": "2",
+      "p3": "3",
+      "p4": "4",
+      "p5": "5"
+    },
+    "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
+  }
+}

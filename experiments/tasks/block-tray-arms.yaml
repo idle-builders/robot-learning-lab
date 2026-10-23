@@ -1,0 +1,26 @@
+schema_version: 1
+name: block-to-tray
+fixture: supported
+block_size_m: 0.03
+block_mass_kg: 0.05
+source_offset_m:
+- 0.14
+- 0.001
+- -0.105
+tray_offset_m:
+- 0.11
+- 0.05
+- -0.105
+tray_inner_m:
+- 0.05
+- 0.05
+tray_wall_m: 0.003
+tray_height_m: 0.008
+surface_friction: 0.8
+finger_friction: 0.8
+reset_jitter_m: 0.001
+lift_height_m: 0.015
+grasp_hold_s: 0.15
+lift_hold_s: 0.1
+settle_s: 0.5
+duration_s: 16

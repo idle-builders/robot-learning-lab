@@ -1,0 +1,33 @@
+# Same driver/controller hypotheses; bounded pose/timing recording regression.
+controller:
+  pitch_gain_m_s: 4
+  pitch_rate_gain_m: 0.2
+  position_gain_s_inv: 1
+  velocity_gain: 2.5
+  complementary_tau_s: 0.4
+  wheel_velocity_gain_nm_s: 0.2
+cases:
+- name: drive-return
+  initial_pitch_rad: 0
+  duration_s: 16
+  waypoints:
+  - - 0
+    - 0
+  - - 3
+    - 0
+  - - 6
+    - 0.09
+  - - 9
+    - 0.09
+  - - 12
+    - 0
+  - - 14
+    - 0
+  sensor: &id001
+    mode: lsm6dso
+- name: delayed-command
+  command_delay_ms: 20
+  sensor: *id001
+- name: disabled-controller
+  controller_enabled: false
+  sensor: *id001

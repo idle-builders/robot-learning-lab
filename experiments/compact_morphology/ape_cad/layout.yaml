@@ -1,0 +1,36 @@
+schema_version: 1
+model: ../playground_models/ape_sourced_v6_candidate_mass.xml
+clearance_mm: 1.0
+# Tail points from output shaft toward the long end of the servo case, in the
+# fixed parent body's local axes. This is a packaging hypothesis, not vendor CAD.
+tails:
+  hip_yaw: [-1, 0, 0]
+  hip_roll_left: [0, 0, -1]
+  hip_roll_right: [0, 0, -1]
+  hip_pitch: [0, 0, 1]
+  knee: [0, 0, 1]
+  ankle_pitch: [0, 0, 1]
+  shoulder_yaw: [-1, 0, 0]
+  shoulder_roll_left: [0, -1, 0]
+  shoulder_roll_right: [0, 1, 0]
+  shoulder_pitch: [0, 0, -1]
+  elbow_pitch: [0, 0, 1]
+  gripper: [0, 0, 1]
+  head_yaw: [1, 0, 0]
+  head_pitch: [0, 0, 1]
+parts:
+  legs:
+    catalog: feetech-sts3250-c001
+    envelope_mm: [45.22, 37.4, 24.72]
+    shaft_to_case_center_mm: 13.0
+    note: Case including output-side shaft projection; shaft offset cross-checked with third-party STP, conservative for clearance.
+  arms:
+    catalog: feetech-st3215-c018
+    envelope_mm: [45.2, 37.4, 24.7]
+    shaft_to_case_center_mm: 13.0
+    note: C018 official drawing, with conservative output-side projection inferred from ST3215 reference STEP.
+  small:
+    catalog: robotis-xl330-m288-t
+    envelope_mm: [34.0, 26.0, 20.0]
+    shaft_to_case_center_mm: 7.0
+    note: Published overall bounding dimensions; shaft center estimated until official CAD is obtainable.

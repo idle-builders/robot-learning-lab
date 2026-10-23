@@ -1,0 +1,51 @@
+# Candidate part constraints, not a fitted servo model or quoted BOM.
+# All actuators share 3S power. Cost range is an unquoted volume assumption.
+name: sts3215-wheeled
+morphology: wheeled
+actuators:
+  leg:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.7
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  arm:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.4
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  neck:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.15
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  wheel:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.35
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+cost:
+  actuator_usd:
+    leg:
+    - 16
+    - 26
+    arm:
+    - 16
+    - 26
+    neck:
+    - 16
+    - 26
+    wheel:
+    - 16
+    - 26

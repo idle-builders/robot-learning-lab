@@ -1,0 +1,41 @@
+schema_version: 1
+part: LSM6DSOTR
+datasheet: https://www.st.com/resource/en/datasheet/lsm6dso.pdf
+bus: i2c0
+address_7bit: 106
+bus_hz: 100000
+poll_interval_us: 2000
+transfer_timeout_us: 2500
+freshness_us: 20000
+odr_hz: 208
+accel_full_scale_g: 4
+gyro_full_scale_dps: 500
+pins:
+  sda: 12
+  scl: 13
+  irq: 14
+carrier_connector: J7
+connector_pins:
+  V3: 1
+  GND: 2
+  SDA: 3
+  SCL: 4
+  INT1: 5
+pullups:
+  location: carrier
+  ohm: 4700
+supply_v: 3.3
+sensor_frame:
+  parent: torso
+  allocated_xyz_m: [0, 0, 0.06]
+  torso_from_sensor_rotation: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+  status: allocated_not_mounted_or_calibrated
+telemetry_frame: sensor
+use: telemetry_only_supported_rig
+limitations:
+- I2C completion/poll timestamps are not conversion timestamps.
+- BDU protects low/high bytes; no simultaneous gyro/accelerometer sample claim.
+- Latest-register polling can lose samples while servo feedback blocks; FIFO absent.
+- Raw nominal sensitivities; no bias, scale, mounting or temperature calibration.
+- IRQ wired for future use but current driver polls status.
+- IMU faults do not stop the supported-rig controller; balance does not consume this sensor yet.

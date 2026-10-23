@@ -1,0 +1,50 @@
+{
+  "ape-frame50-direct-skeleton": {
+    "summary": "Historical engineering evidence. Pre-reset body designs and rankings were rejected; no replacement mechanical architecture is selected.",
+    "kind": "Engineering",
+    "featured": false,
+    "title": "Rejected Direct Frame skeleton"
+  },
+  "ape-frame50-cad-replay": {
+    "title": "Earlier frame and motor replay",
+    "summary": "Historical engineering evidence. Pre-reset body designs and rankings were rejected; no replacement mechanical architecture is selected.",
+    "kind": "Engineering",
+    "featured": false
+  },
+  "ape-frame50-supported-body": {
+    "title": "50 cm supported physics body",
+    "summary": "Historical engineering evidence. Pre-reset body designs and rankings were rejected; no replacement mechanical architecture is selected.",
+    "kind": "Engineering",
+    "featured": false
+  },
+  "ape-motion-review-20260929": {
+    "title": "Learned basic movements",
+    "summary": "Retained motion gallery for the ape's basic learned skills. Historical body and policy evidence.",
+    "kind": "Learning",
+    "featured": true
+  },
+  "ape-step-20260930": {
+    "title": "Foot placement lessons",
+    "summary": "Teacher and learned step recordings, including attempts that did not generalize.",
+    "kind": "Learning",
+    "featured": true
+  },
+  "ape-architecture-swarm-20261005": {
+    "title": "50 cm architecture comparison",
+    "summary": "Historical engineering evidence. Pre-reset body designs and rankings were rejected; no replacement mechanical architecture is selected.",
+    "kind": "Engineering",
+    "featured": false
+  },
+  "cove50-joint-interface-failures-20261014": {
+    "title": "Historical joint checks \u2014 ankle clearance corrected",
+    "kind": "Engineering",
+    "featured": false,
+    "summary": "Correction 2026-10-14: the purchased-pulley motor-clear statement is superseded. See cove50-ankle-clearance-correction-20261014. Wrist sensitivity and independently checked shaft/support failures remain historical evidence."
+  },
+  "cove50-ankle-clearance-correction-20261014": {
+    "title": "Correction: ankle pulley intersects the motor",
+    "kind": "Engineering",
+    "featured": true,
+    "summary": "Native interior witnesses overturn the earlier zero-overlap result. Purchased pulley and custom output collide at the retained pose. Original files remain intact; see the saved sections and corrected evidence."
+  }
+}

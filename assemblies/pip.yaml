@@ -1,0 +1,8 @@
+schema_version: 1
+variant: variants/pip-head-service.yaml
+head_study: artifacts/pip-head-service-v11
+workbench: artifacts/pip-head-service-workbench-v2
+board: artifacts/logic-board-xh-v1
+board_fit: artifacts/pip-logic-xh-v7
+power_seal: artifacts/vision-power-seals-v1
+power_review: artifacts/vision-power-validation-v2

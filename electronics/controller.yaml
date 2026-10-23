@@ -1,0 +1,40 @@
+schema_version: 1
+board: pico2_w
+source: https://datasheets.raspberrypi.com/picow/pico-2-w-datasheet.pdf
+module_envelope_mm: [21, 51, 3.5]
+envelope_note: Planform from module; height is a provisional clearance allocation, not measured assembly height.
+host_transport: usb_cdc
+host_frame_timeout_ms: 50  # Parser assembly deadline; unmeasured bench policy, not host-queue age.
+motor_power_settle_ms: 100  # Nonblocking startup wait; assumed, not measured servo or rail readiness.
+servo_baud: 1000000
+command_hz: 50
+feedback_timeout_us: 2000
+pins:
+  bus0_tx: 0
+  bus0_rx: 1
+  bus0_oe_n: 2
+  motion_ok_out: 3
+  stop_chain_ok: 4
+  arm_switch: 5
+  bus1_oe_n: 6
+  bus1_tx: 8
+  bus1_rx: 9
+  imu_sda_reserved: 12
+  imu_scl_reserved: 13
+  imu_irq_reserved: 14
+  battery_adc: 26
+voltage_divider:
+  high_ohm: 47000
+  low_ohm: 10000
+  adc_reference_v: 3.3
+  capacitor_f: 0.0000001
+transceivers:
+  tx: SN74LVC1G125DBVR
+  rx: SN74LVC1G17DBVR
+  supply_v: 3.3
+  oe_pullup_ohm: 10000
+  status: selected_candidates_not_populated_or_bench_validated
+interlocks:
+  stop_chain_ok: High only through a closed normally-closed contact to 3.3 V; external 10k pulldown means open wire stops.
+  arm_switch: High through a maintained switch; external 10k pulldown.
+  motion_ok_out: Power request, low on reset/fault. Raised after calibrated ARM and fresh targets, before waiting for servo replies; not proof of rail readiness or motion. Independent hardware interlock remains required.

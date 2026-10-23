@@ -1,0 +1,396 @@
+{
+  "schema_version": 1,
+  "output_name": "imu",
+  "scope": "LSM6DSOTR candidate daughterboard; physical and mounting qualification absent",
+  "size_mm": [
+    20,
+    20
+  ],
+  "thickness_mm": 1.6,
+  "clearance_mm": 0.15,
+  "mounting_holes_mm": [
+    [
+      3,
+      17
+    ],
+    [
+      17,
+      17
+    ]
+  ],
+  "placement_mm": {
+    "U1": [
+      10,
+      10,
+      0
+    ],
+    "J1": [
+      6,
+      4,
+      0
+    ],
+    "C1": [
+      13,
+      12.4,
+      0
+    ],
+    "C2": [
+      7,
+      12.4,
+      180
+    ]
+  },
+  "routes": [
+    {
+      "name": "sda",
+      "net": "SDA",
+      "points": [
+        "J1.3",
+        [
+          9.5,
+          5.5
+        ],
+        "U1.14"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "scl",
+      "net": "SCL",
+      "points": [
+        "J1.4",
+        [
+          12,
+          5.5
+        ],
+        [
+          10,
+          7.5
+        ],
+        "U1.13"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "io-high",
+      "net": "V3",
+      "points": [
+        "U1.12",
+        [
+          10.5,
+          8.3
+        ],
+        [
+          11.8,
+          8.3
+        ],
+        [
+          11.8,
+          9.25
+        ],
+        "U1.11"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "supply-top",
+      "net": "V3",
+      "points": [
+        "J1.1",
+        [
+          6,
+          7
+        ],
+        [
+          11.8,
+          7
+        ],
+        [
+          11.8,
+          8.3
+        ]
+      ],
+      "layer": "B.Cu",
+      "width_mm": 0.25
+    },
+    {
+      "name": "supply-lower",
+      "net": "V3",
+      "points": [
+        [
+          11.8,
+          8.3
+        ],
+        [
+          13,
+          9.5
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          12.225,
+          13
+        ],
+        [
+          7.775,
+          13
+        ]
+      ],
+      "layer": "B.Cu",
+      "width_mm": 0.25
+    },
+    {
+      "name": "c1-feed",
+      "net": "V3",
+      "points": [
+        [
+          12.225,
+          13
+        ],
+        "C1.1",
+        [
+          11.8,
+          11.4
+        ],
+        "U1.8"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "c2-feed",
+      "net": "V3",
+      "points": [
+        [
+          7.775,
+          13
+        ],
+        "C2.1",
+        [
+          8.5,
+          11.5
+        ],
+        [
+          9.5,
+          11.5
+        ],
+        "U1.5"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "left-ground",
+      "net": "GND",
+      "points": [
+        "U1.1",
+        [
+          7.8,
+          9.25
+        ],
+        [
+          7.8,
+          10.25
+        ],
+        "U1.3"
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "left-ground-middle",
+      "net": "GND",
+      "points": [
+        "U1.2",
+        [
+          7.8,
+          9.75
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "lower-ground",
+      "net": "GND",
+      "points": [
+        "U1.6",
+        [
+          10,
+          11.6
+        ],
+        [
+          10.25,
+          12.2
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "lower-ground-second",
+      "net": "GND",
+      "points": [
+        "U1.7",
+        [
+          10.5,
+          11.6
+        ],
+        [
+          10.25,
+          12.2
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "c1-ground",
+      "net": "GND",
+      "points": [
+        "C1.2",
+        [
+          14.6,
+          12.2
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "c2-ground",
+      "net": "GND",
+      "points": [
+        "C2.2",
+        [
+          5.4,
+          12.2
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "interrupt-escape",
+      "net": "INT1",
+      "points": [
+        "U1.4",
+        [
+          7,
+          10.75
+        ],
+        [
+          6.5,
+          11.25
+        ]
+      ],
+      "layer": "F.Cu",
+      "width_mm": 0.15
+    },
+    {
+      "name": "interrupt-back",
+      "net": "INT1",
+      "points": [
+        "J1.5",
+        [
+          14,
+          6
+        ],
+        [
+          16,
+          8
+        ],
+        [
+          16,
+          14
+        ],
+        [
+          4,
+          14
+        ],
+        [
+          4,
+          11.25
+        ],
+        [
+          6.5,
+          11.25
+        ]
+      ],
+      "layer": "B.Cu",
+      "width_mm": 0.15
+    }
+  ],
+  "vias": [
+    {
+      "net": "V3",
+      "at_mm": [
+        11.8,
+        8.3
+      ]
+    },
+    {
+      "net": "V3",
+      "at_mm": [
+        12.225,
+        13
+      ]
+    },
+    {
+      "net": "V3",
+      "at_mm": [
+        7.775,
+        13
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        7.8,
+        9.75
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        10.25,
+        12.2
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        14.6,
+        12.2
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        5.4,
+        12.2
+      ]
+    },
+    {
+      "net": "INT1",
+      "at_mm": [
+        6.5,
+        11.25
+      ]
+    }
+  ],
+  "labels": [
+    {
+      "text": "IMU",
+      "at_mm": [
+        10,
+        18.5
+      ]
+    }
+  ]
+}

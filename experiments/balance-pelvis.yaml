@@ -1,0 +1,51 @@
+# Pelvis candidate: slower accelerometer correction; selected on a retained 6-setting, 3-case study.
+controller:
+  pitch_gain_m_s: 4
+  pitch_rate_gain_m: 0.2
+  position_gain_s_inv: 1
+  velocity_gain: 2.5
+  complementary_tau_s: 0.4
+  wheel_velocity_gain_nm_s: 0.2
+cases:
+- name: tilt-recovery
+- name: reverse-tilt
+  initial_pitch_rad: -0.03
+- name: drive-return
+  initial_pitch_rad: 0
+  duration_s: 16
+  waypoints:
+  - - 0
+    - 0
+  - - 3
+    - 0
+  - - 6
+    - 0.09
+  - - 9
+    - 0.09
+  - - 12
+    - 0
+  - - 14
+    - 0
+- name: forward-push
+  initial_pitch_rad: 0
+  push_force_n: 0.5
+- name: reverse-push
+  initial_pitch_rad: 0
+  push_force_n: -0.5
+- name: lower-friction
+  floor_friction: 0.3
+- name: delayed-command
+  command_delay_ms: 20
+- name: heavier-model
+  mass_scale: 1.2
+- name: weaker-wheel-response
+  wheel_gain_scale: 0.5
+- name: stronger-wheel-response
+  wheel_gain_scale: 2
+- name: noisy-biased-imu
+  gyro_bias_rad_s: 0.005
+  gyro_noise_std_rad_s: 0.003
+  accel_noise_std_m_s2: 0.05
+  seed: 42
+- name: disabled-controller
+  controller_enabled: false

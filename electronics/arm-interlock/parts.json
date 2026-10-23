@@ -1,0 +1,116 @@
+{
+  "Debouncer": {
+    "manufacturer": "Analog Devices",
+    "mpn": "MAX6816EUS+T",
+    "value": "MAX6816EUS+T",
+    "footprint": "SOT-143.kicad_mod",
+    "pins": {
+      "gnd": "1",
+      "button_n": "2",
+      "released": "3",
+      "vcc": "4"
+    },
+    "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6816-MAX6818.pdf",
+    "status": "candidate_not_installed"
+  },
+  "Supervisor": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "TPS3808G33DBVR",
+    "value": "TPS3808G33DBVR",
+    "footprint": "SOT-23-6.kicad_mod",
+    "pins": {
+      "reset_n": "1",
+      "gnd": "2",
+      "mr_n": "3",
+      "ct": "4",
+      "sense": "5",
+      "vcc": "6"
+    },
+    "source": "https://www.ti.com/lit/ds/symlink/tps3808.pdf",
+    "status": "candidate_not_installed"
+  },
+  "Latch": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "SN74LVC1G74DCUR",
+    "value": "SN74LVC1G74DCUR",
+    "footprint": "VSSOP-8_2.3x2mm_P0.5mm.kicad_mod",
+    "pins": {
+      "clk": "1",
+      "d": "2",
+      "q_n": "3",
+      "gnd": "4",
+      "q": "5",
+      "clear_n": "6",
+      "preset_n": "7",
+      "vcc": "8"
+    },
+    "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g74.pdf",
+    "status": "candidate_not_installed"
+  },
+  "Inverter": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "SN74LVC1G04DBVR",
+    "value": "SN74LVC1G04DBVR",
+    "footprint": "SOT-23-5.kicad_mod",
+    "pins": {
+      "nc": "1",
+      "a": "2",
+      "gnd": "3",
+      "y": "4",
+      "vcc": "5"
+    },
+    "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g04.pdf",
+    "status": "candidate_not_installed"
+  },
+  "And3": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "SN74LVC1G11DBVR",
+    "value": "SN74LVC1G11DBVR",
+    "footprint": "SOT-23-6.kicad_mod",
+    "pins": {
+      "a": "1",
+      "gnd": "2",
+      "b": "3",
+      "y": "4",
+      "vcc": "5",
+      "c": "6"
+    },
+    "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g11.pdf",
+    "status": "candidate_not_installed"
+  },
+  "R10k": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-0710KL",
+    "value": "10k 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0710KL",
+    "resistance_ohm": 10000
+  },
+  "R47k": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-0747KL",
+    "value": "47k 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0747KL",
+    "resistance_ohm": 47000
+  },
+  "C100n": {
+    "manufacturer": "Murata",
+    "mpn": "GRM188R71H104KA93D",
+    "value": "100nF 50V X7R",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.murata.com/en-us/products/productdetail?partno=GRM188R71H104KA93D"
+  }
+}

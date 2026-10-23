@@ -1,0 +1,1939 @@
+{
+  "schema_version": 1,
+  "scope": "Staged planning BOM, mapped to Pip 216 and Scout 222 distal-grip integrated CAD groups. Not an order release.",
+  "limitations": [
+    "Every CAD group is mapped exactly once per variant; grouped solids are not automatically purchase pieces.",
+    "No full-robot order is released. Prototype quantities and volume economics are separate.",
+    "One actuator is proposed for the first joint bench; scaling the bench to multiple actuators is a later decision.",
+    "Most custom parts are intended to be printed. Optical parts, wheel hubs, print process and material need separate decisions.",
+    "Hardware counts, harness and electronics assembly remain incomplete; unquoted planning ranges are not supplier prices."
+  ],
+  "source_report": "artifacts/scout-distal-grip-integrated-v1/report.json",
+  "source_reports": {
+    "pip": {
+      "path": "artifacts/pip-distal-grip-integrated-v1/report.json",
+      "part_count": 216,
+      "status": "fail"
+    },
+    "scout": {
+      "path": "artifacts/scout-distal-grip-integrated-v1/report.json",
+      "part_count": 222,
+      "status": "fail"
+    }
+  },
+  "inventory_counts": {
+    "pip": 216,
+    "scout": 222
+  },
+  "entries": [
+    {
+      "id": "actuators-c018",
+      "label": "Feetech ST-3215-C018 actuator candidates",
+      "category": "commercial_actuator",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 16,
+        "scout": 16
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_housing",
+        "left_forearm_housing",
+        "left_gripper_housing",
+        "left_shin_servo",
+        "left_shoulder_roll_housing",
+        "left_thigh_servo",
+        "left_upper_arm_housing",
+        "left_wheel_servo",
+        "neck_yaw_housing",
+        "right_forearm_housing",
+        "right_gripper_housing",
+        "right_shin_servo",
+        "right_shoulder_roll_housing",
+        "right_thigh_servo",
+        "right_upper_arm_housing",
+        "right_wheel_servo"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_housing",
+          "left_upper_arm_housing",
+          "left_forearm_housing",
+          "left_gripper_housing",
+          "right_shoulder_roll_housing",
+          "right_upper_arm_housing",
+          "right_forearm_housing",
+          "right_gripper_housing",
+          "neck_yaw_housing",
+          "head_housing",
+          "left_thigh_servo",
+          "left_shin_servo",
+          "left_wheel_servo",
+          "right_thigh_servo",
+          "right_shin_servo",
+          "right_wheel_servo"
+        ],
+        "scout": [
+          "left_shoulder_roll_housing",
+          "left_upper_arm_housing",
+          "left_forearm_housing",
+          "left_gripper_housing",
+          "right_shoulder_roll_housing",
+          "right_upper_arm_housing",
+          "right_forearm_housing",
+          "right_gripper_housing",
+          "neck_yaw_housing",
+          "head_housing",
+          "left_thigh_servo",
+          "left_shin_servo",
+          "left_wheel_servo",
+          "right_thigh_servo",
+          "right_shin_servo",
+          "right_wheel_servo"
+        ]
+      },
+      "specification": "One C018 actuator for the first loaded joint bench; 16 positions per wheeled robot. 12 V candidate, TTL half duplex. Exact variant, horn package and vendor STEP interchange remain to verify.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/actuator-catalog.yaml",
+        "docs/research/integrated-production-bom.md"
+      ],
+      "dependencies": [
+        "actuator quote and supply",
+        "horn inclusion decision",
+        "joint bench electrical and thermal checks"
+      ],
+      "price_note": "Existing $16\u201326 per-actuator range is an unquoted planning assumption, not retail or volume evidence.",
+      "cad_group_count": {
+        "pip": 16,
+        "scout": 16
+      },
+      "quantity_unit": "actuators"
+    },
+    {
+      "id": "pi-zero",
+      "label": "Pi Zero 2 W",
+      "category": "commercial_compute_camera",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "pi_substrate"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "pi_substrate"
+        ],
+        "scout": [
+          "pi_substrate"
+        ]
+      },
+      "specification": "Pi Zero 2 W candidate; connector, power and installed fit checks remain open.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "electronics/vision.yaml",
+        "electronics/camera-support-vendor.yaml"
+      ],
+      "dependencies": [
+        "populated connector and antenna clearance",
+        "CSI cable and retention",
+        "5 V rail and thermal check"
+      ],
+      "price_note": "$15 Pi / $35 camera launch references in electronics/vision.yaml, not current quotes or production-volume prices.",
+      "cad_group_count": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_unit": "pieces"
+    },
+    {
+      "id": "camera-wide",
+      "label": "Camera Module 3 Wide",
+      "category": "commercial_compute_camera",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "support_camera_vendor_module"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "support_camera_vendor_module"
+        ],
+        "scout": [
+          "support_camera_vendor_module"
+        ]
+      },
+      "specification": "Camera Module 3 Wide candidate; connector, power and installed fit checks remain open.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "electronics/vision.yaml",
+        "electronics/camera-support-vendor.yaml"
+      ],
+      "dependencies": [
+        "populated connector and antenna clearance",
+        "CSI cable and retention",
+        "5 V rail and thermal check"
+      ],
+      "price_note": "$15 Pi / $35 camera launch references in electronics/vision.yaml, not current quotes or production-volume prices.",
+      "cad_group_count": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_unit": "pieces"
+    },
+    {
+      "id": "carrier-board",
+      "label": "Carrier board",
+      "category": "electronics_pcb",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "make_and_buy",
+      "part_ids": [
+        "carrier"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "carrier"
+        ],
+        "scout": [
+          "carrier"
+        ]
+      },
+      "specification": "Carrier board fabrication and assembly candidate; use its retained design/build artifacts. Fabrication release, populated-board validation and mating harness remain open.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "electronics/carrier/README.md",
+        "electronics/imu/README.md",
+        "electronics/logic-supply/README.md",
+        "robot/integrated-cost.yaml"
+      ],
+      "dependencies": [
+        "PCB fabrication and assembly",
+        "connector and harness mapping",
+        "logic-supply verification"
+      ],
+      "price_note": "Board-level prototype fabrication and assembly quote missing. Do not allocate the previous combined planning range to each board.",
+      "cad_group_count": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_unit": "assembled boards"
+    },
+    {
+      "id": "imu-board",
+      "label": "IMU board",
+      "category": "electronics_pcb",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "make_and_buy",
+      "part_ids": [
+        "imu_board"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "imu_board"
+        ],
+        "scout": [
+          "imu_board"
+        ]
+      },
+      "specification": "IMU board fabrication and assembly candidate; use its retained design/build artifacts. Fabrication release, populated-board validation and mating harness remain open.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "electronics/carrier/README.md",
+        "electronics/imu/README.md",
+        "electronics/logic-supply/README.md",
+        "robot/integrated-cost.yaml"
+      ],
+      "dependencies": [
+        "PCB fabrication and assembly",
+        "connector and harness mapping",
+        "logic-supply verification"
+      ],
+      "price_note": "Board-level prototype fabrication and assembly quote missing. Do not allocate the previous combined planning range to each board.",
+      "cad_group_count": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_unit": "assembled boards"
+    },
+    {
+      "id": "logic-board",
+      "label": "Logic supply board",
+      "category": "electronics_pcb",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "make_and_buy",
+      "part_ids": [
+        "logic_board"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "logic_board"
+        ],
+        "scout": [
+          "logic_board"
+        ]
+      },
+      "specification": "Logic supply board fabrication and assembly candidate; use its retained design/build artifacts. Fabrication release, populated-board validation and mating harness remain open.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "electronics/carrier/README.md",
+        "electronics/imu/README.md",
+        "electronics/logic-supply/README.md",
+        "robot/integrated-cost.yaml",
+        "docs/design/vision-power.md",
+        "docs/design/logic-rail-bench.md",
+        "docs/design/logic-rail-bench-template.json"
+      ],
+      "dependencies": [
+        "PCB fabrication and assembly",
+        "connector and harness mapping",
+        "logic-supply verification"
+      ],
+      "price_note": "Board-level prototype fabrication and assembly quote missing. Do not allocate the previous combined planning range to each board.",
+      "cad_group_count": {
+        "pip": 1,
+        "scout": 1
+      },
+      "quantity_unit": "assembled boards"
+    },
+    {
+      "id": "print-clamps",
+      "label": "Printed actuator clamps",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 32,
+        "scout": 32
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "head_clamp_lower",
+        "head_clamp_upper",
+        "left_forearm_clamp_lower",
+        "left_forearm_clamp_upper",
+        "left_gripper_clamp_lower",
+        "left_gripper_clamp_upper",
+        "left_shin_clamp_lower",
+        "left_shin_clamp_upper",
+        "left_shoulder_roll_clamp_lower",
+        "left_shoulder_roll_clamp_upper",
+        "left_thigh_clamp_lower",
+        "left_thigh_clamp_upper",
+        "left_upper_arm_clamp_lower",
+        "left_upper_arm_clamp_upper",
+        "left_wheel_clamp_lower",
+        "left_wheel_clamp_upper",
+        "neck_yaw_clamp_lower",
+        "neck_yaw_clamp_upper",
+        "right_forearm_clamp_lower",
+        "right_forearm_clamp_upper",
+        "right_gripper_clamp_lower",
+        "right_gripper_clamp_upper",
+        "right_shin_clamp_lower",
+        "right_shin_clamp_upper",
+        "right_shoulder_roll_clamp_lower",
+        "right_shoulder_roll_clamp_upper",
+        "right_thigh_clamp_lower",
+        "right_thigh_clamp_upper",
+        "right_upper_arm_clamp_lower",
+        "right_upper_arm_clamp_upper",
+        "right_wheel_clamp_lower",
+        "right_wheel_clamp_upper"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_clamp_lower",
+          "left_shoulder_roll_clamp_upper",
+          "left_upper_arm_clamp_lower",
+          "left_upper_arm_clamp_upper",
+          "left_forearm_clamp_lower",
+          "left_forearm_clamp_upper",
+          "left_gripper_clamp_lower",
+          "left_gripper_clamp_upper",
+          "right_shoulder_roll_clamp_lower",
+          "right_shoulder_roll_clamp_upper",
+          "right_upper_arm_clamp_lower",
+          "right_upper_arm_clamp_upper",
+          "right_forearm_clamp_lower",
+          "right_forearm_clamp_upper",
+          "right_gripper_clamp_lower",
+          "right_gripper_clamp_upper",
+          "neck_yaw_clamp_lower",
+          "neck_yaw_clamp_upper",
+          "head_clamp_lower",
+          "head_clamp_upper",
+          "left_thigh_clamp_lower",
+          "left_thigh_clamp_upper",
+          "left_shin_clamp_lower",
+          "left_shin_clamp_upper",
+          "left_wheel_clamp_lower",
+          "left_wheel_clamp_upper",
+          "right_thigh_clamp_lower",
+          "right_thigh_clamp_upper",
+          "right_shin_clamp_lower",
+          "right_shin_clamp_upper",
+          "right_wheel_clamp_lower",
+          "right_wheel_clamp_upper"
+        ],
+        "scout": [
+          "left_shoulder_roll_clamp_lower",
+          "left_shoulder_roll_clamp_upper",
+          "left_upper_arm_clamp_lower",
+          "left_upper_arm_clamp_upper",
+          "left_forearm_clamp_lower",
+          "left_forearm_clamp_upper",
+          "left_gripper_clamp_lower",
+          "left_gripper_clamp_upper",
+          "right_shoulder_roll_clamp_lower",
+          "right_shoulder_roll_clamp_upper",
+          "right_upper_arm_clamp_lower",
+          "right_upper_arm_clamp_upper",
+          "right_forearm_clamp_lower",
+          "right_forearm_clamp_upper",
+          "right_gripper_clamp_lower",
+          "right_gripper_clamp_upper",
+          "neck_yaw_clamp_lower",
+          "neck_yaw_clamp_upper",
+          "head_clamp_lower",
+          "head_clamp_upper",
+          "left_thigh_clamp_lower",
+          "left_thigh_clamp_upper",
+          "left_shin_clamp_lower",
+          "left_shin_clamp_upper",
+          "left_wheel_clamp_lower",
+          "left_wheel_clamp_upper",
+          "right_thigh_clamp_lower",
+          "right_thigh_clamp_upper",
+          "right_shin_clamp_lower",
+          "right_shin_clamp_upper",
+          "right_wheel_clamp_lower",
+          "right_wheel_clamp_upper"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts"
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 32,
+        "scout": 32
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 32,
+        "scout": 32
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 286282.0803514045,
+        "scout": 286282.08035140455
+      }
+    },
+    {
+      "id": "print-yokes",
+      "label": "Printed yokes and gripper fingers",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 14,
+        "scout": 14
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "head_yoke",
+        "left_forearm_yoke",
+        "left_gripper_finger",
+        "left_shin_yoke",
+        "left_shoulder_roll_yoke",
+        "left_thigh_yoke",
+        "left_upper_arm_yoke",
+        "neck_yaw_yoke",
+        "right_forearm_yoke",
+        "right_gripper_finger",
+        "right_shin_yoke",
+        "right_shoulder_roll_yoke",
+        "right_thigh_yoke",
+        "right_upper_arm_yoke"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_yoke",
+          "left_upper_arm_yoke",
+          "left_forearm_yoke",
+          "left_gripper_finger",
+          "right_shoulder_roll_yoke",
+          "right_upper_arm_yoke",
+          "right_forearm_yoke",
+          "right_gripper_finger",
+          "neck_yaw_yoke",
+          "head_yoke",
+          "left_thigh_yoke",
+          "left_shin_yoke",
+          "right_thigh_yoke",
+          "right_shin_yoke"
+        ],
+        "scout": [
+          "left_shoulder_roll_yoke",
+          "left_upper_arm_yoke",
+          "left_forearm_yoke",
+          "left_gripper_finger",
+          "right_shoulder_roll_yoke",
+          "right_upper_arm_yoke",
+          "right_forearm_yoke",
+          "right_gripper_finger",
+          "neck_yaw_yoke",
+          "head_yoke",
+          "left_thigh_yoke",
+          "left_shin_yoke",
+          "right_thigh_yoke",
+          "right_shin_yoke"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts"
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 14,
+        "scout": 14
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 14,
+        "scout": 14
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 97564.87065578764,
+        "scout": 97564.87065578766
+      }
+    },
+    {
+      "id": "print-spacers",
+      "label": "Printed spacer candidates",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 112,
+        "scout": 112
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "head_spacer",
+        "left_forearm_spacer",
+        "left_gripper_spacer",
+        "left_shin_spacers",
+        "left_shoulder_roll_spacer",
+        "left_thigh_spacers",
+        "left_upper_arm_spacer",
+        "neck_yaw_spacer",
+        "right_forearm_spacer",
+        "right_gripper_spacer",
+        "right_shin_spacers",
+        "right_shoulder_roll_spacer",
+        "right_thigh_spacers",
+        "right_upper_arm_spacer"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_spacer",
+          "left_upper_arm_spacer",
+          "left_forearm_spacer",
+          "left_gripper_spacer",
+          "right_shoulder_roll_spacer",
+          "right_upper_arm_spacer",
+          "right_forearm_spacer",
+          "right_gripper_spacer",
+          "neck_yaw_spacer",
+          "head_spacer",
+          "left_thigh_spacers",
+          "left_shin_spacers",
+          "right_thigh_spacers",
+          "right_shin_spacers"
+        ],
+        "scout": [
+          "left_shoulder_roll_spacer",
+          "left_upper_arm_spacer",
+          "left_forearm_spacer",
+          "left_gripper_spacer",
+          "right_shoulder_roll_spacer",
+          "right_upper_arm_spacer",
+          "right_forearm_spacer",
+          "right_gripper_spacer",
+          "neck_yaw_spacer",
+          "head_spacer",
+          "left_thigh_spacers",
+          "left_shin_spacers",
+          "right_thigh_spacers",
+          "right_shin_spacers"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups. Each of 14 spacer groups contains eight separate rings (112 rings per robot); handling, print fidelity, creep and captive alternatives remain to evaluate.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md",
+        "docs/design/yoke-spacer-study.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts",
+        "Two-carrier study could remove 72 separate pieces across twelve generic joints, but is not promoted; current allocation remains 112 rings. Physical retention, assembly, creep and strength are unqualified."
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 14,
+        "scout": 14
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 112,
+        "scout": 112
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 3589.285314689687,
+        "scout": 3589.285314689687
+      }
+    },
+    {
+      "id": "print-loadpaths",
+      "label": "Printed spines and adapters",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 11,
+        "scout": 11
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "left_forearm_spine",
+        "left_shin_spine",
+        "left_shoulder_adapter",
+        "left_thigh_spine",
+        "left_upper_spine",
+        "neck_pitch_support",
+        "right_forearm_spine",
+        "right_shin_spine",
+        "right_shoulder_adapter",
+        "right_thigh_spine",
+        "right_upper_spine"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_adapter",
+          "left_upper_spine",
+          "right_shoulder_adapter",
+          "right_upper_spine",
+          "neck_pitch_support",
+          "left_thigh_spine",
+          "left_shin_spine",
+          "right_thigh_spine",
+          "right_shin_spine",
+          "left_forearm_spine",
+          "right_forearm_spine"
+        ],
+        "scout": [
+          "left_shoulder_adapter",
+          "left_upper_spine",
+          "right_shoulder_adapter",
+          "right_upper_spine",
+          "neck_pitch_support",
+          "left_thigh_spine",
+          "left_shin_spine",
+          "right_thigh_spine",
+          "right_shin_spine",
+          "left_forearm_spine",
+          "right_forearm_spine"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts"
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 11,
+        "scout": 11
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 11,
+        "scout": 11
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 96142.533645067,
+        "scout": 96142.53364506701
+      }
+    },
+    {
+      "id": "print-covers",
+      "label": "Printed torso, collar and forearm covers",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "left_cover_halves_front",
+        "left_cover_halves_rear",
+        "neck_collar_front",
+        "neck_collar_rear",
+        "right_cover_halves_front",
+        "right_cover_halves_rear",
+        "torso_front",
+        "torso_rear"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "torso_front",
+          "torso_rear",
+          "neck_collar_front",
+          "neck_collar_rear",
+          "left_cover_halves_front",
+          "left_cover_halves_rear",
+          "right_cover_halves_front",
+          "right_cover_halves_rear"
+        ],
+        "scout": [
+          "torso_front",
+          "torso_rear",
+          "neck_collar_front",
+          "neck_collar_rear",
+          "left_cover_halves_front",
+          "left_cover_halves_rear",
+          "right_cover_halves_front",
+          "right_cover_halves_rear"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "docs/design/neck-skirt-study.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts",
+        "resolve fixed collar / moving head clearance and protection; taller skirts are rejected candidates"
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 8,
+        "scout": 8
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 184881.7531909687,
+        "scout": 196475.0723287318
+      }
+    },
+    {
+      "id": "print-head",
+      "label": "Head shells, camera carriers and decorative/optical parts",
+      "category": "printed_custom_part",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 9,
+        "scout": 11
+      },
+      "quantity_initial_bench": 0,
+      "make_or_buy": "make",
+      "part_ids": [
+        "brow",
+        "cheek_3",
+        "cheek_5",
+        "eye_diffuser_2",
+        "eye_diffuser_3",
+        "eye_diffuser_4",
+        "eye_diffuser_6",
+        "eye_lens_2",
+        "eye_lens_5",
+        "eye_shroud_1",
+        "eye_shroud_4",
+        "face_lens",
+        "head_rear_cover",
+        "head_shell",
+        "support_camera_front_bezel",
+        "support_camera_rear_carrier"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "head_shell",
+          "face_lens",
+          "eye_diffuser_2",
+          "cheek_3",
+          "eye_diffuser_4",
+          "cheek_5",
+          "support_camera_rear_carrier",
+          "support_camera_front_bezel",
+          "head_rear_cover"
+        ],
+        "scout": [
+          "head_shell",
+          "eye_shroud_1",
+          "eye_lens_2",
+          "eye_diffuser_3",
+          "eye_shroud_4",
+          "eye_lens_5",
+          "eye_diffuser_6",
+          "brow",
+          "support_camera_rear_carrier",
+          "support_camera_front_bezel",
+          "head_rear_cover"
+        ]
+      },
+      "specification": "Source CAD groups and STEP-enumerated solid counts are listed separately for Pip and Scout. Most custom parts are intended for 3D printing. Material, orientation, tolerances, supports, infill and finish remain to select; exact geometric solid counts are recorded separately from CAD groups. Lenses/diffusers need optical material/process evaluation; opaque structural filament is not assumed suitable.",
+      "readiness": "fail",
+      "evidence_paths": [
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/research/integrated-production-bom.md",
+        "docs/design/neck-skirt-study.md",
+        "docs/design/head-cap-study.md",
+        "docs/design/head-cap-mount-stock.md",
+        "docs/design/integral-head-wings.md",
+        "docs/design/integral-head-service.md",
+        "artifacts/composed-print-inventory-v3/report.json",
+        "docs/design/production-print-budget.md"
+      ],
+      "dependencies": [
+        "resolve source geometry failures",
+        "fit and service review",
+        "select print process/material/finish",
+        "map inserts",
+        "resolve fixed collar / moving head clearance and protection; taller skirts are rejected candidates",
+        "original cap stock fails; relieved v3 wings pass sampled clearance but remain excluded from print quantities until mounting, service and protection coverage are verified"
+      ],
+      "price_note": "No slicer or vendor quote. Solid CAD volume is not print usage. Prior $25\u201360 polymer/finish allowance is an unquoted combined robot estimate, not a quote for this group.",
+      "cad_group_count": {
+        "pip": 9,
+        "scout": 11
+      },
+      "quantity_unit": "geometric solids; printing process and physical fit unqualified",
+      "geometric_solid_count": {
+        "pip": 9,
+        "scout": 11
+      },
+      "nominal_cad_volume_mm3": {
+        "pip": 114353.1225708219,
+        "scout": 200580.63260841466
+      }
+    },
+    {
+      "id": "horns",
+      "label": "Actuator horns and output attachments",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_horn",
+        "left_forearm_horn",
+        "left_gripper_horn",
+        "left_shin_horns",
+        "left_shoulder_roll_horn",
+        "left_thigh_horns",
+        "left_upper_arm_horn",
+        "left_wheel_horns",
+        "neck_yaw_horn",
+        "right_forearm_horn",
+        "right_gripper_horn",
+        "right_shin_horns",
+        "right_shoulder_roll_horn",
+        "right_thigh_horns",
+        "right_upper_arm_horn",
+        "right_wheel_horns"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_horn",
+          "left_upper_arm_horn",
+          "left_forearm_horn",
+          "left_gripper_horn",
+          "right_shoulder_roll_horn",
+          "right_upper_arm_horn",
+          "right_forearm_horn",
+          "right_gripper_horn",
+          "neck_yaw_horn",
+          "head_horn",
+          "left_thigh_horns",
+          "left_shin_horns",
+          "left_wheel_horns",
+          "right_thigh_horns",
+          "right_shin_horns",
+          "right_wheel_horns"
+        ],
+        "scout": [
+          "left_shoulder_roll_horn",
+          "left_upper_arm_horn",
+          "left_forearm_horn",
+          "left_gripper_horn",
+          "right_shoulder_roll_horn",
+          "right_upper_arm_horn",
+          "right_forearm_horn",
+          "right_gripper_horn",
+          "neck_yaw_horn",
+          "head_horn",
+          "left_thigh_horns",
+          "left_shin_horns",
+          "left_wheel_horns",
+          "right_thigh_horns",
+          "right_shin_horns",
+          "right_wheel_horns"
+        ]
+      },
+      "specification": "16 CAD groups. Several lower-body groups contain paired horn geometry; actual accessory piece count and actuator inclusion are unresolved.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 16,
+        "scout": 16
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "wheel-hubs",
+      "label": "Custom wheel hub candidates",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": 2,
+        "scout": 2
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "undecided",
+      "part_ids": [
+        "left_wheel_hub",
+        "right_wheel_hub"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_wheel_hub",
+          "right_wheel_hub"
+        ],
+        "scout": [
+          "left_wheel_hub",
+          "right_wheel_hub"
+        ]
+      },
+      "specification": "Two modeled hubs; make-versus-buy, output attachment and printed strength remain unresolved.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 2,
+        "scout": 2
+      },
+      "quantity_unit": "pieces"
+    },
+    {
+      "id": "wheel-tires",
+      "label": "Wheel tire candidates",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": 2,
+        "scout": 2
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "left_wheel_tire",
+        "right_wheel_tire"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_wheel_tire",
+          "right_wheel_tire"
+        ],
+        "scout": [
+          "left_wheel_tire",
+          "right_wheel_tire"
+        ]
+      },
+      "specification": "Two tires. Compound, dimensions, supplier and traction measurements remain unresolved.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 2,
+        "scout": 2
+      },
+      "quantity_unit": "pieces"
+    },
+    {
+      "id": "forearm-cover-screws",
+      "label": "Forearm cover screws",
+      "category": "bought_hardware",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_initial_bench": 15,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "left_cover_screws_0_0",
+        "left_cover_screws_0_1",
+        "left_cover_screws_1_0",
+        "left_cover_screws_1_1",
+        "right_cover_screws_0_0",
+        "right_cover_screws_0_1",
+        "right_cover_screws_1_0",
+        "right_cover_screws_1_1"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_cover_screws_0_0",
+          "left_cover_screws_0_1",
+          "left_cover_screws_1_0",
+          "left_cover_screws_1_1",
+          "right_cover_screws_0_0",
+          "right_cover_screws_0_1",
+          "right_cover_screws_1_0",
+          "right_cover_screws_1_1"
+        ],
+        "scout": [
+          "left_cover_screws_0_0",
+          "left_cover_screws_0_1",
+          "left_cover_screws_1_0",
+          "left_cover_screws_1_1",
+          "right_cover_screws_0_0",
+          "right_cover_screws_0_1",
+          "right_cover_screws_1_0",
+          "right_cover_screws_1_1"
+        ]
+      },
+      "specification": "Eight M2.5 x 8 socket-cap screws, one per forearm cover mounting position per robot; CAD source generates four positions per side.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "lab/forearm_cover.py",
+        "robot/forearm-cover.yaml",
+        "artifacts/pip-forearm-fitted-v2/report.json",
+        "artifacts/forearm-fitted-v5/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/design/forearm-fastener-bom.md",
+        "docs/design/first-fit-bench.md"
+      ],
+      "dependencies": [
+        "physical fit and engagement check",
+        "cover material/process selection",
+        "coupon plan",
+        "15 consumed by first-fit specimens; supplier order multiple is separate"
+      ],
+      "price_note": "PTS A91202508 retained catalog tier data; published GBP tiers are assumptions for batch planning, not a current quote.",
+      "cad_group_count": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_unit": "screws"
+    },
+    {
+      "id": "forearm-cover-inserts",
+      "label": "Forearm cover heat-set inserts",
+      "category": "bought_hardware",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_initial_bench": 15,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "left_cover_inserts_0_0",
+        "left_cover_inserts_0_1",
+        "left_cover_inserts_1_0",
+        "left_cover_inserts_1_1",
+        "right_cover_inserts_0_0",
+        "right_cover_inserts_0_1",
+        "right_cover_inserts_1_0",
+        "right_cover_inserts_1_1"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_cover_inserts_0_0",
+          "left_cover_inserts_0_1",
+          "left_cover_inserts_1_0",
+          "left_cover_inserts_1_1",
+          "right_cover_inserts_0_0",
+          "right_cover_inserts_0_1",
+          "right_cover_inserts_1_0",
+          "right_cover_inserts_1_1"
+        ],
+        "scout": [
+          "left_cover_inserts_0_0",
+          "left_cover_inserts_0_1",
+          "left_cover_inserts_1_0",
+          "left_cover_inserts_1_1",
+          "right_cover_inserts_0_0",
+          "right_cover_inserts_0_1",
+          "right_cover_inserts_1_0",
+          "right_cover_inserts_1_1"
+        ]
+      },
+      "specification": "Eight RX-M2.5x5.7 insert candidates, one per forearm cover mounting position per robot; installation and pull-out are unqualified.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "lab/forearm_cover.py",
+        "lab/logic_mount.py",
+        "robot/forearm-cover.yaml",
+        "artifacts/pip-forearm-fitted-v2/report.json",
+        "artifacts/forearm-fitted-v5/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/design/forearm-fastener-bom.md",
+        "docs/design/first-fit-bench.md"
+      ],
+      "dependencies": [
+        "pilot/material compatibility",
+        "physical insertion and engagement check",
+        "coupon plan",
+        "15 consumed by first-fit specimens; supplier order multiple is separate"
+      ],
+      "price_note": "Ruthex GE-M25x57-001 retained catalog specification; no retained supplier tier or current quote.",
+      "cad_group_count": {
+        "pip": 8,
+        "scout": 8
+      },
+      "quantity_unit": "inserts"
+    },
+    {
+      "id": "fastener-inserts",
+      "label": "Heat-set insert candidates",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_cover_insert_0",
+        "head_cover_insert_1",
+        "head_cover_insert_2",
+        "head_cover_insert_3",
+        "imu_insert_0",
+        "imu_insert_1",
+        "logic_insert_0",
+        "logic_insert_1",
+        "logic_insert_2",
+        "logic_insert_3",
+        "neck_collar_insert_0",
+        "neck_collar_insert_1",
+        "neck_collar_insert_2",
+        "neck_collar_insert_3",
+        "pi_insert_0",
+        "pi_insert_1",
+        "pi_insert_2",
+        "pi_insert_3",
+        "visor_insert_0",
+        "visor_insert_1"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "logic_insert_0",
+          "logic_insert_1",
+          "logic_insert_2",
+          "logic_insert_3",
+          "imu_insert_0",
+          "imu_insert_1",
+          "neck_collar_insert_0",
+          "neck_collar_insert_1",
+          "neck_collar_insert_2",
+          "neck_collar_insert_3",
+          "head_cover_insert_0",
+          "head_cover_insert_1",
+          "head_cover_insert_2",
+          "head_cover_insert_3",
+          "pi_insert_0",
+          "pi_insert_1",
+          "pi_insert_2",
+          "pi_insert_3"
+        ],
+        "scout": [
+          "logic_insert_0",
+          "logic_insert_1",
+          "logic_insert_2",
+          "logic_insert_3",
+          "imu_insert_0",
+          "imu_insert_1",
+          "neck_collar_insert_0",
+          "neck_collar_insert_1",
+          "neck_collar_insert_2",
+          "neck_collar_insert_3",
+          "visor_insert_0",
+          "visor_insert_1",
+          "head_cover_insert_0",
+          "head_cover_insert_1",
+          "head_cover_insert_2",
+          "head_cover_insert_3",
+          "pi_insert_0",
+          "pi_insert_1",
+          "pi_insert_2",
+          "pi_insert_3"
+        ]
+      },
+      "specification": "Installed insert positions are listed, but each location still needs a size/engagement mapping. RX-M2.5x5.7 (ruthex GE-M25x57-001) is one catalog candidate, not an all-position substitution.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 26,
+        "scout": 28
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "fastener-screws",
+      "label": "Mounting screws and bridge bolts",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_cover_screw_0",
+        "head_cover_screw_1",
+        "head_cover_screw_2",
+        "head_cover_screw_3",
+        "head_screw",
+        "imu_screw_0",
+        "imu_screw_1",
+        "left_forearm_screw",
+        "left_gripper_screw",
+        "left_shin_screws",
+        "left_shoulder_roll_screw",
+        "left_thigh_screws",
+        "left_upper_arm_screw",
+        "logic_screw_0",
+        "logic_screw_1",
+        "logic_screw_2",
+        "logic_screw_3",
+        "neck_bridge_bolt_-16.5",
+        "neck_bridge_bolt_16.5",
+        "neck_collar_screw_0",
+        "neck_collar_screw_1",
+        "neck_collar_screw_2",
+        "neck_collar_screw_3",
+        "neck_yaw_screw",
+        "pi_screw_0",
+        "pi_screw_1",
+        "pi_screw_2",
+        "pi_screw_3",
+        "right_forearm_screw",
+        "right_gripper_screw",
+        "right_shin_screws",
+        "right_shoulder_roll_screw",
+        "right_thigh_screws",
+        "right_upper_arm_screw",
+        "support_camera_board_screw_0",
+        "support_camera_board_screw_1",
+        "support_camera_board_screw_2",
+        "support_camera_board_screw_3",
+        "visor_screw_0",
+        "visor_screw_1"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "left_shoulder_roll_screw",
+          "left_upper_arm_screw",
+          "left_forearm_screw",
+          "left_gripper_screw",
+          "right_shoulder_roll_screw",
+          "right_upper_arm_screw",
+          "right_forearm_screw",
+          "right_gripper_screw",
+          "neck_yaw_screw",
+          "head_screw",
+          "neck_bridge_bolt_-16.5",
+          "neck_bridge_bolt_16.5",
+          "left_thigh_screws",
+          "left_shin_screws",
+          "right_thigh_screws",
+          "right_shin_screws",
+          "logic_screw_0",
+          "logic_screw_1",
+          "logic_screw_2",
+          "logic_screw_3",
+          "imu_screw_0",
+          "imu_screw_1",
+          "neck_collar_screw_0",
+          "neck_collar_screw_1",
+          "neck_collar_screw_2",
+          "neck_collar_screw_3",
+          "support_camera_board_screw_0",
+          "support_camera_board_screw_1",
+          "support_camera_board_screw_2",
+          "support_camera_board_screw_3",
+          "head_cover_screw_0",
+          "head_cover_screw_1",
+          "head_cover_screw_2",
+          "head_cover_screw_3",
+          "pi_screw_0",
+          "pi_screw_1",
+          "pi_screw_2",
+          "pi_screw_3"
+        ],
+        "scout": [
+          "left_shoulder_roll_screw",
+          "left_upper_arm_screw",
+          "left_forearm_screw",
+          "left_gripper_screw",
+          "right_shoulder_roll_screw",
+          "right_upper_arm_screw",
+          "right_forearm_screw",
+          "right_gripper_screw",
+          "neck_yaw_screw",
+          "head_screw",
+          "neck_bridge_bolt_-16.5",
+          "neck_bridge_bolt_16.5",
+          "left_thigh_screws",
+          "left_shin_screws",
+          "right_thigh_screws",
+          "right_shin_screws",
+          "logic_screw_0",
+          "logic_screw_1",
+          "logic_screw_2",
+          "logic_screw_3",
+          "imu_screw_0",
+          "imu_screw_1",
+          "neck_collar_screw_0",
+          "neck_collar_screw_1",
+          "neck_collar_screw_2",
+          "neck_collar_screw_3",
+          "visor_screw_0",
+          "visor_screw_1",
+          "support_camera_board_screw_0",
+          "support_camera_board_screw_1",
+          "support_camera_board_screw_2",
+          "support_camera_board_screw_3",
+          "head_cover_screw_0",
+          "head_cover_screw_1",
+          "head_cover_screw_2",
+          "head_cover_screw_3",
+          "pi_screw_0",
+          "pi_screw_1",
+          "pi_screw_2",
+          "pi_screw_3"
+        ]
+      },
+      "specification": "M2.5 and M3 candidates in the catalog. Some CAD groups contain multiple fasteners. Map every length and engagement before computing order quantities; supplier minimums are separate.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 38,
+        "scout": 40
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "fastener-kits",
+      "label": "Clamp kits, shoulder hardware and camera nuts",
+      "category": "bought_hardware",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_clamp_hardware",
+        "left_shin_clamp_hardware",
+        "left_thigh_clamp_hardware",
+        "left_wheel_clamp_hardware",
+        "neck_yaw_clamp_hardware",
+        "right_shin_clamp_hardware",
+        "right_thigh_clamp_hardware",
+        "right_wheel_clamp_hardware",
+        "shoulder_mount_hardware",
+        "support_camera_board_nut_0",
+        "support_camera_board_nut_1",
+        "support_camera_board_nut_2",
+        "support_camera_board_nut_3"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "shoulder_mount_hardware",
+          "neck_yaw_clamp_hardware",
+          "head_clamp_hardware",
+          "left_thigh_clamp_hardware",
+          "left_shin_clamp_hardware",
+          "left_wheel_clamp_hardware",
+          "right_thigh_clamp_hardware",
+          "right_shin_clamp_hardware",
+          "right_wheel_clamp_hardware",
+          "support_camera_board_nut_0",
+          "support_camera_board_nut_1",
+          "support_camera_board_nut_2",
+          "support_camera_board_nut_3"
+        ],
+        "scout": [
+          "shoulder_mount_hardware",
+          "neck_yaw_clamp_hardware",
+          "head_clamp_hardware",
+          "left_thigh_clamp_hardware",
+          "left_shin_clamp_hardware",
+          "left_wheel_clamp_hardware",
+          "right_thigh_clamp_hardware",
+          "right_shin_clamp_hardware",
+          "right_wheel_clamp_hardware",
+          "support_camera_board_nut_0",
+          "support_camera_board_nut_1",
+          "support_camera_board_nut_2",
+          "support_camera_board_nut_3"
+        ]
+      },
+      "specification": "Remaining multi-piece attachment groups and camera nuts. Exact bill of fasteners and piece counts are unresolved.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "robot/fastener-catalog.yaml",
+        "docs/research/camera-fasteners.md"
+      ],
+      "dependencies": [
+        "part fit and length checks",
+        "horn accessory scope",
+        "wheel/tire selection",
+        "fastener overbuy plan"
+      ],
+      "price_note": "Published GBP tiers exist only for selected catalog candidates; full hardware line is unquoted.",
+      "cad_group_count": {
+        "pip": 13,
+        "scout": 13
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "power-harness",
+      "label": "Battery pack, protection, charger, motor distribution and harness",
+      "category": "power_harness",
+      "stage": "later",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy_and_make",
+      "part_ids": [],
+      "specification": "Protected 3S1P power architecture candidate; no installed CAD part IDs. Crosswise RRC-sized body passes the retained neutral packaging screen; connectors/retention remain absent. Published 4 A/8 A smart packs do not cover the sizing demand; shared-source all-rated cases reach 15.354/15.955 A, exceeding the current 15 A allocation; a 9.6 V source with 8 A motor demand fails motor voltage. See docs/design/battery-packaging.md and docs/design/shared-battery.md. A separate 14-component motor-disconnect candidate has compiled connections and static divider evidence; its BOM remains on hold with zero installed quantity and unquoted 1,000/5,000-unit prices.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "electronics/power-system.yaml",
+        "docs/design/power-system.md",
+        "robot/integrated-cost.yaml",
+        "docs/design/motor-disconnect.md"
+      ],
+      "dependencies": [
+        "measured rail transients",
+        "charger/protection selection",
+        "motor distribution and harness design"
+      ],
+      "price_note": "Existing $30\u201360 per-robot range is an unquoted planning assumption; no retail or volume quote.",
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "bench-print-coupons",
+      "label": "Printed fit coupons and single-interface mounts",
+      "category": "printed_test_coupon",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": 32,
+      "make_or_buy": "make",
+      "part_ids": [],
+      "specification": "Eight distinct STEP/STL files: five pilot diameters, three copies each (15 blocks), 15 cover coupons, one actuator cradle and one clamp cap. Corrected cradle CAD is in bench-fit-v4. Earlier X1/PETG native slices contain the superseded blocked cradle; a separate corrected-cradle X1 slice is available (one part, 21.78 g, 53 min 47 s). Actual nozzle, plate and filament remain unconfirmed.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "artifacts/pip-distal-grip-integrated-v1/report.json",
+        "artifacts/scout-distal-grip-integrated-v1/report.json",
+        "docs/design/interfaces.md",
+        "docs/design/first-fit-bench.md",
+        "artifacts/bench-fit-v4/report.json",
+        "docs/design/x1-first-fit.md",
+        "artifacts/bambu-first-fit-v7/audit.json"
+      ],
+      "dependencies": [
+        "Select and record print process/material",
+        "Use the separate corrected-cradle X1 project; match actual printer settings and do not reuse the old combined plate unchanged",
+        "Keep specimen IDs and measurements; physical fit/retention unmeasured"
+      ],
+      "price_note": "Historical X1 plate estimate for superseded cradle geometry: 53.10 g, 2 h 4 min 7 s, illustrative $4.16. Separate corrected-cradle slice: 21.78 g, 53 min 47 s, illustrative $1.78. This is not a recomputed 32-piece plate. Physical print unrun; not a production quote.",
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "quantity_unit": "printed pieces in this bench; not robot parts"
+    },
+    {
+      "id": "bench-bus-adapter",
+      "label": "Conditional FE-URT2-C001 single-servo interface kit",
+      "category": "bench_instrumentation",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 0,
+        "scout": 0
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "buy",
+      "part_ids": [],
+      "specification": "FEETECH FE-URT-2 / FE-URT2-C001 candidate plus one USB-C data cable and one verified 3-pin TTL servo harness. Reuse a compatible supplied lead after checking pin mapping. URT-2 USB-to-servo power path and exact 12 V TTL-port support remain unresolved; removing external supply may leave the servo powered. Separate reusable bench equipment, not the robot controller.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "robot/actuator-catalog.yaml",
+        "docs/design/interfaces.md",
+        "electronics/controller.yaml",
+        "docs/research/actuator-bench-interface.md",
+        "docs/design/actuator-hold-bench.md"
+      ],
+      "dependencies": [
+        "Confirm exact URT-2 revision, TTL power range and USB power path from schematic/manual or manufacturer",
+        "Verify all-source actuator disconnect with the servo physically disconnected",
+        "Confirm 5264 mating housing/keying/pin mapping and included cables",
+        "Resolve loaded fixture, supply, current sensing and operating limits before torque enable"
+      ],
+      "price_note": "Manufacturer SKU identified; no retained current quote or production cost allocation. Shared bench equipment is separate from robot unit cost.",
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "quantity_unit": "shared bench kit: 1 adapter, 1 USB data cable, 1 verified servo harness"
+    },
+    {
+      "id": "bench-power-test",
+      "label": "Current-limited bench supply, fuse/current sensing and safe actuator harness",
+      "category": "bench_instrumentation",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [],
+      "specification": "Bench power and measurement prerequisites for actuator, logic rail and startup transient checks; ratings and quantities remain to be selected.",
+      "readiness": "not_run",
+      "evidence_paths": [
+        "electronics/power-system.yaml",
+        "electronics/logic-supply/verification.yaml",
+        "robot/actuator-catalog.yaml"
+      ],
+      "dependencies": [
+        "define rail limits",
+        "measure startup/stall behavior",
+        "validate protection"
+      ],
+      "price_note": "No supplier or price research added.",
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "bench-computer-storage",
+      "label": "MicroSD, CSI cable, USB cable and nearby host computer interface",
+      "category": "bench_accessory",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": null,
+        "scout": null
+      },
+      "quantity_initial_bench": null,
+      "make_or_buy": "buy",
+      "part_ids": [],
+      "specification": "Accessories needed to exercise the Pi/camera bridge and Pico/controller path; exact cable lengths, storage and spare quantities are unknown.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "electronics/vision.yaml",
+        "electronics/controller.yaml",
+        "docs/design/learning-platform.md"
+      ],
+      "dependencies": [
+        "camera and Pi sample fit",
+        "power rail validation",
+        "host interface choice"
+      ],
+      "price_note": "Existing camera/Pi launch references exclude cable, regulator, storage and assembly; no new prices added.",
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "quantity_unit": "undecided"
+    },
+    {
+      "id": "head-bridge-stacks",
+      "label": "Head-to-neck bridge fastener stacks",
+      "category": "bought_hardware",
+      "stage": "prototype_after_checks",
+      "quantity_per_robot": {
+        "pip": 2,
+        "scout": 2
+      },
+      "quantity_initial_bench": 2,
+      "make_or_buy": "buy",
+      "part_ids": [
+        "head_bridge_bolt_-5",
+        "head_bridge_bolt_5"
+      ],
+      "part_ids_by_robot": {
+        "pip": [
+          "head_bridge_bolt_-5",
+          "head_bridge_bolt_5"
+        ],
+        "scout": [
+          "head_bridge_bolt_-5",
+          "head_bridge_bolt_5"
+        ]
+      },
+      "quantity_unit": "stacks; each has 1 screw, 2 washers and 1 nut",
+      "cad_group_count": {
+        "pip": 2,
+        "scout": 2
+      },
+      "specification": "Per robot: 2 Vital HSC912-M3-12-A4 screws, 4 WA125-M3-A4 washers, 2 HN934-M3-A4 nuts. Existing two bridge CAD groups decomposed into eight purchased pieces; no extra robot hardware. Candidate socket and staged service checks remain nominal.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "docs/design/head-bridge-service.md",
+        "robot/fastener-catalog.yaml",
+        "artifacts/pip-head-bridge-service-v3/report.json",
+        "artifacts/scout-head-bridge-service-v3/report.json",
+        "docs/design/composed-head.md"
+      ],
+      "dependencies": [
+        "head support and nut/washer positioning aid",
+        "harness disconnection and flex routing",
+        "actual fastener and tool dimensions/torque verification",
+        "printed retention and local wall tests",
+        "Initial bench needs two complete stacks if starting without stock: two screws, four washers and two nuts. Reuse these in the later robot; bench and robot quantities are not added together."
+      ],
+      "price_note": "Retained catalog tiers give this eight-piece subset GBP 0.20 per robot at 1,000 robots and GBP 0.12 at 5,000. Each SKU uses its own total order quantity. Published snapshot, not current quote; shipping, tax, assembly and full product cost excluded.",
+      "production_cost_snapshot": [
+        {
+          "production_units": 1000,
+          "rows": [
+            {
+              "part": "screw_m3_12",
+              "procurement_candidate": "Vital Parts HSC912-M3-12-A4",
+              "quantity_per_robot": 2,
+              "purchase_quantity": 2000,
+              "published_tier_gbp": [
+                1000,
+                0.03
+              ],
+              "subtotal_per_robot_gbp": 0.06
+            },
+            {
+              "part": "washer_m3",
+              "procurement_candidate": "Vital Parts WA125-M3-A4",
+              "quantity_per_robot": 4,
+              "purchase_quantity": 4000,
+              "published_tier_gbp": [
+                1000,
+                0.02
+              ],
+              "subtotal_per_robot_gbp": 0.08
+            },
+            {
+              "part": "nut_m3",
+              "procurement_candidate": "Vital Parts HN934-M3-A4",
+              "quantity_per_robot": 2,
+              "purchase_quantity": 2000,
+              "published_tier_gbp": [
+                1000,
+                0.03
+              ],
+              "subtotal_per_robot_gbp": 0.06
+            }
+          ],
+          "subtotal_per_robot_gbp": 0.2,
+          "status": "published_catalog_snapshot_not_quote"
+        },
+        {
+          "production_units": 5000,
+          "rows": [
+            {
+              "part": "screw_m3_12",
+              "procurement_candidate": "Vital Parts HSC912-M3-12-A4",
+              "quantity_per_robot": 2,
+              "purchase_quantity": 10000,
+              "published_tier_gbp": [
+                5000,
+                0.02
+              ],
+              "subtotal_per_robot_gbp": 0.04
+            },
+            {
+              "part": "washer_m3",
+              "procurement_candidate": "Vital Parts WA125-M3-A4",
+              "quantity_per_robot": 4,
+              "purchase_quantity": 20000,
+              "published_tier_gbp": [
+                10000,
+                0.01
+              ],
+              "subtotal_per_robot_gbp": 0.04
+            },
+            {
+              "part": "nut_m3",
+              "procurement_candidate": "Vital Parts HN934-M3-A4",
+              "quantity_per_robot": 2,
+              "purchase_quantity": 10000,
+              "published_tier_gbp": [
+                10000,
+                0.02
+              ],
+              "subtotal_per_robot_gbp": 0.04
+            }
+          ],
+          "subtotal_per_robot_gbp": 0.12,
+          "status": "published_catalog_snapshot_not_quote"
+        }
+      ]
+    },
+    {
+      "id": "head-bridge-assembly-aid",
+      "label": "Removable printed head-bridge nut/washer carrier",
+      "category": "bench_fixture",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 0,
+        "scout": 0
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "print",
+      "part_ids": [],
+      "readiness": "conditional",
+      "specification": "One reusable assembly tool shared by both variants; separate from the first 32-piece fit bench and from robot quantities. Nominal support and sampled insertion/release pass; material, slicing, physical fit and strength unqualified. Reuses the existing two bridge screws, four washers and two nuts.",
+      "evidence_paths": [
+        "docs/design/head-bridge-carrier.md",
+        "artifacts/pip-head-bridge-carrier-v1/report.json",
+        "artifacts/scout-head-bridge-carrier-v1/report.json",
+        "docs/design/head-bridge-carrier-bench-template.json"
+      ],
+      "dependencies": [
+        "Print material and slicer settings; dimensional fit and handle stiffness remain unqualified",
+        "Use existing bridge hardware allocation and separately selected driver/wrench",
+        "Support head and disconnect harness; front stack first, rear stack second"
+      ],
+      "price_note": "1,174.742 mm\u00b3 CAD polymer volume; no print cost or production tooling allowance quoted.",
+      "quantity_unit": "reusable bench tools, not installed robot parts",
+      "cad_group_count": {
+        "pip": 0,
+        "scout": 0
+      }
+    },
+    {
+      "id": "head-bridge-bench-tools",
+      "label": "Head-bridge driver, wrench and catch tray",
+      "category": "bench_fixture",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 0,
+        "scout": 0
+      },
+      "quantity_initial_bench": 1,
+      "make_or_buy": "buy",
+      "part_ids": [],
+      "readiness": "not_run",
+      "specification": "One shared kit: one 2.5 mm hex driver, one 5.5 mm wrench and one catch tray for the loose-stack carrier test. Reuse existing tools where suitable. Exact tool outlines, supplier SKUs and physical service access remain unqualified.",
+      "evidence_paths": [
+        "docs/design/head-bridge-carrier.md",
+        "docs/design/head-bridge-service.md"
+      ],
+      "dependencies": [
+        "Compare actual driver/wrench outline with the retained nominal tool allocations",
+        "Loose-stack trial first; the full route additionally requires the matching printed head/yoke fixture"
+      ],
+      "price_note": "No instrument/tool supplier selection or quote; reusable bench equipment is separate from production robot cost.",
+      "quantity_unit": "shared kit; three reusable tools/containers, not installed parts",
+      "cad_group_count": {
+        "pip": 0,
+        "scout": 0
+      }
+    },
+    {
+      "id": "spacer-comparison-print",
+      "label": "X1 spacer handling comparison plate",
+      "category": "printed_test_coupon",
+      "stage": "bench_now",
+      "quantity_per_robot": {
+        "pip": 0,
+        "scout": 0
+      },
+      "quantity_initial_bench": 30,
+      "make_or_buy": "make",
+      "part_ids": [],
+      "part_ids_by_robot": {
+        "pip": [],
+        "scout": []
+      },
+      "specification": "Three paired sets: 24 original loose rings and six connected carriers total. Native X1/PETG reference slice; reuse the same verified actuator/horn/yoke and hardware. Separate fit specimens, not installed robot parts.",
+      "readiness": "conditional",
+      "evidence_paths": [
+        "docs/design/spacer-x1.md",
+        "artifacts/spacer-x1-v1/audit-v2.json",
+        "artifacts/spacer-x1-v1/cloud-distance.json",
+        "docs/design/yoke-spacer-bench-template.json"
+      ],
+      "dependencies": [
+        "Match actual X1 variant, nozzle, plate and filament before printing",
+        "Label three sets on the bed and measure thickness, bore, seating and web damage",
+        "Verify actuator/horn/fastener identity; reuse the qualified passive fixture",
+        "Measure handling and retained load performance before any robot BOM promotion"
+      ],
+      "price_note": "Paired plate native estimate 2.14 g and 14 min 34 s; illustrative material/machine cost $0.41 for all 30 specimens, excluding handling/loss. No per-robot production saving established.",
+      "quantity_unit": "printed comparison specimens; zero installed parts"
+    }
+  ]
+}

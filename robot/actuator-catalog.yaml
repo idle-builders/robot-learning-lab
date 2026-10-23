@@ -1,0 +1,78 @@
+schema_version: 1
+# Datasheet properties, not bench measurements or manufacturing approval.
+parts:
+  feetech-sts3215-c001:
+    manufacturer_model: STS3215-C001 (7.4 V)
+    source: https://files.seeedstudio.com/products/Feetech/108090023_STS3215-C001_Datasheet.pdf
+    revision: A/1, 2023-06-23
+    voltage_range_v: [4.0, 7.4]
+    rating_voltage_v: 7.4
+    rated_effort_nm: 0.4903325
+    stall_effort_nm: 1.91229675
+    no_load_speed_rad_s: 5.454154
+    mass_kg: 0.055
+    mass_tolerance_kg: 0.001
+    envelope_m: [0.0452, 0.0247, 0.035]
+    rated_current_a: 0.650
+    stall_current_a: 2.5
+    signal_high_range_v: [2.0, 5.0]
+    interface: TTL half duplex, 8N1, default 1000000 baud
+    command_modes: [position, closed_loop_speed, open_loop_speed, step]
+    connector_pins: {1: GND, 2: VCC, 3: DATA}
+  feetech-st3215-c018:
+    manufacturer_model: ST-3215-C018 (12 V)
+    source: https://www.feetechrc.com/Data/feetechrc/upload/file/20240507/6385067068652648096680943.pdf
+    revision: A/0, 2023-07-20
+    voltage_range_v: [4.0, 14.0]
+    rating_voltage_v: 12.0
+    rated_effort_nm: 0.980665
+    stall_effort_nm: 2.941995
+    no_load_speed_rad_s: 4.717106
+    mass_kg: 0.055
+    mass_tolerance_kg: 0.001
+    envelope_m: [0.0452, 0.0247, 0.035]
+    drawing_keepout_m: [0.04523, 0.02473, 0.0365]
+    drawing_output_center_from_near_end_m: 0.0125
+    drawing_output_center_from_case_center_m: 0.010115 # 45.23/2 - 12.5 mm; offset along the long side
+    drawing_output_axis: normal_to_45p23_by_24p73_face
+    drawing_page: 6
+    rated_current_a: 0.900
+    stall_current_a: 2.7
+    signal_high_range_v: [2.0, 5.0]
+    interface: TTL half duplex, 8N1, default 1000000 baud
+    command_modes: [position, closed_loop_speed, open_loop_speed, step]
+    connector_pins: {1: GND, 2: VCC, 3: DATA}
+  feetech-sts3250-c001:
+    manufacturer_model: ST-3250-C001 (12 V)
+    source: https://www.feetechrc.com/Data/feetechrc/upload/file/20240120/6384135881578380868917773.pdf
+    revision: A/0, 2024-01-16
+    voltage_range_v: [6.0, 12.0]
+    rating_voltage_v: 12.0
+    rated_effort_nm: 1.569064
+    stall_effort_nm: 4.903325
+    no_load_speed_rad_s: 7.873666
+    mass_kg: 0.0745
+    mass_tolerance_kg: 0.001
+    envelope_m: [0.04522, 0.02472, 0.035]
+    drawing_keepout_m: [0.04522, 0.02472, 0.0365]
+    drawing_output_center_from_near_end_m: 0.0125
+    drawing_output_center_from_case_center_m: 0.01011 # 45.22/2 - 12.5 mm
+    drawing_output_axis: normal_to_45p22_by_24p72_face
+    drawing_page: 6
+    rated_current_a: 1.4
+    stall_current_a: 4.2
+    interface: TTL half duplex, 8N1, default 1000000 baud
+    command_modes: [position, closed_loop_speed, open_loop_speed, step]
+  robotis-xl330-m288-t:
+    manufacturer_model: XL330-M288-T
+    source: https://emanual.robotis.com/docs/en/dxl/x/xl330-m288/
+    voltage_range_v: [3.7, 6.0]
+    recommended_voltage_v: 5.0
+    rated_effort_nm: null # No continuous torque rating in the cited e-manual.
+    stall_effort_nm_at_5v: 0.52
+    stall_current_a_at_5v: 1.47
+    no_load_speed_rad_s_at_5v: 10.786
+    mass_kg: 0.018
+    envelope_m: [0.020, 0.034, 0.026]
+    interface: DYNAMIXEL Protocol 2.0 TTL half duplex; separate 5 V bus
+    command_modes: [current, velocity, position, extended_position, current_based_position, pwm]

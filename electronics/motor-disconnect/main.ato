@@ -1,0 +1,119 @@
+# Component power-stage candidate. Not a complete protection or stop circuit.
+# RTN exposed pad intentionally floats; never connect it to system GND.
+# MOTOR_ENABLE must come from a default-low, latched hardware-permit circuit.
+# No connector, fuse, current sensing, input surge network or PCB routing yet.
+# Bulk capacitor and regeneration shunt connect at MOTOR_BUS after Q2.
+# Logic supply stays on PROTECTED_PACK, outside this motor disconnect.
+#pragma experiment("INSTANCE_TRAITS")
+import has_designator
+from "parts/parts.ato" import Disconnect
+from "parts/parts.ato" import PowerNFET
+from "parts/parts.ato" import Cap100n
+from "parts/parts.ato" import Res97k6
+from "parts/parts.ato" import Res10k
+from "parts/parts.ato" import Res100k
+from "parts/parts.ato" import Res100
+
+module MotorDisconnect:
+    U1 = new Disconnect
+    trait U1 has_designator<designator="U1">
+    Q1 = new PowerNFET
+    trait Q1 has_designator<designator="Q1">
+    Q2 = new PowerNFET
+    trait Q2 has_designator<designator="Q2">
+    C1 = new Cap100n
+    trait C1 has_designator<designator="C1">
+    C2 = new Cap100n
+    trait C2 has_designator<designator="C2">
+    C3 = new Cap100n
+    trait C3 has_designator<designator="C3">
+    C4 = new Cap100n
+    trait C4 has_designator<designator="C4">
+    R1 = new Res97k6
+    trait R1 has_designator<designator="R1">
+    R2 = new Res10k
+    trait R2 has_designator<designator="R2">
+    R3 = new Res100k
+    trait R3 has_designator<designator="R3">
+    R4 = new Res100
+    trait R4 has_designator<designator="R4">
+    C5 = new Cap100n
+    trait C5 has_designator<designator="C5">
+
+    C6 = new Cap100n
+    trait C6 has_designator<designator="C6">
+    C7 = new Cap100n
+    trait C7 has_designator<designator="C7">
+
+    signal PROTECTED_PACK
+    PROTECTED_PACK.override_net_name = "PROTECTED_PACK"
+    PROTECTED_PACK ~ U1.a
+    PROTECTED_PACK ~ U1.vsns
+    PROTECTED_PACK ~ Q1.s1
+    PROTECTED_PACK ~ Q1.s2
+    PROTECTED_PACK ~ Q1.s3
+    PROTECTED_PACK ~ C5.a
+
+    signal COMMON_DRAIN
+    COMMON_DRAIN.override_net_name = "COMMON_DRAIN"
+    COMMON_DRAIN ~ Q1.d
+    COMMON_DRAIN ~ Q2.d
+    COMMON_DRAIN ~ U1.c
+    COMMON_DRAIN ~ U1.vs
+    COMMON_DRAIN ~ C1.a
+    COMMON_DRAIN ~ C2.b
+    COMMON_DRAIN ~ C6.b
+    COMMON_DRAIN ~ C7.b
+
+    signal MOTOR_BUS
+    MOTOR_BUS.override_net_name = "MOTOR_BUS"
+    MOTOR_BUS ~ Q2.s1
+    MOTOR_BUS ~ Q2.s2
+    MOTOR_BUS ~ Q2.s3
+    MOTOR_BUS ~ U1.out
+    MOTOR_BUS ~ C4.a
+
+    signal DGATE
+    DGATE.override_net_name = "DGATE"
+    DGATE ~ U1.dgate
+    DGATE ~ Q1.g
+    signal HGATE
+    HGATE.override_net_name = "HGATE"
+    HGATE ~ U1.hgate
+    HGATE ~ Q2.g
+    HGATE ~ R4.a
+    signal SLEW_CAP
+    SLEW_CAP.override_net_name = "SLEW_CAP"
+    SLEW_CAP ~ R4.b
+    SLEW_CAP ~ C3.a
+    signal PUMP
+    PUMP.override_net_name = "PUMP"
+    PUMP ~ U1.cap
+    PUMP ~ C2.a
+    PUMP ~ C6.a
+    PUMP ~ C7.a
+
+    signal OV_TOP
+    OV_TOP.override_net_name = "OV_TOP"
+    OV_TOP ~ U1.sw
+    OV_TOP ~ R1.a
+    signal OV_SENSE
+    OV_SENSE.override_net_name = "OV_SENSE"
+    OV_SENSE ~ U1.ov
+    OV_SENSE ~ R1.b
+    OV_SENSE ~ R2.a
+
+    signal MOTOR_ENABLE
+    MOTOR_ENABLE.override_net_name = "MOTOR_ENABLE"
+    MOTOR_ENABLE ~ U1.en
+    MOTOR_ENABLE ~ R3.a
+
+    signal GND
+    GND.override_net_name = "GND"
+    GND ~ U1.gnd
+    GND ~ C1.b
+    GND ~ C3.b
+    GND ~ C4.b
+    GND ~ C5.b
+    GND ~ R2.b
+    GND ~ R3.b

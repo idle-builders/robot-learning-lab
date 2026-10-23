@@ -1,0 +1,8 @@
+# Finer head-specific grid based on relief-v3 geometry bounds; unbored stock only.
+boss_radius_mm: 4.0
+boss_depth_mm: 8.4
+seat_thickness_mm: 2.5
+minimum_connection_overlap_mm3: 4.0
+front_x_mm: [44, 45, 46, 47, 48]
+rear_x_mm: [-44, -45, -46, -47, -48]
+absolute_y_mm: [31, 33, 35, 37, 39, 41]

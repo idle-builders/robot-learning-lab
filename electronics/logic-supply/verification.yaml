@@ -1,0 +1,16 @@
+schema_version: 1
+input_range_v: [9.0, 12.6]
+output_range_v: [4.75, 5.25]
+nominal_load_a: 0.6
+probe_load_a: 1.0
+reference_range_v: [0.581, 0.596, 0.611]
+switching_frequency_range_hz: [290000, 400000, 510000]
+source_resistance_ohm: 0.1
+# Model solver settings, not physical tolerances.
+solver: {method: gear, reltol: 0.003, maximum_step_s: 0.0000001, timeout_s: 600}
+cases:
+  - {name: nominal, input_v: 12.6, load_a: 0.6, duration_s: 0.0005, steady_state: true}
+  - {name: low-input, input_v: 9.0, load_a: 0.6, duration_s: 0.0005, steady_state: true}
+  - {name: load-step, input_v: 12.6, load_a: 0.6, step_load_a: 1.0, step_start_s: 0.0006, step_end_s: 0.001, duration_s: 0.0013, steady_state: true}
+  - {name: half-capacitance, input_v: 12.6, load_a: 0.6, capacitance_scale: 0.5, duration_s: 0.0005, steady_state: true}
+  - {name: startup, input_v: 12.6, load_a: 0.6, duration_s: 0.010, steady_state: false, solver: {method: trap, timeout_s: 1800}}

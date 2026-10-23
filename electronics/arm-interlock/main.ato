@@ -1,0 +1,134 @@
+# Independent arm candidate. No PCB, connectors, or physical qualification.
+# NO arm contact: ARM_BUTTON_N to GND; NC stop: V3 to STOP_CHAIN_OK.
+# U3 q_n and U4 nc intentionally unconnected.
+# R3/R4 are local fail-low pull-downs, in addition to carrier pull-downs.
+# R5 parallels motor-stage R3 when connected; total nominal 9.09k.
+# GP5 ARM_SWITCH would receive ARM_AUTHORITY, not a maintained switch.
+# No changed carrier or target image is released by this candidate.
+#pragma experiment("INSTANCE_TRAITS")
+import has_designator
+from "parts/parts.ato" import Debouncer
+from "parts/parts.ato" import Supervisor
+from "parts/parts.ato" import Latch
+from "parts/parts.ato" import Inverter
+from "parts/parts.ato" import And3
+from "parts/parts.ato" import R10k
+from "parts/parts.ato" import R47k
+from "parts/parts.ato" import C100n
+
+module ArmInterlock:
+    U1 = new Debouncer
+    trait U1 has_designator<designator="U1">
+    U2 = new Supervisor
+    trait U2 has_designator<designator="U2">
+    U3 = new Latch
+    trait U3 has_designator<designator="U3">
+    U4 = new Inverter
+    trait U4 has_designator<designator="U4">
+    U5 = new And3
+    trait U5 has_designator<designator="U5">
+    R1 = new R47k
+    trait R1 has_designator<designator="R1">
+    R2 = new R10k
+    trait R2 has_designator<designator="R2">
+    R3 = new R10k
+    trait R3 has_designator<designator="R3">
+    R4 = new R10k
+    trait R4 has_designator<designator="R4">
+    R5 = new R10k
+    trait R5 has_designator<designator="R5">
+    C1 = new C100n
+    trait C1 has_designator<designator="C1">
+    C2 = new C100n
+    trait C2 has_designator<designator="C2">
+    C3 = new C100n
+    trait C3 has_designator<designator="C3">
+    C4 = new C100n
+    trait C4 has_designator<designator="C4">
+    C5 = new C100n
+    trait C5 has_designator<designator="C5">
+
+    R6 = new R10k
+    trait R6 has_designator<designator="R6">
+
+    signal V3
+    V3.override_net_name = "V3"
+    V3 ~ U1.vcc
+    V3 ~ U2.vcc
+    V3 ~ U2.sense
+    V3 ~ U3.d
+    V3 ~ U3.preset_n
+    V3 ~ U3.vcc
+    V3 ~ U4.vcc
+    V3 ~ U5.vcc
+    V3 ~ R1.a
+    V3 ~ R2.a
+    V3 ~ R6.a
+    V3 ~ C1.a
+    V3 ~ C2.a
+    V3 ~ C3.a
+    V3 ~ C4.a
+    V3 ~ C5.a
+
+    signal GND
+    GND.override_net_name = "GND"
+    GND ~ U1.gnd
+    GND ~ U2.gnd
+    GND ~ U3.gnd
+    GND ~ U4.gnd
+    GND ~ U5.gnd
+    GND ~ R3.b
+    GND ~ R4.b
+    GND ~ R5.b
+    GND ~ C1.b
+    GND ~ C2.b
+    GND ~ C3.b
+    GND ~ C4.b
+    GND ~ C5.b
+
+    signal ARM_BUTTON_N
+    ARM_BUTTON_N.override_net_name = "ARM_BUTTON_N"
+    ARM_BUTTON_N ~ U1.button_n
+    ARM_BUTTON_N ~ R6.b
+
+    signal ARM_RELEASED
+    ARM_RELEASED.override_net_name = "ARM_RELEASED"
+    ARM_RELEASED ~ U1.released
+    ARM_RELEASED ~ U4.a
+
+    signal ARM_PRESS
+    ARM_PRESS.override_net_name = "ARM_PRESS"
+    ARM_PRESS ~ U4.y
+    ARM_PRESS ~ U3.clk
+
+    signal STOP_CHAIN_OK
+    STOP_CHAIN_OK.override_net_name = "STOP_CHAIN_OK"
+    STOP_CHAIN_OK ~ U2.mr_n
+    STOP_CHAIN_OK ~ R3.a
+
+    signal CT
+    CT.override_net_name = "CT"
+    CT ~ U2.ct
+    CT ~ R1.b
+
+    signal RECOVERED
+    RECOVERED.override_net_name = "RECOVERED"
+    RECOVERED ~ U2.reset_n
+    RECOVERED ~ R2.b
+    RECOVERED ~ U3.clear_n
+    RECOVERED ~ U5.b
+
+    signal ARM_AUTHORITY
+    ARM_AUTHORITY.override_net_name = "ARM_AUTHORITY"
+    ARM_AUTHORITY ~ U3.q
+    ARM_AUTHORITY ~ U5.a
+
+    signal POWER_REQUEST
+    POWER_REQUEST.override_net_name = "POWER_REQUEST"
+    POWER_REQUEST ~ U5.c
+    POWER_REQUEST ~ R4.a
+
+    signal MOTOR_ENABLE
+    MOTOR_ENABLE.override_net_name = "MOTOR_ENABLE"
+    MOTOR_ENABLE ~ U5.y
+    MOTOR_ENABLE ~ R5.a

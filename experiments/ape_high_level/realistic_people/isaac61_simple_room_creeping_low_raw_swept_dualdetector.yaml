@@ -1,0 +1,55 @@
+# Isaac Sim 6.1 Replicator Agent furnished-room scene. Its outputs are observations and
+# evaluator annotations; the ape actor must receive only RGB/depth/calibration.
+# The official Simple Room is a table-furnished room, not a lived-in home.
+isaacsim.replicator.agent:
+  version: 1.7.0
+  seed: 761901
+  simulation_duration: 2.0
+  environment:
+    base_stage_asset_path: Isaac/Environments/Simple_Room/simple_room.usd
+  character:
+    root_prim_path: /World/Characters
+    groups:
+      person_a:
+        asset_path: Isaac/People/Characters/
+        num: 1
+        spawn_positions:
+          - [-0.8, -1.7, -0.8154]
+        routines:
+          - stop:
+              time_range: [1.0, 1.0]
+      person_b:
+        asset_path: Isaac/People/Characters/
+        num: 1
+        spawn_positions:
+          - [0.8, -1.7, -0.8154]
+        routines: []
+  sensor:
+    root_prim_path: /World/Cameras
+    groups:
+      low_social_view:
+        num: 0
+        aim_at_targets:
+          targets: [/World/Characters]
+          yaw_range: [0.0, 0.0]
+          height_range: [0.45, 0.45]
+          look_down_angle_range: [0.0, 0.0]
+          focal_length_range: [15.0, 15.0]
+          distance_range: [1.5, 1.5]
+  replicator:
+    writers:
+      IRABasicWriter:
+        output_dir: /workspace/ape-realistic-people/isaac61-first-people
+        start_frame: 0
+        end_frame: 30
+        rgb: true
+        distance_to_camera: true
+        camera_params: true
+        bounding_box_2d_tight: true
+        agent_info_skeleton_data: true
+
+# robotlab_dynamic_low_cube: frame9_xplus0p02_to18
+
+# robotlab_path_timed_guard: enabled
+# robotlab_raw_swept_gate: enabled
+# robotlab_person_fallback: grounding_dino

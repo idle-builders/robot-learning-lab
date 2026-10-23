@@ -1,0 +1,8 @@
+# Unbored study stock, not enabled robot geometry or a purchased fastener release.
+boss_radius_mm: 4.0
+boss_depth_mm: 8.4
+seat_thickness_mm: 2.5
+minimum_connection_overlap_mm3: 4.0  # provisional geometry screen, not strength
+front_x_mm: [26, 30, 34, 38]
+rear_x_mm: [-24, -28, -32, -36]
+absolute_y_mm: [32, 36, 40, 44, 48]

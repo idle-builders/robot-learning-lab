@@ -1,0 +1,28 @@
+schema_version: 1
+units: mm
+scope: First printable interface specimens; no load or material qualification
+insert_coupon:
+  pilot_diameters: [3.8, 3.9, 4.0, 4.1, 4.2]
+  base_width: 16.0
+  base_thickness: 3.0
+  cover_clearance_diameter: 2.7
+  screw_length: 8.0
+  screw_diameter: 2.5
+  physical_replicates_per_diameter: 3
+actuator_cradle:
+  case_clearance: 0.4
+  split_gap: 1.2
+  plate_width: 90.0
+  plate_depth: 60.0
+  plate_thickness: 6.0
+  plate_overlap: 0.25
+  mounting_pitch_x: 70.0
+  mounting_pitch_z: 44.0
+  mounting_hole_diameter: 5.5
+  hole_edge_margin_min: 5.0
+process:
+  material: unselected
+  printing_method: unselected
+  layer_height_mm: null
+  orientation: Exported coupon/cradle STL has intended base on Z=0; orientation is a test variable, not qualified
+  acceptance: Record dimensions and failure behavior before setting physical allowable loads

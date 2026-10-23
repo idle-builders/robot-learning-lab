@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "scope": "Candidate bench procurement only; does not change installed robot BOM or production cost",
+  "status": "conditional_not_order_release",
+  "entries": [
+    {
+      "part_id": "pololu-3771",
+      "description": "Fixed 13.2 V / 1.50 ohm shunt module",
+      "initial_shared_bench_quantity": 1,
+      "installed_quantities": {"pip": 0, "scout": 0},
+      "unit": "assembled module",
+      "source": "https://www.pololu.com/product/3771",
+      "published_price_usd": {"quantity_1": 15.98, "quantity_5": 14.70},
+      "price_snapshot_date": "2026-09-20",
+      "production_quote_1000_usd": null,
+      "production_quote_5000_usd": null,
+      "dependencies": ["Confirm availability and exact fixed variant", "Establish low-energy bench equipment and polarity checks", "Obtain pulse/thermal coverage before high-energy testing"],
+      "cost_boundary": "Small-order reference only; shipping, tax, harness, fixture and test equipment excluded"
+    },
+    {
+      "part_id": null,
+      "description": "Shunt harness and strain relief",
+      "initial_shared_bench_quantity": null,
+      "status": "unselected",
+      "requirements": "Two power connections; current/temperature/connector qualification and routing depend on measured braking envelope"
+    },
+    {
+      "part_id": null,
+      "description": "Stand-off mounting and thermal bench fixture",
+      "initial_shared_bench_quantity": null,
+      "status": "unselected",
+      "requirements": "Three M2/#2 mounting positions; lengths, head clearance, spacers and thermal separation are not selected"
+    }
+  ]
+}

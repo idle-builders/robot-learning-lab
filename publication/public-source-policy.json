@@ -1,0 +1,22 @@
+{
+  "schema": "robot-learning-lab.public-source-policy.v1",
+  "include": [
+    "AGENTS.md", ".gitignore", ".env.example", ".githooks/pre-push", ".github/workflows/*.yml", "pyproject.toml", "requirements*.txt", "requirements*.lock",
+    "lab/*.py", "tools/*.py", "tools/lab", "tools/runpod-flash",
+    "workers/*.py", "workers/*.yaml", "workers/*.json", "workers/*.txt",
+    "firmware/*", "electronics/*", "robot/*", "variants/*", "assemblies/*",
+    "codex-skills/*.md", "learning/*.md", "skills/ape/configs/*", "skills/ape/registry.json",
+    "experiments/*.py", "experiments/*.sh", "experiments/*.yaml", "experiments/*.toml", "experiments/*.xml",
+    "ui/results-hub/*", "ui/session-inspector/*", "ui/cad-inspector/*",
+    "publication/*", "docs/operations/public-upstream.md"
+  ],
+  "exclude_parts": [
+    ".git", ".cache", "__pycache__", "node_modules", "source", "sources", "source-files",
+    "snapshot", "snapshots", "output", "outputs", "traces", "checkpoints", "vendor", "reference", "references"
+  ],
+  "exclude_patterns": ["*/source-*/*", "*/source_*/*", "*/source-backup/*", "*/audits/*", "*/exports/*"],
+  "extensions": [".py", ".md", ".json", ".yaml", ".yml", ".toml", ".xml", ".csv", ".sh", ".txt", ".lock", ".c", ".h", ".ato", ".kicad_mod", ".kicad_sym", ".js", ".css", ".html"],
+  "exact_assets": ["ui/results-hub/body-map.png"],
+  "max_file_bytes": 2000000,
+  "overlays": {"README.md": "publication/PUBLIC_README.md"}
+}

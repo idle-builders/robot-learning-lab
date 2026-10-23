@@ -1,0 +1,197 @@
+{
+  "Pico2W": {
+    "manufacturer": "Raspberry Pi",
+    "mpn": "SC1633",
+    "value": "Pico 2 W",
+    "footprint": "RobotLab_Pico2W_SMD.kicad_mod",
+    "pins": {
+      "gp0": "1",
+      "gp1": "2",
+      "gp2": "4",
+      "gp3": "5",
+      "gp4": "6",
+      "gp5": "7",
+      "gp6": "9",
+      "gp7": "10",
+      "gp8": "11",
+      "gp9": "12",
+      "gp10": "14",
+      "gp11": "15",
+      "gp12": "16",
+      "gp13": "17",
+      "gp14": "19",
+      "gp15": "20",
+      "gp16": "21",
+      "gp17": "22",
+      "gp18": "24",
+      "gp19": "25",
+      "gp20": "26",
+      "gp21": "27",
+      "gp22": "29",
+      "gnd3": "3",
+      "gnd8": "8",
+      "gnd13": "13",
+      "gnd18": "18",
+      "gnd23": "23",
+      "gnd28": "28",
+      "gnd33": "33",
+      "gnd38": "38",
+      "run": "30",
+      "gp26": "31",
+      "gp27": "32",
+      "gp28": "34",
+      "adc_vref": "35",
+      "v3": "36",
+      "v3_en": "37",
+      "vsys": "39",
+      "vbus": "40",
+      "d1": "D1",
+      "d2": "D2",
+      "d3": "D3",
+      "tp1": "TP1",
+      "tp2": "TP2",
+      "tp3": "TP3",
+      "tp4": "TP4",
+      "tp5": "TP5",
+      "tp6": "TP6"
+    },
+    "source": "https://datasheets.raspberrypi.com/picow/pico-2-w-datasheet.pdf",
+    "footprint_note": "Derived from KiCad 10 Pico W SMD, compatible with Pico 2 W pin/package. Last two paste-only apertures reduced from 3.8x2.2 to 3.8x1.5 mm to avoid the original RF keepout; copper/keepout untouched. Reflow process unvalidated. 3D model is Pico W package proxy."
+  },
+  "TXBuffer": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "SN74LVC1G125DBVR",
+    "value": "SN74LVC1G125",
+    "footprint": "SOT-23-5.kicad_mod",
+    "pins": {
+      "oe_n": "1",
+      "a": "2",
+      "gnd": "3",
+      "y": "4",
+      "vcc": "5"
+    },
+    "source": "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf"
+  },
+  "RXBuffer": {
+    "manufacturer": "Texas Instruments",
+    "mpn": "SN74LVC1G17DBVR",
+    "value": "SN74LVC1G17",
+    "footprint": "SOT-23-5.kicad_mod",
+    "pins": {
+      "nc": "1",
+      "a": "2",
+      "gnd": "3",
+      "y": "4",
+      "vcc": "5"
+    },
+    "source": "https://www.ti.com/document-viewer/SN74LVC1G17/datasheet"
+  },
+  "R10k": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-0710KL",
+    "value": "10k 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0710KL",
+    "resistance_ohm": 10000
+  },
+  "R47k": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-0747KL",
+    "value": "47k 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0747KL",
+    "resistance_ohm": 47000
+  },
+  "R100": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-07100RL",
+    "value": "100 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-07100RL",
+    "resistance_ohm": 100
+  },
+  "R4k7": {
+    "manufacturer": "Yageo",
+    "mpn": "RC0603FR-074K7L",
+    "value": "4.7k 1%",
+    "footprint": "R_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-074K7L",
+    "resistance_ohm": 4700
+  },
+  "C100n": {
+    "manufacturer": "Murata",
+    "mpn": "GRM188R71H104KA93D",
+    "value": "100nF 50V X7R",
+    "footprint": "C_0603_1608Metric.kicad_mod",
+    "pins": {
+      "a": "1",
+      "b": "2"
+    },
+    "source": "https://www.murata.com/en-us/products/productdetail?partno=GRM188R71H104KA93D"
+  },
+  "SS14": {
+    "manufacturer": "Vishay",
+    "mpn": "SS14-E3/61T",
+    "value": "SS14",
+    "footprint": "D_SMA.kicad_mod",
+    "pins": {
+      "k": "1",
+      "a": "2"
+    },
+    "source": "https://www.vishay.com/docs/88746/ss12.pdf"
+  },
+  "JST2": {
+    "manufacturer": "JST",
+    "mpn": "B2B-PH-K-S(LF)(SN)",
+    "value": "PH 2pin",
+    "footprint": "JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical.kicad_mod",
+    "pins": {
+      "p1": "1",
+      "p2": "2"
+    },
+    "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
+  },
+  "JST5": {
+    "manufacturer": "JST",
+    "mpn": "B5B-PH-K-S(LF)(SN)",
+    "value": "PH 5pin",
+    "footprint": "JST_PH_B5B-PH-K_1x05_P2.00mm_Vertical.kicad_mod",
+    "pins": {
+      "p1": "1",
+      "p2": "2",
+      "p3": "3",
+      "p4": "4",
+      "p5": "5"
+    },
+    "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
+  },
+  "JST4": {
+    "manufacturer": "JST",
+    "mpn": "B4B-PH-K-S(LF)(SN)",
+    "value": "PH 4pin",
+    "footprint": "JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical.kicad_mod",
+    "pins": {
+      "p1": "1",
+      "p2": "2",
+      "p3": "3",
+      "p4": "4"
+    },
+    "source": "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
+  }
+}

@@ -1,0 +1,21 @@
+# Dimensions are nominal fastener envelopes / explicit tool allocations.
+# M3 socket depth1.3 is the published minimum recess, not required engagement.
+socket_af_mm: 2.5
+socket_depth_mm: 1.3
+driver_engagement_mm: 1.2
+driver_shaft_diameter_mm: 3.0
+driver_shaft_length_mm: 60
+handle_diameter_mm: 12
+handle_length_mm: 70
+withdrawal_mm: [0, 3, 8, 20, 60]
+# Generic outline allocation informed by HAZET450N-5X5.5 thickness/width.
+# Complete jaw/handle shape is not vendor CAD.
+wrench_jaw_mm: 5.6
+wrench_head_diameter_mm: 15.1
+wrench_thickness_mm: 3.6
+wrench_top_z_mm: 26.95
+wrench_length_mm: 99.6
+wrench_handle_width_mm: 6
+nut_offsets_mm: [0, 3, 8, 20, 60]
+# Rearward insertion/removal samples; front stack first, rear stack second.
+rear_service_offsets_mm: [0, 2, 4, 6, 8, 10, 15, 20, 30, 45, 60]

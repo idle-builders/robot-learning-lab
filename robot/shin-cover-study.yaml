@@ -1,0 +1,22 @@
+schema_version: 1
+units: mm
+status: separate_candidate_not_installed
+outer_x: 64.0
+outer_y: 60.0
+wall: 1.8
+proximal_z: -36.0
+distal_extra_below_wheel_axis: 20.0
+rear_open_x: 0.0
+spine_face_x: 18.365
+mount_y: [-8.0, 8.0]
+mount_z: [-60.0, -80.0]
+boss_radius: 3.8
+wheel_clearance: 1.5
+driver_radius: 2.5
+driver_length: 30.0
+profiles:
+  pip:
+    corner_radius: 14.0
+  scout:
+    corner_radius: 8.0
+density_g_cm3: 1.27

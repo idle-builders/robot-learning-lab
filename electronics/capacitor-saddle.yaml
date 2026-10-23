@@ -1,0 +1,38 @@
+schema_version: 1
+status: unqualified_tray_extension_study
+parent: electronics/regen-nut-pockets.yaml
+frame: torso_local_mm
+saddle:
+  x_center_mm: 18
+  axial_width_mm: 8
+  center_z_mm: 15
+  bore_radius_mm: 8.5
+  outer_radius_mm: 10.5
+  top_z_mm: 9.4
+  join_x_min_mm: 2.4
+  support_y_half_mm: 10.5
+  floor_z_mm: 3.4
+  support_top_z_mm: 7
+strap:
+  candidate: HellermannTyton T18R-PA66-NA 111-01919
+  source: https://www.hellermanntyton.com/products/cable-ties-inside-serrated/t18r/111-01919
+  length_mm: 100
+  width_mm: 2.5
+  thickness_mm: 1
+  maximum_bundle_diameter_mm: 22
+  head_length_mm: 4.8
+  head_width_mm: 4.45
+  head_height_mm: 3.7
+  outer_radius_mm: 9.5
+  bottom_z_mm: 4.4
+  slot_clearance_mm: 0.2
+  service: Non-releasable; cut and replace. Cutter access and actual closure shape unqualified.
+  geometry_status: Idealized D-shaped strap and rectangular head envelopes; not supplier CAD or a tension/contact model.
+service:
+  capacitor_waypoints_mm: [[0,0,0], [0,0,18], [-85,0,18]]
+  step_mm: 1
+  prerequisites: Remove rear cover, carrier and battery; disconnect capacitor leads and cut/remove the strap first.
+limits:
+  - Actual sleeve dimensions, tie tension, can crushing, lead strain relief, insulation, heat and creep remain unqualified.
+  - No released assembly, installed mass, wiring or production BOM change.
+  - Earlier board and tray removal passes do not qualify the enlarged tray.

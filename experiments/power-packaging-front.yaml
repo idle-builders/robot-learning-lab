@@ -1,0 +1,38 @@
+schema_version: 1
+scope: Neutral co-packaging hypotheses, not installed hardware or thermal qualification.
+module_source: artifacts/regen-candidate-v1/fixed-3771/fixed-3771-reference.step
+capacitor_source: artifacts/motor-capacitor-v1/EEUFR1E222S-maximum-body.step
+vent_source: artifacts/motor-capacitor-v1/EEUFR1E222S-vent-keepout.step
+battery_source: experiments/battery-packaging-v1.yaml
+battery_case: rrc2040-crosswise
+battery_allowance_mm: 1
+module_source_center_mm:
+- 14.2875
+- 10.16
+- 3.5124
+module_working_allowance_mm:
+- 1
+- 1
+- 4
+module_allowance_note: Clearance study only; no derived thermal distance, mounting
+  hardware or connector bend qualification.
+capacitor_radial_working_allowance_mm: 1.5
+capacitor_lead_working_allowance_mm: 3
+cases:
+- id: front-upright-axial-cap
+  module_center_mm:
+  - 26
+  - 32
+  - 77.2
+  module_rotation_deg:
+  - 0
+  - 90
+  - 0
+  capacitor_base_mm:
+  - -1
+  - 0
+  - 15
+  capacitor_rotation_deg:
+  - 0
+  - 90
+  - 0

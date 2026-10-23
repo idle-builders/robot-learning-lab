@@ -1,0 +1,44 @@
+# Native AGILE deterministic-scenario format. Fixed before the first PPO run.
+# Tests motor commands, not object manipulation or natural-language planning.
+evaluation:
+  task_name: RobotLab-Pip-Agile-v0
+  num_envs: 4
+  episode_length_s: 8.0
+  num_episodes: 1
+  environments:
+    - env_ids: [0]
+      name: hold
+      schedule:
+        - time: 0.0
+          commands:
+            base_velocity: {lin_vel_x: 0.0, lin_vel_y: 0.0, ang_vel_z: 0.0, base_height: 0.232}
+    - env_ids: [1]
+      name: forward_reverse
+      sweep:
+        interval: 2.0
+        commands:
+          base_velocity:
+            lin_vel_x: [0.0, 0.03, -0.03, 0.0]
+            lin_vel_y: 0.0
+            ang_vel_z: 0.0
+            base_height: 0.232
+    - env_ids: [2]
+      name: turn
+      sweep:
+        interval: 2.0
+        commands:
+          base_velocity:
+            lin_vel_x: 0.0
+            lin_vel_y: 0.0
+            ang_vel_z: [0.0, 0.08, -0.08, 0.0]
+            base_height: 0.232
+    - env_ids: [3]
+      name: lower_raise
+      sweep:
+        interval: 2.0
+        commands:
+          base_velocity:
+            lin_vel_x: 0.0
+            lin_vel_y: 0.0
+            ang_vel_z: 0.0
+            base_height: [0.232, 0.21, 0.19, 0.232]

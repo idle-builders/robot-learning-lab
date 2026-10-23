@@ -1,0 +1,40 @@
+schema_version: 1
+scope: Quasistatic mechanism screening; no installed spring or qualified workspace
+robots: [pip, scout]
+profiles: [lower, nominal, upper]
+roll_samples: 27
+pitch_samples: 7
+elbow_samples: 7
+payload_kg: [0.0, 0.05]
+task_stride: 20
+# Direct torsion is stable about its free angle; its signed torque is k*(q0-q).
+candidates:
+  - name: original
+    kind: none
+  - name: direct_torsion
+    kind: torsion
+    rate_nm_rad: 0.10
+    rest_rad: 1.30
+  # Pin-pin tension spring geometry in the shoulder YZ plane. Moving pin is
+  # b*(sin(q),-cos(q)); fixed pin is a*(sin(phi),cos(phi)).
+  - name: tension_low
+    kind: tension
+    anchor_radius_m: 0.035
+    moving_radius_m: 0.020
+    anchor_phase_rad: 0.35
+    free_length_m: 0.025
+    rate_n_m: 250
+  - name: tension_medium
+    kind: tension
+    anchor_radius_m: 0.035
+    moving_radius_m: 0.020
+    anchor_phase_rad: 0.35
+    free_length_m: 0.025
+    rate_n_m: 500
+  - name: tension_high
+    kind: tension
+    anchor_radius_m: 0.035
+    moving_radius_m: 0.020
+    anchor_phase_rad: 0.35
+    free_length_m: 0.025
+    rate_n_m: 750

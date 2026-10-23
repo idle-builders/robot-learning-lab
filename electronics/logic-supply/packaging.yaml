@@ -1,0 +1,10 @@
+schema_version: 1
+# Board-center/substrate-bottom datum, torso-local mm; provisional allocation.
+position_torso_mm: [36.5, 0, 70]
+normal: rearward
+connector_approach:
+  width_mm: 10
+  height_mm: 10
+  normal_center_mm: 13
+  normal_depth_mm: 12
+  evidence: unplugged connector/mating space allocation; actual mate, bend radius and harness unselected

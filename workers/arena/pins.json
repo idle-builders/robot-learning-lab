@@ -1,0 +1,10 @@
+{
+  "arena": "1d4a906cac4b1be1a463b9d525be8fbc3cb4eb6f",
+  "isaaclab": "bb0c8e1b9af381bf13064ec3303e17db79e4b6ef",
+  "gr00t": "e29d8fc50b0e4745120ae3fb72447986fe638aa6",
+  "checkpoint_repo": "nvidia/GN1x-Tuned-Arena-G1-Loco-Manipulation",
+  "checkpoint_revision": "dfe74af855007f26093f362cd2d7a2f404b64b93",
+  "dataset_repo": "nvidia/Arena-G1-Loco-Manipulation-Task",
+  "dataset_revision": "07de42fdade76102fc09d921c7b6200d0b31ec01",
+  "arena_lock_sha256": "bb81a2a710ca435a4b462e2cdc37ccd0a532c1a4a7d4da246ae883e49c2462f0"
+}

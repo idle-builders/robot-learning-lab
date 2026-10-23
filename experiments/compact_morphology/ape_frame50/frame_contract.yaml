@@ -1,0 +1,156 @@
+schema_version: 1
+status: supported_frame_candidate_with_learned_walk_not_assembled
+purpose: Exposed 50 cm ape frame and supported-body simulator; cosmetic shell is a proportion reference, not a clearance boundary.
+coordinate_frame:
+  convention: x forward, y left, z up, metres; standing floor z=0
+  cove_source_transform: '[x,y,z]_frame = [-y,-x,z]_Cove, with millimetres divided by 1000; Cove side R has positive x, frame side R has negative y'
+  source: experiments/compact_morphology/ape_design/swarm_shell_v2/output/cove-report.json
+  source_status: anatomical pivots and silhouette only; Cove is not a buildable mechanism
+  bilateral_note: left coordinates mirror Cove's reported R pivots; positive Cove lateral x is right, positive frame y is left
+
+geometry:
+  standing_height_target_m: 0.500
+  visual_width_reference_m: 0.320
+  visual_depth_reference_m: 0.137
+  head_center_m: [0.001, 0.000, 0.447]
+  head_radius_reference_m: [0.047, 0.053, 0.053]
+  neck_yaw_m: [-0.001, 0.000, 0.397]
+  left:
+    shoulder_m: [-0.002, 0.119, 0.347]
+    elbow_m: [0.000, 0.128, 0.273]
+    hand_center_reference_m: [0.005, 0.134, 0.132]
+    hip_m: [-0.002, 0.059, 0.231]
+    knee_m: [-0.003, 0.061, 0.139]
+    ankle_m: [-0.002, 0.063, 0.043]
+    sole_center_reference_m: [0.010, 0.063, 0.012]
+  right: mirror_left_about_y_zero
+  link_lengths_m:
+    shoulder_to_elbow: 0.0746
+    hip_to_knee: 0.0920
+    knee_to_ankle: 0.0960
+    elbow_to_hand_reference: 0.1413
+  reference_scope: Cove shoulder/hip/knee/ankle and elbow are CAD axes; hand/sole centers are visual targets until frame design fixes contact geometry.
+
+joint_set:
+  count: 21
+  sides: [left, right]
+  per_leg: [hip_yaw, hip_roll, hip_pitch, knee, ankle_pitch]
+  per_arm: [shoulder_yaw, shoulder_roll, shoulder_pitch, elbow_pitch, gripper]
+  head: [head_yaw]
+  source: docs/design/ape-concepts/functional-cad-gate.md
+  policy_interface_note: The retained 21-axis supported-frame gait checkpoint was adapted with upstream MJLab PPO; this contract's fallback coordinates describe the earlier bare probe, while supported-body generation imports the measured CAD candidate JSON files.
+
+actuators:
+  supported_case_centers_source: [leg_kinematics_supported.json, upper_kinematics_supported.json]
+  provisional_case_centers_status: legacy_bare_probe_fallback_only
+  provisional_case_centers_m_left:
+    hip_yaw: [0.045, 0.045, 0.264]
+    hip_roll: [-0.046, 0.074, 0.231]
+    hip_pitch: [0.028, 0.081, 0.198]
+    knee: [-0.003, 0.077, 0.140]
+    ankle_pitch: [-0.025, 0.078, 0.079]
+    shoulder_yaw: [-0.039, 0.085, 0.369]
+    shoulder_roll: [0.038, 0.111, 0.364]
+    shoulder_pitch: [-0.018, 0.138, 0.310]
+    elbow_pitch: [-0.030, 0.140, 0.239]
+    gripper: [-0.010, 0.140, 0.164]
+    head_yaw: [0.000, 0.000, 0.411]
+  placement_status: supported-body case locations come from the exposed candidate CAD and follow source drawing output-axis orientation; motor clamps, adapters, belt alignment and loaded support remain open
+  leg:
+    count: 8
+    catalog_key: feetech-sts3250-c001
+    bus: regulated_12_v_ttl
+    mass_kg_each: 0.0745
+    case_m: [0.04522, 0.02472, 0.035]
+    rated_effort_nm: 1.569064
+    stall_effort_nm: 4.903325
+    status: candidate; rated point is not a continuous gait guarantee
+  arm:
+    count: 8
+    catalog_key: feetech-st3215-c018
+    bus: regulated_12_v_ttl
+    mass_kg_each: 0.055
+    case_m: [0.0452, 0.0247, 0.035]
+    rated_effort_nm: 0.980665
+    stall_effort_nm: 2.941995
+    status: candidate; exact output support and duty are open
+  ankle:
+    count: 2
+    catalog_key: feetech-st3215-c018
+    bus: regulated_12_v_ttl
+    mass_kg_each: 0.055
+    rated_effort_nm: 0.980665
+    status: exposed crank-link candidate; joint pins, spline adapter and loaded duty remain open
+  hand_and_head:
+    count: 3
+    catalog_key: robotis-xl330-m288-t
+    bus: regulated_5_v_dynamixel_ttl
+    mass_kg_each: 0.018
+    case_m: [0.020, 0.034, 0.026]
+    stall_effort_nm_at_5v: 0.52
+    continuous_effort_nm: null
+    status: candidate; no continuous figure in cited source
+  catalog: robot/actuator-catalog.yaml
+  motor_mass_total_kg: 1.200
+  model_law_status: unmeasured torque-speed, impedance, delay, backlash and temperature; no simulated force cap is a measured continuous duty
+
+battery:
+  example_part: Tattu 850 mAh 4S 75C LiPo XT60
+  source: https://genstattu.com/tattu-850mah-14-8v-75c-4s1p-lipo-battery-pack-with-xt60-plug.html
+  envelope_m: [0.060, 0.030, 0.0305]
+  mass_kg: 0.107
+  nominal_voltage_v: 14.8
+  capacity_ah: 0.850
+  provisional_center_m: [-0.014, 0.000, 0.270]
+  status: source-sized example, not selected supply; 12 V and 5 V regulated rails plus current/thermal design remain open
+
+sensors:
+  cameras:
+    candidate: Raspberry Pi Camera Module 3 Wide
+    count: 2
+    source: https://www.raspberrypi.com/documentation/hardware/camera/
+    mechanical_drawing: https://datasheets.raspberrypi.com/camera/camera-module-3-wide-mechanical-drawing.pdf
+    envelope_m_each: [0.025, 0.024, 0.0124]
+    mass_kg_each: 0.004
+    field_of_view_deg: {horizontal: 102, vertical: 67, diagonal: 120}
+    focus_range_m: [0.05, infinity]
+    upper_frame: {position_m: [0.049, 0.015, 0.457], pitch_up_deg: 30}
+    lower_frame: {position_m: [0.049, -0.015, 0.433], pitch_down_deg: 40}
+    status: two fixed views avoid assuming a head-pitch motor; optical obstruction, stereo sync, CSI host and power are not yet qualified
+  body_imu:
+    frame_position_m: [0.000, 0.000, 0.296]
+    required_outputs: [angular_velocity_rad_s, linear_acceleration_m_s2, timestamps]
+    selected_part: Pololu MinIMU-9 v6, item 2862
+    source: https://www.pololu.com/product/2862
+    board_envelope_m: [0.020, 0.013, 0.003]
+    board_mass_kg_without_headers: 0.0007
+    interface: I2C, 2.5-5.5 V, 4 mA catalog typical
+    mass_reserve_kg: 0.005
+    status: source-sized bare board plus 4.3 g provisional mounting/header/harness allowance; axes, readout timing, cable routing and installed mass remain to verify
+  joint_feedback:
+    source: servo integrated encoders over listed TTL buses
+    required_outputs: [position_rad, velocity_rad_s, sample_timestamp]
+    status: latency/noise/dropout unmeasured
+  hand_contact:
+    selected_part: null
+    status: contact/force or calibrated current proxy needed before claiming physical possession
+
+mass_budget:
+  nominal_total_kg: 3.2
+  sensitivity_kg: [2.8, 4.0]
+  source: docs/design/ape-concepts/50cm-drive-duty-axis-budget.md
+  known_motor_battery_camera_kg: 1.315
+  remaining_nominal_kg: 1.885
+  bare_layout_gross_frame_volume_mm3: 339434.2
+  bare_layout_petg_hf_density_g_cm3: 1.28
+  bare_layout_petg_hf_density_source: https://us.store.bambulab.com/collections/bambu-lab-3d-printer-filament/products/petg-hf?from=home_web
+  bare_layout_gross_frame_mass_kg: 0.4345
+  missing_after_known_components_and_gross_frame_kg: 1.4505
+  remaining_covers: [frame, supported_shafts_and_bearings, grippers, compute_bridge, power_regulators, wiring, connectors, imu, fasteners]
+  status: 3.2 kg challenge budget, not CAD-derived mass; layout-frame volume is additive and overlapping, not manufactured print mass
+
+frame_gate:
+  required: [connected_load_paths, supported_outputs, hardware_to_hardware_clearance, battery_removal, cable_paths, joint_motion, named_mass_inertia]
+  cosmetic_skin_clearance_required_now: false
+  later_skin_reference: experiments/compact_morphology/ape_design/swarm_shell_v2/output/cove-shell.step
+  caveat: Shell overlap may be tolerated now; motor/frame collision and impossible support paths may not.

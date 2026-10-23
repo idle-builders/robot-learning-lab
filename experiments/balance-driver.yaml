@@ -1,0 +1,81 @@
+# Physical-driver timing hypotheses; no gain change from pelvis balance reference.
+controller:
+  pitch_gain_m_s: 4
+  pitch_rate_gain_m: 0.2
+  position_gain_s_inv: 1
+  velocity_gain: 2.5
+  complementary_tau_s: 0.4
+  wheel_velocity_gain_nm_s: 0.2
+cases:
+- name: tilt-recovery
+  sensor: &driver
+    mode: lsm6dso
+- name: reverse-tilt
+  initial_pitch_rad: -0.03
+  sensor: *driver
+- name: drive-return
+  initial_pitch_rad: 0
+  duration_s: 16
+  waypoints: [[0,0], [3,0], [6,0.09], [9,0.09], [12,0], [14,0]]
+  sensor: *driver
+- name: bus-phase-and-poll-gaps
+  sensor:
+    <<: *driver
+    gyro_phase_us: 2400
+    poll_block_us: 6000
+- name: rotated-mount-corrected
+  sensor:
+    <<: *driver
+    sensor_to_torso_rpy_rad: [0, 0, 1.5707963267948966]
+    calibration_to_torso_rpy_rad: [0, 0, 1.5707963267948966]
+- name: noisy-biased-imu
+  gyro_bias_rad_s: 0.005
+  gyro_noise_std_rad_s: 0.003
+  accel_noise_std_m_s2: 0.05
+  seed: 42
+  sensor: *driver
+- name: delayed-command
+  command_delay_ms: 20
+  sensor: *driver
+- name: io-fault
+  sensor:
+    <<: *driver
+    fault: io
+- name: conversion-dropout
+  sensor:
+    <<: *driver
+    fault: dropout
+- name: register-saturation
+  sensor:
+    <<: *driver
+    fault: saturation
+- name: excessive-poll-block
+  sensor:
+    <<: *driver
+    poll_block_us: 30000
+    poll_block_period_us: 40000
+- name: wrong-mount-calibration
+  sensor:
+    <<: *driver
+    sensor_to_torso_rpy_rad: [0, 0, 3.141592653589793]
+- name: disabled-controller
+  controller_enabled: false
+  sensor: *driver
+- name: startup-io-fault
+  sensor:
+    <<: *driver
+    fault: io
+    fault_start_s: -0.25
+    fault_duration_s: 1
+- name: startup-dropout
+  sensor:
+    <<: *driver
+    fault: dropout
+    fault_start_s: -0.25
+    fault_duration_s: 1
+- name: startup-saturation
+  sensor:
+    <<: *driver
+    fault: saturation
+    fault_start_s: -0.25
+    fault_duration_s: 1

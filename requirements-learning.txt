@@ -1,0 +1,12 @@
+# Native MuJoCo/SB3 interactive control stack. Exact environment: requirements-learning.lock.
+stable-baselines3==2.9.0
+scikit-learn==1.8.0
+opencv-python-headless==4.13.0.92
+mujoco==3.13.0
+pydantic==2.13.5
+PyYAML==6.0.3
+pillow==12.3.0
+scipy==1.18.1
+rerun-sdk==0.38.1
+imageio==2.37.3
+imageio-ffmpeg==0.6.0

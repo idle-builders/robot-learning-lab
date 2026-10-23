@@ -1,0 +1,14 @@
+# Cover driver remains the provisional straight tool from v1.
+withdrawal_mm: [0, 3, 8, 20]
+handle_diameter_mm: 12
+handle_length_mm: 70
+handle_start_behind_socket_mm: 31
+pi_key:
+  reference: Wera 950 PKL 05022052001
+  source: https://www.wera.de/he/kli-abodha/950-pkl-l-key-metric-chrome-plated
+  af_mm: 2.0
+  short_mm: 16
+  long_mm: 100
+  # Independent clearance allocation: manufacturer bend geometry unpublished.
+  elbow_allocation_mm: 6
+  swing_deg: [-30, -15, 0, 15, 30]

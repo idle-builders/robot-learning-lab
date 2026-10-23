@@ -1,0 +1,65 @@
+schema_version: 1
+target_usd: 1000
+volumes: [1000, 5000]
+actuator_part_id: feetech-st3215-c018
+contingency_fraction: 0.15
+development_tooling_total_usd: [40000, 100000]
+exclusions:
+  - Customer taxes
+  - Outbound customer delivery
+  - Existing host computer
+  - Ongoing external training/inference compute
+limitations:
+  - All ranges are unquoted production planning assumptions, not verified prices.
+  - Development and tooling share one unitemized allowance; actual engineering/process costs remain unknown.
+  - Per-robot packages do not automatically price geometry changes or new manufacturing processes.
+  - Horns are conservatively allocated separately pending supplier accessory scope; remove duplicate cost if included with actuators.
+  - Assembly/test excludes insert installation already included in structure/finish.
+lines:
+  - id: actuators
+    label: C018 actuators
+    basis: per_actuator
+    roles: [housing]
+    usd_by_volume: {1000: [16, 26], 5000: [16, 26]}
+    source: variants/scout.yaml
+  - id: vision
+    label: Pi Zero 2 W and Camera Module 3 Wide
+    names: [pi_substrate, support_camera_vendor_module]
+    usd_by_volume: {1000: [50, 65], 5000: [50, 65]}
+    source: electronics/vision.yaml
+  - id: logic_supply
+    label: XH logic board fabrication, components, assembly and test
+    names: [logic_board]
+    usd_by_volume: {1000: [10, 25], 5000: [10, 25]}
+    source: docs/research/integrated-production-bom.md
+  - id: carrier_imu
+    label: Carrier, Pico and IMU electronics
+    names: [carrier, imu_board]
+    usd_by_volume: {1000: [20, 45], 5000: [20, 45]}
+    source: docs/research/integrated-production-bom.md
+  - id: battery_power
+    label: Cells/pack, protection, charger and motor distribution (no CAD groups)
+    usd_by_volume: {1000: [30, 60], 5000: [30, 60]}
+    source: docs/research/integrated-production-bom.md
+  - id: structure_finish
+    label: Polymer structure, finish and insert installation
+    roles: [clamp, clamp_lower, clamp_upper, yoke, spine, shell, adapter, spacer, head_polymer]
+    usd_by_volume: {1000: [25, 60], 5000: [25, 60]}
+    source: docs/research/integrated-production-bom.md
+  - id: wiring_hardware
+    label: Harness, connectors, horns, wheels, fasteners and small parts
+    roles: [horn, hub, tire, screw, clamp_hardware, hardware, insert]
+    usd_by_volume: {1000: [20, 45], 5000: [20, 45]}
+    source: docs/research/integrated-production-bom.md
+  - id: assembly_test
+    label: Final assembly and test
+    usd_by_volume: {1000: [55, 100], 5000: [55, 100]}
+    source: robot/base.yaml
+  - id: logistics_packaging
+    label: Inbound logistics and packaging
+    usd_by_volume: {1000: [35, 65], 5000: [35, 65]}
+    source: robot/base.yaml
+  - id: support_operations
+    label: Support, warranty and operations allowance
+    usd_by_volume: {1000: [70, 110], 5000: [70, 110]}
+    source: robot/base.yaml

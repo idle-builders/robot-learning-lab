@@ -1,0 +1,608 @@
+{
+  "schema_version": "1",
+  "status_vocabulary": [
+    "pass",
+    "fail",
+    "partial",
+    "not_run"
+  ],
+  "areas": [
+    {
+      "id": "mechanical_fastener_fit",
+      "title": "Mechanical fastener fit and service",
+      "summary": "Parametric envelope and mounting/service studies are inspectable; printed fit and retention are unmeasured.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "carrier packaging",
+          "path": "docs/design/carrier-packaging.md",
+          "status": "partial",
+          "scope": "nominal carrier fit and sampled removal; current complete assembly still excludes several parts and has no physical retention"
+        },
+        {
+          "label": "forearm integrated assembly",
+          "path": "artifacts/pip-forearm-integrated-v2/report.json",
+          "status": "fail",
+          "scope": "sampled complete-body composition retains shoulder-roll collision failures"
+        },
+        {
+          "label": "head service",
+          "path": "docs/design/head-service.md",
+          "status": "partial",
+          "scope": "nominal geometry and service sequence; populated hardware and physical retention open"
+        },
+        {
+          "label": "fastener catalog",
+          "path": "robot/fastener-catalog.yaml",
+          "status": "partial",
+          "scope": "candidate fasteners and interfaces; no material/process data"
+        },
+        {
+          "label": "Printable first fit specimens",
+          "path": "artifacts/bench-fit-v3/report.json",
+          "status": "pass",
+          "scope": "Nominal CAD/STL exports, fit and negative controls only; physical and powered checks not_run"
+        },
+        {
+          "path": "docs/design/neck-skirt-study.md",
+          "label": "Rejected taller fixed collars",
+          "status": "fail",
+          "scope": "33 mm baseline fails new clearance envelope; 40\u201358 mm candidates show actual head/face interference. Stops at first failure; service remains unrun."
+        },
+        {
+          "path": "docs/design/head-cap-study.md",
+          "label": "Recovered head-owned cap stock",
+          "status": "fail",
+          "scope": "Full-depth and 8 mm stock rejected by actual sampled neck-mechanism collisions. No attachment or physical qualification."
+        },
+        {
+          "path": "docs/design/head-cap-study.md",
+          "label": "Local rear-wing relief",
+          "status": "partial",
+          "scope": "Pip/Scout v3 pass 37 sampled clearance screens each; unmounted and physically untested, with incomplete protection coverage."
+        },
+        {
+          "path": "docs/design/head-cap-mount-stock.md",
+          "label": "Ribbed head-cap attachment stock",
+          "status": "fail",
+          "scope": "Nominal stock fits but selected rear mounts fail the moving allowance, confirmed by exact 0.6385/0.1213 mm gaps. Front Scout eye obstruction and fastening/service/physical gates remain."
+        },
+        {
+          "label": "Integral lower-head wings",
+          "path": "docs/design/integral-head-wings.md",
+          "status": "partial",
+          "scope": "Two replacement shell halves per robot; nominal joins, 37 motion samples and 12 conditional removal offsets pass. Tools, cables, physical qualification and main assembly integration remain open."
+        },
+        {
+          "label": "Revised head tool access",
+          "path": "docs/design/integral-head-service.md",
+          "status": "partial",
+          "scope": "Straight driver fails two rear Pi screws; right-angle key allocation passes sampled seated, withdrawal and exterior angular checks. Detached Pi stage; bridge, harness and physical qualification remain not_run."
+        },
+        {
+          "label": "Head bridge assembly order",
+          "path": "docs/design/head-bridge-service.md",
+          "status": "partial",
+          "scope": "Four bearing witnesses, two seated drivers, twenty vertical samples and forty-six staged checks pass per robot. Closed-head wrench/axial nut routes fail; physical, harness and retention aid remain open."
+        },
+        {
+          "label": "Removable shin-cover candidate",
+          "path": "docs/design/shin-cover-study.md",
+          "status": "partial",
+          "scope": "Ten sampled poses plus mutual hardware and removal checks pass; physical, continuous and complete robot qualification remain open."
+        }
+      ],
+      "bench": {
+        "purpose": "Validate printed holes, inserts, bearing seats, connector keep-outs and repeatable service.",
+        "setup": "Print shell, actuator-ear, board-post and insert coupons in intended process/orientations; use actual fasteners and tools.",
+        "measurements": "CAD-versus-part dimensions, torque, pull-out/rotation, clearance, wear and service-cycle count.",
+        "acceptance": "Provisional: all dimensions and clearances recorded against the drawing; no cracking, insert spin or fastener strip during the agreed cycle. Limits remain provisional until material/process is selected.",
+        "prerequisites": "Selected print process, fasteners/inserts, calipers, torque tool and force gauge."
+      },
+      "next_build": "Print the first fit specimens, record process and dimensions, and compare one actual actuator and installed inserts; see docs/design/first-fit-bench.md.",
+      "blockers": [
+        "No printed material/process result",
+        "No measured insert or fastener retention",
+        "Neck/head protection needs a moving-cap design; raising the fixed collar fails motion/clearance checks.",
+        "Relieved lower-head wings need verified attachment stock, fasteners, removal and complete protection coverage.",
+        "Selected head-cap mount stock has insufficient moving clearance; revise tab/fastener geometry together, with Scout front eye packaging still unresolved."
+      ]
+    },
+    {
+      "id": "printed_material_strength",
+      "title": "Printed materials and strength",
+      "summary": "Current geometry and mass are allocations; no printed coupon or durability evidence exists.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "product limits",
+          "path": "docs/requirements.md",
+          "status": "partial",
+          "scope": "durability and repairability requirements; no numeric printed strength limit"
+        },
+        {
+          "label": "assembly mass",
+          "path": "docs/design/assembly-mass.md",
+          "status": "partial",
+          "scope": "allocated part/mass profiles; no measured material properties"
+        },
+        {
+          "label": "integrated CAD review",
+          "path": "artifacts/integrated-candidates-validation-v1/review-check.json",
+          "status": "pass",
+          "scope": "candidate geometry audit only"
+        }
+      ],
+      "bench": {
+        "purpose": "Measure process-specific strength, anisotropy, creep and failure modes for printed load paths.",
+        "setup": "Print tensile, cantilever, insert-pull and actuator-mount coupons in multiple orientations and batches.",
+        "measurements": "Force-displacement, time-under-load, temperature, failure mode, dimensional change and cycles.",
+        "acceptance": "Provisional test limits are to be chosen after actuator loads and safety factor are known; report failures and do not claim certification.",
+        "prerequisites": "Chosen material/process, load frame or force gauge, displacement measurement and temperature logging."
+      },
+      "next_build": "Print and break coupons, then update the mass/strength assumptions with measured data.",
+      "blockers": [
+        "Material/process unknown",
+        "Actuator loads and safety factor not measured"
+      ]
+    },
+    {
+      "id": "actuators_joints",
+      "title": "Actuators and joints",
+      "summary": "Catalog and generic actuator models support simulation; no actuator is installed or identified on a bench.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "actuator candidates",
+          "path": "docs/design/actuator-candidates.md",
+          "status": "partial",
+          "scope": "datasheet/catalog constraints; no mechanical, loaded or bus validation"
+        },
+        {
+          "label": "joint module",
+          "path": "artifacts/c018-module-v2/module.json",
+          "status": "partial",
+          "scope": "C018 geometry and keep-out artifact; not physically packaged"
+        },
+        {
+          "label": "supported tracking",
+          "path": "artifacts/validated-wheeled/report.json",
+          "status": "pass",
+          "scope": "generic PD torque model and fixed neck tracking"
+        },
+        {
+          "label": "Printable first fit specimens",
+          "path": "artifacts/bench-fit-v3/report.json",
+          "status": "pass",
+          "scope": "Nominal CAD/STL exports, fit and negative controls only; physical and powered checks not_run"
+        },
+        {
+          "label": "Finite-duration actuator hold procedure",
+          "path": "docs/design/actuator-hold-bench.md",
+          "status": "partial",
+          "scope": "Known lever/load geometry, external channels, predeclared limits and source-retained analysis; no loaded fixture or physical measurements"
+        },
+        {
+          "label": "Synthetic hold analysis and fault cases",
+          "path": "artifacts/joint-bench-demo-v2/report.json",
+          "status": "pass",
+          "scope": "Six synthetic cases detect drift, hot case, brownout, missing samples and operator slip; physical not_run"
+        }
+      ],
+      "bench": {
+        "purpose": "Identify one representative joint's dynamics, limits, thermal behavior and service wear.",
+        "setup": "Restrained joint test stand with actual actuator, printed clamp/yoke, encoder feedback and known load arm.",
+        "measurements": "Position error, repeatability, backlash, speed, current, bus voltage, temperature, stall/overload and fault recovery.",
+        "acceptance": "Use existing 0.08 rad neck tracking and 0.15 rad supported reach as simulation references only; set physical limits after measured actuator and fixture data.",
+        "prerequisites": "Purchased actuator, load fixture, power supply, current/temperature logging and guarded stop."
+      },
+      "next_build": "Confirm adapter power isolation and single-servo fixture; acquire repeated externally measured static holds using the predeclared actuator-hold record. Synthetic examples do not set hardware limits.",
+      "blockers": [
+        "No purchased actuator",
+        "Generic motor model is not a commercial servo model"
+      ]
+    },
+    {
+      "id": "power_electronics",
+      "title": "Power and electronics",
+      "summary": "Five camera-inclusive regulator voltage cases pass at their stated windows alongside the XH PCB; physical, actual inrush and thermal qualification remains open.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "logic board",
+          "path": "docs/design/logic-board.md",
+          "status": "partial",
+          "scope": "routed/layout intent and retained failures; no populated-board qualification"
+        },
+        {
+          "label": "Pip logic XH integration",
+          "path": "artifacts/pip-logic-xh-v7/report.json",
+          "status": "pass",
+          "scope": "Retained neutral replacement-board clearance against the robot and connector approach allocation. Invalid mixed-frame battery-distance fields are excluded; no full harness or physical qualification."
+        },
+        {
+          "label": "Scout logic XH integration",
+          "path": "artifacts/scout-logic-xh-v7/report.json",
+          "status": "pass",
+          "scope": "Retained neutral replacement-board clearance against the robot and connector approach allocation. Invalid mixed-frame battery-distance fields are excluded; no full harness or physical qualification."
+        },
+        {
+          "label": "current IMU board build",
+          "path": "artifacts/imu-board-v2/build-report.json",
+          "status": "pass",
+          "scope": "candidate LSM6DSO daughterboard pin/pad/layout checks; physical qualification absent"
+        },
+        {
+          "label": "power candidate",
+          "path": "artifacts/pip-power-v1/report.json",
+          "status": "fail",
+          "scope": "retained power study failure; candidate lumped model, not pack validation"
+        },
+        {
+          "label": "Camera-inclusive regulator evidence and limits",
+          "path": "docs/design/vision-power.md",
+          "status": "partial",
+          "scope": "Three warm cases and low/full-input cold resistor startup; the original 1 A baseline gate is separate from this broader evidence."
+        },
+        {
+          "label": "Logic rail physical comparison procedure",
+          "path": "docs/design/logic-rail-bench.md",
+          "status": "not_run",
+          "scope": "Specified resistor cold start, warm load steps and actual computer startup; no physical measurements."
+        },
+        {
+          "label": "Blank logic rail measurement record",
+          "path": "docs/design/logic-rail-bench-template.json",
+          "status": "not_run",
+          "scope": "Instrument settings, raw waveforms, wiring, boot/reset and temperature fields remain unset."
+        },
+        {
+          "label": "Five-case regulator coverage audit",
+          "path": "artifacts/vision-coverage-audit-v1/report.json",
+          "status": "partial",
+          "scope": "All five bounded voltage cases and XH component allocation pass; whole warm overshoot retained; physical startup, thermal and harness remain not_run."
+        },
+        {
+          "label": "Component motor disconnect and physical bench",
+          "path": "docs/design/motor-disconnect.md",
+          "status": "partial",
+          "scope": "14-component atopile candidate and 64 static divider checks; initial pump sizing failure retained. Controller transient, hardware stop, layout, thermal and physical qualification not_run."
+        },
+        {
+          "label": "Independent hardware arm candidate",
+          "path": "docs/design/arm-interlock.md",
+          "status": "partial",
+          "scope": "Compiled 16-component circuit and 99 generic native logic cases; analog rail, wiring and physical stop behavior not_run."
+        }
+      ],
+      "bench": {
+        "purpose": "Verify rails, startup, transients, harness drop, thermal rise and fault behavior with real parts.",
+        "setup": "One XH logic board, controlled 9 / 12.6 V source, 1.92308 ohm cold-load fixture, separate 3.125 ohm + 1 A warm-step fixture and simultaneous voltage/current capture. Follow the linked procedure before using the actual Pi/camera. Motor and fault benches are separate.",
+        "measurements": "Rail voltage/current, startup/brownout/recovery, connector/harness drop, regulator/board temperature and fault response.",
+        "acceptance": "Provisional 4.75\u20135.25 V output window; preserve the entire startup and check cold whole-trace overvoltage plus final regulation after 8 ms. Record failed boot/resets separately. Thermal acceptance remains undefined pending component and enclosure budget.",
+        "prerequisites": "Fabricated/populated board, harness, supply, oscilloscope, load bank and thermocouples."
+      },
+      "next_build": "One populated XH board and measured load fixture, then the actual computer/camera with raw startup and runtime capture.",
+      "blockers": [
+        "No populated board or battery/protection",
+        "No measured thermal/transient/EMI evidence"
+      ]
+    },
+    {
+      "id": "embedded_transport_control",
+      "title": "Embedded transport and low-level control",
+      "summary": "Host parser, safety guards and cross-builds pass locally; no flashed board, bus or actuator timing exists.",
+      "simulation_status": "pass",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "embedded boundary",
+          "path": "docs/design/embedded-target.md",
+          "status": "partial",
+          "scope": "USB/RLB1 and safety design; explicitly no flashed board or physical timing"
+        },
+        {
+          "label": "firmware build",
+          "path": "artifacts/pip-session-firmware-v1/build-report.json",
+          "status": "pass",
+          "scope": "local cross-compiled image and generated maps"
+        },
+        {
+          "label": "interfaces",
+          "path": "docs/design/interfaces.md",
+          "status": "pass",
+          "scope": "units, order, framing and supervisor semantics in software"
+        },
+        {
+          "label": "Actual target power startup and shutdown",
+          "path": "docs/design/target-power-sequence.md",
+          "status": "partial",
+          "scope": "Nine native scenarios over actual target_main.c with fake peripherals and uncalibrated Pip/Scout cross-builds. Physical power, timing and independent stop/rearm not_run."
+        }
+      ],
+      "bench": {
+        "purpose": "Measure end-to-end transport and prove local stop/timeout behavior on a supported rig.",
+        "setup": "Flash Pico candidate, connect one actuator, then a small bus; exercise host commands and disconnects under restraint.",
+        "measurements": "Receipt/feedback timing, watchdog, stale/replay/session rejection, emergency stop, unplug/replug and telemetry acquisition/arrival clocks.",
+        "acceptance": "50 Hz control, 10 Hz telemetry and 100 ms watchdog are starting values only; measured deadlines and stop behavior must be retained.",
+        "prerequisites": "Supported board, actuator, bus wiring, flashing setup, logic analyzer and guarded fixture."
+      },
+      "next_build": "Flash the supported-rig image and run one-actuator transport tests.",
+      "blockers": [
+        "No flashed target",
+        "No real actuator feedback or timing measurement"
+      ]
+    },
+    {
+      "id": "camera",
+      "title": "Camera and head integration",
+      "summary": "Nominal optics, projection and cassette/service studies exist; physical camera retention, calibration and synchronization are open.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "vision study",
+          "path": "docs/design/vision.md",
+          "status": "partial",
+          "scope": "nominal camera/FOV/projection and known packaging failures"
+        },
+        {
+          "label": "camera support",
+          "path": "docs/design/camera-support.md",
+          "status": "pass",
+          "scope": "conditional sampled support geometry, not physical retention"
+        },
+        {
+          "label": "camera aperture probe",
+          "path": "artifacts/camera-aperture-probe-v1/report.json",
+          "status": "partial",
+          "scope": "aperture/geometry probe only"
+        }
+      ],
+      "bench": {
+        "purpose": "Validate physical camera/SBC mount, optical calibration, cabling and stream timing through neck motion.",
+        "setup": "Install selected module/SBC, cassette, harness and representative head; use asymmetric calibration targets.",
+        "measurements": "Intrinsics/extrinsics, image orientation, dropped frames, exposure/timestamps, flex/USB/power retention, mass and temperature.",
+        "acceptance": "Projection and 67\u00b0 vertical/99.28\u00b0 simulated horizontal FOV remain nominal references; physical calibration and timing decide acceptance.",
+        "prerequisites": "Selected camera/SBC, mount, harness, calibration target and timestamped capture."
+      },
+      "next_build": "Install the camera candidate in a removable head coupon and capture a calibrated motion sequence.",
+      "blockers": [
+        "No selected installed camera/SBC",
+        "No physical calibration or synchronized stream"
+      ]
+    },
+    {
+      "id": "whole_body_control",
+      "title": "Whole-body control",
+      "summary": "Encoder-posture balance passes 26/26 normal cases across current composed-mass robots; 7/16 harder stress trials pass. Placement remains partial. Physical control and walking are unvalidated.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "Current encoder-posture balance",
+          "path": "artifacts/observed-balance-review-v2/report.json",
+          "status": "partial",
+          "scope": "26/26 normal and 7/16 stress cases pass. Bounded arm/thigh CAD checked separately. Unmeasured mass and servo assumptions; no learned or physical control qualification."
+        },
+        {
+          "label": "Earlier fixed-trim composed-mass comparison",
+          "path": "artifacts/composed-dynamics-review-v2/report.json",
+          "status": "partial",
+          "scope": "Historical fixed-trim result: 12/26 normal balance cases. Current composed-mass supported tasks remain 3/6 passes with one incomplete run; new balance is separate."
+        },
+        {
+          "label": "Exact wheel/arm CAD pairs",
+          "path": "artifacts/balance-arm-clearance-complete-v1/report.json",
+          "status": "fail",
+          "scope": "Neutral pose intersects wheel/finger; both parked elbows have positive gaps across selected 210 pairs per robot. Thighs, covers and continuous motion are excluded."
+        },
+        {
+          "label": "co-design comparison",
+          "path": "artifacts/co-design-study-v2/comparison.json",
+          "status": "partial",
+          "scope": "supported reach, power and free-posture probes; wheeled posture failures retained"
+        },
+        {
+          "label": "balance controller",
+          "path": "docs/design/wheel-balance.md",
+          "status": "partial",
+          "scope": "Historical geometry/allocation only: 11 enabled simulated cases pass; not qualification of current composed robot."
+        },
+        {
+          "label": "manipulation task",
+          "path": "docs/design/manipulation-tasks.md",
+          "status": "partial",
+          "scope": "supported/fixed-base reference task with privileged object/contact truth"
+        },
+        {
+          "label": "Pip distal-grip park replay",
+          "path": "artifacts/pip-distal-grip-park-replay-v1/report.json",
+          "status": "fail",
+          "scope": "Earlier sampled CAD scene check fails; new composed-mass dynamics are separate and do not qualify detailed continuous clearance."
+        },
+        {
+          "label": "Scout distal-grip park replay",
+          "path": "artifacts/scout-distal-grip-park-replay-v1/report.json",
+          "status": "fail",
+          "scope": "Earlier sampled CAD scene check fails; new composed-mass dynamics are separate and do not qualify detailed continuous clearance."
+        }
+      ],
+      "bench": {
+        "purpose": "Move from restrained joint evidence to guarded balance and manipulation with measured dynamics.",
+        "setup": "Supported torso/joint rig with IMU/encoder capture, then a guarded free-base fixture only after stop/reset procedures pass.",
+        "measurements": "Tilt, position/path error, contact events, task success, falls/stops, command age, current and temperature.",
+        "acceptance": "Simulation references include 0.25 rad tilt, 25 mm final position, 0.025 rad pitch and 40 mm path error; physical criteria require measured-fixture agreement and safety review.",
+        "prerequisites": "Measured actuator model, IMU, local estimator, stop path, physical reset procedure and fixture."
+      },
+      "next_build": "Instrument a supported torso/joint stand; defer free-standing operation.",
+      "blockers": [
+        "Current rest posture and detailed moving assembly still have interference; position accuracy and mass robustness remain partial",
+        "No physical dynamics/contact data",
+        "No safe free-base reset and stop evidence",
+        "Walking controller not implemented"
+      ]
+    },
+    {
+      "id": "observability",
+      "title": "Observability and sim-to-real evidence",
+      "summary": "Offline recording, Rerun projection, full poses, command timing and explicit missing channels are implemented; hardware acquisition clocks are absent.",
+      "simulation_status": "pass",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "recording contract",
+          "path": "docs/design/recordings.md",
+          "status": "pass",
+          "scope": "offline task/balance import, scene, telemetry and retained failures"
+        },
+        {
+          "label": "pose review",
+          "path": "artifacts/observability-poses-v2/final-views.json",
+          "status": "pass",
+          "scope": "ten simulation trials and Rerun exports; no physical stream"
+        },
+        {
+          "label": "Rerun implementation",
+          "path": "lab/rerun_recording.py",
+          "status": "pass",
+          "scope": "local derived viewer/export path"
+        }
+      ],
+      "bench": {
+        "purpose": "Prove the same signal identity and replay semantics with physical acquisition and transport delay.",
+        "setup": "Capture one joint/IMU/camera bench episode with source files, acquisition clocks, arrival clocks and a deliberate stale/drop event.",
+        "measurements": "Clock mapping, sample age, drops, raw/estimated/unavailable channels, replay integrity and logging overhead.",
+        "acceptance": "Replay preserves pass/fail and missing data; physical acquisition timestamps precede transport where available; logging does not block control.",
+        "prerequisites": "Physical sensors, clocked capture adapter, storage and local Rerun viewer."
+      },
+      "next_build": "Add one physical bench adapter and retain a replayable episode.",
+      "blockers": [
+        "No physical adapter or acquisition clock",
+        "No synchronized camera stream"
+      ]
+    },
+    {
+      "id": "isaac_rl",
+      "title": "Isaac RL",
+      "summary": "Portable local bundles and contracts are ready for a worker; NVIDIA/Isaac execution and RL training have not run.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "worker preflight",
+          "path": "docs/design/external-workers.md",
+          "status": "partial",
+          "scope": "relocation/static bundle checks; not Linux/NVIDIA execution"
+        },
+        {
+          "label": "worker bundle report",
+          "path": "artifacts/worker-bundles-v1/report.json",
+          "status": "pass",
+          "scope": "local bundle relocation and asset checks"
+        },
+        {
+          "label": "learning plan",
+          "path": "docs/design/learning-platform.md",
+          "status": "partial",
+          "scope": "planned Isaac stages and exit evidence"
+        }
+      ],
+      "bench": {
+        "purpose": "Run the smallest generated robot/task on a locked Isaac worker and compare interfaces before training.",
+        "setup": "Immutable Pip bundle, generated import, one task/preset, fixed seeds and one deliberate failure; retain runtime metadata.",
+        "measurements": "FK/action/camera basis, selected mass-profile identity, solver outcome, throughput, VRAM, storage and cost.",
+        "acceptance": "Asset/interface checks pass and the same pass/failure cases remain distinguishable; no training result is accepted without held-out evaluation.",
+        "prerequisites": "Validated NVIDIA worker, locked Isaac environment and bundle launcher."
+      },
+      "next_build": "Prepare the generated Pip import smoke test; do not claim execution until a worker run is retained.",
+      "blockers": [
+        "No NVIDIA worker execution",
+        "No Isaac parity or RL training evidence"
+      ]
+    },
+    {
+      "id": "skill_factory",
+      "title": "Skill factory",
+      "summary": "Typed reference-skill registry and fixed simulator probes exist; language proposals, learned policies, composition and physical execution remain open.",
+      "simulation_status": "partial",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "skill contract",
+          "path": "docs/design/skills.md",
+          "status": "partial",
+          "scope": "two bounded reference candidates and evaluation semantics"
+        },
+        {
+          "label": "skill factory review",
+          "path": "artifacts/skill-factory-v1/validation-summary.json",
+          "status": "partial",
+          "scope": "reference-skill registry/replay review; no learned policy"
+        },
+        {
+          "label": "manipulation episodes",
+          "path": "artifacts/manipulation-review-v1/report.json",
+          "status": "partial",
+          "scope": "reference-controller episodes, not learned policies"
+        }
+      ],
+      "bench": {
+        "purpose": "Register one learned/reference package with explicit embodiment, observations, actions, reset and held-out evidence.",
+        "setup": "Use fixed supported task, train/evaluate separation, typed proposal validation and a deliberately invalid skill proposal.",
+        "measurements": "Held-out success, failures, action ownership, normalization/history, latency and package identity.",
+        "acceptance": "Invalid skills are rejected; fixed evaluation cannot be changed by generated candidates; only evidence labels supported by retained runs are registered.",
+        "prerequisites": "Skill registry, evaluator, dataset split and an actual learned or reference package."
+      },
+      "next_build": "Extend the existing reference registry with a simulator-only held-out policy package.",
+      "blockers": [
+        "No learned policy training",
+        "No composition arbitration",
+        "No physical execution"
+      ]
+    },
+    {
+      "id": "world_model",
+      "title": "Learned world model",
+      "summary": "The Dreamer/TD-MPC2 investigation is planned only; there is no adapter, trained model or imagined-vs-observed comparison.",
+      "simulation_status": "not_run",
+      "physical_status": "not_run",
+      "evidence": [
+        {
+          "label": "world-model plan",
+          "path": "docs/design/learning-platform.md",
+          "status": "partial",
+          "scope": "bounded Dreamer investigation and evaluation contract"
+        },
+        {
+          "label": "learning boundary",
+          "path": "docs/design/subsystem-contracts.md",
+          "status": "partial",
+          "scope": "world-model interface is research/plan only"
+        },
+        {
+          "label": "task recordings",
+          "path": "docs/design/recordings.md",
+          "status": "pass",
+          "scope": "source episodes suitable for future dataset adapter, not world-model training"
+        }
+      ],
+      "bench": {
+        "purpose": "Measure whether a bounded learned model predicts observations, reward and termination well enough to improve a policy under imagination.",
+        "setup": "One numeric task, held-out dynamics/actions, explicit reset-from-history, bounded horizon and uncertainty output.",
+        "measurements": "Multi-step state error, reward/termination disagreement, uncertainty calibration, task success, falls/stops, sample efficiency and compute cost.",
+        "acceptance": "Imagined success is never counted as observed success; retain failure if independent physics evaluation does not improve over baseline.",
+        "prerequisites": "Adapter, split episodes, trained model, independent evaluator and lineage metadata."
+      },
+      "next_build": "Implement the numeric adapter and run a small Dreamer experiment after the Isaac/reference baseline.",
+      "blockers": [
+        "No adapter or training run",
+        "No independently evaluated imagined policy"
+      ]
+    }
+  ]
+}

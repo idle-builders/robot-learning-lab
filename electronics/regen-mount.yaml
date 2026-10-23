@@ -1,0 +1,74 @@
+schema_version: 1
+status: unqualified_mount_study
+module_source: artifacts/regen-candidate-v1/fixed-3771/fixed-3771-reference.step
+module_center_mm: [-12, 0, 12.7]
+module_rotation_deg: [0, 0, 180]
+supplier_center_mm: [14.2875, 10.16, 3.5124]
+module_mounts_source: electronics/regen-clamp.yaml
+tray:
+  x_limits_mm: [-30, 3.4]
+  y_limits_mm: [-12, 12]
+  bottom_mm: 3
+  thickness_mm: 2
+  lower_boss_radius_mm: 3.5
+  contact_collar_radius_mm: 1.8
+  contact_collar_height_mm: 1.2
+  screw_clearance_radius_mm: 1.1
+  blind_bore_bottom_mm: 3.5
+  nut_pocket_af_mm: 4.2
+  nut_pocket_bottom_mm: 5.1
+  nut_pocket_top_mm: 6.9
+  nut_insertion_slot_width_mm: 4.8
+  nut_insertion_travel_mm: 8
+  rear_bottom_bevel_width_mm: 3.5
+  rear_bottom_bevel_height_mm: 1.2
+arches:
+  rear_x_mm: -29
+  upright_thickness_mm: 2
+  beam_rear_face_x_mm: -21.365
+  beam_front_face_x_mm: -15.365
+  y_centers_mm: [-6, 2]
+  width_mm: 6
+  bridge_bottom_mm: 17
+  bridge_top_mm: 23
+  bolt_z_mm: 20
+  screw_seat_x_mm: -25.365
+  counterbore_radius_mm: 2.1
+hardware:
+  thread_diameter_mm: 2
+  thread_pitch_mm: 0.4
+  head_diameter_mm: 3.8
+  head_height_mm: 2
+  nut_af_mm: 4
+  nut_height_mm: 1.6
+  module_screw_length_mm: 6
+  beam_screw_length_mm: 12
+  physical_thread_model: Cylindrical shank and nut bore; no helical contact or torque validation.
+capacitor_clearance_probe:
+  source: artifacts/motor-capacitor-v1/EEUFR1E222S-maximum-body.step
+  vent_source: artifacts/motor-capacitor-v1/EEUFR1E222S-vent-keepout.step
+  base_mm: [7, 0, 15]
+  rotation_deg: [0, 90, 0]
+  status: Unmounted capacitor body, vent and earlier working allowance only.
+tool_probe:
+  shaft_diameter_mm: 3
+  rear_start_x_mm: -80
+  status: Straight shaft envelope, not a purchased tool or hand/torque qualification.
+  l_key:
+    reference: Wiha 01392
+    source: https://wiha.com/tools/l-keys/wiha-individual-keys-with-ball-end/hexagon-socket/l-keys/01392
+    overall_long_mm: 91
+    overall_short_mm: 15
+    envelope_diameter_mm: 2
+    socket_engagement_mm: 1
+    status: Published overall dimensions only; bend radius and socket-depth interpretation remain assumptions.
+service_paths:
+  sample_step_mm: 1
+  board_waypoints_mm: [[0, 0, 0], [0, 0, 1], [14, 0, 1], [14, 0, 22], [-85, 0, 22]]
+  tray_waypoints_mm: [[0, 0, 0], [0, 0, 3], [-70, 0, 3]]
+  status: Candidate staged removals after explicit disassembly; continuous sweep, wires, hands and screw extraction unqualified.
+limits:
+  - Two new 2.2 mm crossbeam holes are proposed only in the study; original robot shell remains unchanged.
+  - Printed mount temperature, creep, bolt preload, shock retention and crossbeam strength remain unqualified.
+  - No reduction or reinterpretation of the historical failed whole-box working-space screen.
+  - Capacitor restraint, harness routing and a full service sequence remain separate.

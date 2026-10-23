@@ -1,0 +1,868 @@
+{
+  "schema": "robot-learning-lab.ape-policy-registry.v1",
+  "historical_collision_caveat": "The v3 proxy is a coarse body, not a printed-shell clearance model. A compiled MJLab mask audit found 17 active geoms under the historical CollisionCfg and 18 with disable_other_geoms=False; only the pelvis geom changed. Earlier claims that all torso/limb contact was disabled were incorrect. Offline collision_replay remains a pose-overlap audit rather than a printed-part pass. See docs/research/ape-self-collision-gate-20260930.md.",
+  "body": {
+    "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_elbows_small_head.xml",
+    "sha256": "45ec5eab849f25a74ef766acfac7b32379787e9922a363a7aac0ee8d942f1679"
+  },
+  "volume_id": "21f0navq0i",
+  "local_store": ".artifact-store/objects/sha256",
+  "policies": [
+    {
+      "id": "forward_walk_stop",
+      "result": "learned nominal-simulation gait; 20-DOF actor transferred to 22-DOF body; leg torque saturates about 99% of frames",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows",
+      "source_dof": 20,
+      "training_body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v1.xml",
+        "sha256": "27a25c9eda06af86aab79a44efb283b97949d89ea22688aba364dd6308f17dab"
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-28_22-02-40_ape_dt2_from_scratch/model_499.pt",
+      "local_checkpoint": "skills/ape/checkpoints/forward_walk_stop.pt",
+      "sha256": "39e316e0346cb538692832aaf300b451f2dec0f101f2cca1c7542d2ffe9f7fda",
+      "evidence": "docs/research/ape-gait-transfer-20260929.md",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-28_22-02-40_ape_dt2_from_scratch/params/env.yaml",
+          "local_path": "skills/ape/configs/forward_walk_stop/env.yaml",
+          "sha256": "816851af504c0efac491719943481dd8a5a2f54e1fe473a6d9627b455afb2c06"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-28_22-02-40_ape_dt2_from_scratch/params/agent.yaml",
+          "local_path": "skills/ape/configs/forward_walk_stop/agent.yaml",
+          "sha256": "f30ff7b8e32bf4c316f227ccebdbb45b7246b9faf017f213e522a9d49965294e"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "forward_walk"
+        ],
+        "assessment": "survives but feet contact each other and leg torque saturates"
+      }
+    },
+    {
+      "id": "backward_walk",
+      "result": "learned nominal-simulation gait; 20-DOF actor transferred to 22-DOF body; zero-command stop incomplete",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows-Backward",
+      "source_dof": 20,
+      "training_body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v1.xml",
+        "sha256": "27a25c9eda06af86aab79a44efb283b97949d89ea22688aba364dd6308f17dab"
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_15-04-27_ape_signed_scratch500/model_499.pt",
+      "local_checkpoint": "skills/ape/checkpoints/backward_walk.pt",
+      "sha256": "3a00c6c3f118e43c8d3b68665ec1887b9b135534a71efd1f5705a12547d0550c",
+      "evidence": "docs/research/ape-backward-skill-20260929.md",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_15-04-27_ape_signed_scratch500/params/env.yaml",
+          "local_path": "skills/ape/configs/backward_walk/env.yaml",
+          "sha256": "4926dab2fe4085706a85e4af9575432b8ef3e6eea3bf332d9dff8dd9ce02cc7d"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_15-04-27_ape_signed_scratch500/params/agent.yaml",
+          "local_path": "skills/ape/configs/backward_walk/agent.yaml",
+          "sha256": "52e0bd9ae8251c84132a13c626a28f30b87eef1742eeefebe3c09140a77a253e"
+        }
+      }
+    },
+    {
+      "id": "backward_stop_candidate",
+      "result": "partial: slows at zero command but still makes unwanted late foot contacts in half of fresh replays",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows-Backward",
+      "source_dof": 20,
+      "training_body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v1.xml",
+        "sha256": "27a25c9eda06af86aab79a44efb283b97949d89ea22688aba364dd6308f17dab"
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_16-24-53_ape_signed_stillness1550/model_1545.pt",
+      "local_checkpoint": "skills/ape/checkpoints/backward_stop_candidate.pt",
+      "sha256": "e08996cdd278ac466b2d0dc2e0312b9bd0720826ad444a3ec16b11ed0a2597ea",
+      "evidence": "docs/research/ape-backward-skill-20260929.md",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_16-24-53_ape_signed_stillness1550/params/env.yaml",
+          "local_path": "skills/ape/configs/backward_stop_candidate/env.yaml",
+          "sha256": "1d8b1e5a475394a65dac5085e36e813603860f863ab659ab29a04b42cd0bb71a"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_16-24-53_ape_signed_stillness1550/params/agent.yaml",
+          "local_path": "skills/ape/configs/backward_stop_candidate/agent.yaml",
+          "sha256": "93f8564f9e4849e3988143d7a09c5f345a3139a47fa62d575e6d4b267d416721"
+        }
+      }
+    },
+    {
+      "id": "stand_candidate",
+      "result": "partial: holds standing height but is inferior to passive zero action for two-foot support and leg torque",
+      "task": "Mjlab-Posture-Flat-Ape-Elbows-Stand",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture/2026-09-29_07-38-32_ape_v3_stand_scratch/model_299.pt",
+      "local_checkpoint": "skills/ape/checkpoints/stand_candidate.pt",
+      "sha256": "9fa16e970108bfb620e30b1e156197b09a3836a5b0b986f9fa3e0279c014233a",
+      "evidence": "artifacts/ape-basics-v3-20260929/stand-run-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture/2026-09-29_07-38-32_ape_v3_stand_scratch/params/env.yaml",
+          "local_path": "skills/ape/configs/stand_candidate/env.yaml",
+          "sha256": "24d8a1e7b922c3aa737ebd9be80e0d3f5db8b49e27f370d24a732e7871b316b7"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture/2026-09-29_07-38-32_ape_v3_stand_scratch/params/agent.yaml",
+          "local_path": "skills/ape/configs/stand_candidate/agent.yaml",
+          "sha256": "1e09395bc2afb24fce2b5a1742ba0431abb54e511298be723041af66122cd35a"
+        }
+      }
+    },
+    {
+      "id": "squat_recover",
+      "result": "learned nominal-simulation high-low-high posture; hip-roll torque saturates during squat hold",
+      "task": "Mjlab-Posture-Flat-Ape-Elbows-HeadingObserved",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_08-37-32_ape_v3_squat_heading_observed_from798/model_1097.pt",
+      "local_checkpoint": "skills/ape/checkpoints/squat_recover.pt",
+      "sha256": "ac99d239e6a258c267b8dd2d0a7ad56ad7958edafcf06ad085da0b1065edc55a",
+      "evidence": "artifacts/ape-basics-v3-20260929/heading-observed-run-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_08-37-32_ape_v3_squat_heading_observed_from798/params/env.yaml",
+          "local_path": "skills/ape/configs/squat_recover/env.yaml",
+          "sha256": "ed90f04184e0060caf2d81d5b4fa1ca679fe0938096e458f05eba09dad4ed6d1"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_08-37-32_ape_v3_squat_heading_observed_from798/params/agent.yaml",
+          "local_path": "skills/ape/configs/squat_recover/agent.yaml",
+          "sha256": "abeefb2138151441b2c15ed83ec0b2c18ccdfbcf85f8b6cb7dc11ebb441806d8"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "squat_recover"
+        ],
+        "assessment": "survives but feet contact each other and leg torque saturates in low hold"
+      }
+    },
+    {
+      "id": "both_arms_raise_lower",
+      "result": "learned symmetric arm raise/lower baseline; see independent_arms_v3 for separate commands",
+      "task": "Mjlab-Stand-Flat-Ape-Elbows-Arms",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_09-50-18_ape_v3_arm_raise_upward/model_100.pt",
+      "local_checkpoint": "skills/ape/checkpoints/both_arms_raise_lower.pt",
+      "sha256": "6236d69ddcb23c7256e6462ee86d9f25f3b63c704d0bdfcce75a0b62d968ad8c",
+      "evidence": "artifacts/ape-basics-v3-20260929/arm-upward-run-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_09-50-18_ape_v3_arm_raise_upward/params/env.yaml",
+          "local_path": "skills/ape/configs/both_arms_raise_lower/env.yaml",
+          "sha256": "fafe2ff8abf80699803eeeabede79e1099f75c57be04857bf3d61a62edbe5b3f"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_posture_low_noise/2026-09-29_09-50-18_ape_v3_arm_raise_upward/params/agent.yaml",
+          "local_path": "skills/ape/configs/both_arms_raise_lower/agent.yaml",
+          "sha256": "eb38b54f739cbb2c161f7ae8b0d21de2f5fae88282f32eb95c2d64c8c591e8c4"
+        }
+      }
+    },
+    {
+      "id": "independent_arms_v3",
+      "result": "learned separate left/right raise-hold-lower shoulder commands; right rise is smaller, elbows remain fixed",
+      "task": "Mjlab-Stand-Flat-Ape-Elbows-ArmsIndependent",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_elbows_arms_independent/2026-09-30_03-40-39_independent_flags_250/model_100.pt",
+      "local_checkpoint": "skills/ape/checkpoints/independent_arms_v3.pt",
+      "sha256": "d4b8f0ac36619ee86a42c71e8a49f396a8eed1c804e6186e930a563a264333a4",
+      "evidence": "artifacts/ape-independent-arms-20260930/manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_elbows_arms_independent/2026-09-30_03-40-39_independent_flags_250/params/env.yaml",
+          "local_path": "skills/ape/configs/independent_arms_v3/env.yaml",
+          "sha256": "c52a45aa3ea15131ba2dee4bef5b6f7aaf9f293593736d7fdceff187fadf0cb0"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_elbows_arms_independent/2026-09-30_03-40-39_independent_flags_250/params/agent.yaml",
+          "local_path": "skills/ape/configs/independent_arms_v3/agent.yaml",
+          "sha256": "e240bb00366be82032dbea93615f004ad366ad7a8d127720ac90beebde521bf9"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-independent-arms-20260930/manifest.json",
+        "cases": [
+          "left_seed142",
+          "right_seed142",
+          "left_seed902",
+          "right_seed902"
+        ],
+        "assessment": "all survive 10 s without self-contact, joint-range overflow, hand-floor force or shoulder effort saturation; coarse proxy is not printed-shell clearance"
+      }
+    },
+    {
+      "id": "right_foot_hold_from_pose",
+      "result": "learned nominal-simulation hold from raised-foot reset; no lift transition; about 59-degree trunk lean",
+      "task": "Mjlab-FlamingoHoldCommandLimit-Flat-Ape-Elbows",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-34-29_ape-v3-flamingo-command-limit-scratch-20260929/model_150.pt",
+      "local_checkpoint": "skills/ape/checkpoints/right_foot_hold_from_pose.pt",
+      "sha256": "d590058c6341c9bb0a64002558ba82cd4eb720133e500cba3ba8638347614e90",
+      "evidence": "artifacts/ape-basics-v3-20260929/flamingo-stage1/right-hold-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-34-29_ape-v3-flamingo-command-limit-scratch-20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/right_foot_hold_from_pose/env.yaml",
+          "sha256": "f0ca8669972993c083d47ad0428b415430c5720ee524d7deee8727a2648a3865"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-34-29_ape-v3-flamingo-command-limit-scratch-20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/right_foot_hold_from_pose/agent.yaml",
+          "sha256": "77f4bd24b63bb8e34f847476a3cff20fb7cbf412ac9b5988e519b4dbbe467bdf"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "foot_hold_right"
+        ],
+        "assessment": "balances on collision body but arm-thigh contact persists; raised-foot reset"
+      }
+    },
+    {
+      "id": "left_foot_hold_from_pose",
+      "result": "learned nominal-simulation hold from raised-foot reset; no lift transition; about 59-degree trunk lean",
+      "task": "Mjlab-FlamingoHoldCommandLimitLeft-Flat-Ape-Elbows",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-48-42_ape-v3-flamingo-left-command-limit-scratch-20260929/model_150.pt",
+      "local_checkpoint": "skills/ape/checkpoints/left_foot_hold_from_pose.pt",
+      "sha256": "ab045729edc72a8224567fc0b8288dd2899c89e39fc4012a696b878722fb3bd3",
+      "evidence": "artifacts/ape-basics-v3-20260929/flamingo-stage1/left-hold-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-48-42_ape-v3-flamingo-left-command-limit-scratch-20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/left_foot_hold_from_pose/env.yaml",
+          "sha256": "9dc99b9ed74f7484cecc73444488aaf7eb0c191275263a5ea96e915102939e33"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo/2026-09-29_11-48-42_ape-v3-flamingo-left-command-limit-scratch-20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/left_foot_hold_from_pose/agent.yaml",
+          "sha256": "4260e33992fed1f5d93f588d7b321635635540e06b0db273906255cf62867fa7"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "foot_hold_left"
+        ],
+        "assessment": "balances on collision body but arm-thigh contact persists; raised-foot reset"
+      }
+    },
+    {
+      "id": "weight_shift_both_sides",
+      "result": "learned nominal-simulation side-conditioned support loading; both soles remain grounded and sole travel is excessive during transitions",
+      "task": "Mjlab-FlamingoCycle-Flat-Ape-Elbows",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo_cycle/2026-09-29_12-38-13_ape-cycle-from499-to1499-20260929/model_700.pt",
+      "local_checkpoint": "skills/ape/checkpoints/weight_shift_both_sides.pt",
+      "sha256": "b2ffbac38ed45032775ca42a54d8a50f576389733e0396caf0292252ea03c83d",
+      "evidence": "artifacts/ape-basics-v3-20260929/flamingo-stage2/cont-700-weight-shift-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo_cycle/2026-09-29_12-38-13_ape-cycle-from499-to1499-20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/weight_shift_both_sides/env.yaml",
+          "sha256": "50ac15994f87e7c7186655b7693f731b11a967ab962d57f4009ac0128477e32c"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_elbows_flamingo_cycle/2026-09-29_12-38-13_ape-cycle-from499-to1499-20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/weight_shift_both_sides/agent.yaml",
+          "sha256": "0265342822bb27c6860a4a337534f76112c74e99b2c6b8b7f3dc96d3dfa736a2"
+        }
+      },
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "weight_shift_left",
+          "weight_shift_right"
+        ],
+        "assessment": "both directions clear coarse nonadjacent body-contact gate; feet never lift"
+      },
+      "latest_contact_replay": {
+        "manifest": "artifacts/ape-left-shift-contact-20260930/manifest.json",
+        "assessment": "Selected model700 still shifts weight without foot lift; no proxy self-contact or nominal joint overshoot in 500 poses. Exact older model900 clip also has no proxy self-contact but tiny hip-yaw/knee overshoot. Printed shell clearance unknown."
+      }
+    },
+    {
+      "id": "turn_curve_500_candidate",
+      "result": "partial: saved policy commands left/right turns and curved walks on 22-DOF ape in 5/5 seed-142 replays per command, but turn magnitude is asymmetric, zero-command stop drifts and leg torque saturates most frames",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows-Planar",
+      "source_dof": 20,
+      "training_body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v1.xml",
+        "sha256": "27a25c9eda06af86aab79a44efb283b97949d89ea22688aba364dd6308f17dab"
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/model_500.pt",
+      "local_checkpoint": "skills/ape/checkpoints/turn_curve_500_candidate.pt",
+      "sha256": "50067c7653ae1825e2c028dfd1e86ba308741dc65f021dac7cd39fb2ae1cecdf",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/turn_curve_500_candidate/env.yaml",
+          "sha256": "64af68af9e90d9775dfc5cfb3b53e191fdd83e97c15dab8d6a7670c3f2b71237"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/turn_curve_500_candidate/agent.yaml",
+          "sha256": "4f9c32e27a1f6cb3c03cba3a84a355959665e5f298dd3f830d1e2792685ee3ea"
+        }
+      },
+      "evidence": "artifacts/ape-turn-20260929/model500-manifest.json"
+    },
+    {
+      "id": "turn_700_candidate",
+      "result": "preferred partial turn/curve checkpoint: all four left/right pure-turn and curved-command signs in 5/5 seed-142 elbow-body replays each, but magnitude is asymmetric, zero-command stop drifts, and leg torque saturates most frames",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows-Planar",
+      "source_dof": 20,
+      "training_body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v1.xml",
+        "sha256": "27a25c9eda06af86aab79a44efb283b97949d89ea22688aba364dd6308f17dab"
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/model_700.pt",
+      "local_checkpoint": "skills/ape/checkpoints/turn_700_candidate.pt",
+      "sha256": "7309ff88dbd3ced5f168815b1194ceef243d31c2412b1420434391c01a678651",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/turn_700_candidate/env.yaml",
+          "sha256": "64af68af9e90d9775dfc5cfb3b53e191fdd83e97c15dab8d6a7670c3f2b71237"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_velocity/2026-09-29_18-13-22_ape_planar_pollen_turn_bucket_from200_20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/turn_700_candidate/agent.yaml",
+          "sha256": "4f9c32e27a1f6cb3c03cba3a84a355959665e5f298dd3f830d1e2792685ee3ea"
+        }
+      },
+      "evidence": "artifacts/ape-turn-20260929/model700-manifest.json",
+      "collision_replay": {
+        "body_sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af",
+        "manifest": "artifacts/ape-self-contact-replay-20260930/manifest.json",
+        "cases": [
+          "turn_left"
+        ],
+        "assessment": "left turn survives but feet contact each other and leg torque saturates; right turn not rechecked"
+      },
+      "latest_contact_replay": {
+        "manifest": "artifacts/ape-turn-contact-20260930/manifest.json",
+        "assessment": "Signed left/right turns survive, but miss target heading, drift after stop, saturate leg torque about 96% of frames, and have nearly continuous foot-foot proxy contact. Not a reusable precise turn skill."
+      }
+    },
+    {
+      "id": "right_hand_reach_candidate",
+      "result": "learned right-hand approach from a fixed-leg squat: hand comes within 0.0232-0.0279 m of varied floor toys in 5/5 fresh replays, with both feet planted and no hand-floor force; cube is nudged but never grasped or lifted",
+      "task": "Mjlab-Reach-Floor-Toy-Ape-Elbows-Right",
+      "source_dof": 22,
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_floor_toy/2026-09-29_19-27-21_right-reach-lockedlegs-v2b-20260929/model_299.pt",
+      "local_checkpoint": "skills/ape/checkpoints/right_hand_reach_candidate.pt",
+      "sha256": "3cf753c8eae17b03dccb37915164b505300c39a5b910397b59c54207b13e5742",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_floor_toy/2026-09-29_19-27-21_right-reach-lockedlegs-v2b-20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/right_hand_reach_candidate/env.yaml",
+          "sha256": "84f43e989523850934a41856e9870133a29061d2e0daedbb41cf342d843fa0f7"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_floor_toy/2026-09-29_19-27-21_right-reach-lockedlegs-v2b-20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/right_hand_reach_candidate/agent.yaml",
+          "sha256": "e4c18a1c6eafb0350b177f9abbe2c2bdfffb5449ef28bdd667e7deee1a450b13"
+        }
+      },
+      "evidence": "artifacts/ape-floor-reach-20260929/right-reach-manifest.json"
+    },
+    {
+      "id": "jaw_contact_lift_candidate",
+      "result": "partial learned contact lift: 2 cm floor toy rises above 4 cm with both jaw contacts for 0.20-0.26 s in five fresh replays; no sustained 1 s pickup",
+      "task": "Mjlab-Lift-Floor-Toy-Ape-Jaw-Held-Right",
+      "source_dof": 22,
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v4_opposed_jaws.xml",
+        "sha256": "66b4b1f7a39c7014307f499074837651aaa273fa69ec820927adb768f0c3d1d1",
+        "size_bytes": 16384
+      },
+      "checkpoint": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_jaw_floor_toy/2026-09-29_21-21-27_jaw-held-contact-v8-20260929/model_250.pt",
+      "local_checkpoint": "skills/ape/checkpoints/jaw_contact_lift_candidate.pt",
+      "sha256": "75bb3c76e5738ecd7a3108ca90329918aa3b1b862b8da342fd10c8045176c619",
+      "evidence": "artifacts/ape-floor-reach-20260929/jaw-v8-run-manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_jaw_floor_toy/2026-09-29_21-21-27_jaw-held-contact-v8-20260929/params/env.yaml",
+          "local_path": "skills/ape/configs/jaw_contact_lift_candidate/env.yaml",
+          "sha256": "3fb14fa19ce7001b9d7b1387e2c7765fa157984f036d47c6ffd660bc5c70fae4"
+        },
+        "agent.yaml": {
+          "path": "robot-learning-lab/microduck_rl/logs/rsl_rl/ape_jaw_floor_toy/2026-09-29_21-21-27_jaw-held-contact-v8-20260929/params/agent.yaml",
+          "local_path": "skills/ape/configs/jaw_contact_lift_candidate/agent.yaml",
+          "sha256": "c85adeec613dbf104fb51ca461c926ef73031e62878efbc449afd038be98d4aa"
+        }
+      }
+    },
+    {
+      "id": "held_lift_pregrasp_v5",
+      "result": "learned stationary held-lift on collision-aware v5 body: free 2 cm cube above 4 cm with both jaws touching for 2.04-2.10 s in 5/5 narrow reserved starts; cube begins between preclosed jaws, not a floor pickup",
+      "task": "Mjlab-Lift-Floor-Toy-Ape-Jaw-Held-Collision-Right",
+      "policy_framework": "robomimic_bc_feedforward_mse",
+      "source_dof": 22,
+      "observation": "native 72D actor plus elapsed episode fraction (73D)",
+      "action": "native 22D normalized joint-position command",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v5_collision_proxy.xml",
+        "sha256": "52958624c15d415a0b8898ef0e20a066e8438c4b6cabb51e6501fa7cab3b077b",
+        "size_bytes": 16793
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-jaw-bc-ff-phase-mse-v2-20260930/ape_jaw_v5_pregrasp_bc_ff_phase_mse/20260929233526/models/model_epoch_20.pth",
+      "local_checkpoint": "skills/ape/checkpoints/held_lift_pregrasp_v5.pt",
+      "sha256": "acf9321be96abe36c5f2da5c0b6f2ecf132befd1b67d2b9740c803fc8f847b66",
+      "evidence": "artifacts/ape-jaw-bc-ff-phase-mse-20260930/manifest.json",
+      "training_config": {
+        "config.json": {
+          "path": "robot-learning-lab/v1/ape-jaw-bc-ff-phase-mse-v2-20260930/config.json",
+          "local_path": "skills/ape/configs/held_lift_pregrasp_v5/config.json",
+          "sha256": "b4ae35bc63781c2b39732620dcfc6b3a4f5fb8f5cf8b5cd03c2a2bca9c468626"
+        }
+      }
+    },
+    {
+      "id": "open_jaw_acquire_v5",
+      "result": "learned stationary open-jaw close-and-lift: 2 cm free floor cube rises above 4 cm with both physical jaw contacts for 1.34-1.40 s in 5/5 fixed-startup-seed narrow reserved replays; cube starts between open jaws, so approach/reach and broad placement are unsolved",
+      "task": "Mjlab-Lift-Floor-Toy-Ape-Jaw-Acquire-Collision-Right",
+      "policy_framework": "robomimic_bc_feedforward_mse",
+      "source_dof": 22,
+      "observation": "native 72D actor plus elapsed episode fraction (73D)",
+      "action": "native 22D normalized joint-position command",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v5_collision_proxy.xml",
+        "sha256": "52958624c15d415a0b8898ef0e20a066e8438c4b6cabb51e6501fa7cab3b077b",
+        "size_bytes": 16793
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-jaw-acquire-bc-20260930/ape_jaw_v5_acquire_bc_ff_phase_mse/20260929234614/models/model_epoch_20.pth",
+      "local_checkpoint": "skills/ape/checkpoints/open_jaw_acquire_v5.pt",
+      "sha256": "dcb467cef5431684b7c4648bdf1555a645cb95d8c9bf758d8cbc4fca549bc421",
+      "evidence": "artifacts/ape-jaw-acquire-bc-20260930/manifest.json",
+      "training_config": {
+        "config.json": {
+          "path": "robot-learning-lab/v1/ape-jaw-acquire-bc-20260930/config.json",
+          "local_path": "skills/ape/configs/open_jaw_acquire_v5/config.json",
+          "sha256": "09629e622f07f29053a5cc21793c3c1cc6ef4d9d40ad4346663a74c8573b3acd"
+        }
+      }
+    },
+    {
+      "id": "place_release_v5",
+      "result": "learned stationary held-to-floor place/release: held cube lowered to fixed nearby floor target, jaw opened and hand withdrawn; 15/15 narrow reserved starts within 15 mm target, >=1.3 s clear. Starts physically held at reset; no pickup-to-place handoff.",
+      "task": "Mjlab-Place-Floor-Toy-Ape-Jaw-Collision-Right",
+      "policy_framework": "robomimic_bc_feedforward_mse",
+      "source_dof": 22,
+      "observation": "native 72D actor plus elapsed episode fraction (73D)",
+      "action": "native 22D normalized joint-position command",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v5_collision_proxy.xml",
+        "sha256": "52958624c15d415a0b8898ef0e20a066e8438c4b6cabb51e6501fa7cab3b077b",
+        "size_bytes": 16793
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-jaw-place-dagger-20260930/ape_jaw_v5_place_bc_ff_phase_mse/20260930001443/models/model_epoch_10.pth",
+      "local_checkpoint": "skills/ape/checkpoints/place_release_v5.pt",
+      "sha256": "6b80674baf1daca06b38fa15c96dda5dbc7f29ecd589994a1ac8d62a422995db",
+      "evidence": "artifacts/ape-jaw-place-dagger-20260930/manifest.json",
+      "training_config": {
+        "config.json": {
+          "path": "robot-learning-lab/v1/ape-jaw-place-dagger-20260930/config.json",
+          "local_path": "skills/ape/configs/place_release_v5/config.json",
+          "sha256": "874d0c686813cb0646a4d2fe1a586f8a113531b4a20078697fe72ae4da7df7d9"
+        }
+      }
+    },
+    {
+      "id": "place_after_acquire_v5",
+      "result": "learned stationary place after actual open-jaw acquisition handoff: continuous 6 s saved-policy composition, 14/15 narrow reserved starts complete; one miss releases stably 15.81 mm from 15 mm target gate. Toy begins within open jaws; fixed nearby destination.",
+      "task": "Mjlab-Lift-Floor-Toy-Ape-Jaw-Acquire-Collision-Right + Mjlab-Place-Floor-Toy-Ape-Jaw-Collision-Right",
+      "policy_framework": "robomimic_bc_feedforward_mse",
+      "source_dof": 22,
+      "observation": "native 72D actor plus elapsed skill phase (73D); place-relative joint/action offsets at switch",
+      "action": "native 22D normalized joint-position command",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v5_collision_proxy.xml",
+        "sha256": "52958624c15d415a0b8898ef0e20a066e8438c4b6cabb51e6501fa7cab3b077b",
+        "size_bytes": 16793
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-jaw-handoff-demos-20260930/ape_jaw_v5_place_bc_ff_phase_mse/20260930003931/models/model_epoch_5.pth",
+      "local_checkpoint": "skills/ape/checkpoints/place_after_acquire_v5.pt",
+      "sha256": "bb461ba11380a8e1a8c5088dfca06de730326dcf75f72a63964181ef737a99a0",
+      "evidence": "artifacts/ape-jaw-handoff-demos-20260930/manifest.json",
+      "training_config": {
+        "config.json": {
+          "path": "robot-learning-lab/v1/ape-jaw-handoff-demos-20260930/config.json",
+          "local_path": "skills/ape/configs/place_after_acquire_v5/config.json",
+          "sha256": "0102eb9a17602552a6ac223f720f3dc54eea641e693ce2bc2b89db4b8ff9fa40"
+        }
+      }
+    },
+    {
+      "id": "goal_conditioned_place_candidate_v5",
+      "result": "partial learned goal-conditioned place after actual acquisition: same-seed fresh rendered near/far commands landed 27.53 mm apart and both passed; across five fresh starts per goal near 2/5, center 2/5, far 5/5, unseen inner 4/5 and outer 5/5. Not a reliable replacement for the fixed-center skill; contact outcomes vary between processes.",
+      "task": "Mjlab-Lift-Floor-Toy-Ape-Jaw-Acquire-Collision-Right + Mjlab-Place-Floor-Toy-Ape-Jaw-Collision-Right",
+      "policy_framework": "robomimic_bc_feedforward_mse_dagger_style",
+      "source_dof": 22,
+      "observation": "native 72D actor with cube-to-goal xyz components 47:50 multiplied by 20, plus elapsed skill phase (73D); place-relative joint/action offsets at switch",
+      "action": "native 22D normalized joint-position command",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v5_collision_proxy.xml",
+        "sha256": "52958624c15d415a0b8898ef0e20a066e8438c4b6cabb51e6501fa7cab3b077b",
+        "size_bytes": 16793
+      },
+      "checkpoint": "robot-learning-lab/artifacts/ape-place-goal-variants/selected-dagger-epoch10.pth",
+      "local_checkpoint": "skills/ape/checkpoints/goal_conditioned_place_candidate_v5.pt",
+      "sha256": "c19ce4b105ca24eba972b4cf0cca814225298b8befacfc26f063f9549b4a9d8e",
+      "evidence": "artifacts/ape-place-goal-variants/manifest.json",
+      "training_config": {
+        "config.json": {
+          "path": "robot-learning-lab/artifacts/ape-place-goal-variants/train-dagger-config.json",
+          "local_path": "skills/ape/configs/goal_conditioned_place_candidate_v5/config.json",
+          "sha256": "d0589b956d3a1b1ed91a995837c7b86946095e1e0ddbe0132b9224c76e6d6c94"
+        }
+      }
+    },
+    {
+      "id": "one_foot_hold_right_full_collision",
+      "result": "learned six-second right-support hold from a raised-foot reset in 2/2 fresh seeds; zero native self-contact and zero offline body overlap; stand-to-lift and set-down remain unlearned",
+      "task": "Mjlab-FlamingoHoldFullCollisionRight-Flat-Ape-Elbows",
+      "policy_framework": "pollen_mjlab_ppo_from_physics_target_initialized_actor",
+      "source_dof": 22,
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_elbows_foot_full_collision_right/2026-09-30_05-26-25_right_from_hold249/model_300.pt",
+      "local_checkpoint": "artifacts/ape-upright-foot-hold-20260930/checkpoints/right-full-collision-300.pt",
+      "sha256": "f1e41e97dc3962667cde9ee78c3d20e2028a3c8ed632b59f01b230c609145f20",
+      "evidence": "artifacts/ape-upright-foot-hold-20260930/manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "artifacts/ape-upright-foot-hold-20260930/configs/right-full-collision/params/env.yaml",
+          "local_path": "skills/ape/configs/one_foot_hold_right_full_collision/env.yaml",
+          "sha256": "3bff5d35db6fd3825d5af7370adfaf45058386ea5a5de7cff0d75dff100371ae"
+        },
+        "agent.yaml": {
+          "path": "artifacts/ape-upright-foot-hold-20260930/configs/right-full-collision/params/agent.yaml",
+          "local_path": "skills/ape/configs/one_foot_hold_right_full_collision/agent.yaml",
+          "sha256": "7764341b6f2c3b17e85e1927041ae70c3467d845f315d95bd4770e1d1e68b2ad"
+        }
+      }
+    },
+    {
+      "id": "one_foot_hold_left_full_collision",
+      "result": "learned six-second left-support hold from a raised-foot reset in 2/2 fresh seeds; zero native self-contact and zero offline body overlap; reset noise reduced to 0.5 degree/0.01 rad; stand-to-lift and set-down remain unlearned",
+      "task": "Mjlab-FlamingoHoldUprightClearLeft-Flat-Ape-Elbows",
+      "validation_task": "Mjlab-FlamingoHoldFullCollisionLeft-Flat-Ape-Elbows",
+      "policy_framework": "pollen_mjlab_ppo_from_physics_target_initialized_actor",
+      "source_dof": 22,
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_elbows_foot_upright_clear_left/2026-09-30_05-01-26_upright_left_hold_target_seeded/model_50.pt",
+      "local_checkpoint": "artifacts/ape-upright-foot-hold-20260930/checkpoints/left-ppo-50.pt",
+      "sha256": "05d3699f8a6430cdf796c3096972248e32937ad98d6ce2ced5379777276c1218",
+      "evidence": "artifacts/ape-upright-foot-hold-20260930/manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "artifacts/ape-upright-foot-hold-20260930/configs/left-seeded/params/env.yaml",
+          "local_path": "skills/ape/configs/one_foot_hold_left_full_collision/env.yaml",
+          "sha256": "8c39abd8f8b866cb5f63905f5e535b0cfc6044c2d6df658f464c6fa6d39a91f4"
+        },
+        "agent.yaml": {
+          "path": "artifacts/ape-upright-foot-hold-20260930/configs/left-seeded/params/agent.yaml",
+          "local_path": "skills/ape/configs/one_foot_hold_left_full_collision/agent.yaml",
+          "sha256": "174f7e8a6a3249a4e6e88bb3e5e6b10fc667aafbf6026df65d62e65d62d04aab"
+        }
+      }
+    },
+    {
+      "id": "foot_lift_left_reference_tracking",
+      "result": "saved PPO tracker completes stand-to-left-foot-lift, clear right-foot support, set-down and two-foot finish on fresh native rollouts at seeds 901 and 902; requires an authored motion reference and does not recover from a 0.07 m/s hold push",
+      "task": "Mjlab-Tracking-Ape-Foot-Transition-Residual",
+      "policy_framework": "mjlab_beyondmimic_rsl_rl_ppo_reference_residual",
+      "source_dof": 22,
+      "action": "22D learned position correction at 0.05 rad/action around the time-indexed reference joints",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_foot_transition_v6.npz",
+        "sha256": "bd330be51397cdd7436ed3fc034418c63b77711fdc261ce00d1719b7c18af7f8"
+      },
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_foot_transition_residual/2026-09-30_07-22-20_reference_centered_v1/model_299.pt",
+      "local_checkpoint": "skills/ape/checkpoints/foot_lift_left_reference_tracking.pt",
+      "sha256": "4c219effa7aa9d6a9963cea66dd51bf6076b14ec71d51ce6a726c66a1ca5ecc8",
+      "evidence": "artifacts/ape-foot-transition-20260930/index.html",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/foot_lift_left_reference_tracking/env.yaml",
+          "local_path": "skills/ape/configs/foot_lift_left_reference_tracking/env.yaml",
+          "sha256": "38731c54bd982f523f4088e73c759bbb6294b0d75fd6ad118e57836ffbeb71ab"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/foot_lift_left_reference_tracking/agent.yaml",
+          "local_path": "skills/ape/configs/foot_lift_left_reference_tracking/agent.yaml",
+          "sha256": "b634e5a4e7c80b47ee61277481abd4b612ed0ed1b5f7294f155d5f0fff012e92"
+        }
+      }
+    },
+    {
+      "id": "foot_lift_right_reference_tracking",
+      "result": "saved PPO tracker completes stand-to-right-foot-lift, clear left-foot support, set-down and two-foot finish on fresh native rollouts at seeds 902 and 903; selected model 100 has lower body-contact frequency than models 50, 200 and 299 but still needs printed-shell clearance",
+      "task": "Mjlab-Tracking-Ape-Foot-Transition-Residual-Right",
+      "policy_framework": "mjlab_beyondmimic_rsl_rl_ppo_reference_residual",
+      "source_dof": 22,
+      "action": "22D learned position correction at 0.05 rad/action around the time-indexed mirrored reference joints",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_foot_transition_right_mirror_v2.npz",
+        "sha256": "20373a58d9c2543c8588c8c7dea45a5db742e04fef6df92973cca74ff263b0ae"
+      },
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_foot_transition_residual_right/2026-09-30_08-04-51_mirrored_reference_v1/model_100.pt",
+      "local_checkpoint": "skills/ape/checkpoints/foot_lift_right_reference_tracking.pt",
+      "sha256": "ad044a1ecdb5fce02e6487b9230bedf39ee0847878ba5449b5e3f3686b79e371",
+      "evidence": "artifacts/ape-foot-transition-20260930/index.html",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/foot_lift_right_reference_tracking/env.yaml",
+          "local_path": "skills/ape/configs/foot_lift_right_reference_tracking/env.yaml",
+          "sha256": "e8f1668c5ea9ce2a95a1de183b99550135babfbc98fabda0eb46e894f2b4fa50"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/foot_lift_right_reference_tracking/agent.yaml",
+          "local_path": "skills/ape/configs/foot_lift_right_reference_tracking/agent.yaml",
+          "sha256": "da6116a76f42bdd278b5a8219b83b010539e535def14e07471ca8a34acd6388b"
+        }
+      }
+    },
+    {
+      "id": "step_left_reference_tracking",
+      "result": "partial: saved PPO tracker makes a 3.96 cm left-foot forward step and two-foot finish on fresh nominal and training-jitter native replays; motion timing and destination remain authored",
+      "task": "Mjlab-Tracking-Ape-Single-Step-Left",
+      "policy_framework": "mjlab_beyondmimic_rsl_rl_ppo_reference_residual",
+      "source_dof": 22,
+      "action": "22D learned position correction at 0.05 rad/action around the time-indexed step reference",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_single_forward_step_left_v1.npz",
+        "sha256": "dcb5ca3cfb05de865f2b7a8057ea044993adb785cb840b4aab266433b9aeca92"
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-step-20260930/left-run/2026-09-30_09-12-14_forward_reference_v1/model_149.pt",
+      "local_checkpoint": "skills/ape/checkpoints/step_left_reference_tracking.pt",
+      "sha256": "495e6287adda9bd6f47d1038b29c6c3cfe8aca6c0ef5cf9ee3de33fb746586cc",
+      "evidence": "artifacts/ape-step-20260930/index.html",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/step_left_reference_tracking/env.yaml",
+          "local_path": "skills/ape/configs/step_left_reference_tracking/env.yaml",
+          "sha256": "403aa8730273d39e44d52baeb70e3fe2fa47665f7d81e6a7520fdb08c940e598"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/step_left_reference_tracking/agent.yaml",
+          "local_path": "skills/ape/configs/step_left_reference_tracking/agent.yaml",
+          "sha256": "f61ab34126cb359555391bd2f9b509009c8b0a1822545ce7ce9df5a842b438f9"
+        }
+      }
+    },
+    {
+      "id": "step_right_reference_tracking",
+      "result": "partial: saved PPO tracker makes a 3.75 cm right-foot forward step and two-foot finish on fresh nominal and training-jitter native replays; its body-contact rate is worse than zero-correction baseline and motion timing/destination remain authored",
+      "task": "Mjlab-Tracking-Ape-Single-Step-Right",
+      "policy_framework": "mjlab_beyondmimic_rsl_rl_ppo_reference_residual",
+      "source_dof": 22,
+      "action": "22D learned position correction at 0.05 rad/action around the time-indexed mirrored step reference",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_single_forward_step_right_v1.npz",
+        "sha256": "f7fa438d8baebf132a8026b96a972f5009a171982fb6bb7b3f674270b0e21000"
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-step-20260930/right-run/2026-09-30_09-19-07_forward_reference_v1/model_50.pt",
+      "local_checkpoint": "skills/ape/checkpoints/step_right_reference_tracking.pt",
+      "sha256": "d72120ca7c7aa6362b2d243a0675386dce7f8fb195d3c692058505f8b0cc5c92",
+      "evidence": "artifacts/ape-step-20260930/index.html",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/step_right_reference_tracking/env.yaml",
+          "local_path": "skills/ape/configs/step_right_reference_tracking/env.yaml",
+          "sha256": "0c46d9e717b384b6ec85028b211cfad2218aebc3b6c6188a6a5a419ed9811960"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/step_right_reference_tracking/agent.yaml",
+          "local_path": "skills/ape/configs/step_right_reference_tracking/agent.yaml",
+          "sha256": "780d4637794d8886a5fb118843ee08d66d33de33229c3ef9eddd0e7fd0fa8b7a"
+        }
+      }
+    },
+    {
+      "id": "step_left_commanded_from_lift",
+      "result": "partial: native PPO actor moves the left foot about 3.8-4.6 cm forward from an already lifted pose and lands in the commanded 3.5-4.5 cm zone in 5/5 fresh replays; cannot lift from a two-foot stand or make a smooth full step",
+      "task": "Mjlab-ForwardTouchdownRaised-Ape-RightSupport",
+      "policy_framework": "mjlab_pollen_rsl_rl_ppo_commanded_absolute_joint_actions",
+      "source_dof": 22,
+      "action": "22D learned absolute joint-position targets; no time-indexed motor reference at inference",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reset_pose": {
+        "path": "experiments/compact_morphology/motions/ape_step_reset_left_t8.json",
+        "sha256": "fee8ee47bad7d7df0de04ec527dcad890088d3cb931fc25e97476671fabb8be9",
+        "role": "training reset only, sourced from a screened teacher frame at 8.0 seconds"
+      },
+      "checkpoint": "robot-learning-lab/experiments/compact_morphology/mjlab_ape/logs/rsl_rl/ape_forward_touchdown_raised/2026-09-30_11-25-37_slip100/model_149.pt",
+      "local_checkpoint": "skills/ape/checkpoints/step_left_commanded_from_lift.pt",
+      "sha256": "c2d4b437b24802832cde316964a2f8f097c3ac974b8839128863e11af3c50821",
+      "evidence": "artifacts/ape-command-step-20260930/index.html",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/step_left_commanded_from_lift/env.yaml",
+          "local_path": "skills/ape/configs/step_left_commanded_from_lift/env.yaml",
+          "sha256": "fd6a4af73e37aa32ed0f95dca0522a5f60644436edb30a0ba7f76339bee0128b"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/step_left_commanded_from_lift/agent.yaml",
+          "local_path": "skills/ape/configs/step_left_commanded_from_lift/agent.yaml",
+          "sha256": "4d91649113c1cac89b2dcc7f6cb6eaf50ec351862c2611e692105c596a89e612"
+        }
+      }
+    },
+    {
+      "id": "step_left_distilled",
+      "result": "partial: saved phase-conditioned absolute-action policy makes one 4 cm forward step from two-foot stand and stops upright in 4/4 fresh native replays; printed-shell clearance, variable step target and composition unverified",
+      "task": "Mjlab-Distilled-Ape-Step-Left",
+      "policy_framework": "mjlab_rsl_rl_ppo_plus_pollen_style_on_policy_reference_bc",
+      "source_dof": 22,
+      "action": "22D learned absolute joint-position targets at 50 Hz; actor sees phase, IMU, joints and previous action, not reference joint positions",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_single_forward_step_left_v1.npz",
+        "sha256": "dcb5ca3cfb05de865f2b7a8057ea044993adb785cb840b4aab266433b9aeca92",
+        "role": "training imitation labels and physics-tracking reward, not actor motor target at inference"
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-step-distill-20260930/ape_step_distill_left/2026-09-30_12-28-50_on_policy_reference_bc_v1/model_149.pt",
+      "local_checkpoint": "skills/ape/checkpoints/step_left_distilled.pt",
+      "sha256": "a0bd36b007e54b22c34716d43daad95230f3b4383a1764ba04b2f94b58201901",
+      "onnx": {
+        "path": "skills/ape/onnx/step_left_distilled.onnx",
+        "sha256": "8f3cae22bc3d4307715497bafcc6e03bc30368c76d07a3e17cc849ef481685f5",
+        "input": "obs[1,76]",
+        "output": "actions[1,22]"
+      },
+      "evidence": "artifacts/ape-step-distill-20260930/index.html",
+      "manifest": "artifacts/ape-step-distill-20260930/manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/step_left_distilled/env.yaml",
+          "local_path": "skills/ape/configs/step_left_distilled/env.yaml",
+          "sha256": "b6829ec000bdb0b0b03bab3f50fb01e3a30c117491fd38f80e805da6b137d5b8"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/step_left_distilled/agent.yaml",
+          "local_path": "skills/ape/configs/step_left_distilled/agent.yaml",
+          "sha256": "53d7a0bc3eaafcc0ff9b6ea2b9e84c71d9fbf48b9fcc2c6ff7324e358f69a1c3"
+        }
+      }
+    },
+    {
+      "id": "step_right_distilled",
+      "result": "partial: saved phase-conditioned absolute-action policy makes one 4 cm forward step from two-foot stand and stops upright in 4/4 fresh native replays; printed-shell clearance, variable step target and composition unverified",
+      "task": "Mjlab-Distilled-Ape-Step-Right",
+      "policy_framework": "mjlab_rsl_rl_ppo_plus_pollen_style_on_policy_reference_bc",
+      "source_dof": 22,
+      "action": "22D learned absolute joint-position targets at 50 Hz; actor sees phase, IMU, joints and previous action, not reference joint positions",
+      "body": {
+        "path": "experiments/compact_morphology/playground_models/ape_sourced_v3_collision_proxy.xml",
+        "sha256": "c5477ec28d7cee03a7cf92277faab9b3370d48bea056909d9e648773e5ca43af"
+      },
+      "reference_motion": {
+        "path": "experiments/compact_morphology/motions/ape_single_forward_step_right_v1.npz",
+        "sha256": "f7fa438d8baebf132a8026b96a972f5009a171982fb6bb7b3f674270b0e21000",
+        "role": "training imitation labels and physics-tracking reward, not actor motor target at inference"
+      },
+      "checkpoint": "robot-learning-lab/v1/ape-step-distill-20260930/ape_step_distill_right/2026-09-30_12-50-56_bc5_from_model_149/model_198.pt",
+      "local_checkpoint": "skills/ape/checkpoints/step_right_distilled.pt",
+      "sha256": "125b6d398ebfd64f206b19141249044bfc0519380f361dd587c0eeec0ba44497",
+      "onnx": {
+        "path": "skills/ape/onnx/step_right_distilled.onnx",
+        "sha256": "54fa011d12a62228b256f5a65096a027fcf34944d804e65fb121b205508bf8b5",
+        "input": "obs[1,76]",
+        "output": "actions[1,22]"
+      },
+      "evidence": "artifacts/ape-step-distill-20260930/index.html",
+      "manifest": "artifacts/ape-step-distill-20260930/manifest.json",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/step_right_distilled/env.yaml",
+          "local_path": "skills/ape/configs/step_right_distilled/env.yaml",
+          "sha256": "d04dbf08f0b9a296b2ccb25964eb37a0671d855dbdf6196db462abb7155ea0b6"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/step_right_distilled/agent.yaml",
+          "local_path": "skills/ape/configs/step_right_distilled/agent.yaml",
+          "sha256": "9aa05636b39b0a0531218e297a18bc816f23f810b4e6959cacc560fd64a84145"
+        }
+      }
+    },
+    {
+      "id": "cad_v8_forward_walk",
+      "result": "learned on the spaced v8 case-envelope body; 8/8 fresh nominal and varied-speed replays walked >1 m with 18-19 alternating touchdowns, zero hand contact; printed-shell clearance and real motor impedance unverified",
+      "task": "Mjlab-Velocity-Flat-Ape-Elbows-CadV8",
+      "policy_framework": "native_mjlab_rsl_rl_ppo",
+      "source_dof": 22,
+      "action": "22D learned joint-position targets at 50 Hz; upper-body action scales remain zero for this walking lesson",
+      "body": {
+        "path": "experiments/compact_morphology/ape_cad/ape_spaced_v8_casedynamics.xml",
+        "sha256": "cb8dfa5937f013d84886d4f46d21478fc1b23dc0acfb1de14b176c1770343bbb",
+        "caveat": "case-envelope scaffold, not the shaped printed assembly"
+      },
+      "warmstart": {
+        "source": "forward_walk_stop 20D mapped by joint name to 22D, then reset action std to 1.0",
+        "sha256": "c1e4b0317952a657ed1ef512d8f3bd6d34c3331b2b29e37041f6344c80563405"
+      },
+      "checkpoint": "robot-learning-lab/logs/rsl_rl/ape_cad_v8_velocity/2026-09-30_20-34-00_cad_v8_std1_500/model_499.pt",
+      "local_checkpoint": "skills/ape/checkpoints/cad_v8_forward_499.pt",
+      "sha256": "b757aae03a31dff08678e3ac02a802dfe0f31d09a9cb1702961cf56d4320221f",
+      "evidence": "docs/research/ape-physics-retrain-20260930.md",
+      "training_config": {
+        "env.yaml": {
+          "path": "skills/ape/configs/cad_v8_forward/env.yaml",
+          "local_path": "skills/ape/configs/cad_v8_forward/env.yaml",
+          "sha256": "263682108a53e962bdac9b4ea32668afceaf94a29ae2e6f2c88bcd75a0b81e1b"
+        },
+        "agent.yaml": {
+          "path": "skills/ape/configs/cad_v8_forward/agent.yaml",
+          "local_path": "skills/ape/configs/cad_v8_forward/agent.yaml",
+          "sha256": "42c8d0a97b2afa6ab3bffcb817ce082899e57a918c3b435b46abe3364c778876"
+        }
+      }
+    }
+  ],
+  "manipulation_collision_caveat": "The v5 acquired-to-placed skill has physical jaw-cube and floor contacts. A compiled MJLab mask comparison found 18 historical active geoms and 19 with disable_other_geoms=False; only the pelvis geom changed. A fresh paired 15-seed saved-policy comparison passed 13/15 historical and 14/15 pelvis-enabled. Both are narrow proxy-body results; printed housing clearance remains unverified. See artifacts/ape-full-body-pick-place-20260930/."
+}

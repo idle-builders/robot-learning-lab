@@ -1,0 +1,105 @@
+name: pip-camera-vendor
+morphology: wheeled
+actuators:
+  leg:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.7
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  arm:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.4
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  neck:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.15
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+  wheel:
+    part_id: feetech-st3215-c018
+    effort_limit_nm: 0.35
+    velocity_limit_rad_s: 3.5
+    effective_nm_per_a: 1.0787315
+    idle_current_a: 0.03
+    mass_kg: 0.055
+    evidence: unmeasured_design_assumption
+cost:
+  actuator_usd:
+    leg:
+    - 16
+    - 26
+    arm:
+    - 16
+    - 26
+    neck:
+    - 16
+    - 26
+    wheel:
+    - 16
+    - 26
+appearance: pip
+dimensions:
+  torso_width_m: 0.132
+  torso_depth_m: 0.1
+  torso_height_m: 0.095
+  head_width_m: 0.147
+  head_depth_m: 0.108
+  head_height_m: 0.093
+  thigh_m: 0.085
+  shin_m: 0.085
+  upper_arm_m: 0.085
+  forearm_m: 0.085
+  wheel_radius_m: 0.04
+  hip_spacing_m: 0.092
+  arm_width_m: 0.058
+  arm_depth_m: 0.058
+  leg_width_m: 0.058
+  leg_depth_m: 0.058
+  shoulder_outset_m: 0.038
+  wheel_width_m: 0.02
+  wheel_outset_m: 0.03
+  hip_drop_m: 0.02
+  hip_socket_width_m: 0.043
+  hip_socket_depth_m: 0.034
+  hip_socket_height_m: 0.027
+  rear_cap_lower_fastener_z_m: 0.035
+  gripper_finger_length_m: 0.05
+  shoulder_pitch_offset_m: 0.061
+  shoulder_mount_thickness_m: 0.006
+  gripper_axis_offset_m: 0
+  gripper_pad_root_m: 0.02
+  neck_yaw_rise_m: 0.028
+  neck_pitch_rise_m: 0.055
+  neck_mount_thickness_m: 0.003
+  neck_collar_enabled: true
+  logic_mount_enabled: true
+  logic_board_x_m: 0.0335
+  logic_board_z_m: 0.0695
+  logic_board_y_m: -0.0025
+  imu_mount_enabled: true
+  imu_board_x_m: -0.008
+  imu_board_y_m: 0.056
+  imu_board_z_m: 0.04
+camera:
+  part_id: raspberry_pi_camera_module_3_wide
+  cassette_enabled: true
+  support_enabled: true
+  position_head_m:
+  - 0.066
+  - 0
+  - -0.002
+  support_profile: vendor_step
+face:
+  eye_spacing_m: 0.069
+  eye_height_m: 0.008
+  eye_scale: 1

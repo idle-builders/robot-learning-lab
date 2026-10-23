@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "packaging_comparison_not_selected_for_installation",
+  "date": "2026-09-21",
+  "scope": "Optional shunt-branch termination; never a series path carrying the complete motor load",
+  "candidates": [
+    {
+      "supplier": "Pololu",
+      "supplier_id": "2440",
+      "description": "Generic two-pin, 5 mm pitch, side-entry screw terminal block",
+      "manufacturer_part_number": null,
+      "source": "https://www.pololu.com/product/2440",
+      "pack_quantity": 4,
+      "published_pack_price_usd": {"1": 1.89, "10": 1.70},
+      "installed_quantity_each_robot": 0,
+      "conditional_quantity_each_robot": 1,
+      "optional_shared_fit_samples": 2,
+      "minimum_packs_for_fit_samples": 1,
+      "order_stage": "hold until exact sample dimensions, access and connection plan are resolved",
+      "production_unit_price_usd": {"1000_robots": null, "5000_robots": null}
+    },
+    {
+      "supplier": "Pololu",
+      "supplier_id": "2442",
+      "description": "Generic two-pin, 5 mm pitch, top-entry screw terminal block",
+      "manufacturer_part_number": null,
+      "source": "https://www.pololu.com/product/2442",
+      "pack_quantity": 4,
+      "published_pack_price_usd": {"1": 1.95, "10": 1.76},
+      "installed_quantity_each_robot": 0,
+      "optional_shared_fit_samples": 0,
+      "order_stage": "hold: both tested body envelopes overlap existing parts",
+      "production_unit_price_usd": {"1000_robots": null, "5000_robots": null}
+    }
+  ],
+  "cost_boundary": "Pack prices observed publicly; shipping, destination taxes and supply commitments unverified. No 1,000/5,000 robot quote, inferred discount or whole-product price claim. Do not add these study parts to the installed BOM or double count the existing power allowance."
+}

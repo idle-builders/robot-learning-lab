@@ -1,0 +1,52 @@
+#pragma experiment("INSTANCE_TRAITS")
+import has_designator
+from "parts/parts.ato" import IMU
+from "parts/parts.ato" import Cap100n
+from "parts/parts.ato" import JST5
+
+module SensorBoard:
+    U1 = new IMU
+    trait U1 has_designator<designator="U1">
+    C1 = new Cap100n
+    trait C1 has_designator<designator="C1">
+    C2 = new Cap100n
+    trait C2 has_designator<designator="C2">
+    J1 = new JST5
+    trait J1 has_designator<designator="J1">
+    signal GND
+    GND.override_net_name = "GND"
+    GND ~ U1.sa0
+    GND ~ U1.sdx
+    GND ~ U1.scx
+    GND ~ U1.gnd1
+    GND ~ U1.gnd2
+    GND ~ C1.b
+    GND ~ C2.b
+    GND ~ J1.p2
+    signal V3
+    V3.override_net_name = "V3"
+    V3 ~ U1.vdd
+    V3 ~ U1.vddio
+    V3 ~ U1.cs
+    V3 ~ U1.sdo_aux
+    V3 ~ C1.a
+    V3 ~ C2.a
+    V3 ~ J1.p1
+    signal SDA
+    SDA.override_net_name = "SDA"
+    SDA ~ U1.sda
+    SDA ~ J1.p3
+    signal SCL
+    SCL.override_net_name = "SCL"
+    SCL ~ U1.scl
+    SCL ~ J1.p4
+    signal INT1
+    INT1.override_net_name = "INT1"
+    INT1 ~ U1.int1
+    INT1 ~ J1.p5
+    signal NC_INT2
+    NC_INT2.override_net_name = "NC_INT2"
+    NC_INT2 ~ U1.int2
+    signal NC_OCS
+    NC_OCS.override_net_name = "NC_OCS"
+    NC_OCS ~ U1.ocs

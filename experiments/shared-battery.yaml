@@ -1,0 +1,16 @@
+schema_version: 1
+variants: [variants/pip-carriers.yaml, variants/scout-carriers.yaml]
+power_system: electronics/power-system.yaml
+vision_verification: electronics/logic-supply/vision-verification.yaml
+# Resistance placement is unmeasured. Total motor-path resistance stays unchanged.
+shared_external_fraction: 0.0
+logic_regularization_floor_v: 4.5
+cases:
+  - {name: nominal-eight-amp, source_v: 10.8, motor_a: 8, logic: nominal, expected_limits: true}
+  - {name: low-eight-amp, source_v: 9.6, motor_a: 8, logic: nominal, expected_limits: false}
+  - {name: rated-camera-nominal, source_v: 10.8, motor_a: rated, logic: nominal, expected_limits: false}
+  - {name: rated-camera-probe, source_v: 10.8, motor_a: rated, logic: probe, expected_limits: false}
+  - {name: common-resistance-sensitivity, source_v: 10.8, motor_a: 8, logic: nominal, shared_external_fraction: 0.75, expected_limits: true}
+  - {name: regeneration-connected, source_v: 12.6, motor_a: -4, logic: nominal, expected_limits: true}
+  - {name: regeneration-motor-isolated, source_v: 12.6, motor_a: -4, logic: nominal, disconnect_motor: true, expected_limits: true}
+  - {name: motor-permit-off, source_v: 10.8, motor_a: 8, logic: probe, disconnect_motor: true, expected_limits: false}

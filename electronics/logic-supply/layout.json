@@ -1,0 +1,609 @@
+{
+  "schema_version": 1,
+  "size_mm": [
+    38,
+    34
+  ],
+  "thickness_mm": 1.6,
+  "mounting_holes_mm": [
+    [
+      3,
+      3
+    ],
+    [
+      35,
+      3
+    ],
+    [
+      3,
+      31
+    ],
+    [
+      35,
+      31
+    ]
+  ],
+  "placement_mm": {
+    "U1": [
+      14,
+      16,
+      180
+    ],
+    "L1": [
+      24.3,
+      16,
+      0
+    ],
+    "C1": [
+      16.9,
+      14,
+      90
+    ],
+    "C2": [
+      16.9,
+      10,
+      90
+    ],
+    "C3": [
+      14,
+      19,
+      0
+    ],
+    "C4": [
+      32,
+      16,
+      90
+    ],
+    "C5": [
+      32,
+      21,
+      90
+    ],
+    "C6": [
+      10,
+      10,
+      0
+    ],
+    "R1": [
+      10,
+      12,
+      0
+    ],
+    "R2": [
+      13,
+      11.5,
+      90
+    ],
+    "R3": [
+      9,
+      19,
+      0
+    ],
+    "R4": [
+      9,
+      21.5,
+      0
+    ],
+    "J1": [
+      15,
+      5,
+      180
+    ],
+    "J2": [
+      29,
+      28,
+      180
+    ],
+    "J3": [
+      12,
+      28,
+      180
+    ]
+  },
+  "routes": [
+    {
+      "name": "input-feed",
+      "net": "VIN",
+      "width_mm": 0.8,
+      "points": [
+        "J1.2",
+        [
+          13,
+          6.6
+        ],
+        [
+          20,
+          6.6
+        ],
+        [
+          20,
+          11.475
+        ],
+        "C2.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "input-bypass",
+      "net": "VIN",
+      "width_mm": 0.5,
+      "points": [
+        "C2.1",
+        [
+          18,
+          11.475
+        ],
+        [
+          18,
+          14.775
+        ],
+        "C1.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "vin-pin",
+      "net": "VIN",
+      "width_mm": 0.5,
+      "points": [
+        "C1.1",
+        [
+          16,
+          15.05
+        ],
+        "U1.3"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "switch-to-inductor",
+      "net": "SW",
+      "width_mm": 0.5,
+      "points": [
+        "U1.2",
+        "L1.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "bootstrap-return",
+      "net": "SW",
+      "width_mm": 0.3,
+      "points": [
+        "C3.2",
+        [
+          16.8,
+          19
+        ],
+        [
+          16.8,
+          16
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "bootstrap-pin",
+      "net": "BOOT",
+      "width_mm": 0.25,
+      "points": [
+        "U1.6",
+        [
+          12.8625,
+          19
+        ],
+        "C3.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "output-cap",
+      "net": "V5",
+      "width_mm": 1,
+      "points": [
+        "L1.2",
+        [
+          30,
+          16
+        ],
+        [
+          30,
+          17.475
+        ],
+        "C4.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "output-cap-link",
+      "net": "V5",
+      "width_mm": 1,
+      "points": [
+        "C4.1",
+        [
+          35,
+          17.475
+        ],
+        [
+          35,
+          22.475
+        ],
+        "C5.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "output-feed",
+      "net": "V5",
+      "width_mm": 1,
+      "points": [
+        "C5.1",
+        [
+          32,
+          24
+        ],
+        [
+          27,
+          24
+        ],
+        "J2.2"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "feedback-top",
+      "net": "FB",
+      "width_mm": 0.2,
+      "points": [
+        "C6.2",
+        "R1.2",
+        [
+          11.5,
+          12.675
+        ],
+        [
+          12.65,
+          12.675
+        ],
+        "R2.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "feedback-pin",
+      "net": "FB",
+      "width_mm": 0.2,
+      "points": [
+        "R2.1",
+        [
+          12.8625,
+          13
+        ],
+        "U1.4"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "feedback-kelvin-ground",
+      "net": "GND",
+      "width_mm": 0.2,
+      "points": [
+        "R2.2",
+        [
+          14,
+          10.675
+        ],
+        [
+          14,
+          16.95
+        ],
+        "U1.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "feedback-sense-bridge",
+      "net": "V5",
+      "width_mm": 0.2,
+      "points": [
+        "C6.1",
+        "R1.1",
+        [
+          8,
+          11
+        ],
+        [
+          5.5,
+          11
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "feedback-sense",
+      "net": "V5",
+      "width_mm": 0.2,
+      "points": [
+        [
+          5.5,
+          11
+        ],
+        [
+          4,
+          11
+        ],
+        [
+          4,
+          24
+        ],
+        [
+          36,
+          24
+        ],
+        [
+          36,
+          18.475
+        ],
+        [
+          35,
+          17.475
+        ]
+      ],
+      "layer": "B.Cu"
+    },
+    {
+      "name": "enable-feed",
+      "net": "VIN",
+      "width_mm": 0.2,
+      "points": [
+        "J1.2",
+        [
+          6.8,
+          6
+        ],
+        [
+          6.8,
+          19
+        ]
+      ],
+      "layer": "B.Cu"
+    },
+    {
+      "name": "enable-top",
+      "net": "VIN",
+      "width_mm": 0.2,
+      "points": [
+        [
+          6.8,
+          19
+        ],
+        "R3.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "enable-pin",
+      "net": "EN",
+      "width_mm": 0.2,
+      "points": [
+        "U1.5",
+        [
+          11.7,
+          16
+        ],
+        [
+          11,
+          16.7
+        ],
+        [
+          11,
+          19
+        ],
+        "R3.2"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "enable-bottom",
+      "net": "EN",
+      "width_mm": 0.2,
+      "points": [
+        "R3.2",
+        [
+          9.825,
+          20.5
+        ],
+        [
+          7.5,
+          20.5
+        ],
+        [
+          7.5,
+          21.5
+        ],
+        "R4.1"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "enable-connector",
+      "net": "EN",
+      "width_mm": 0.2,
+      "points": [
+        "R4.1",
+        [
+          8.175,
+          26.175
+        ],
+        "J3.2"
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "chip-ground",
+      "net": "GND",
+      "width_mm": 0.5,
+      "points": [
+        "U1.1",
+        [
+          15.1,
+          17.7
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "input-bypass-ground",
+      "net": "GND",
+      "width_mm": 0.5,
+      "points": [
+        "C1.2",
+        [
+          16.9,
+          12.75
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "input-ground",
+      "net": "GND",
+      "width_mm": 0.8,
+      "points": [
+        "C2.2",
+        [
+          16.9,
+          7.8
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "output-ground1",
+      "net": "GND",
+      "width_mm": 0.8,
+      "points": [
+        "C4.2",
+        [
+          32,
+          13.5
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "output-ground2",
+      "net": "GND",
+      "width_mm": 0.8,
+      "points": [
+        "C5.2",
+        [
+          33.5,
+          19.525
+        ]
+      ],
+      "layer": "F.Cu"
+    },
+    {
+      "name": "enable-ground",
+      "net": "GND",
+      "width_mm": 0.25,
+      "points": [
+        "R4.2",
+        [
+          10.5,
+          22.5
+        ]
+      ],
+      "layer": "F.Cu"
+    }
+  ],
+  "vias": [
+    {
+      "net": "V5",
+      "at_mm": [
+        5.5,
+        11
+      ]
+    },
+    {
+      "net": "V5",
+      "at_mm": [
+        35,
+        17.475
+      ]
+    },
+    {
+      "net": "VIN",
+      "at_mm": [
+        6.8,
+        19
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        15.1,
+        17.7
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        16.9,
+        12.75
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        16.9,
+        7.8
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        32,
+        13.5
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        33.5,
+        19.525
+      ]
+    },
+    {
+      "net": "GND",
+      "at_mm": [
+        10.5,
+        22.5
+      ]
+    }
+  ],
+  "labels": [
+    {
+      "text": "BAT",
+      "at_mm": [
+        9,
+        6
+      ]
+    },
+    {
+      "text": "5V",
+      "at_mm": [
+        28,
+        31.5
+      ]
+    },
+    {
+      "text": "DISABLE",
+      "at_mm": [
+        11,
+        31.5
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Optional MCAP conversion environment; preserves CAD, observation and Atopile runtimes.
+mcap==1.4.0
+pydantic==2.13.5
+PyYAML==6.0.3

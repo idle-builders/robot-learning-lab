@@ -1,0 +1,94 @@
+#pragma experiment("INSTANCE_TRAITS")
+import has_designator
+from "parts/parts.ato" import Buck
+from "parts/parts.ato" import Inductor10u
+from "parts/parts.ato" import Cap100n
+from "parts/parts.ato" import Cap10u
+from "parts/parts.ato" import Cap22u
+from "parts/parts.ato" import Cap75p
+from "parts/parts.ato" import Res100k
+from "parts/parts.ato" import Res13k3
+from "parts/parts.ato" import Res511k
+from "parts/parts.ato" import Res105k
+from "parts/parts.ato" import Connector2
+from "parts/parts.ato" import OutputConnector
+
+module LogicSupply:
+    U1 = new Buck
+    trait U1 has_designator<designator="U1">
+    L1 = new Inductor10u
+    trait L1 has_designator<designator="L1">
+    C1 = new Cap100n
+    trait C1 has_designator<designator="C1">
+    C2 = new Cap10u
+    trait C2 has_designator<designator="C2">
+    C3 = new Cap100n
+    trait C3 has_designator<designator="C3">
+    C4 = new Cap22u
+    trait C4 has_designator<designator="C4">
+    C5 = new Cap22u
+    trait C5 has_designator<designator="C5">
+    C6 = new Cap75p
+    trait C6 has_designator<designator="C6">
+    R1 = new Res100k
+    trait R1 has_designator<designator="R1">
+    R2 = new Res13k3
+    trait R2 has_designator<designator="R2">
+    R3 = new Res511k
+    trait R3 has_designator<designator="R3">
+    R4 = new Res105k
+    trait R4 has_designator<designator="R4">
+    J1 = new Connector2
+    trait J1 has_designator<designator="J1">
+    J2 = new OutputConnector
+    trait J2 has_designator<designator="J2">
+    J3 = new Connector2
+    trait J3 has_designator<designator="J3">
+    signal GND
+    GND.override_net_name = "GND"
+    GND ~ U1.gnd
+    GND ~ C1.b
+    GND ~ C2.b
+    GND ~ C4.b
+    GND ~ C5.b
+    GND ~ R2.b
+    GND ~ R4.b
+    GND ~ J1.a
+    GND ~ J2.a
+    GND ~ J3.a
+    signal VIN
+    VIN.override_net_name = "VIN"
+    VIN ~ U1.vin
+    VIN ~ C1.a
+    VIN ~ C2.a
+    VIN ~ R3.a
+    VIN ~ J1.b
+    signal SW
+    SW.override_net_name = "SW"
+    SW ~ U1.sw
+    SW ~ C3.b
+    SW ~ L1.a
+    signal BOOT
+    BOOT.override_net_name = "BOOT"
+    BOOT ~ U1.boot
+    BOOT ~ C3.a
+    signal V5
+    V5.override_net_name = "V5"
+    V5 ~ L1.b
+    V5 ~ C4.a
+    V5 ~ C5.a
+    V5 ~ C6.a
+    V5 ~ R1.a
+    V5 ~ J2.b
+    signal FB
+    FB.override_net_name = "FB"
+    FB ~ U1.fb
+    FB ~ R1.b
+    FB ~ R2.a
+    FB ~ C6.b
+    signal EN
+    EN.override_net_name = "EN"
+    EN ~ U1.en
+    EN ~ R3.b
+    EN ~ R4.a
+    EN ~ J3.b

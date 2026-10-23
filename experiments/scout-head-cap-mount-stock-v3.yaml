@@ -1,0 +1,13 @@
+# Ribbed unbored stock only; retain the full nominal corridor.
+boss_radius_mm: 4.0
+boss_depth_mm: 8.4
+seat_thickness_mm: 2.5
+minimum_connection_overlap_mm3: 4.0
+contour_tab: true
+bearing_core_radius_mm: 2.5
+rib_width_mm: 4.0
+rib_height_mm: 4.0
+preserve_central_corridor: true
+front_x_mm: [44, 45, 46]
+rear_x_mm: [-44, -45, -46]
+absolute_y_mm: [33, 35, 37, 39]

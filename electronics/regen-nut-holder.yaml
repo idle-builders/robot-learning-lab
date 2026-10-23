@@ -1,0 +1,26 @@
+schema_version: 1
+status: rejected_geometry_and_retention_study
+mount_source: electronics/regen-mount.yaml
+holder:
+  rear_face_x_mm: -15.365
+  thickness_mm: 3
+  y_limits_mm: [-10, 6]
+  z_limits_mm: [16.2, 23.8]
+  pocket_af_mm: 4.2
+  pocket_depth_mm: 1.8
+  screw_clearance_radius_mm: 1.1
+  status: Two nut pockets share one plate; no snap latch, strength or thermal qualification.
+service:
+  holder_waypoints_mm: [[0, 0, 0], [3, 0, 0], [3, 0, 13], [-85, 0, 13]]
+  sample_step_mm: 1
+  prerequisite: Module, capacitor, rear cover, carrier, battery and beam screws removed; nuts travel inside holder.
+wrench_reference:
+  manufacturer: GEDORE
+  model: '8 4 / 6093900'
+  source: https://www.gedore.com/en-de/products/assembly-tools-for-screws-%2C-a-%2C-nuts/spanners/double-open-ended-spanner/8-%28mm%29-double-open-ended-spanner-small/8-4---6093900
+  dimension_source: https://catalogo.gedore.com.br/produtos/chaves-radiais/chave-fixa/detalhes/008009-chave-fixa-mini-mm
+  af_mm: 4
+  length_mm: 69
+  thickness_mm: 2.2
+  head_width_mm: 10.4
+  status: Published overall dimensions; actual outline and exact European/Brazilian SKU equivalence unverified. No copied CAD.

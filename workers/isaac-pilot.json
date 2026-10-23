@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "isaaclab_commit": "ae37b028ea415c91ea2bc32609efcd759ed2b974",
+  "upstream_lock_sha256": "98570361a2f86abcfdebfda35f853da0945a8ccbe422f51d5fffaf1936d478a4",
+  "package_versions": {
+    "torch": "2.11.0",
+    "mujoco": "3.11.*",
+    "newton": "1.5.2",
+    "rsl-rl-lib": "5.4.1",
+    "warp-lang": "1.16.0"
+  },
+  "scope": "Native worker installation and asset conversion pilot; robot task/training unimplemented"
+}

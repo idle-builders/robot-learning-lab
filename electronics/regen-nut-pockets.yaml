@@ -1,0 +1,17 @@
+schema_version: 1
+status: unqualified_crossbeam_nut_pocket_study
+mount_source: electronics/regen-mount.yaml
+pocket:
+  across_flats_mm: 4.2
+  depth_mm: 1.8
+  nut_bearing_face_x_mm: -17.165
+  scope: Front-open hex recesses in the existing beam; hand placement until both screws engage. Not axial retention before engagement.
+beam_screw_length_mm: 10
+service:
+  nut_waypoints_mm: [[0, 0, 0], [20, 0, 0], [20, 0, 14], [-85, 0, 14]]
+  step_mm: 1
+  prerequisites: Beam screws, board, capacitor, rear cover, carrier and battery removed before nut extraction.
+limits:
+  - Pocket torque resistance, print fit and weakened crossbeam strength are not qualified.
+  - Existing drilled beam thickness reduces from 6 mm to 4.2 mm behind each nut.
+  - Pockets remain a study overlay, not a change to the complete robot or manufacturing release.

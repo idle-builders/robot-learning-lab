@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot learning dashboard</title>
+  <link rel="stylesheet" href="/style.css?v=studies-final-20261020">
+  <link rel="stylesheet" href="catalog.css?v=studies-final-20261020">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.171.0/examples/jsm/"}}</script>
+  <script type="module" src="/app.js?v=studies-final-20261020"></script>
+</head>
+<body>
+  <header><div><span class="eyebrow">ROBOT LEARNING LAB</span><h1>Robot learning</h1><p>Policy training, motion control, perception, and planning.</p></div><div class="header-actions"><a href="/design/">Robot design dashboard ↗</a><button id="refresh" type="button">Refresh</button></div></header>
+  <main>
+    <aside><div class="mode-tabs"><button id="published-mode" type="button" class="active">Published</button><button id="archive-mode" type="button">Archive</button></div><label for="search">Find a run or result</label><input id="search" type="search" placeholder="Walk, camera, planning…"><div id="workspaces" class="workspaces" aria-label="Agent workspaces"></div><div id="count" role="status"></div><nav id="results" aria-label="Evidence records"></nav></aside>
+    <article id="detail" aria-live="polite"><p>Select a record to inspect its evidence.</p></article>
+  </main>
+</body>
+</html>

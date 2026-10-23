@@ -1,0 +1,222 @@
+#pragma experiment("INSTANCE_TRAITS")
+import has_designator
+from "parts/parts.ato" import Pico2W
+from "parts/parts.ato" import TXBuffer
+from "parts/parts.ato" import RXBuffer
+from "parts/parts.ato" import R10k
+from "parts/parts.ato" import R47k
+from "parts/parts.ato" import R100
+from "parts/parts.ato" import R4k7
+from "parts/parts.ato" import C100n
+from "parts/parts.ato" import SS14
+from "parts/parts.ato" import JST4
+from "parts/parts.ato" import JST2
+from "parts/parts.ato" import JST5
+
+module Carrier:
+    U1 = new Pico2W
+    trait U1 has_designator<designator="U1">
+    U2 = new TXBuffer
+    trait U2 has_designator<designator="U2">
+    U3 = new RXBuffer
+    trait U3 has_designator<designator="U3">
+    U4 = new TXBuffer
+    trait U4 has_designator<designator="U4">
+    U5 = new RXBuffer
+    trait U5 has_designator<designator="U5">
+    J1 = new JST4
+    trait J1 has_designator<designator="J1">
+    J3 = new JST2
+    trait J3 has_designator<designator="J3">
+    J4 = new JST2
+    trait J4 has_designator<designator="J4">
+    J5 = new JST2
+    trait J5 has_designator<designator="J5">
+    J6 = new JST2
+    trait J6 has_designator<designator="J6">
+    J7 = new JST5
+    trait J7 has_designator<designator="J7">
+    D1 = new SS14
+    trait D1 has_designator<designator="D1">
+    R1 = new R100
+    trait R1 has_designator<designator="R1">
+    R2 = new R10k
+    trait R2 has_designator<designator="R2">
+    R3 = new R10k
+    trait R3 has_designator<designator="R3">
+    R4 = new R100
+    trait R4 has_designator<designator="R4">
+    R5 = new R10k
+    trait R5 has_designator<designator="R5">
+    R6 = new R10k
+    trait R6 has_designator<designator="R6">
+    R7 = new R10k
+    trait R7 has_designator<designator="R7">
+    R8 = new R10k
+    trait R8 has_designator<designator="R8">
+    R9 = new R47k
+    trait R9 has_designator<designator="R9">
+    R10 = new R10k
+    trait R10 has_designator<designator="R10">
+    R11 = new R10k
+    trait R11 has_designator<designator="R11">
+    R12 = new R4k7
+    trait R12 has_designator<designator="R12">
+    R13 = new R4k7
+    trait R13 has_designator<designator="R13">
+    C1 = new C100n
+    trait C1 has_designator<designator="C1">
+    C2 = new C100n
+    trait C2 has_designator<designator="C2">
+    C3 = new C100n
+    trait C3 has_designator<designator="C3">
+    C4 = new C100n
+    trait C4 has_designator<designator="C4">
+    C5 = new C100n
+    trait C5 has_designator<designator="C5">
+    C6 = new C100n
+    trait C6 has_designator<designator="C6">
+    signal GND
+    GND.override_net_name = "GND"
+    GND ~ U1.gnd3
+    GND ~ U1.gnd8
+    GND ~ U1.gnd13
+    GND ~ U1.gnd18
+    GND ~ U1.gnd23
+    GND ~ U1.gnd28
+    GND ~ U1.gnd33
+    GND ~ U1.gnd38
+    GND ~ U1.d2
+    GND ~ U1.tp1
+    GND ~ U2.gnd
+    GND ~ U3.gnd
+    GND ~ U4.gnd
+    GND ~ U5.gnd
+    GND ~ J1.p1
+    GND ~ J3.p1
+    GND ~ J4.p1
+    GND ~ J7.p2
+    GND ~ R7.b
+    GND ~ R8.b
+    GND ~ R10.b
+    GND ~ R11.b
+    GND ~ C1.b
+    GND ~ C2.b
+    GND ~ C3.b
+    GND ~ C4.b
+    GND ~ C5.b
+    GND ~ C6.b
+    signal V3
+    V3.override_net_name = "V3"
+    V3 ~ U1.v3
+    V3 ~ U2.vcc
+    V3 ~ U3.vcc
+    V3 ~ U4.vcc
+    V3 ~ U5.vcc
+    V3 ~ R2.a
+    V3 ~ R3.a
+    V3 ~ R5.a
+    V3 ~ R6.a
+    V3 ~ J5.p1
+    V3 ~ J6.p1
+    V3 ~ J7.p1
+    V3 ~ R12.a
+    V3 ~ R13.a
+    V3 ~ C1.a
+    V3 ~ C2.a
+    V3 ~ C3.a
+    V3 ~ C4.a
+    V3 ~ C6.a
+    signal V5_IN
+    V5_IN.override_net_name = "V5_IN"
+    V5_IN ~ J1.p2
+    V5_IN ~ D1.a
+    signal VSYS
+    VSYS.override_net_name = "VSYS"
+    VSYS ~ D1.k
+    VSYS ~ U1.vsys
+    signal VBAT_SENSE
+    VBAT_SENSE.override_net_name = "VBAT_SENSE"
+    VBAT_SENSE ~ J1.p3
+    VBAT_SENSE ~ R9.a
+    signal BATTERY_ADC
+    BATTERY_ADC.override_net_name = "BATTERY_ADC"
+    BATTERY_ADC ~ R9.b
+    BATTERY_ADC ~ R10.a
+    BATTERY_ADC ~ C5.a
+    BATTERY_ADC ~ U1.gp26
+    signal BUS0_TX
+    BUS0_TX.override_net_name = "BUS0_TX"
+    BUS0_TX ~ U1.gp0
+    BUS0_TX ~ U2.a
+    signal BUS0_RX
+    BUS0_RX.override_net_name = "BUS0_RX"
+    BUS0_RX ~ U1.gp1
+    BUS0_RX ~ U3.y
+    signal BUS0_OE_N
+    BUS0_OE_N.override_net_name = "BUS0_OE_N"
+    BUS0_OE_N ~ U1.gp2
+    BUS0_OE_N ~ U2.oe_n
+    BUS0_OE_N ~ R2.b
+    signal BUS0_DRIVE
+    BUS0_DRIVE.override_net_name = "BUS0_DRIVE"
+    BUS0_DRIVE ~ U2.y
+    BUS0_DRIVE ~ R1.a
+    signal BUS0_DATA
+    BUS0_DATA.override_net_name = "BUS0_DATA"
+    BUS0_DATA ~ R1.b
+    BUS0_DATA ~ U3.a
+    BUS0_DATA ~ R3.b
+    BUS0_DATA ~ J3.p2
+    signal BUS1_TX
+    BUS1_TX.override_net_name = "BUS1_TX"
+    BUS1_TX ~ U1.gp8
+    BUS1_TX ~ U4.a
+    signal BUS1_RX
+    BUS1_RX.override_net_name = "BUS1_RX"
+    BUS1_RX ~ U1.gp9
+    BUS1_RX ~ U5.y
+    signal BUS1_OE_N
+    BUS1_OE_N.override_net_name = "BUS1_OE_N"
+    BUS1_OE_N ~ U1.gp6
+    BUS1_OE_N ~ U4.oe_n
+    BUS1_OE_N ~ R5.b
+    signal BUS1_DRIVE
+    BUS1_DRIVE.override_net_name = "BUS1_DRIVE"
+    BUS1_DRIVE ~ U4.y
+    BUS1_DRIVE ~ R4.a
+    signal BUS1_DATA
+    BUS1_DATA.override_net_name = "BUS1_DATA"
+    BUS1_DATA ~ R4.b
+    BUS1_DATA ~ U5.a
+    BUS1_DATA ~ R6.b
+    BUS1_DATA ~ J4.p2
+    signal STOP_CHAIN_OK
+    STOP_CHAIN_OK.override_net_name = "STOP_CHAIN_OK"
+    STOP_CHAIN_OK ~ U1.gp4
+    STOP_CHAIN_OK ~ J5.p2
+    STOP_CHAIN_OK ~ R7.a
+    signal ARM_SWITCH
+    ARM_SWITCH.override_net_name = "ARM_SWITCH"
+    ARM_SWITCH ~ U1.gp5
+    ARM_SWITCH ~ J6.p2
+    ARM_SWITCH ~ R8.a
+    signal MOTION_OK_OUT
+    MOTION_OK_OUT.override_net_name = "MOTION_OK_OUT"
+    MOTION_OK_OUT ~ U1.gp3
+    MOTION_OK_OUT ~ J1.p4
+    MOTION_OK_OUT ~ R11.a
+    signal IMU_SDA_RESERVED
+    IMU_SDA_RESERVED.override_net_name = "IMU_SDA_RESERVED"
+    IMU_SDA_RESERVED ~ U1.gp12
+    IMU_SDA_RESERVED ~ J7.p3
+    IMU_SDA_RESERVED ~ R12.b
+    signal IMU_SCL_RESERVED
+    IMU_SCL_RESERVED.override_net_name = "IMU_SCL_RESERVED"
+    IMU_SCL_RESERVED ~ U1.gp13
+    IMU_SCL_RESERVED ~ J7.p4
+    IMU_SCL_RESERVED ~ R13.b
+    signal IMU_IRQ_RESERVED
+    IMU_IRQ_RESERVED.override_net_name = "IMU_IRQ_RESERVED"
+    IMU_IRQ_RESERVED ~ U1.gp14
+    IMU_IRQ_RESERVED ~ J7.p5

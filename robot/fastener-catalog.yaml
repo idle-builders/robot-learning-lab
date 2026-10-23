@@ -1,0 +1,76 @@
+schema_version: 1
+retrieved: '2026-09-17'
+scope: Candidate clamp and enabled neck bridge hardware only; not a complete robot BOM.
+price_basis: Published supplier quantity tiers, GBP ex VAT; rounded website prices, not a binding quote. Shipping and duties excluded.
+parts:
+  screw_m3_10:
+    description: M3 x 10 socket cap, nominal 5.5 mm head diameter and 3 mm head height
+    procurement_candidate: Vital Parts HSC912-M3-10-A4
+    material: A4 stainless per specification table
+    source: https://www.vital-parts.co.uk/socket-cap-screws-din-912/13251-hsc912-m3-10-a4
+    tiers_gbp: [[1, 0.03], [1000, 0.02], [5000, 0.01]]
+  screw_m3_12:
+    description: M3 x 12 socket cap, nominal 5.5 mm head diameter and 3 mm head height
+    procurement_candidate: Vital Parts HSC912-M3-12-A4
+    material: A4 stainless per specification table
+    source: https://www.vital-parts.co.uk/socket-cap-screws-din-912/13253-hsc912-m3-12-a4
+    tiers_gbp: [[1, 0.03], [1000, 0.03], [5000, 0.02]]
+  screw_m3_35:
+    description: M3 x 35 socket cap, nominal 5.5 mm head diameter and 3 mm head height
+    procurement_candidate: Vital Parts HSC912-M3-35-A2
+    material: A2 stainless per specification table; marketing description inconsistently says A4
+    source: https://www.vital-parts.co.uk/socket-cap-screws-din-912/13270-hsc912-m3-35-a2
+    geometry_cross_reference: https://www.aspenfasteners.com/content/2D_PDF/product65/ME242-305X35.PDF
+    tiers_gbp: [[2, 0.10], [100, 0.09], [1000, 0.07], [5000, 0.04]]
+  screw_m3_40:
+    description: M3 x 40 socket cap, nominal 5.5 mm head diameter and 3 mm head height
+    procurement_candidate: Vital Parts HSC912-M3-40-88-BZP
+    material: 8.8 steel, zinc plated
+    source: https://www.vital-parts.co.uk/socket-cap-screws-din-912/43799-hsc912-m3-40-88-bzp
+    geometry_cross_reference: https://www.aspenfasteners.com/content/2D_PDF/product65/ME242-305X40.PDF
+    tiers_gbp: [[1, 0.07], [100, 0.06], [1000, 0.04], [5000, 0.03]]
+  screw_m3_45:
+    description: M3 x 45 socket cap, nominal 5.5 mm head diameter and 3 mm head height
+    procurement_candidate: Aspen ME242-305X45
+    material: A4 stainless
+    source: https://www.aspenfasteners.com/content/2D_PDF/product65/ME242-305X45.PDF
+    tiers_gbp: []
+  nut_m3:
+    description: M3 DIN 934 hex nut, nominal 5.5 mm across flats, 2.4 mm height, 0.5 mm pitch
+    procurement_candidate: Vital Parts HN934-M3-A4
+    material: A4 stainless
+    source: https://www.vital-parts.co.uk/full-hex-nuts-din-934/12599-hn934-m3-a4
+    geometry_cross_reference: https://www.accu.co.uk/hexagon-nuts/766485-NUT930M3C
+    tiers_gbp: [[1, 0.04], [100, 0.03], [1000, 0.03], [10000, 0.02]]
+  washer_m3:
+    description: DIN 125A washer, 3.2 mm ID, 7 mm OD, 0.5 mm thickness
+    procurement_candidate: Vital Parts WA125-M3-A4
+    material: A4 stainless
+    source: https://www.vital-parts.co.uk/stainless-steel-2xd-form-a-flat-washers-din-125a/28946-wa125-m3-a4
+    tiers_gbp: [[1, 0.07], [100, 0.03], [1000, 0.02], [10000, 0.01]]
+  spacer_m3_3:
+    description: Candidate 3 mm spacer, 3.3 mm ID, 7 mm OD
+    procurement_candidate: null
+    material: Unselected; nominal design geometry only
+    source: null
+    tiers_gbp: []
+  screw_m2p5_6:
+    description: M2.5 x 6 socket cap, 4.50 mm maximum head diameter, 2.50 mm maximum head height, 2.0 mm hex
+    procurement_candidate: PTS A91202506
+    material: A2 stainless
+    source: https://www.pts-uk.com/products/socket-screws/socket-cap-screws/metric-a2/A91202506
+    tiers_gbp: [[500, 0.0498], [1000, 0.0473], [2000, 0.0449], [5000, 0.0427], [10000, 0.0401]]
+    order_multiple: 500
+  screw_m2p5_8:
+    description: M2.5 x 8 socket cap, 4.50 mm maximum head diameter, 2.50 mm maximum head height, 2.0 mm hex
+    procurement_candidate: PTS A91202508
+    material: A2 stainless
+    source: https://www.pts-uk.com/products/socket-screws/socket-cap-screws/metric-a2/A91202508
+    tiers_gbp: [[500, 0.0466], [1000, 0.0443], [2000, 0.0421], [5000, 0.0400], [10000, 0.0375]]
+    order_multiple: 500
+  insert_m2p5_5p7:
+    description: RX-M2.5x5.7, maximum body diameter 4.6 mm, length 5.7 mm; nominal heat-install pilot 4.0 mm
+    procurement_candidate: ruthex GE-M25x57-001
+    material: Lead-free brass
+    source: https://www.igo3d.com/mediafiles/Sonstiges/Ruthex/ruthex_Datenblatt_RX-Serie.pdf
+    tiers_gbp: []

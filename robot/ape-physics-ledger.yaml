@@ -1,0 +1,103 @@
+schema_version: 1
+status: candidate_for_simulation_comparison_not_a_verified_assembly
+baseline:
+  mjcf: experiments/compact_morphology/playground_models/ape_sourced_v3_elbows_small_head.xml
+  sha256: 45ec5eab849f25a74ef766acfac7b32379787e9922a363a7aac0ee8d942f1679
+  compiled_mass_g: 2265.529857
+  actuator_count: 22
+  note: The v3 collision, 55 mm sole, and v5 opposed-jaw proxies compile to the same total mass.
+
+# The named motor masses in v3 are already in the MJCF. Only the two head
+# actuators are implicit: reserve 18 g in head_yaw_body and 18 g in head.
+axes:
+  legs:
+    part: feetech-sts3250-c001
+    joints: [left_hip_yaw, left_hip_roll, left_hip_pitch, left_knee, left_ankle_pitch, right_hip_yaw, right_hip_roll, right_hip_pitch, right_knee, right_ankle_pitch]
+    count: 10
+    motor_mass_g: 745
+    motor_mass_representation: explicit_in_v3
+    model_force_cap_nm: 1.569064
+  arms:
+    part: feetech-st3215-c018
+    joints: [left_shoulder_yaw, left_shoulder_roll, left_shoulder_pitch, left_elbow_pitch, right_shoulder_yaw, right_shoulder_roll, right_shoulder_pitch, right_elbow_pitch]
+    count: 8
+    motor_mass_g: 440
+    motor_mass_representation: explicit_in_v3
+    model_force_cap_nm: 0.980665
+  grippers:
+    part: robotis-xl330-m288-t
+    joints: [left_gripper, right_gripper]
+    count: 2
+    motor_mass_g: 36
+    motor_mass_representation: explicit_in_v3
+    model_force_cap_nm: 0.5
+  head:
+    part: robotis-xl330-m288-t
+    joints: [head_yaw, head_pitch]
+    count: 2
+    motor_mass_g: 36
+    motor_mass_representation: implicit_in_head_bodies
+    model_force_cap_nm: 0.5
+
+mass_reconciliation_g:
+  motors_total: 1257
+  nonmotor_total: 1008.529857
+  # The allocation below is a design hypothesis that balances the existing
+  # model mass. Only the cited battery mass is a published component value.
+  provisional_nonmotor_allocation:
+    pelvis:
+      mjcf_residual_g: 348.430493
+      battery_g: 107
+      printed_frame_and_shell_g: 180
+      power_bus_and_connectors_g: 35
+      wiring_g: 15
+      unassigned_design_reserve_g: 11.430493
+    torso:
+      mjcf_residual_g: 361.874439
+      printed_frame_and_shell_g: 170
+      compute_and_control_g: 60
+      power_conversion_and_distribution_g: 50
+      wiring_g: 20
+      unassigned_design_reserve_g: 61.874439
+    head:
+      mjcf_residual_g: 93.865471
+      printed_shell_and_face_g: 60
+      camera_and_sensors_g: 20
+      mounts_and_bearings_g: 13.865471
+    leg_links_and_soles:
+      mjcf_residual_g: 140.354260
+      printed_parts_g: 100
+      horns_bearings_and_sole_material_g: 40.354260
+    arm_links_and_jaws:
+      mjcf_residual_g: 64.005194
+      printed_parts_g: 45
+      horns_bearings_and_jaw_material_g: 19.005194
+
+battery_example:
+  part: Tattu 850 mAh 4S 75C LiPo, XT60
+  source: https://genstattu.com/tattu-850mah-14-8v-75c-4s1p-lipo-battery-pack-with-xt60-plug.html
+  nominal_voltage_v: 14.8
+  capacity_mah: 850
+  mass_g: 107
+  envelope_mm: [60, 30, 30.5]
+  status: dimensional_and_mass_example_not_selected_or_measured
+  rail_note: Use separate regulated 12 V Feetech and 5 V ROBOTIS rails; full 4S voltage exceeds both servo limits.
+
+rough_external_envelopes_mm:
+  pelvis_box: [96, 130, 52]
+  torso_box: [96, 120, 40]
+  head_sphere_diameter: 104
+  thigh_joint_spacing: 73
+  shin_joint_spacing: 76
+  upper_arm_joint_spacing: 95
+  forearm_joint_spacing: 75
+  sole: [90, 60, 24]
+  status: mjcf_primitives_not_printed_assembly_clearances
+
+unmeasured:
+  - servo_impedance_and_response_delay
+  - loaded_torque_speed_and_duty_curve
+  - battery_sag_and_regulator_transients
+  - gearbox_backlash_and_joint_friction
+  - sole_material_compliance_and_surface_friction
+  - printed_link_and_housing_mass_and_clearance
