@@ -715,7 +715,8 @@ RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92), ((66.25, 171.5), 31.60, 28.92)]   
 RF_PLATE_Z0 = 153.4                  # plate / rib / walls lower edge: knee case top (z 153) + 0.4, so the knee case (with the
                                      # shin on its output) slides in along y between the cheeks
 RF_CASE_END_X = 68.36                # turned roll case's outboard end face
-RF_OUT_WALL_X = (68.6, 73.0)         # outboard wall on that face (0.24 mm off it)
+RF_OUT_WALL_X = (68.6, 73.6)         # outboard wall on that face (0.24 mm off it); reaches 0.45 mm into the lateral cheek
+                                     # (x 73.15 ..): a 73.0 face left a 0.15 mm slit beside the bridge (49 MPa FEM peak)
 RF_OUT_WALL_TOP = 178.0
 RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
 RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
@@ -728,11 +729,12 @@ RF_YELLOW_MARGIN = 1.3               # plates to the swept Stage 5 arms (the 2D 
 RF_NECK_FILLET_ALLOW = 0.5           # the arms' r 5 inner fillet (hub -> neck) reaches below the neck's lower edge z RF_AZ + 2
 RF_KEY_CLEAR = 0.05                  # case ear-boss pockets: CAD clearance per side (printers.json hole_offset_mm not
                                      # measured yet; tune to the coupon). The bosses key the roll torque.
-RF_IN_WALL_X = (38.0, 43.4)          # inboard wall on the case's inboard end face (old Stage 5 deck, turned)
-RF_IN_WINDOW = (17.0, 19.0)          # inboard wall window (y, z size, rounded 3.5)
-RF_OUT_WINDOW = (17.0, 15.0)         # outboard wall window
+RF_IN_WALL_X = (40.4, 43.4)          # inboard wall on the case's inboard end face (old Stage 5 deck, turned); 3 mm
+                                     # (lightening, FEM 2026-11-20: was 5.4 mm, p95 2.5 MPa at 6 kg x 1.5 g)
+RF_IN_WINDOW = (22.0, 22.0)          # inboard wall window (y, z size, rounded 3.5)
+RF_OUT_WINDOW = (21.0, 14.0)         # outboard wall window (its lower edge 1 mm above the bridge)
 RF_KEY_CORNER_R = 1.0               # pocket corner radius (the bosses' corners are rounded more)
-RF_FLOOR_WINDOW_INSET = None         # None: closed pocket floors; else windows through them, this far inside the boss outline
+RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
 
 
