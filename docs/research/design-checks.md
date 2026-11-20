@@ -321,7 +321,8 @@ printed parts lack a scripted native STEP (`robot/body/bom/defects.json`, Idle T
 Connectivity (manifest of 2026-11-19, 27.6 s): 3 isolated parts (chest indicator relief, head neck collar, B0410 camera),
 5 groups not reaching the core (head skin with B0196; ROCK4D compute stack; fan stack; pelvis cells 8 and 9), 175 parts
 reach the core by contact only, the largest contact-only break points the pelvis battery cradle (55 parts beyond it) and
-the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s.
+the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s;
+the cause and the reclassified findings are under Connectivity below (unscoped run now 42-49 s).
 
 The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 10 steps) and `rebuild_chain.py` reruns
 it in an isolated copy: steps 1-2 reproduce main exactly (747 / 707 parts, meshes byte-identical, STEPs identical up to
@@ -353,17 +354,67 @@ R_foot_monocoque 289 (1290 mm, smallest fillet 0.4 mm), R_shoulder_pitch_to_roll
 moves 38 edges there), and every sharp edge and corner with its location goes to edges-<part>.json next to the picture
 (the chassis has 972 free sharp edges and 468 corners, too many for the report's top ten).
 
-## Connectivity (2026-11-19)
+## Connectivity (2026-11-20, T-c4sy9d)
 
-`connectivity` (owner: no part unconnected, every part linked to the core) builds the manifest's graph: a screw joins the
-parts that a ring just outside its shank (r + 0.8 mm) lies inside; sleeves join their part; joints join case and horn parts
-of their two links; contact is within 0.2 mm at standing. The core is the stage1 chassis (largest printed part on the root
-link). Of 263 screws, 184 lie in two parts, 64 in one and 11 in none. Selected body: 218 parts, 3 isolated (the chest
-indicator relief, head_neck_collar, a supplier module), 5 groups not reaching the core (two pelvis battery cells with
-their fins, the head skin with a module), and 23 contact-only break points: the chassis to the stage2 pelvis cradle (55
-parts beyond), the chassis to each hip-yaw servo case (47 parts beyond each: none of the case's 8 defined mount holes has a screw in
-the CAD, per mount_check's reverse view; the four M3x14 screws next to it join the yaw-to-pitch connector to the yaw horn), the neck cradle to the head carrier, and
-battery cells and insulators resting in the chassis. The break points are the screws to check (`mount_check`, T-6pcy6f).
+`connectivity` (owner: no part unconnected, every part linked to the core) builds the manifest's graph. Nodes: every
+non-hardware part. Edges: a screw joins the parts that encircle its shank (>= 5 of 8 points inside on one ring; rings
+every 0.5 mm at r_shank + 0.3 / 0.8 / 1.5 / 2.5 mm, and around the head) or bear its head (>= 3 of 8 points 0.3 / 0.8 mm
+under it); a threaded spacer entered by two screws joins both screws' parts; a sleeve joins its part; joints join case
+and horn parts of their two links; contact is within 0.2 mm at standing. Every part is screened with the coarse
+neighbour solid whatever the scope, and probed on a watertight mesh. The core is the stage1 chassis.
+
+Why it stalled (2026-11-20). Not the manifest: between the 19 Nov and 20 Nov manifests the node set grew by 4 parts (the
+thigh shell sleeves, 218 -> 222), and with the 19 Nov scope the graph builds in 53 s. The 27.6 s runs on 19 Nov were
+scoped to one part (`--parts combined__stage1_center_torso_spine_chassis`, `R_shin_combined`); the stalled runs were
+unscoped (`--checks connectivity`, BOM cleanup). Unscoped, every non-hardware part (190) is in scope, and `ctx.solid()`
+gives a scoped part the fine 0.03 mm native STEP tessellation: 101 scoped parts have a STEP, 54 of them with no 0.03 mm
+cache entry, among them supplier STEPs of 78 / 44 / 26 / 22 MB (power supervisor board, ROCK4D, B0196, B0410) whose
+thousands of component solids are each tessellated and unioned. A stack dump at 60 s and 120 s sat in
+`build123d tessellate` under `core.step_mesh` for `Power_supervisor_source_board`, the first solid the screw loop asked
+for; it was still there at 170 s. Ruled out: no part was voxel-filled that was not before (6 voxel fills both days), the
+pair loops are bounds-filtered (contact 5-6 s), no gmsh call, no lock (memguard waits were 15-51 s and reported). Fix
+`1df655de4`: the graph is manifest-wide, so it always uses `core.screen_solid(..., changed=set())` with its own cache.
+
+Screw model (`a6c243bfe`, `a3fd2ce6b`, `5ecdd6cef`). The old single ring at r + 0.8 mm fell into the gap of a pressed
+steel sleeve, 8 stations stepped over 1.6 mm boards, decimated closed meshes left open made trimesh's ray-parity
+`contains()` answer differently on repeated calls (microphone, foot ADC), the 8 wrist screws have bounds but no mesh
+(`bodylib.Body` drops 20 mesh-less rows: wrist screws, both hand servos and horns, 8 bushes), and the fan screws are named
+without a length (`fan_M3_11_430`), which `mount_check.kind` calls other hardware. Against `mount_check`'s clamp stacks
+on the 52 screws of the torso and head carriers: 44 identical (old ring 9), no part outside the stack; the 8 that differ
+miss a sleeve whose parent is joined (4), a countersunk head (2) or the back shell 0.2 mm under a socket head on a
+decimated mesh (2). Screw edges 79 -> 164.
+
+Timing (selected manifest, unscoped, memguard 6 GB): roll-flip body 222 parts 40 s wall (graph 32 s, 3.6 GiB); shoulder U
+body 224 parts 42-49 s wall (graph 36-44 s, 3.7 GiB): solids 26-35 s, screws 29-37 s including solids, contact 6 s.
+
+Findings on the shoulder U body (roll-flip body the same except the shoulder lines). Capture = new overlap (mm3) when the
+part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm; 0 means it slides free that way.
+
+| Finding (19 Nov) | Today | Measurement | Class |
+|---|---|---|---|
+| ROCK4D compute stack not reaching the core | reaches the core by screw | compute M2.5 screws: ring at r + 0.8 mm 0.04 mm outside the carrier's sleeve, carrier 0.55 mm | artefact: sleeve gap in the screw model (fixed) |
+| neck cradle -> head carrier contact-only | screwed | neck_M3x6_countersunk_1 clamps both (mount_check stack) | artefact: same (fixed) |
+| microphone (isolated 20 Nov) | screwed | mic_side_M2x4_lowhead_0/1 head bears on it; the open decimated mesh flipped contains() | artefact (fixed) |
+| pelvis battery cradle, 55 beyond | 1 beyond (itself) | captured: min new overlap 309 mm3 (+y, chassis); 9 of 9 cradle sleeves and 29 of 41 chassis sleeves have no screw within 0.5 mm of their axis (nearest 8-146 mm), coaxial pairs at x +-17 / +-11.2 / +-33.6 | real CAD gap: holes and sleeves exist, the chassis-cradle screws are missing; geometry captures it meanwhile |
+| stage3 power carrier, 3 beyond | same | free along +-z (0 mm3); 4 of 10 sleeves empty, coaxial with chassis sleeves at x +-17, z 288 / 338 | real CAD gap: 4 screws missing |
+| stage4 IMU / ADC carrier, 4 beyond | same | free along +-z; 6 of 14 sleeves empty, coaxial with chassis sleeves at x +-11.2 / +-33.6, z 304 / 335 | real CAD gap: 6 screws missing |
+| lower yaw servo cases, 47 / 49 beyond each | same | gap 0.04 mm, 1235 mm2 within 1 mm of the chassis pocket; free along -x and -y (L; +x / -y R): only its own idler, 35 mm3; no hardware within 2 mm, none in the waist-pelvis source design either; none of the case's 8 defined mount holes has a screw | real design gap: the whole leg hangs on a pocket seat |
+| upper dorsal / core cells 01-07 with insulators and fins | contact-only | captured in all six directions, min about 100 mm3 (+z, chassis) | artefact: held by the honeycomb pocket, which the graph does not model |
+| pelvis cells 08 / 09 with insulator and fin (groups) | same | 0.83 mm from the cradle; free along +-y (0 mm3); cradle mesh note: floor under the lower cell removed, "hold that cell at its ends" until the CAD pass | real design gap (known, pending the cradle CAD pass) |
+| head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gaps: head skin has no mount; B0196 standoffs missing from the CAD |
+| B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | real CAD gap: standoffs missing |
+| fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing |
+| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect) |
+| chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified) |
+| palms (new 20 Nov), palm upper and fingers | palm lower screwed (wrist screws from bounds); palm upper and fingers contact-only | the hand servo case and horn have no mesh, so no joint edge can form | artefact: mesh-less hand servo |
+| forearm front covers | contact-only | L_fore_front_M3x8_187 inside the forearm (12 points), 1.07 mm from the cover | unresolved: screw placed before the shell morph, or missing hole |
+| Radian heatsink + TIM | contact-only | 0.11 mm from ROCK4D, TIM 0.0, guard 0.5 mm, no screw | unresolved: intended hold (adhesive TIM, guard clip) not in the CAD |
+| Wuerth 61304021821 header | contact-only | 0.18 mm from the neck pitch case, not on a board (ROCK4D beyond 0.34 mm) | unresolved: placement looks stale |
+| center back shell | contact-only | T02_back_mount1/3 clamp it per mount_check; probe 0.2 mm short on the decimated mesh | artefact: residual of the probe |
+| upper arm covers (shoulder U body) | contact-only | cover posts removed with the shoulder U connectors | expected until the shell redesign (T-tph7xb) |
+
+Counts (shoulder U body): 224 parts, 3 isolated, 4 groups not reaching the core (14 parts), 150 parts reach the core by
+contact only, 37 contact-only break points; edges: screw 164, contact 378, joint 34, sleeve 32; 8 screws probed from bounds.
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 
