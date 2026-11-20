@@ -1,7 +1,8 @@
 {
- "_doc": "Which defined tapped holes each neck / head printed connector uses (same format as robot/body/fastening/connector_screws.json, kept next to the neck / head builders because the neck parts have no side prefix). connector: manifest name of the printed part; clamped: the parts the screw head presses on (their outer face along the hole axis ends the stack); groups: standard_part = manifest instance holding the holes (an XM335 case or horn registered to robot/actuators/interfaces/standard-parts.json), holes = hole labels of that definition in screw order, name = screw part name in the manifest ({i} = index in holes; the legacy names stay so part settings and the assembly order keep resolving: the generated thread / length are in the part's screw_plan), owning_link = link the screw rides with, head = standard of the head (robot/body/checks/data/hardware.json screw_standards). Where the clamped part's contact face lies relative to a hole opening is measured from the standard part's mesh (defined_holes.py), never typed.",
+ "_doc": "Which defined tapped holes each neck / head printed connector uses (same format as robot/body/fastening/connector_screws.json, kept next to the neck / head builders because the neck parts have no side prefix). connector: manifest name of the printed part; sides: side prefixes it exists on (default R_ and L_; the empty prefix here); clamped: the parts the screw head presses on (their outer face along the hole axis ends the stack); groups: standard_part = manifest instance holding the holes (an XM335 case or horn registered to robot/actuators/interfaces/standard-parts.json), holes = hole labels of that definition in screw order, name = screw part name in the manifest ({i} = index in holes; the legacy names stay so part settings and the assembly order keep resolving: the generated thread / length are in the part's screw_plan), owning_link = link the screw rides with, head = standard of the head (robot/body/checks/data/hardware.json screw_standards). Where the clamped part's contact face lies relative to a hole opening is measured from the standard part's mesh (defined_holes.py), never typed.",
  "connectors": {
   "neck_root_cradle": {
+   "sides": [""],
    "clamped": ["combined__neck_root_cradle", "combined__neck_root_cradle_steel_sleeves"],
    "groups": {
     "yaw_case_rear": {"standard_part": "upper__neck_yaw_case_XM335", "holes": ["XM335.case-y.1", "XM335.case-y.2", "XM335.case-y.3", "XM335.case-y.4"],
@@ -9,6 +10,7 @@
    }
   },
   "neck_yaw_to_pitch_link": {
+   "sides": [""],
    "clamped": ["combined__neck_yaw_to_pitch_link", "combined__neck_yaw_to_pitch_link_steel_sleeves"],
    "groups": {
     "yaw_horn": {"standard_part": "upper__neck_yaw_front_horn", "holes": ["XM335.horn+z.3", "XM335.horn+z.2", "XM335.horn+z.4", "XM335.horn+z.1"],
@@ -18,6 +20,7 @@
    }
   },
   "neck_pitch_to_head_cradle": {
+   "sides": [""],
    "clamped": ["combined__neck_pitch_to_head_cradle", "combined__neck_pitch_to_head_cradle_steel_sleeves"],
    "groups": {
     "pitch_case_rear": {"standard_part": "upper__neck_pitch_case_XM335", "holes": ["XM335.case-x.1", "XM335.case-x.2", "XM335.case-x.3", "XM335.case-x.4"],

@@ -45,6 +45,9 @@ from common import (
 )
 
 
+RIB_HEIGHT = 3.5   # dorsal rib height above the 2.5 mm rear plate (was 1.5): recovers the strength the thinner plate cost
+
+
 def _seat(connector: str, group: str) -> float:
     """Coordinate along the hole axis of a group's seat plane (the standard part's outer face), from the definitions."""
     import defined_holes as DH
@@ -219,7 +222,7 @@ def build_stage1(family: str) -> Solid:
         s_motor = extrude_xy_to_y(f_motor, case_face_y, case_face_y + 2.5)
 
         f_bridge = fillet_2d_face(Pos(-10.2, 362.8) * Rectangle(27.6, 2.8), r_default=1.0, r_inner=1.4)
-        s_bridge = extrude_xy_to_y(f_bridge, 33.0, 34.50)
+        s_bridge = extrude_xy_to_y(f_bridge, case_face_y + 2.5, case_face_y + 2.5 + RIB_HEIGHT)
 
         f_cheek = fillet_2d_face(
             Pos(27.0, 361.9) * Rectangle(13.0, 5.4),

@@ -111,10 +111,17 @@ def screw_spec(thread: str, family: str, head: str) -> dict:
                 countersunk=bool(st["head_types"][head].get("countersunk")))
 
 
+def sides_of(spec: dict) -> list[str]:
+    """Side prefixes a connector exists on: its "sides" key, default both legs (["R_", "L_"]); [""] for the unprefixed neck parts."""
+    return spec.get("sides", ["R_", "L_"])
+
+
 def plan_connector(body, iface: dict, connector: str, side: str, mesh=None, spec: dict | None = None) -> list[dict]:
     """The screws of one connector on one side ('R_' or 'L_'). `mesh(name)` returns a body-frame mesh (default body.mesh)."""
     mesh = mesh or body.mesh
     spec = spec or connectors()[connector]
+    if side not in sides_of(spec):
+        return []
     st = standards()
     clamped = [_fill(n, side) for n in spec["clamped"]]
     cm = [mesh(n) for n in clamped]
