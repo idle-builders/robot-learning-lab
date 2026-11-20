@@ -269,24 +269,36 @@ IDLER_ARM_T = 3.4                      # idler arm -13.33 .. -16.73: stack 3.4 -
 HUB_R = 12.0                           # arm hub about the roll axis (bolt circle r 7 + sleeve r 2.25 + 2.75 wall)
 HORN_CENTRE_R = 3.2                    # rocker screw head (dia 5.7) inside the horn arm
 IDLER_CENTRE_R = 3.6                   # idler shaft stub (r <= 3.0, to y -14.13): 0.6 mm radial clearance
-PITCH_BORE_R, PITCH_CENTRE_R = 3.35, 3.1   # today's pitch-screw head counterbores / rocker hole, carried through the bar
+PITCH_BORE_R, PITCH_CENTRE_R = 3.35, 3.1   # today's pitch-screw head counterbores / rocker-screw head pocket
+PITCH_YZ_C = (9.0, 352.0)              # pitch axis (along x); the 4 pitch sleeves sit on r 7 about it (x 82.625 .. 85.0)
+PITCH_SLEEVE_X = (82.625, 85.0)        # today's pitch sleeves: entry end on the horn face, exit plane = counterbore floor
+PITCH_HUB_R = 13.5                     # solid hub disc about the pitch axis, x 82.625 .. bar end: counterbore r 3.35 at r 7
+                                       # + 3.15 wall; fills the kept B-rep's breakout at sleeve 2 (y 16) and its cheek pocket
+                                       # (inner arc r 12.7 .. 13.0 at x > 85.4, which left a 0.04 mm gap at r 12.1)
+PITCH_ROCKER_TOP_X = 84.6              # rocker-screw head pocket r 3.1 up to here (head x 82.625 .. 84.275); above it only a
+PITCH_DRIVER_R = 1.6                   # hex-key channel (blade dia 3.0) to the bar face: 2.05 mm wall to each counterbore
+                                       # (the r 3.1 hole carried through the bar left 0.55 mm walls)
 M3_SLEEVE = (2.25, 1.60)               # 304 sleeve 4.5 x 3.2 (r outer, r bore); cut = outer radius, as the hip roll-flip
 M2_SLEEVE = (1.80, 1.10)               # 304 sleeve 3.6 x 2.2 for the M2 case holes (as the hip roll-case sleeves; a 3.2 bore
                                        # leaves an M2 button head (dk 3.5) 0.15 mm of bearing ring)
 
 # Stage 2 (canonical STS3250 case frame: output axis along +y through (x -25.5, z 0); case x -35.61..9.61, z +-12.36;
 # +y face 6.4 at the strips |z| > 10, raised panel 7.5; -y face -25.6 at the strips, raised panel -27.5 over x -9..4.5)
-G_PY = (7.6, 12.1)                     # +y arm: 0.1 mm above the raised panel, 4.5 thick: stack 5.9 from the opening -> M2x10
-G_NY = (-31.6, -27.6)                  # -y arm: 0.1 mm off the raised panel, 4.0 thick: stack 6.2 -> M2x10
+G_PY = (7.6, 14.6)                     # +y arm: 0.1 mm above the raised panel, 7.0 thick (outward): stack 8.4 -> M2x12
+G_NY = (-33.6, -27.6)                  # -y arm: 0.1 mm off the raised panel, 6.0 thick (outward): stack 8.2 -> M2x12
+G_ROOT_R = (1.2, 1.5)                  # arm-to-plate root fillets inside the U (+y, -y), along the case's far end edges:
+                                       # +y clears the case's end chamfer by ~0.4 mm, -y the case face (y -25.6 there) by 0.5
 G_X = (-1.5, 15.0)                     # arm extent along the case (far holes at x 3.49: sleeve r 1.8 + 3.2 wall toward the
                                        # horn; far end face at 9.61: the arms run 5.4 mm past it, their corners buried in the plate)
-G_Z = (-14.6, 14.66)                   # arm extent across the case (far holes at z +-10.25: sleeve r 1.8 + 2.55 / 2.6 wall)
+G_Z = (-14.6, 14.66)                   # arm extent across the case (far holes at z +-10.25: sleeve r 1.8 + 2.55 wall); the +z
+                                       # edge is slanted (see G_BORE_CLEAR), G_Z[1] only bounds the root fillet blocks
 G_ARM_R = 3.0                          # arm corner radius (2D)
+G_BORE_CLEAR = 0.5                     # the arms' slanted +z edge: clearance to the head / driver bore at (v +10.25, w 32.75)
 # No separate bar on the case side face z +12.36 (the first green had one at z 12.66 .. 16.66): there it occupies yaw-local
 # v ~7.6 .. 11.6 at n 20.6 .. 24.5, where today's PA2x9.2 heads of the two outer yaw sites sit (v 8.35 .. 12.15); the
 # plate under the case's far end face is the U's bar.
-G_CASE_BOX = ((-35.71, 9.71), (-27.55, 7.55), (-12.46, 12.46))   # case envelope + 0.1 (0.05 on y: not coplanar with the arm faces), cut from stage 2
-G_END_GAP = 0.3                        # plate top <= the case far end face (x 9.61) + this gap
+G_END_GAP = 0.3                        # plate top = the plane 0.3 mm below the case far end face (x 9.61)
+G_END_PLANE = 9.61 + G_END_GAP
 # Yaw clamp: today's interface (assemble_complete_fdm_body stage 2). Yaw-local frame: origin YAW_P, v = YAW_V, w = +y (from
 # YAW_P), n = YAW_N. 4 PA2 sites at v +-10.25, w 8.30 / 32.75; sleeves dia 3.5 x 2.4 at n 17.575 .. 20.575 (today's STEP),
 # spacers n 16.57 .. 17.58 on the yaw case tabs, washers / heads on n 20.575. Yaw case top (measured, mesh): n <= 16.6 at the
@@ -295,14 +307,18 @@ YAW_P = np.array([127.0, -10.0, 306.0])
 YAW_N = np.array([-0.1643989873053573, 0.0, 0.9863939238321437])
 YAW_V = np.array([0.9863939238321437, 0.0, 0.1643989873053573])
 YAW_SITES = [(u, w) for u in (-10.25, 10.25) for w in (8.30, 32.75)]
-PLATE_N = (17.575, 22.0)               # plate: bottom = today's saddle bottom (sleeve / spacer interface), top capped 4.4 mm up
-PLATE_V = (-14.0, 14.0)                # 2.0 mm wall around the sleeve bores at v +-10.25
+PLATE_N = (17.575, 30.0)               # plate: bottom = today's saddle bottom (sleeve / spacer interface); top = the end-face
+                                       # plane (2.7 mm thick at the -v end .. 7.9 at +v; the old cap at n 22 is gone)
+PLATE_V = (-24.0, 14.0)                # +v: 1.5 mm wall around the head pockets at v 10.25; -v: run out past the arms and
+                                       # cut flush with their -z face (case z G_Z[0]), so the plate spans the whole arm
 PLATE_R = 3.0                          # plate corner radius (2D)
 POCKET = dict(v=(-9.55, 9.55), w=(17.8, 29.9), n_top=19.0, r=1.5)   # clears the yaw case's raised pad by 0.3..0.5 mm
 AXIS_HOLE_R = 3.45                     # today's centre clearance over the yaw case axis boss (r 3.0)
 SLEEVE_BORE_R = 1.79                   # today's bore for the 3.5 x 2.4 yaw sleeves
-HEAD_POCKET = (2.25, 24.8)             # head counterbore r / top n (PA2x9.2 head top n 24.47); from n 20.555 as today
-DRIVER_R = 1.6                         # PH0 driver channel above the head (blade dia 3.0, checks/data/tools.json) to n 60
+HEAD_POCKET_R = 2.25                   # head counterbore r (PA2x9.2 head dk 3.5) from n 20.555 as today, run up to n 60 as
+                                       # the driver channel too (PH0 blade dia 3.0): one bore, no steps; under the case it
+                                       # leaves through the plate top, under the +y arm it runs through the arm and breaks
+                                       # its inner face at 61 deg (a dia 3.2 channel would leave a 47 deg wedge)
 
 
 def _occ():
@@ -401,7 +417,8 @@ def build_idler(T):
 
 
 def build_stage1(holes):
-    """Blue U (pitch link): today's pitch interface + bar along y at x 86..90 + horn / idler arms."""
+    """Blue U (pitch link): today's pitch interface + bar along y at x 86..90 + horn / idler arms, and a solid pitch hub
+    disc (r PITCH_HUB_R about the pitch axis, horn face .. bar face) around today's 4 pitch sleeve sites."""
     from build123d import Circle, Polygon, Pos
     C = _common_mod()
     rx, rz = ROLL_XZ
@@ -417,13 +434,21 @@ def build_stage1(holes):
                             skip_xy=[(BAR_X[0], BAR_Z[0]), (BAR_X[0], BAR_Z[1])])
     arm_h = C.extrude_xy_to_y(prof, hy0, hy1)
     arm_i = C.extrude_xy_to_y(prof, iy0, iy1)
-    body = largest(_bool("fuse", keep, [bar, arm_h, arm_i]))
+    # 4. pitch hub: a solid disc about the pitch axis from the horn face to the bar's outer face (fills the kept B-rep's
+    # breakout at sleeve 2 and its open counter faces); the sleeve bores, counterbores and centre are cut again below
+    py, pz = PITCH_YZ_C
+    hub = occ_cyl((PITCH_SLEEVE_X[0], py, pz), (BAR_X[1], py, pz), PITCH_HUB_R)
+    body = largest(_bool("fuse", keep, [bar, arm_h, arm_i, hub]))
     cut = [occ_cyl((rx, hy0 - 1, rz), (rx, hy1 + 1, rz), HORN_CENTRE_R),
            occ_cyl((rx, iy0 - 1, rz), (rx, iy1 + 1, rz), IDLER_CENTRE_R)]
-    # today's pitch counterbores / rocker hole carried through the bar (driver access to the pitch horn screws)
+    # today's pitch sleeve bores (r = sleeve OD / 2 as every other sleeve here) and head counterbores from the sleeve exit
+    # plane through the bar (driver access to the pitch horn screws; the heads pass through them)
     for (u, v) in ((-7.0, 0.0), (0.0, 7.0), (7.0, 0.0), (0.0, -7.0)):
-        cut.append(occ_cyl((85.0, 9.0 + u, 352.0 + v), (BAR_X[1] + 1.0, 9.0 + u, 352.0 + v), PITCH_BORE_R))
-    cut.append(occ_cyl((80.0, 9.0, 352.0), (BAR_X[1] + 1.0, 9.0, 352.0), PITCH_CENTRE_R))
+        cut.append(occ_cyl((PITCH_SLEEVE_X[0] - 1.0, py + u, pz + v), (PITCH_SLEEVE_X[1], py + u, pz + v), M3_SLEEVE[0]))
+        cut.append(occ_cyl((PITCH_SLEEVE_X[1], py + u, pz + v), (BAR_X[1] + 1.0, py + u, pz + v), PITCH_BORE_R))
+    # rocker-screw head pocket (the horn is screwed to the servo before the U goes on), then a hex-key channel
+    cut.append(occ_cyl((80.0, py, pz), (PITCH_ROCKER_TOP_X, py, pz), PITCH_CENTRE_R))
+    cut.append(occ_cyl((PITCH_ROCKER_TOP_X, py, pz), (BAR_X[1] + 1.0, py, pz), PITCH_DRIVER_R))
     sleeves, sites = [], []
     for k in range(1, 5):
         o = holes[f"STS3250.horn+y.{k}"]["opening"]
@@ -449,11 +474,13 @@ def build_stage2(T, holes):
     """Green U (roll link), from scratch (owner 2026-11-20, M-s9tnc9: simpler): a U around the roll case's far end: two
     arms on the case's y faces (built in the case frame, placed with the registered case transform) and, as its bar, one
     plain plate across the far end face carrying today's yaw case clamp (built in the yaw-local frame). The plate fills
-    the space between the yaw case top and the roll case's far end face; its top is the lower of a flat cap and the
-    plane 0.3 mm below the case end face. Cuts: case envelope, the 4 far-hole M2 sleeves, one pocket over the yaw case's
-    raised pad, the axis-boss hole, and per yaw site its sleeve bore, head counterbore and PH0 driver channel.
+    the space between the yaw case top and the roll case's far end face (top = the plane 0.3 mm below the end face) and
+    spans the arms' full width along the case (cut flush with their -z face). Root fillets join the arms' inner faces to
+    the plate top along the case's far end edges. Cuts: the 4 far-hole M2 sleeves, one pocket over the yaw case's raised
+    pad, the axis-boss hole, and per yaw site its sleeve bore and one head / driver bore (opened toward the case above the
+    plate top at the two sites under the +y arm).
     Print direction intended: plate bottom on the bed (up = YAW_N, the yaw-local normal, 9.5 deg off +z)."""
-    from build123d import Pos, RectangleRounded
+    from build123d import Polygon, Pos, RectangleRounded
     C = _common_mod()
     Ti = np.linalg.inv(T)
     to_c = lambda p: Ti[:3, :3] @ np.asarray(p, float) + Ti[:3, 3]
@@ -462,21 +489,37 @@ def build_stage2(T, holes):
     def rrect(a0, a1, b0, b1, r):
         return (Pos(0.5 * (a0 + a1), 0.5 * (b0 + b1)) * RectangleRounded(a1 - a0, b1 - b0, r)).faces()[0]
 
-    # 1. arms, case frame: rounded rectangles in x-z, extruded across y
-    arm_face = rrect(*G_X, *G_Z, G_ARM_R)
+    case_side = transformed(occ_box(-100.0, G_END_PLANE, -100.0, 100.0, -100.0, 100.0), T)     # case side of the plate top
+    # 1. arms, case frame: x-z outline extruded across y. The +z edge runs parallel to the yaw axis, 0.5 mm clear of the
+    # head / driver bore at (v +10.25, w 32.75): that bore leaves the +y arm at a slant otherwise (a 0.05 mm knife edge
+    # along the old straight edge z 14.66); the edge stays 2.2 mm off the far-hole sleeve at z +10.25
+    bore = [to_c(yaw_pt(10.25, 32.75, nn))[[0, 2]] for nn in (PLATE_N[0], 60.0)]
+    d = (bore[1] - bore[0]) / np.linalg.norm(bore[1] - bore[0]); nrm = np.array([d[1], -d[0]])
+    nrm = nrm if nrm[1] < 0 else -nrm                                      # toward -z
+    off = bore[0] + (HEAD_POCKET_R + G_BORE_CLEAR) * nrm
+    z_edge = lambda x: off[1] + (x - off[0]) * d[1] / d[0]
+    arm_face = C.fillet_2d_face(Polygon((G_X[0], G_Z[0]), (G_X[1], G_Z[0]), (G_X[1], z_edge(G_X[1])), (G_X[0], z_edge(G_X[0])),
+                                        align=None).faces()[0], G_ARM_R)
     arms = [transformed(C.extrude_xy_to_y(arm_face, *ys), T) for ys in (G_PY, G_NY)]
+    arm_xz = transformed(C.extrude_xy_to_y(arm_face, -100.0, 100.0), T)     # the outline as a prism across y
     # 2. plate (the U's bar), yaw-local frame: rounded rectangle in v-w, 0.5 mm inside the arms' outer faces in y (flush,
-    # the case transform's 1e-4 rad tilt left sliver faces along the joint), extruded along n
+    # the case transform's 1e-4 rad tilt left sliver faces along the joint), extruded along n; top = the end-face plane,
+    # -v end flush with the arms' -z face
     w_lo, w_hi = T[1, 3] + G_NY[0] - YAW_P[1] + 0.5, T[1, 3] + G_PY[1] - YAW_P[1] - 0.5
     plate = transformed(C.extrude_xy_to_z(rrect(*PLATE_V, w_lo, w_hi, PLATE_R), *PLATE_N), M_yaw)
-    end_face = transformed(occ_box(-100.0, 9.61 + G_END_GAP, -100.0, 100.0, -100.0, 100.0), T)   # case side of the end face
-    plate = largest(_bool("cut", plate, [end_face]))
+    minus_z = transformed(occ_box(-100.0, 100.0, -100.0, 100.0, -100.0, G_Z[0]), T)
+    plate = largest(_bool("cut", plate, [case_side, minus_z]))
     below = transformed(occ_box(-100.0, 100.0, -100.0, 100.0, -60.0, PLATE_N[0]), M_yaw)       # bed side of the plate bottom
-    body = largest(_bool("fuse", plate, [largest(_bool("cut", a, [below])) for a in arms]))
-    # 3. cutters
-    (cx0, cx1), (cy0, cy1), (cz0, cz1) = G_CASE_BOX
-    cut = [transformed(occ_box(cx0, cx1, cy0, cy1, cz0, cz1), T),
-           transformed(C.extrude_xy_to_z(rrect(*POCKET["v"], *POCKET["w"], POCKET["r"]), PLATE_N[0] - 1.0, POCKET["n_top"]), M_yaw),
+    # 3. root fillets (case frame): the corner between each arm's inner face and the plate top, along z over the arm
+    roots = []
+    for y_face, s, r in ((G_PY[0], 1.0, G_ROOT_R[0]), (G_NY[1], -1.0, G_ROOT_R[1])):
+        xc, yc = G_END_PLANE - r, y_face - s * r
+        blk = occ_box(xc, G_END_PLANE, yc, y_face, G_Z[0], G_Z[1])
+        roots.append(largest(_bool("common", transformed(largest(_bool("cut", blk, [occ_cyl((xc, yc, G_Z[0] - 1.0), (xc, yc, G_Z[1] + 1.0), r)])), T),
+                                   [arm_xz])))
+    body = largest(_bool("fuse", plate, [largest(_bool("cut", a, [below])) for a in arms] + roots))
+    # 4. cutters
+    cut = [transformed(C.extrude_xy_to_z(rrect(*POCKET["v"], *POCKET["w"], POCKET["r"]), PLATE_N[0] - 1.0, POCKET["n_top"]), M_yaw),
            occ_cyl(yaw_pt(0, 0, PLATE_N[0] - 1.0), yaw_pt(0, 0, PLATE_N[1] + 5.0), AXIS_HOLE_R)]
     sleeves, sites = [], []
     R, t = T[:3, :3], T[:3, 3]
@@ -487,20 +530,16 @@ def build_stage2(T, holes):
         a, b = R @ a_c + t, R @ b_c + t
         cut.append(occ_cyl(R @ (a_c - d) + t, R @ (b_c + d) + t, M2_SLEEVE[0]))
         sleeves.append(sleeve(a, b, *M2_SLEEVE)); sites.append(dict(hole=f"STS3250.{lab}", clamp=a, head_face=b))
-    for u, w in YAW_SITES:   # today's sleeve bore (n 16.575 .. 20.675) and head counterbore (from n 20.555), + driver channel
-        cut += [occ_cyl(yaw_pt(u, w, 16.575), yaw_pt(u, w, 20.675), SLEEVE_BORE_R),
-                occ_cyl(yaw_pt(u, w, 20.555), yaw_pt(u, w, HEAD_POCKET[1]), HEAD_POCKET[0]),
-                occ_cyl(yaw_pt(u, w, HEAD_POCKET[1] - 0.1), yaw_pt(u, w, 60.0), DRIVER_R)]
-        # the two sites under the +y arm (w 32.75): the counterbore / channel runs within ~1 mm of the arm's inner face (and,
-        # at v +10.25, of the arm's +z edge): opened into a slot toward those faces, above the plate top, so no knife
-        # edges are left along them
-        if w < 20.0:
-            continue
-        n0 = PLATE_N[1] if u > 0 else 21.5      # above the plate top there (cap 22.0; end-face plane 20.5 .. 21.4 at v -12.5 .. -8)
-        for r, na, nb in ((HEAD_POCKET[0], n0, HEAD_POCKET[1]), (DRIVER_R, HEAD_POCKET[1] - 0.1, 60.0)):
-            cut.append(transformed(occ_box(u - r, u + r, w - 15.0, w, na, nb), M_yaw))          # toward the case (-w)
-            if u > 0:
-                cut.append(transformed(occ_box(u, u + 15.0, w - r, w + r, na, nb), M_yaw))     # toward the arm's +z edge (+v)
+    for u, w in YAW_SITES:   # today's sleeve bore (n 16.575 .. 20.675); one head / driver bore from n 20.555 (as today) up
+        tool = occ_cyl(yaw_pt(u, w, 20.555), yaw_pt(u, w, 60.0), HEAD_POCKET_R)
+        if w > 20.0 and u < 0:
+            # under the +y arm (v -10.25) the bore runs 1.08 mm inside the arm's inner face and through its root fillet:
+            # opened into a slot toward the case (-w), above the plate top only, so no knife edges are left along them
+            # (the v +10.25 bore passes outside the arm's slanted +z edge)
+            slot = largest(_bool("common", transformed(occ_box(u - HEAD_POCKET_R, u + HEAD_POCKET_R, w - 15.0, w, 15.0, 60.0), M_yaw),
+                                 [case_side]))
+            tool = largest(_bool("fuse", tool, [slot]))
+        cut += [occ_cyl(yaw_pt(u, w, 16.575), yaw_pt(u, w, 20.675), SLEEVE_BORE_R), tool]
     part = largest(_bool("cut", body, cut))
     yaw = [s for s in today_step(S2 + "_steel_sleeves").solids() if s.center().Y > -10.0 and s.center().Z < 330.0]
     return part, yaw + sleeves, sites
@@ -546,19 +585,25 @@ def sections():
                              y=[round(IDLER_FACE_Y - IDLER_ARM_T, 2), round(HORN_FACE_Y + HORN_ARM_T, 2)]),
                     horn_arm=dict(y=[HORN_FACE_Y, round(HORN_FACE_Y + HORN_ARM_T, 2)], thickness=HORN_ARM_T, hub_r=HUB_R),
                     idler_arm=dict(y=[round(IDLER_FACE_Y - IDLER_ARM_T, 2), IDLER_FACE_Y], thickness=IDLER_ARM_T, hub_r=HUB_R),
-                    neck_height_at_bar=BAR_Z[1] - BAR_Z[0]),
+                    neck_height_at_bar=BAR_Z[1] - BAR_Z[0],
+                    pitch_hub=dict(axis_yz=list(PITCH_YZ_C), x=[PITCH_SLEEVE_X[0], BAR_X[1]], r=PITCH_HUB_R,
+                                   sleeve_bore_r=M3_SLEEVE[0], counterbore_r=PITCH_BORE_R, counterbore_from_x=PITCH_SLEEVE_X[1],
+                                   rocker_pocket=dict(r=PITCH_CENTRE_R, to_x=PITCH_ROCKER_TOP_X), driver_channel_r=PITCH_DRIVER_R)),
         stage2=dict(frame="U in the STS3250 case frame (registered roll case transform), plate in the yaw-local frame "
                           "(origin YAW_P, v, w = +y from YAW_P, n = YAW_N)",
                     py_arm=dict(case_y=list(G_PY), thickness=round(G_PY[1] - G_PY[0], 2)),
                     ny_arm=dict(case_y=list(G_NY), thickness=round(G_NY[1] - G_NY[0], 2)),
                     arm_extent_case_x=list(G_X), arm_extent_case_z=list(G_Z), arm_corner_r=G_ARM_R,
+                    root_fillet_r=dict(py=G_ROOT_R[0], ny=G_ROOT_R[1]),
                     bar="the plate (no separate bar on the case side face: it would sit on the outer PA2x9.2 heads)",
                     plate=dict(v=list(PLATE_V), n=list(PLATE_N), corner_r=PLATE_R,
-                               top="min(n 22.0, plane 0.3 mm below the roll case end face)",
-                               thickness_mm="2.7 at v -14 (under the case end) .. 4.4 for v > -1.4",
+                               top=f"plane {G_END_GAP} mm below the roll case end face (case x {G_END_PLANE:.2f})",
+                               minus_z_end=f"flush with the arms' -z face (case z {G_Z[0]})",
+                               thickness_mm="2.7 at the -v end (under the case end) .. 7.9 at v +14",
                                pocket=POCKET, axis_hole_r=AXIS_HOLE_R),
-                    yaw_sites=dict(v_w=YAW_SITES, sleeve_bore_r=SLEEVE_BORE_R, head_pocket=HEAD_POCKET, driver_channel_r=DRIVER_R),
-                    print_up="yaw-local n (plate bottom on the bed); part_settings still stores +y (seeded)"))
+                    yaw_sites=dict(v_w=YAW_SITES, sleeve_bore_r=SLEEVE_BORE_R, head_and_driver_bore_r=HEAD_POCKET_R,
+                                   head_and_driver_bore_n=[20.555, 60.0]),
+                    print_up="yaw-local n (plate bottom on the bed)"))
 
 
 def build():

@@ -609,16 +609,13 @@
       "printer": "Bambu X2D",
       "material": "Bambu PAHT-CF",
       "layer_normal_axes": [
-        "y"
+        "x"
       ],
-      "up": "-y",
+      "up": "+x",
       "material_alternatives": [
         "Bambu PETG-CF"
       ],
-      "seeded": "up from manifest print_orientation 'XZ Roll-Case Flange Bed (layer normal Y)'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (8.0, 488.2), '-y': (205.8, 265.9)}",
-      "seeded_keys": [
-        "up"
-      ]
+      "up_source": "designed (Idle T-2e49mv, robot/body/arm/shoulder_clevis.py): the blue U is printed on its pitch-hub face (the horn side, x 82.625 on the R part), up = +x (outward, along the pitch axis). Six axis directions compared with run.py --process up=... (overhang, bed, holes, walls; .cache/work/cad-speed/checks/shoulder-u-s1-up*): +x is the only one with a flat bed face AND every bridge under the 40 mm limit (bed 478 mm2 one island, centre of mass 10.7 mm high; beyond-70-deg area 728 mm2, mostly the bar underside 3.4 mm above the bed (short support), widest bridge 35.1 mm; support on mating faces 59 mm2; the 4 pitch sleeves stand vertical). Seeded -y: 611 mm2, 55.6 mm bridge over the limit at 41.6 mm height, 189 mm2 of support on the idler face; +y the same mirrored; -x / -z no flat bed face; +z 449 mm2 but 9.8 mm2 bed contact (centre of mass outside it). FEM at h 1.2 (recovery, PAHT-CF): layer normal x worst strength ratio 4.24 / layer ratio 6.04 vs y 4.16 / 5.56: no strength cost"
     },
     "fem": {
       "_doc": "Arm stage 1 (R_shoulder_pitch_to_roll). Supports: the 4 pressed-in sleeve sites at the shoulder-pitch horn (the pitch C047 main horn; the rear idler has no sleeve site on this part); load: the 4 sleeve sites at the roll C047 main horn (the old stage_interface_specs called this interface the roll motor case; in today's roll-flip body the sites touch the roll output horn, the roll case is on stage 2). Load cases: the arm load envelope (load_cases_doc); the old ARM_LOAD_WRENCHES are the variant short_arm_wrenches. Sleeve sites come from the sleeve companion part's bores, so they follow the part. Regions: 304 steel collars 0.7 mm around every sleeve bore (0.25 mm beyond the ends); no metal seat regions (the parts carry no metal inserts except the sleeves; the polymer under the Al servo cases is polymer). The load patch is rigid (all its nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend independently.",
@@ -908,28 +905,22 @@
           ],
           "mesh_h_mm": 0.9,
           "convergence": {
-            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (commit 31979a94b build)",
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build, Idle T-2e49mv)",
             "levels": [
-              {
-                "h_from": "1.2",
-                "h_to": "0.9",
-                "nodes": "9649 -> 17821",
-                "p99_change_pct": "+6.1..+7.7 (envelope max and p50, PAHT-CF / PETG-CF, support / recovery)",
-                "max_displacement_change_pct": "+12.3..+13.3"
-              },
               {
                 "h_from": "0.9",
                 "h_to": "0.7",
-                "nodes": "17821 -> 30892",
-                "p99_change_pct": "+3.0..+3.1 (recovery envelope p50 / p90 / max, PAHT-CF)",
-                "p99_layer_tension_change_pct": "+5.2 (max)",
-                "max_displacement_change_pct": "+6.8 (max)"
+                "nodes": "17649 -> 32677",
+                "p99_change_pct": "+2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)",
+                "p99_layer_tension_change_pct": "+1.5 (max)",
+                "max_displacement_change_pct": "+5.4 (max)"
               }
             ],
+            "earlier_geometry": "the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %",
             "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
             "stored_h_result": "0.9",
             "converged": true,
-            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 31.1 MPa, strength ratio min 2.83, layer ratio min 3.35, displacement max 1.22 mm, 0 wrenches below 1"
+            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72 mm, 0 wrenches below 1"
           }
         },
         "shoulder_u_convergence": {
@@ -1284,7 +1275,26 @@
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
-          ]
+          ],
+          "mesh_h_mm": 1.2,
+          "convergence": {
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets; Idle T-2e49mv)",
+            "levels": [
+              {
+                "h_from": "1.2",
+                "h_to": "0.9",
+                "nodes": "11939 -> 19071",
+                "p99_change_pct": "+2.6..+3.1 (envelope p50 / p90 / max, all cases, PAHT-CF / PETG-CF)",
+                "p99_layer_tension_change_pct": "-0.2..+0.4 (max)",
+                "max_displacement_change_pct": "+6.3..+6.5 (max)"
+              }
+            ],
+            "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
+            "stored_h_result": "1.2",
+            "converged": true,
+            "finer_level_not_run": "h 0.7: the 1.2 -> 0.9 p99 change is under 5 %",
+            "at_h_0p9": "recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1"
+          }
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -6899,16 +6909,19 @@
   "L_shoulder_pitch_to_roll_combined": {
     "process": {
       "printer": "Bambu X2D",
-      "up": "-y",
+      "up": "-x",
       "material": "Bambu PAHT-CF",
       "material_alternatives": [
         "Bambu PETG-CF"
       ],
       "seeded": "up from manifest print_orientation 'XZ Roll-Case Flange Bed (layer normal Y)'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (8.0, 487.9), '-y': (205.8, 266.8)}; material from manifest text 'Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3)'",
       "seeded_keys": [
-        "up",
         "material"
-      ]
+      ],
+      "layer_normal_axes": [
+        "x"
+      ],
+      "up_source": "designed (Idle T-2e49mv, robot/body/arm/shoulder_clevis.py): the blue U is printed on its pitch-hub face (the horn side, x -82.625, mirror of the R part), up = -x (outward, along the pitch axis). Six axis directions compared with run.py --process up=... (overhang, bed, holes, walls; .cache/work/cad-speed/checks/shoulder-u-s1-up*): -x is the only one with a flat bed face AND every bridge under the 40 mm limit (bed 478 mm2 one island, centre of mass 10.7 mm high; beyond-70-deg area 728 mm2, mostly the bar underside 3.4 mm above the bed (short support), widest bridge 35.1 mm; support on mating faces 59 mm2; the 4 pitch sleeves stand vertical). Seeded -y: 611 mm2, 55.6 mm bridge over the limit at 41.6 mm height, 189 mm2 of support on the idler face; +y the same mirrored; -x / -z no flat bed face; +z 449 mm2 but 9.8 mm2 bed contact (centre of mass outside it). FEM at h 1.2 (recovery, PAHT-CF): layer normal x worst strength ratio 4.24 / layer ratio 6.04 vs y 4.16 / 5.56: no strength cost"
     },
     "fem": {
       "mesh_h_mm": 1.2,
@@ -7169,28 +7182,22 @@
           ],
           "mesh_h_mm": 0.9,
           "convergence": {
-            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (commit 31979a94b build)",
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build, Idle T-2e49mv)",
             "levels": [
-              {
-                "h_from": "1.2",
-                "h_to": "0.9",
-                "nodes": "9649 -> 17821",
-                "p99_change_pct": "+6.1..+7.7 (envelope max and p50, PAHT-CF / PETG-CF, support / recovery)",
-                "max_displacement_change_pct": "+12.3..+13.3"
-              },
               {
                 "h_from": "0.9",
                 "h_to": "0.7",
-                "nodes": "17821 -> 30892",
-                "p99_change_pct": "+3.0..+3.1 (recovery envelope p50 / p90 / max, PAHT-CF)",
-                "p99_layer_tension_change_pct": "+5.2 (max)",
-                "max_displacement_change_pct": "+6.8 (max)"
+                "nodes": "17649 -> 32677",
+                "p99_change_pct": "+2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)",
+                "p99_layer_tension_change_pct": "+1.5 (max)",
+                "max_displacement_change_pct": "+5.4 (max)"
               }
             ],
+            "earlier_geometry": "the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %",
             "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
             "stored_h_result": "0.9",
             "converged": true,
-            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 31.1 MPa, strength ratio min 2.83, layer ratio min 3.35, displacement max 1.22 mm, 0 wrenches below 1"
+            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72 mm, 0 wrenches below 1"
           }
         },
         "shoulder_u_convergence": {
@@ -7512,7 +7519,26 @@
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
-          ]
+          ],
+          "mesh_h_mm": 1.2,
+          "convergence": {
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets; Idle T-2e49mv)",
+            "levels": [
+              {
+                "h_from": "1.2",
+                "h_to": "0.9",
+                "nodes": "11939 -> 19071",
+                "p99_change_pct": "+2.6..+3.1 (envelope p50 / p90 / max, all cases, PAHT-CF / PETG-CF)",
+                "p99_layer_tension_change_pct": "-0.2..+0.4 (max)",
+                "max_displacement_change_pct": "+6.3..+6.5 (max)"
+              }
+            ],
+            "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
+            "stored_h_result": "1.2",
+            "converged": true,
+            "finer_level_not_run": "h 0.7: the 1.2 -> 0.9 p99 change is under 5 %",
+            "at_h_0p9": "recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1"
+          }
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
