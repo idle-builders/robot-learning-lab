@@ -107,11 +107,11 @@ def _generated(name):
     return False
 
 
-def hip_screws(parts, man):
+def hip_screws(parts, man, only=None):
     """The hip / thigh screws of both sides, generated from the defined tapped holes they land in (robot/body/fastening/
     screw_plan.py, connector_screws.json): axis = the registered standard part's hole axis, head on the clamped parts'
     outer face, family by terminal material, standard length (data/hardware.json screw_standards). `parts` is the
-    manifest part list without these screws. Returns (rows, plans)."""
+    manifest part list without these screws; `only` = connector names to generate (default all). Returns (rows, plans)."""
     sys.path.insert(0, str(ROOT / "robot/body/fastening"))
     import interfaces as I
     import screw_plan as SP
@@ -119,7 +119,7 @@ def hip_screws(parts, man):
     iface = I.instances(body, man)
     rows, plans = [], []
     for side in ("R_", "L_"):
-        for conn in SP.connectors():
+        for conn in (only or SP.connectors()):
             for pl in SP.plan_connector(body, iface, conn, side):
                 m = SP.screw_mesh(pl)
                 nm = pl["name"]
@@ -188,6 +188,8 @@ def build_manifest():
     parts = TS.swap_parts(parts)
     import foot_screws as FS                # run its `build` first (T-rptay5): edited foot monocoque + sleeves
     parts = FS.swap_parts(parts)
+    import hip_yaw_screws as HYS            # run its `build` first (T-v3kzs4): edited hip yaw-to-pitch connector + sleeves
+    parts = HYS.swap_parts(parts)
     with FS.left_labels():
         srows, plans = hip_screws(parts, man)
     parts += srows

@@ -40,6 +40,15 @@
     "B13_case_rear": {"standard_part": "{S}B13_C047_foot_roll_case", "holes": ["ST3215.case-y.4", "ST3215.case-y.2"], "holes_L": ["ST3215.case-y.3", "ST3215.case-y.1"],
                       "owning_link": "{S}foot", "name": "{S}B13_rear_PA2x6_{i}", "head": "ISO 7045"}
    }
+  },
+  "hip_yaw_to_pitch_combined": {
+   "clamped": ["{S}hip_yaw_to_pitch_combined", "{S}hip_yaw_to_pitch_combined_steel_sleeves"],
+   "groups": {
+    "A14_yaw": {"standard_part": "{S}yaw_upper_horn_reference", "holes": ["ST3215.horn+y.1", "ST3215.horn+y.2", "ST3215.horn+y.3", "ST3215.horn+y.4"],
+                "owning_link": "{S}yaw_link", "name": "{S}A14_yaw_M3x14_{i}", "head": "ISO 4762"},
+    "A14_front": {"standard_part": "{S}hip_pitch_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2", "ST3025.case+z.3"],
+                  "owning_link": "{S}yaw_link", "name": "{S}A14_front_PA2x4_{i}", "head": "ISO 7380-1"}
+   }
   }
  }
 }

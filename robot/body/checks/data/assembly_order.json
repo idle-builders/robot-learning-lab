@@ -68,17 +68,18 @@
       0.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 3 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_A14_front_PA2x4_1, R_A14_front_PA2x4_3), head to tip when the part carries the head, else reversed"
+     "derived": "graph order, fastened distance 3 from the base; direction: mean screw direction of 3 screw(s) joining it to placed parts (R_A14_front_PA2x4_0, R_A14_front_PA2x4_1, R_A14_front_PA2x4_2), head to tip when the part carries the head, else reversed"
     },
     {
      "id": "s06",
      "screw": [
+      "R_A14_front_PA2x4_0",
       "R_A14_front_PA2x4_1",
-      "R_A14_front_PA2x4_3"
+      "R_A14_front_PA2x4_2"
      ],
      "direction": "screw axis",
      "seeded": true,
-     "derived": "2 screw(s) whose touched chain parts are all placed after R_hip_pitch_ST3025_case; driver path vs placed parts"
+     "derived": "3 screw(s) whose touched chain parts are all placed after R_hip_pitch_ST3025_case; driver path vs placed parts"
     },
     {
      "id": "p07",
