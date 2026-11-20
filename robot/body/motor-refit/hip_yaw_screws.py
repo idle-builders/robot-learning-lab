@@ -83,7 +83,7 @@ def build_right():
     chan, add, cut, new_sleeves = [], [], [], []
     for h in yaw:
         x, y, z0 = h["opening"]
-        add.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM + 0.3), COLLAR_R))
+        add.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R))
         chan += [C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R), C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
