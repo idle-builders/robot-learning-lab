@@ -12,8 +12,7 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
              sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it), the head
              cavity ends at the seat, the driver channel is as wide as the driver blade plus clearance.
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
-             main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window; the old
-             C047 holes (4 clearance holes at y -8.25 / 12.25) are filled.
+             main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
   recreate:  .venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build   (parts + records.json in OUT)
              .venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py apply   (patch the roll-flip variant manifest)
 """
@@ -47,7 +46,8 @@ DRIVER_R = 2.4                           # driver channel: hex-key blade 4.0 (da
 CHANNEL_Z0 = 215.0
 DECK_BOTTOM = 262.75
 FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
-OLD_FRONT = [(-8.25, 227.3), (-8.25, 248.0), (12.25, 227.3), (12.25, 248.0)]   # C047 positions of the removed PA2x4
+BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): the front bosses of z.1 / z.2 are trimmed out of the yaw screws' blade path (measured 17.5 -> 0.001 mm3 per screw)
+POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
 
 
 def window_stack(length, point, ref):
@@ -83,7 +83,7 @@ def build_right():
     chan, add, cut, new_sleeves = [], [], [], []
     for h in yaw:
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
-        add.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R))
+        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), POCKET))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
         chan += [C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R), C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
@@ -99,16 +99,6 @@ def build_right():
     x_face = f0["opening"][0] + 0.02                       # the case face reads 56.64-56.65: start 0.02 off it, no overlap
     seat_f = x_face + stack_f
     print(f"front: M2x{Lf:g}, ref engagement {ref_f}, depth {depth_f}, stack {stack_f:.2f}, seat x {seat_f:.2f}", flush=True)
-    x_in = x_face + MR.CLR                                  # the refit pocket leaves the wall at the case face + 0.15
-    fill = []
-    for y, z in OLD_FRONT:
-        cyl = C.cylinder((x_in - 1, y, z), (59.5, y, z), 1.85)
-        cols = C.box((x_in, -15.0, 224.2), (58.8, -7.85, 252.0)) if y < 0 else C.box((x_in, 11.85, 224.2), (58.8, 19.0, 252.0))
-        plate = C.box((x_in, -9.5, 230.0), (x_in + 2.5, 11.5, 250.15))
-        for reg in (cols, plate):
-            v = C.common(cyl, reg)
-            if C.volume(v) > 1e-3:
-                fill.append(v)
     fpads, fcuts = [], []
     for h in front:
         _, y, z = h["opening"]
@@ -119,8 +109,14 @@ def build_right():
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
     P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
-    P = C.fuse(P, *add, *fill, *fpads)
+    P = C.fuse(P, *add, *fpads)
     P = C.cut_many(P, cut + fcuts)
+    def reaches(h):   # the blade disc overlaps a front pad's x-y footprint (x_face..seat_f, y +- pad radius)
+        x, y, _ = h["opening"]
+        dx = max(0.0, x_face - x, x - seat_f)
+        return min(max(0.0, abs(y - f["opening"][1]) - FRONT_PAD_R) for f in front) ** 2 + dx ** 2 < BLADE_R ** 2
+    keep = [h["opening"] for h in yaw if reaches(h)]
+    P = C.cut_many(P, [C.cylinder((round(x, 2), round(y, 2), seat - 40.0), (round(x, 2), round(y, 2), seat), BLADE_R) for x, y, _ in keep])
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
