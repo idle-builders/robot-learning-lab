@@ -41,7 +41,7 @@ def package():
             shapes.append(import_step(str(ART / "parts" / f"{n}{suffix}.step")))
     export_step(Compound(children=shapes), str(ART / "connectors-bilateral.step"))
     (ART / "renders").mkdir(exist_ok=True)
-    for f in sorted(SHEETS.glob("case-*.png")) + [SHEETS / "thigh-shell-shaded.png", SHEETS / "shin-cover-mounts.png"]:
+    for f in sorted(SHEETS.glob("case-*.png")) + [SHEETS / n for n in ("thigh-shell-shaded.png", "shin-cover-mounts.png", "thigh-connector-h-cage.png", "thigh-shell-top.png") if (SHEETS / n).exists()]:
         shutil.copy2(f, ART / "renders" / f.name)
     print("packaged", ART)
 
@@ -76,7 +76,7 @@ def record():
     s5o = {c: p99("stage5_selected", c, "z") for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     mp = mass["parts"]["R"]
     links = mass["links"]
-    renders = [ART / "renders" / "thigh-shell-shaded.png", ART / "renders" / "shin-cover-mounts.png"] + sorted((ART / "renders").glob("case-*.png"))
+    renders = [ART / "renders" / n for n in ("thigh-shell-shaded.png", "thigh-connector-h-cage.png", "thigh-shell-top.png", "shin-cover-mounts.png") if (ART / "renders" / n).exists()] + sorted((ART / "renders").glob("case-*.png"))
     src = [rel(HERE / f) for f in ("build_upper_hip_connectors.py", "common.py", "roll_flip_checks.py", "thigh_shell.py", "publish_roll_flip.py")]
     data_assets = [ART / "report.json", ART / "cad-manifest.json", ART / "connectors-bilateral.step", MANIFEST,
                    ROOT / "robot/body/hip-shell/DECISIONS.md"]
@@ -92,25 +92,27 @@ def record():
     report_ref = {"label": "Native report (fit, motion, CAD rules, FEM, mass)", "path": rel(ART / "report.json")}
     evidence = [
         dict(id="clearance", title="Clearance over the whole-leg poses", kind="analysis",
-             observation="The new parts add no overlap in the 151 realistic whole-leg poses. In the 72 range-limit "
-                         "combinations the thigh reaches the left battery cell and cradle somewhat more than today.",
+             observation="The H-cage thigh connector (owner 2026-11-19: 2 + 2 screws per actuator) adds no overlap in "
+                         "the 151 realistic whole-leg poses; its plates sit about 1.4 mm from the swinging pitch-to-roll "
+                         "arms (was 0.15 mm). The exact fit only finds contact at poses beyond the joint ranges.",
              measurements=[
-                 m("New overlap, new parts, realistic poses", 0.0, "mm3", "151 poses incl. paths (A-11), voxel solids"),
-                 m("Thigh vs left cell, worst range combination", 2798, "mm3", "72 combinations (A-12); today 1,970"),
-                 m("Thigh vs cradle, worst range combination", 853, "mm3", "today 612"),
-                 m("Shin vs knee cheek, exact B-rep", 78.6, "mm3", "knee >= 105 deg; identical to today"),
-                 m("Smallest gap Stage 4 to Stage 5", gap["s4s5"], "mm", "exact B-rep, 74 poses"),
+                 m("New overlap, new parts, realistic poses", 0.0, "mm3", "151 poses incl. paths (A-11)"),
+                 m("Stage 4 vs battery cradle, exact B-rep", fit["stage4 (R_roll_link) x combined__stage2_lower_pelvis_battery_cradle"]["max_overlap_mm3"],
+                   "mm3", "hip yaw 40 deg, beyond the 30 deg range"),
+                 m("Stage 4 vs shin frame, exact B-rep", fit["stage4 (R_roll_link) x R_shin_combined"]["max_overlap_mm3"], "mm3",
+                   "knee 125 deg, beyond the 110 deg range; touching at 115"),
+                 m("Smallest gap Stage 4 to Stage 5", gap["s4s5"], "mm", "exact B-rep, fit poses (roll to -45)"),
                  m("Smallest gap Stage 5 to Stage 6", gap["s5s6"], "mm", "exact B-rep, 74 poses"),
                  m("Smallest gap Stage 5 to roll case", gap["s5case"], "mm", "exact B-rep, 74 poses"),
-                 m("Knee motor top to hanging roll case", 1.89, "mm", "standing"),
+                 m("Knee motor top to hanging roll case", rep["fit_brep"].get("knee_case_top_to_roll_case_bottom_gap_mm"), "mm", "standing"),
              ],
              conditions={"manifest": rel(MANIFEST), "poses": "hip-shell leg_motion library (151) + GRID (72); fit_brep 74 poses"},
-             limitations="Kinematic sweep only: no loads, no compliance. Stage 4 rows of the exact fit come from the run "
-                         "before its last material-only trims; Stage 5 rows were re-run on the strengthened plate. "
-                         "Thicker Stage 5 arms reach today's thigh covers more (covers are being redesigned).",
+             limitations="Kinematic sweep only: no loads, no compliance. The exact fit ran on the H-cage before its last "
+                         "change (ear-boss key pockets opened upward, material removed only).",
              source_refs=[report_ref]),
         dict(id="fem", title="Static FEM, new vs today", kind="simulation",
-             observation="The new thigh connector carries the loads at lower stress than today's. The strengthened "
+             observation="The H-cage thigh connector holds the knee motor from both sides and carries the loads at far "
+                         "lower stress than today's U (roll stall: strength ratio about 21 instead of about 2). The strengthened "
                          "pitch-to-roll plate (thicker arms, taller wings, held from the pitch output side only: there is "
                          "no pitch idler) is a little stronger than today's in the heavy landing case and stronger under "
                          "roll-motor stall.",
@@ -130,7 +132,7 @@ def record():
                          "Stage 5 is evaluated on its motor-refit STEP.",
              source_refs=[report_ref]),
         dict(id="mass", title="Mass and link mass properties", kind="measurement",
-             observation="The connectors weigh about the same; the 74.5 g roll case moves from the pitch link to the "
+             observation="The H-cage is about 1.6 g heavier than today's thigh connector; the 74.5 g roll case moves from the pitch link to the "
                          "thigh, so the leg below the roll joint gets heavier.",
              measurements=[
                  m("Stage 4 with sleeves", mp["stage4"]["roll_flip_with_sleeves_g"], "g", f"today {mp['stage4']['selected_with_sleeves_g']}"),
@@ -152,10 +154,10 @@ def record():
         "dashboard": "design",
         "workspace": "Body",
         "robot_sections": ["Hip"],
-        "observation": "The hip roll motor hangs down inside the thigh (roll axis unchanged), held by a new thigh "
-                       "connector; a new pitch-to-roll plate carries its horn and idler. No new overlap in 151 "
+        "observation": "The hip roll motor hangs down inside the thigh (roll axis unchanged), held by the H-cage thigh "
+                       "connector (2 + 2 screws per actuator, owner 2026-11-19); a new pitch-to-roll plate carries its horn and idler. No new overlap in 151 "
                        "realistic poses; the strengthened plate is a little stronger than today's in the heavy landing case. "
-                       "A new blue thigh shell (two halves per leg, 26.3 g) replaces today's thigh covers; it is under owner "
+                       "A smooth blue thigh shell (two halves per leg) replaces today's thigh covers; it is under owner "
                        "review for its look.",
         "measurements": "; ".join(f"{x['name']}: {x['value']} {x['unit']}" + (f" ({x['condition']})" if x.get("condition") else "")
                                   for x in evidence[0]["measurements"][:1] + evidence[1]["measurements"][3:5]
@@ -167,10 +169,9 @@ def record():
         "design": {
             "id": STUDY,
             "title": "Roll motor in the thigh, blue thigh shell",
-            "summary": "Roll motor hangs in the thigh; new thigh connector and pitch-to-roll plate; new blue thigh shell "
-                       "(under owner review) replaces today's thigh covers. Clear in all "
-                       "realistic poses; plate a little stronger than today's; sleeves pressable on the plate, not yet on the "
-                       "thigh connector's inboard side.",
+            "summary": "Roll motor hangs in the thigh; H-cage thigh connector (2 + 2 M2 screws per actuator, about 1.4 mm "
+                       "from the pitch-to-roll arms) and pitch-to-roll plate; smooth blue thigh shell with a calm top edge "
+                       "(under owner review) replaces today's thigh covers. Clear in all realistic poses.",
             "visual_kind": "native_CAD_assembly",
             "maturity": "CAD first pass with fit, motion and static FEM checks; no print, no physical test, model not updated.",
             "image_path": rel(ART / "renders" / "thigh-shell-shaded.png"),
@@ -202,30 +203,26 @@ def press_evidence(rep, report_ref):
         r = rows(part)
         if inboard is not None:
             r = [x for x in r if (x["centre_mm"][0] < 50) == inboard]
-        cov = [x["counter_face"]["coverage_pct"] for x in r]
+        cov = [x["counter_face"].get("support_pct", x["counter_face"]["coverage_pct"]) for x in r]
         return dict(n=len(r), tool=max(x["tool_tip_obstruction_mm3"] + x["tool_body_obstruction_mm3"] for x in r),
                     a20=max(x["anvil_path_obstruction_mm3"] for x in r),
                     a10=max(x["anvil_dia10_first15mm_obstruction_mm3"] for x in r),
                     cmin=min(cov), cmax=max(cov), flat=max(x["counter_face"]["flatness_mm"] for x in r))
-    s5, s4o, s4i = stats("R_hip_pitch_to_roll_roll_flip"), stats("R_thigh_roll_flip", False), stats("R_thigh_roll_flip", True)
+    s5, s4 = stats("R_hip_pitch_to_roll_roll_flip"), stats("R_thigh_roll_flip")
     sel = rep["press_selected"]["by_subsystem"]
     a = pr["assumptions"]
     return dict(
         id="press", title="Sleeve pressability", kind="analysis",
-        observation=f"Every sleeve in the new pitch-to-roll plate can be pressed: free tool path, flat counter face "
-                    f"({s5['cmin']}-{s5['cmax']} %), and a 10 mm anvil post reaches the exit face. On the new thigh "
-                    f"connector the 4 outboard sleeves are reachable but their counter face is partly flat "
-                    f"({s4o['cmin']}-{s4o['cmax']} %); the 4 inboard sleeves have a wall 2.35 mm from their axis, so "
-                    f"no anvil reaches them. In the selected body nearly every sleeve has a press obstruction or a counter face under 90 % flat.",
+        observation=f"Pitch-to-roll plate: free tool path, spacer-block support {s5['cmin']}-{s5['cmax']} %. H-cage thigh "
+                    f"connector ({s4['n']} sleeves): spacer-block support {s4['cmin']}-{s4['cmax']} % (flat face plus "
+                    f"integral wall), tool-path obstruction up to {s4['tool']} mm3 on the worst sleeve. In the selected "
+                    f"body nearly every sleeve has a press obstruction or less than 90 % support.",
         measurements=[
             m("Stage 5 tool-path obstruction, worst sleeve", s5["tool"], "mm3", f"{s5['n']} sleeves"),
             m("Stage 5 anvil 10 mm x 15 mm obstruction, worst", s5["a10"], "mm3", "anvil 20 mm x 40 mm: up to " f"{round(s5['a20'])} mm3"),
-            m("Stage 5 flat counter face, worst sleeve", s5["cmin"], "%", f"flatness {s5['flat']} mm"),
-            m("Stage 4 outboard: tool-path obstruction, worst", s4o["tool"], "mm3", f"{s4o['n']} sleeves"),
-            m("Stage 4 outboard: anvil 10 mm x 15 mm obstruction, worst", s4o["a10"], "mm3", "31.7 mm clear to the opposite plate"),
-            m("Stage 4 outboard: flat counter face, worst", s4o["cmin"], "%"),
-            m("Stage 4 inboard: anvil 10 mm x 15 mm obstruction, worst", round(s4i["a10"]), "mm3", "0 mm clear: wall 2.35 mm from axis"),
-            m("Stage 4 inboard: flat counter face, worst", s4i["cmin"], "%", f"flatness {s4i['flat']} mm"),
+            m("Stage 5 spacer-block support, worst sleeve", s5["cmin"], "%", f"flatness {s5['flat']} mm"),
+            m("Stage 4 (H-cage) tool-path obstruction, worst", s4["tool"], "mm3", f"{s4['n']} sleeves"),
+            m("Stage 4 (H-cage) spacer-block support, worst sleeve", s4["cmin"], "%", f"flatness {s4['flat']} mm"),
         ] + [m(f"Selected body, {k}: sleeves with any press obstruction or < 90 % flat face", v["any_issue"], "of " f"{v['sleeves']}")
              for k, v in sel.items()],
         conditions={"tool": f"heated tip {a['tool_tip_dia_mm']} mm for {a['tool_tip_length_mm']} mm, body "
