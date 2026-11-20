@@ -1,0 +1,125 @@
+{
+ "_doc": "Hand-maintained layer of the robot BOM (owner 2026-11-20: generated, but agents must be able to maintain and adjust it). robot/body/bom/build.py reads this file together with the selected body manifest and writes the BOM; every value here wins over the generated default and is marked `source: lines.json`. Edit it like any data file and commit. Sections: `lines` group manifest parts into one buy / make line (first match wins; `match` = part-name globs, `roles` = manifest roles, `motor` = the parts' manifest `motor` field) and carry what the CAD cannot know (supplier, part number, price, notes, make_buy: make | buy | included | context). Parts no line matches get a generated line: printed parts one line per part, standard hardware one line per spec (robot/body/bom/hardware.py), everything else one line per name stem (side prefix and trailing index removed). `manual_lines` are items with no CAD (filament, glue, wire). `part_overrides` move one part to another line, exclude it with a reason, or add notes. `quantity` on a line overrides the count from the CAD (the BOM shows both).",
+ "lines": [
+  {
+   "id": "servo:Robotis-XM335",
+   "name": "ROBOTIS XM335 (neck tier)",
+   "match": [
+    "*_case_XM335"
+   ],
+   "make_buy": "buy",
+   "notes": "Neck yaw and pitch. The manifest has no motor field on these cases; model from the part name."
+  },
+  {
+   "id": "servo:hand-OEM",
+   "name": "Hand servo (OEM, model to specify)",
+   "match": [
+    "*_hand_OEM_case"
+   ],
+   "make_buy": "buy",
+   "notes": "No geometry in the manifest (R/L_hand_OEM_case); model not recorded."
+  },
+  {
+   "id": "servo-horns-idlers",
+   "name": "Servo horns and idlers (supplied with each servo)",
+   "roles": [
+    "output",
+    "output_horn",
+    "horn",
+    "purchased_servo_output_family_reference"
+   ],
+   "make_buy": "included",
+   "notes": "Come in the servo box; listed so every CAD part has a line."
+  },
+  {
+   "id": "battery-cell-21700",
+   "name": "21700 Li-ion cell",
+   "roles": [
+    "battery_cell"
+   ],
+   "make_buy": "buy",
+   "notes": "9-cell honeycomb pack. Cell model and supplier to fill in."
+  },
+  {
+   "id": "battery-fin-6063",
+   "name": "Battery heat-sink fin, 6063-T5 aluminium (cut / bent)",
+   "roles": [
+    "battery_heatsink_fin"
+   ],
+   "make_buy": "make",
+   "notes": "Cut from sheet; one per cell."
+  },
+  {
+   "id": "battery-top-insulator",
+   "name": "Cell top insulator ring",
+   "roles": [
+    "battery_insulator"
+   ],
+   "make_buy": "buy"
+  },
+  {
+   "id": "foot-fsr-sensor",
+   "name": "Foot force sensor (FSR 402 short tail)",
+   "match": [
+    "*_toe_lateral_sensor",
+    "*_heel_lateral_sensor",
+    "*_mid_medial_sensor"
+   ],
+   "make_buy": "buy",
+   "notes": "Source STEP: artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP (pinned)."
+  },
+  {
+   "id": "foot-fsr-bond",
+   "name": "FSR bond (adhesive allocation)",
+   "roles": [
+    "adhesive_allocation"
+   ],
+   "make_buy": "buy"
+  },
+  {
+   "id": "fan-leads",
+   "name": "Fan leads (formed)",
+   "roles": [
+    "authored_harness"
+   ],
+   "make_buy": "make",
+   "notes": "Wire, cut and formed at assembly."
+  },
+  {
+   "id": "foot-fsr-actuator",
+   "name": "FSR actuator puck (cut stock)",
+   "match": [
+    "*_lateral_actuator_v17",
+    "*_medial_actuator_v17"
+   ],
+   "make_buy": "make",
+   "notes": "Cut from stock; STEP missing for 5 of 6 (artifacts/cove50-sensor-integration/v17)."
+  },
+  {
+   "id": "foot-sole-pad-bond",
+   "name": "Sole pad bond",
+   "match": [
+    "*_sole_pad_bond_v19"
+   ],
+   "make_buy": "buy"
+  },
+  {
+   "id": "thermal-pad-3M8810",
+   "name": "3M 8810 thermal tape, cut to size",
+   "match": [
+    "TIM_3M8810_cut"
+   ],
+   "make_buy": "buy"
+  },
+  {
+   "id": "fan-tach-cap",
+   "name": "Fan tach lead insulating cap",
+   "match": [
+    "fan_tach_insulating_cap"
+   ],
+   "make_buy": "buy"
+  }
+ ],
+ "manual_lines": [],
+ "part_overrides": {}
+}

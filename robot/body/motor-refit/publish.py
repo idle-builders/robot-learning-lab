@@ -7,12 +7,21 @@ The study sources must be committed first; their commit is the version (docs/ope
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 OUT = ROOT / "artifacts/robot/body/motor-refit"
 
+
+
+def generated_bom(manifest=None):
+    """The BOM generated from a body manifest by robot/body/bom/build.py (default: the selected body); the manifest
+    itself carries no BOM (owner 2026-11-20)."""
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import build as bom_build
+    return bom_build.design_bom_for(manifest)
 
 def rel(p):
     return Path(p).resolve().relative_to(ROOT).as_posix()
@@ -108,7 +117,7 @@ def main():
                     "overlays": [{"id": "actuators_and_hardware", "label": "Motors, horns, idlers and fasteners", "visible": True},
                                  {"id": "electronics_and_battery", "label": "Battery, heat fins, electronics and sensors", "visible": True}],
                     "motion_note": "Joint sliders are inspection commands over the r1 ranges, not qualified travel.",
-                    "bom": man.get("bom"), "joints": [{k: v for k, v in j.items() if k != "active"} for j in man["joints"]], "controls": man["controls"]},
+                    "bom": generated_bom(), "joints": [{k: v for k, v in j.items() if k != "active"} for j in man["joints"]], "controls": man["controls"]},
             "evidence": evidence,
         },
     }

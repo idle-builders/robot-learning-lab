@@ -16,6 +16,14 @@ STUDY_DIR = Path(__file__).resolve().parent
 ART_DIR = ROOT / "artifacts/robot/body/assembly"
 
 
+
+def generated_bom(manifest=None):
+    """The BOM generated from a body manifest by robot/body/bom/build.py (default: the selected body); the manifest
+    itself carries no BOM (owner 2026-11-20)."""
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import build as bom_build
+    return bom_build.design_bom_for(manifest)
+
 def read_json(p: Path) -> dict:
     return json.loads(p.read_text())
 
@@ -117,7 +125,7 @@ def publish_complete_body() -> None:
         {"label": "256x256 mm (3 plates) & 350x350 mm (1 plate) FDM print-bed nesting audit", "path": rel(ART_DIR / "print-bed-nesting-audit.json")},
         {"label": "Complete 28-part + 306-sleeve structural skeleton STEP", "path": rel(ART_DIR / "complete-fdm-structural-skeleton.step")},
         {"label": "Complete whole-body assembly manifest & 22-joint kinematic tree", "path": rel(ART_DIR / "assembly-parts.json")},
-        {"label": "Complete whole-body BOM & subsystem rollup", "path": rel(ART_DIR / "bom.json")},
+        {"label": "r1 subsystem rollup (counts, masses, FEM safety factors)", "path": rel(ART_DIR / "subsystem-rollup.json")},
         {"label": "Lower-Body FDM study (cove50-complete-leg-hip-fdm-combined-r10)", "path": "artifacts/robot/body/leg/complete_leg_hip_combined/cad-manifest.json"},
         {"label": "Upper-Body Arm FDM study (cove50-arm-fdm-connectors-20261102)", "path": "artifacts/robot/body/arm/combined/manifest.json"},
         {"label": "Neck & Head FDM study (cove50-neck-head-fdm-combined-r1)", "path": "artifacts/robot/body/neck-head/combined/manifest.json"},
@@ -276,7 +284,7 @@ def publish_complete_body() -> None:
             rel(ART_DIR / "whole-body-verification-report.json"),
             rel(ART_DIR / "print-bed-nesting-audit.json"),
             rel(ART_DIR / "assembly-parts.json"),
-            rel(ART_DIR / "bom.json"),
+            rel(ART_DIR / "subsystem-rollup.json"),
         ],
         "analysis_provenance": {
             "idle_task": "T-g6ns9t",
@@ -327,7 +335,7 @@ def publish_complete_body() -> None:
                 "fit_reference_label": "Fit complete Cove-50 FDM ape body",
                 "scope": f"Complete 28-part 3D-printable FDM structural integration of the 50 cm Cove-50 ape robot with {slv_total} pressed-in 304 SS compression sleeves, 9-cell vertical honeycomb 21700 battery pack + 9 direct-on-battery 6063-T5 Al heat-sink fins, all PCBs/sensors/cameras/compute, 22 actuators, and smooth 2-piece continuous center shell + shoulder/limb/paw/head shells.",
                 "motion_note": "24 interactive DOF controls driving all 26 kinematic joints: 12 lower-body joints (bilateral hip yaw/roll/pitch, knee, ankle pitch/roll), 8 arm joints (bilateral shoulder pitch/roll/yaw, elbow), 4 symmetric geared hand finger joints, and 2 neck/head joints (neck yaw/pitch).",
-                "bom": assy["bom"],
+                "bom": generated_bom(rel(ART_DIR / "assembly-parts.json")),
                 "joints": [{k: v for k, v in j.items() if k != "active"} for j in assy["joints"]],
                 "controls": assy["controls"],
             },

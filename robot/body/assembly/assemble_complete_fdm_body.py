@@ -2950,15 +2950,15 @@ def build_complete_assembly() -> dict:
         "parts": assembly_parts,
         "joints": joints,
         "controls": controls,
-        "bom": {
-            "scope": "Complete Cove-50 FDM Ape Body: 28 3D-printed FDM structural parts across all 4 subsystems, 316 pressed-in 304 SS compression sleeves, 9-cell vertical honeycomb 21700 battery pack + 9 direct-on-battery 6063-T5 Al heat-sink fins, 22 actuators, complete electronics/sensors, and smooth 2-piece continuous center shell + shoulder/limb/head shells",
-            "completeness": "complete_structural_and_integration_rollup",
-            "subsystem_rollup": subsystem_rollup,
-            "items": bom_items,
-        },
     }
     write_json(ART_DIR / "assembly-parts.json", assembly_manifest)
-    write_json(ART_DIR / "bom.json", assembly_manifest["bom"])
+    # The r1 subsystem rollup (FEM safety factors, masses per section) is study evidence, not the BOM: the robot BOM is
+    # generated from the manifest by robot/body/bom/build.py (owner 2026-11-20).
+    write_json(ART_DIR / "subsystem-rollup.json", {
+        "scope": "r1 subsystem rollup of the complete FDM body (4 sections); counts and masses as of r1",
+        "subsystem_rollup": subsystem_rollup,
+        "items": bom_items,
+    })
 
     # ==========================================================================
     # 6. WHOLE-BODY EXACT BREP MULTI-POSE VERIFICATION (`whole-body-verification-report.json`)
