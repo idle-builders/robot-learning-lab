@@ -7,6 +7,12 @@ Nodes: every non-hardware part. Edges:
   sleeve    <part>_steel_sleeves is pressed into <part>
   joint     for each joint, the servo case / motor parts and the horn / output parts of its two links within 5 mm
   contact   the two parts are within CONTACT_MM at standing (touching, bonded, seated, or just resting)
+Every part is screened with the coarse neighbour solid (core.screen_solid with no part treated as changed: native STEP at
+0.1 mm for the STEP roles, else the part's own closed mesh), whatever the scope. Taking ctx.solid() instead gave every
+scoped part the fine 0.03 mm STEP tessellation, and an unscoped run scopes all 190 non-hardware parts: 54 of them had no
+0.03 mm cache entry, among them supplier STEPs of 78 / 44 / 26 / 22 MB (power supervisor board, ROCK4D, B0196, B0410)
+whose thousands of component solids are each tessellated and unioned; the first one alone ran past 170 s, and the run
+did not finish in 2400 s (T-c4sy9d, 2026-11-20). The 19 Nov 27.6 s runs were scoped to one part.
 The core is part_settings _core.part, else the largest printed part on the root link. Reported: parts with no edge,
 connected groups that do not reach the core, parts that reach the core only through contact edges, and per scoped part
 its shortest chain to the core with the edge kinds (fastened edges preferred). Manifest-wide; the scope selects whose
@@ -38,6 +44,18 @@ def _corners(p, T=None):
 
 def _near(b1, b2, m):
     return not (np.any(b1[0] > b2[1] + m) or np.any(b2[0] > b1[1] + m))
+
+
+def solid(ctx, n):
+    """(trimesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid()."""
+    from checks.core import kit, screen_solid
+    c = ctx.__dict__.setdefault("_conn_solids", {})
+    if n not in c:
+        t0 = time.time()
+        m, how = screen_solid(ctx.body, n, set())
+        c[n] = (m, how, kit.mf(m))
+        tick("connectivity solids", t0)
+    return c[n]
 
 
 def build_graph(ctx):
@@ -85,7 +103,7 @@ def build_graph(ctx):
                 continue
             Tn = T[parts[n]["owning_link"]]
             loc = (pw - Tn[:3, 3]) @ Tn[:3, :3]
-            m = ctx.solid(n)[0]
+            m = solid(ctx, n)[0]
             try:
                 inside = m.contains(loc)
             except Exception:  # noqa: BLE001
@@ -112,10 +130,9 @@ def build_graph(ctx):
         for b in nodes[i + 1:]:
             if not _near(WB[a], WB[b], CONTACT_MM):
                 continue
-            ma, mb = ctx.solid(a), ctx.solid(b)
             Ta, Tb = T[parts[a]["owning_link"]], T[parts[b]["owning_link"]]
             try:
-                fa, fb = ctx.mf[a].transform(Ta[:3, :4]), ctx.mf[b].transform(Tb[:3, :4])
+                fa, fb = solid(ctx, a)[2].transform(Ta[:3, :4]), solid(ctx, b)[2].transform(Tb[:3, :4])
                 dist = 0.0 if (fa ^ fb).volume() > 1e-3 else fa.min_gap(fb, CONTACT_MM + 0.01)
             except Exception:  # noqa: BLE001
                 continue
@@ -144,7 +161,7 @@ def run(ctx):
         man = json.loads(open(ctx.manifest).read())
         root = man.get("root_link", "torso")
         pr = [n for n in nodes if parts[n]["owning_link"] == root and parts[n].get("role") in ("printed_structural_carrier", "printed_structural_connector")]
-        core = max(pr, key=lambda n: ctx.solid(n)[0].volume) if pr else None
+        core = max(pr, key=lambda n: solid(ctx, n)[0].volume) if pr else None
     adj = {n: [] for n in nodes}
     for (a, b), ks in edges.items():
         if a in adj and b in adj:
@@ -208,7 +225,11 @@ def run(ctx):
         for k in ks:
             kinds[k] = kinds.get(k, 0) + 1
     tick("connectivity", t0)
-    return dict(per_part=per, core=core, worst_cases=cases, bad_events=dict(parts=len(nodes), isolated_parts=len(isolated), groups_not_reaching_core=len(groups),
+    hows = {}
+    for n, (_, h, _) in ctx.__dict__.get("_conn_solids", {}).items():
+        hows.setdefault(h, []).append(n)
+    return dict(solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h},
+                per_part=per, core=core, worst_cases=cases, bad_events=dict(parts=len(nodes), isolated_parts=len(isolated), groups_not_reaching_core=len(groups),
                 parts_not_reaching_core=len(unreached), parts_reaching_core_by_contact_only=len(contact_only), contact_only_break_points=len(breaks), **{f"edges_{k}": v for k, v in kinds.items()}),
                 evidence=[], contact_only_breaks=[dict(from_part=a, to_part=b, parts_beyond=k) for a, b, k in breaks], groups_not_reaching_core=groups, isolated=isolated, contact_only=contact_only,
                 notes=f"screw edge = >= 2 of the ring points (r_shank + {RING_MM} mm, 8 x 8 along the shank, 8 under the head) inside the part's solid at standing; "
