@@ -1,0 +1,144 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "W1",
+  "region": "wrist_hand",
+  "name": "Supported wrist with opposing powered grip",
+  "architecture": "wrist_grip",
+  "maturity": "local_trial",
+  "summary": "Seventy-seven-part X330 wrist/grip geometry with named moving ownership.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "selected shell world, mm",
+    "parent": "fixed forearm housing",
+    "output": "rotating paw and opposing thumb cassette"
+  },
+  "dofs": [
+    {
+      "name": "wrist",
+      "type": "revolute",
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "origin_mm": [
+        6,
+        145,
+        178
+      ],
+      "frame": "selected_shell_world"
+    },
+    {
+      "name": "grip",
+      "type": "revolute",
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "origin_mm": [
+        14,
+        0,
+        134
+      ],
+      "frame": "wrist_carried"
+    }
+  ],
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/README.md",
+      "sha256": "0dbb07f540408cd771c8bd66c5d380fb7116eb460fe85fd13032a7b1f0a40396"
+    },
+    {
+      "name": "neutral_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/output/complete-neutral.step",
+      "sha256": "773dbbf555a4ab8f5ab8a5b998d67cc33845321d2e5dbab71c743116add51ec0",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "neutral_glb",
+      "role": "cad_glb",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/output/complete-neutral.glb",
+      "sha256": "d6db7845065f50e86bbdaafe2d8806999f6d78502432f821db8dbc512f27dfff",
+      "units": "m",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "poses",
+      "role": "motion_data",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/output/pose-audit.json",
+      "sha256": "bcb7beb8cf6289abc60156764f68f9c83008b748af936838d52425bdadd7cfb3"
+    },
+    {
+      "name": "part_ownership",
+      "role": "report",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/output/inventory.json",
+      "sha256": "620ea4223cf8565e092cf2004553353aff55b27ce92383c9604569b7ee3f3fe2"
+    },
+    {
+      "name": "assembly_sequence",
+      "role": "report",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/wrist-grip-integrated-coupon/output/integrated-assembly.json",
+      "sha256": "248224d16d1f29c3be425c1e27986ada0b3325db1d2896ac69f3cfaf287ca1c5"
+    }
+  ],
+  "limits": [
+    "Nine poses and finite insertion are recorded; purchased revision, clip/races, load and cables unqualified."
+  ],
+  "motion_interface": {
+    "coordinates": [
+      {
+        "name": "wrist_deg",
+        "unit": "deg"
+      },
+      {
+        "name": "grip_deg",
+        "unit": "deg"
+      }
+    ],
+    "samples": [
+      [
+        -20,
+        -25
+      ],
+      [
+        -20,
+        0
+      ],
+      [
+        -20,
+        8
+      ],
+      [
+        0,
+        -25
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        20,
+        -25
+      ],
+      [
+        20,
+        0
+      ],
+      [
+        20,
+        8
+      ]
+    ],
+    "source_asset": "poses",
+    "meaning": "nine sampled complete-scene native contact checks"
+  }
+}

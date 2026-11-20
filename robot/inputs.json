@@ -1,0 +1,719 @@
+{
+ "schema": "robot-learning-lab.pinned-inputs.v1",
+ "scope": "Outputs of earlier designs that the current robot build reads. Each is restored from the private bucket by path (the blob index holds every file and its SHA-256); producer_tag names the git tag whose checkout holds the code that built it. manifest_sha256 hashes the sorted \"path sha256\" lines of an indexed folder.",
+ "inputs": [
+  {
+   "path": "artifacts/ape-frame50-supported-body/ape-frame50-hip-contact-probe.xml",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 0,
+   "local_copy": false,
+   "bytes": 0,
+   "note": "not in the bucket; read only by the first model stage validation, which cannot run"
+  },
+  {
+   "path": "artifacts/ape-frame50-supported-body/learned-replay/forward-frame50-motor-adapted-seed144.npz",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 0,
+   "local_copy": false,
+   "bytes": 0,
+   "note": "not in the bucket; read only by the first model stage validation, which cannot run"
+  },
+  {
+   "path": "artifacts/cove50-arm-shell/r4-roll70-onepiece-20261029/native/R_S_yaw_to_elbow.step",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1,
+   "local_copy": true,
+   "bytes": 134777,
+   "sha256": "0e2488c2c07aac88b8b92a2b4ce348773ac668bbd22d1d906be6c78b431d601a"
+  },
+  {
+   "path": "artifacts/cove50-arm-shell/r5-surface-20261029",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1017,
+   "bytes": 640445513,
+   "local_copy": true,
+   "manifest_sha256": "1d3c1dabda925022b968400765d3e21c206d38d1b3416ffd431e63fd30ac0a32"
+  },
+  {
+   "path": "artifacts/cove50-arm-shell/r5-surface-20261029/manufactured-parts.json",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1,
+   "bytes": 83505,
+   "local_copy": true,
+   "sha256": "a54945e0520041f91f995759a26f95a9a930e5e6fbfa0965520719548ac83428"
+  },
+  {
+   "path": "artifacts/cove50-compute-architecture/head-freeze-20261026/accepted-baseline.json",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 88854,
+   "producer": {
+    "folder": "robot/compute-architecture/head-freeze-20261026",
+    "commit": "b46960e7b"
+   },
+   "local_copy": false,
+   "sha256": "c3ad2cf33da4a35dd6a498f2a97b80ee939c3988bc071c9fb78b8bc809049483"
+  },
+  {
+   "path": "artifacts/cove50-compute-architecture/r23-powered-head-20261026",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 209,
+   "bytes": 226859639,
+   "producer": {
+    "folder": "robot/compute-architecture/r23-powered-head-20261026",
+    "commit": "b46960e7b"
+   },
+   "local_copy": true,
+   "manifest_sha256": "bd5051403f571fe6e606cf953c255de410612276cf7fd12b2dc6cbe2e789748e"
+  },
+  {
+   "path": "artifacts/cove50-compute-architecture/r23-powered-head-20261026/assembly-parts.json",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 204758,
+   "producer": {
+    "folder": "robot/compute-architecture/r23-powered-head-20261026",
+    "commit": "b46960e7b"
+   },
+   "local_copy": false,
+   "sha256": "a7a3e1a28300cd53d9721441902330eba8066debcb983111828f22ecdb961321"
+  },
+  {
+   "path": "artifacts/cove50-electronics-integration/r1-20261026",
+   "used_by": [
+    "robot/electronics/build",
+    "robot/model/build",
+    "robot/model/collisions",
+    "robot/model/timestep"
+   ],
+   "indexed_files": 79,
+   "bytes": 455125320,
+   "producer": {
+    "folder": "robot/electronics-integration/r1-20261026",
+    "commit": "ebc1c3118"
+   },
+   "local_copy": true,
+   "manifest_sha256": "ad482b2e95812ff632a12de620cedd1c6e51edf8a12b1b11fc76d2fa2cde6591"
+  },
+  {
+   "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+   "used_by": [
+    "robot/body/arm",
+    "robot/body/assembly",
+    "robot/body/leg",
+    "robot/body/neck-head",
+    "robot/body/torso"
+   ],
+   "indexed_files": 1,
+   "bytes": 1555977,
+   "producer": {
+    "folder": "robot/electronics-integration/r1-20261026",
+    "commit": "ebc1c3118"
+   },
+   "local_copy": true,
+   "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399"
+  },
+  {
+   "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly.glb",
+   "used_by": [
+    "robot/model/urdf"
+   ],
+   "indexed_files": 1,
+   "bytes": 291542268,
+   "producer": {
+    "folder": "robot/electronics-integration/r1-20261026",
+    "commit": "ebc1c3118"
+   },
+   "local_copy": false,
+   "sha256": "d39771ac6c605bce3ed94ca4e989290880683a4ece1455d37003bebcc2837343"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/elbow-studio/direct-servo/r1/source/ST3025-MODEL/ST3025-MODEL.stp",
+   "used_by": [
+    "robot/body/motor-refit"
+   ],
+   "indexed_files": 1,
+   "bytes": 9494335,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/elbow-studio",
+    "commit": "b3dc8f4b5"
+   },
+   "local_copy": true,
+   "sha256": "91508ce9e50ff9294570d3b490058d439b1bb3ac1a2c93756951eafaa62914a4"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/left_finger.brep",
+   "used_by": [
+    "robot/body/assembly"
+   ],
+   "indexed_files": 1,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1",
+    "commit": "427b0e980"
+   },
+   "local_copy": true,
+   "bytes": 534855,
+   "sha256": "e0eb8a7dd3cd9aba9d3535b02a5ea30831e278b7ff26afac0e4c8d8bf05a2bf3"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/right_finger.brep",
+   "used_by": [
+    "robot/body/assembly"
+   ],
+   "indexed_files": 1,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1",
+    "commit": "427b0e980"
+   },
+   "local_copy": true,
+   "bytes": 596982,
+   "sha256": "94f1a71aa7853c03b7881a48fac324331a29c14ba77b4c3a2c9064bd612acece"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 13,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1",
+    "commit": "427b0e980"
+   },
+   "local_copy": true,
+   "bytes": 3134819,
+   "manifest_sha256": "b744b41e2ce1aeb36e94a5649222f18b9d02376bf948fb51ad505a1892147b47"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1/palm_lower.brep",
+   "used_by": [
+    "robot/body/assembly"
+   ],
+   "indexed_files": 1,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1",
+    "commit": "427b0e980"
+   },
+   "local_copy": true,
+   "bytes": 1591090,
+   "sha256": "b346311f6b92f71fc7dd2b4dd92269a1adf9193f7f60b0b2038d22d9ddda7484"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-gear-r0/palm_upper.brep",
+   "used_by": [
+    "robot/body/assembly"
+   ],
+   "indexed_files": 1,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/A/twin-gear-r0",
+    "commit": "427b0e980"
+   },
+   "local_copy": true,
+   "bytes": 409700,
+   "sha256": "f9c7e162d4fa4318e32a8b134eb314007ba96bed2b041100068d5efd1a6ab248"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/hand-radical-20261026/lead-twin-crawl-r1/cad/assembly.glb",
+   "used_by": [
+    "robot/body/assembly"
+   ],
+   "indexed_files": 1,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/hand-radical-20261026/lead-twin-crawl-r1",
+    "commit": "967c65fc7"
+   },
+   "local_copy": true,
+   "bytes": 19561640,
+   "sha256": "2a3f528cb4b7e662170f16d94275e7dc12c36213e1524e6fedd8013389ea5492"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4/stage-frames10/R_roll_to_yaw_one_piece.step",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1,
+   "bytes": 136823,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": true,
+   "sha256": "61432321be61f3a53942cad638a89da8d46196041dcd0f89d577ed0c1fc163c4"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4/stage-frames11/R_forearm_wrist_one_piece.step",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1,
+   "bytes": 131507,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": true,
+   "sha256": "fafb1d4e4565da4edca69516ce91bddb64908e6d1159317f6e3a6be867c7e8c7"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4/stage-frames9/R_pitch_to_roll_one_piece.step",
+   "used_by": [
+    "robot/body/arm"
+   ],
+   "indexed_files": 1,
+   "bytes": 176707,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/B/shell-fit-r4",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": true,
+   "sha256": "d930c7017f3299a419e88c317b301f29776cff4f2cae9246cbf1ac0327c9bd52"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/C/final-r4-shell-fem/parts/one_piece_bent_neck_L.step",
+   "used_by": [
+    "robot/body/neck-head"
+   ],
+   "indexed_files": 1,
+   "bytes": 101386,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/C",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": true,
+   "sha256": "9d43c965569fea9c8f0b4275f638ffdd9c81f3ab31ef8e84eb15d79e06440f86"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/audit-config.json",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 1,
+   "bytes": 5068,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/lead",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": true,
+   "sha256": "b902067c516c6b22bcfbb35daf0d66c9a34139058fb26c62b20f797e41fcc01d"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/upper-body-20261023/lead/v5/parts.json",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 1,
+   "bytes": 460640,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/upper-body-20261023/lead",
+    "commit": "f3e173aaf"
+   },
+   "local_copy": false,
+   "sha256": "5d61fa837bafd7da08ae5c34945ea5d4b26684fe91c58b166c3db8a9e4815729"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/B/compact-shin-fem-r1",
+   "used_by": [
+    "robot/body/fem"
+   ],
+   "indexed_files": 67,
+   "bytes": 548415758,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/waist-pelvis-20261021",
+    "commit": "a537d4c2c"
+   },
+   "local_copy": true,
+   "manifest_sha256": "262445e0c8e3953ad713b3a0c2dfb665a7a49459173a5d27569a0f8f7c4119d8"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/B/compact-shin-v5-r1/final",
+   "used_by": [
+    "robot/body/fem"
+   ],
+   "indexed_files": 11,
+   "bytes": 32918269,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/waist-pelvis-20261021",
+    "commit": "a537d4c2c"
+   },
+   "local_copy": true,
+   "manifest_sha256": "b47028a727ec9c940d973f724eef5b5819412377491c9c75a793ccbedbb4aec9"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/C/full-shell-context-r1/full-shell-neutral.glb",
+   "used_by": [
+    "robot/body/leg"
+   ],
+   "indexed_files": 1,
+   "bytes": 6868200,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/waist-pelvis-20261021",
+    "commit": "a537d4c2c"
+   },
+   "local_copy": true,
+   "sha256": "87c6f4db06f68588f3022bf52670d9831e37a2aade19bb2ddc9854fe20792e65"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v16",
+   "used_by": [
+    "robot/body/leg"
+   ],
+   "indexed_files": 75,
+   "bytes": 328046562,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/waist-pelvis-20261021/lead",
+    "commit": "a537d4c2c"
+   },
+   "local_copy": true,
+   "manifest_sha256": "10b558b004c1a7b43c6a8c65f0181f230fd98dad76fda40e600b69eda6590df1"
+  },
+  {
+   "path": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v16/parts.json",
+   "used_by": [
+    "robot/body/leg"
+   ],
+   "indexed_files": 1,
+   "bytes": 499833,
+   "producer": {
+    "folder": "studies/cove50-engineering-competition/waist-pelvis-20261021/lead",
+    "commit": "a537d4c2c"
+   },
+   "local_copy": true,
+   "sha256": "14c4df3030c64cab375db559eafab56e8f2ad400cd98d101a9d32f1f22dc41df"
+  },
+  {
+   "path": "artifacts/cove50-fitted-shell/r1-20261027/hardware",
+   "used_by": [
+    "robot/body/torso"
+   ],
+   "indexed_files": 147,
+   "bytes": 3212716,
+   "local_copy": true,
+   "manifest_sha256": "59313011e682f1dba03d5c11e1e29a30ce3be2d147d371ca9a7da9c1bcff3bd4"
+  },
+  {
+   "path": "artifacts/cove50-fitted-shell/r1-20261027/panels/T01_chest.step",
+   "used_by": [
+    "robot/body/assembly",
+    "robot/body/torso"
+   ],
+   "indexed_files": 1,
+   "bytes": 2606012,
+   "local_copy": true,
+   "sha256": "f74742f530848891fc5b60a0687a14f0b8992a2340b810ffe69c1639983089c8"
+  },
+  {
+   "path": "artifacts/cove50-fitted-shell/r1-20261027/panels/T02_back.step",
+   "used_by": [
+    "robot/body/assembly",
+    "robot/body/torso"
+   ],
+   "indexed_files": 1,
+   "bytes": 2451559,
+   "local_copy": true,
+   "sha256": "2a2bb9268794aa99be23e9201d9d108e0389e5cb4a7dd79f5868da9a1caeab17"
+  },
+  {
+   "path": "artifacts/cove50-forward-walk/r2-20261026/rate-aware-replay-substep/summary.json",
+   "used_by": [
+    "robot/model/timestep"
+   ],
+   "indexed_files": 1,
+   "bytes": 5530,
+   "local_copy": true,
+   "sha256": "b5bc35e229f760751a49c0e652a6dfae54f191d6bec9605f1392a9cba29653a3"
+  },
+  {
+   "path": "artifacts/cove50-forward-walk/r2-20261026/rate-aware-replay/summary.json",
+   "used_by": [
+    "robot/model/timestep"
+   ],
+   "indexed_files": 1,
+   "bytes": 5167,
+   "local_copy": true,
+   "sha256": "8a51acf44bfd9966eec5ac51af30eecd872cbb9eb5cb451530732b9f325f55b6"
+  },
+  {
+   "path": "artifacts/cove50-forward-walk/r2-20261026/rate-reference-native-observations.json",
+   "used_by": [
+    "robot/model/timestep"
+   ],
+   "indexed_files": 1,
+   "bytes": 64656,
+   "local_copy": true,
+   "sha256": "f9ef44d65cd77de2df886ef435963986ddc320389bf03533d672d311fd684cd0"
+  },
+  {
+   "path": "artifacts/cove50-power-integration/internal-r33-20261025/installed-torso-r25",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 18,
+   "bytes": 522225287,
+   "producer": {
+    "folder": "robot/power-integration/cad/internal-r33-20261025",
+    "commit": "b46960e7b"
+   },
+   "local_copy": true,
+   "manifest_sha256": "d6740f22cfb53ba52e12fc88aca125bf1f80bbc0fd84d3d065cd9f81af8b03dd"
+  },
+  {
+   "path": "artifacts/cove50-power-integration/internal-r33-20261025/mounting-r2/frame-ownership-and-cell-revision-r1.json",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 33653,
+   "producer": {
+    "folder": "robot/power-integration/cad/internal-r33-20261025",
+    "commit": "b46960e7b"
+   },
+   "local_copy": true,
+   "sha256": "c4cad735bbe3ef3ebbceb893c811c69ae3ccdd3662478a4bcfaf32245ffd81b7"
+  },
+  {
+   "path": "artifacts/cove50-power-integration/selected-round-20261026/recovery/power-source.bundle",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 4795732,
+   "local_copy": false,
+   "sha256": "3bf86ea838171b392176435a8872d378ffc2682ffbd3e1c72cb94e817c176c1f"
+  },
+  {
+   "path": "artifacts/cove50-right-leg-shell/r14-20261029",
+   "used_by": [
+    "robot/body/leg"
+   ],
+   "indexed_files": 54,
+   "bytes": 46782017,
+   "local_copy": true,
+   "manifest_sha256": "98061e23563d5293dc223b3049dae3dbd3b820f21fe943923aebab43930d6485"
+  },
+  {
+   "path": "artifacts/cove50-right-leg-shell/r4-20261028/knee125/native",
+   "used_by": [
+    "robot/body/leg"
+   ],
+   "indexed_files": 43,
+   "bytes": 76230592,
+   "local_copy": true,
+   "manifest_sha256": "ce1edaa6e59c7db3baff61ee732a29365f58ab670526cbb01bc77392eae8f111"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 253,
+   "bytes": 589593458,
+   "local_copy": true,
+   "manifest_sha256": "823f256f4df557e57c2c345f2daf1ae346ceff2fbf7c045dd7e736dad109a088"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/interface.json",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 1678,
+   "local_copy": true,
+   "sha256": "34750e140f5811c7eb2e7c6467fa17bb76054488e115f29fd200c801b5a2744d"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/compact_neck_U_strap_v23.step",
+   "used_by": [
+    "robot/body/neck-head"
+   ],
+   "indexed_files": 1,
+   "bytes": 85156,
+   "local_copy": true,
+   "sha256": "7bdf1ccb86bce196fac5ae82eb2923c2b479ce43c55dfe64bab7e07adbcbfa5c"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/microphone_compact_tab_v23.step",
+   "used_by": [
+    "robot/body/neck-head"
+   ],
+   "indexed_files": 1,
+   "bytes": 181214,
+   "local_copy": true,
+   "sha256": "3ffcaac8ff79488ebbb67738158b76b8aec83c6bebbdee4f694652cece2571c1"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/single_shared_carrier_v23.step",
+   "used_by": [
+    "robot/body/neck-head"
+   ],
+   "indexed_files": 1,
+   "bytes": 228082,
+   "local_copy": true,
+   "sha256": "194fd854c3404c041f2de53866ad3dc2b68fd084cbfb55b2f22df8aebec20538"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/purchasable-sources-20261024",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 7,
+   "bytes": 20739958,
+   "local_copy": true,
+   "manifest_sha256": "ba5e3a2cd87d333b17100a1835b1fdd89abce03a448e7d13718ab56d97b68df2"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/selected-v24-20261026/sensor-bom.json",
+   "used_by": [
+    "robot/electronics/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 128504,
+   "local_copy": false,
+   "sha256": "07ebdec8291623955bd2141ef6c5555457c1d0f029b51dbb515146b077e23f18"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v1",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 19,
+   "bytes": 203097134,
+   "local_copy": true,
+   "manifest_sha256": "5fbf3fd253bf56d5b30ccf88abdbcdb121d91201a088e8d0bf2e8e4a5026567f"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v1/assembly.glb",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 1,
+   "bytes": 188086552,
+   "local_copy": false,
+   "sha256": "b765fd890aca4bcaaef52769f74d988f9527e6f55943fa51c9169ccc955ab1a1"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v17",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 142,
+   "bytes": 839815984,
+   "local_copy": true,
+   "manifest_sha256": "e9588acfc218c1450ffd16d1195bd8a30a9fc8adcc06c17327e5a4e5b543a769"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v2",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 50,
+   "bytes": 193610532,
+   "local_copy": true,
+   "manifest_sha256": "e01f4fbb5f883110ba2ad27b774ac0ea2fefdea919f7c1b23ab523d7cfe75a84"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v2/parts/sensor_spine_two_hole_proposal.step",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 1,
+   "bytes": 261893,
+   "local_copy": false,
+   "sha256": "b13806a24ec8969f9786f9b9bca5ec66affd3c82620f4e244954f6a1d7741b13"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v20/optical-summary.json",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 1823,
+   "local_copy": true,
+   "sha256": "3e638d7caaf4ceda9168f514593713fc8996aacebd94f9c58bddcd52d2a3fa1f"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v21/parts/fixed_neck_ribbon_anchor_v21.step",
+   "used_by": [
+    "robot/body/neck-head"
+   ],
+   "indexed_files": 1,
+   "bytes": 133808,
+   "local_copy": true,
+   "sha256": "6db139491bdf1116fbee4ee1d84416c1a66386f52646805dff1d0a3702612aaa"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v4",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 163,
+   "bytes": 299752019,
+   "local_copy": true,
+   "manifest_sha256": "c5854a1f09b1c91a9def6a6b4f27109098f96a2b16bd8792fd7ed4117449e1fe"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v6/assembly-parts.json",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 1,
+   "bytes": 1127175,
+   "local_copy": false,
+   "sha256": "03289a353e64336d11f812236bf2e117272b3013935d1369ef6746b7a96b46e1"
+  },
+  {
+   "path": "artifacts/cove50-sensor-integration/v7",
+   "used_by": [
+    "robot/electronics/sensing"
+   ],
+   "indexed_files": 573,
+   "bytes": 1405680384,
+   "local_copy": true,
+   "manifest_sha256": "d441be00e02cc38f3afd139ec4b2f235e092a1d5601fa3a00e2b6d3ac6369f4b"
+  },
+  {
+   "path": "artifacts/cove50-strength/connector-review-20261024/connector-review.json",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 1,
+   "bytes": 407108,
+   "local_copy": false,
+   "sha256": "ad1c78151b5d00466bb8e04d603c0d04ea227bbf6b670bf1aadcdfa1dff855d6"
+  },
+  {
+   "path": "artifacts/policies/checkpoints",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 0,
+   "local_copy": false,
+   "bytes": 0,
+   "note": "not in the bucket; read only by the first model stage validation, which cannot run"
+  },
+  {
+   "path": "artifacts/policies/checkpoints/frame50_catalog_motor_walk.pt",
+   "used_by": [
+    "robot/model/build"
+   ],
+   "indexed_files": 0,
+   "local_copy": false,
+   "bytes": 0,
+   "note": "not in the bucket; read only by the first model stage validation, which cannot run"
+  }
+ ]
+}

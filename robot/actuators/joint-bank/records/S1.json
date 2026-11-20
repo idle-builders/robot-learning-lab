@@ -1,0 +1,30 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "S1",
+  "region": "shoulder",
+  "name": "Direct compact shoulder module",
+  "architecture": "direct_module",
+  "maturity": "source_only",
+  "summary": "OP3 and K-Bot direct shoulder patterns retained for comparison.",
+  "source_record_ids": [
+    "RO-OP3-17-SHOULDER",
+    "KSCALE-KBOT-KD-SHOULDER-PITCH"
+  ],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "grammar",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/draft/joint-box.json",
+      "sha256": "fe806f65873cdfd1f18d44556ad17f096fd3dcb959260a2ddff272a8b8ac4d83"
+    }
+  ],
+  "limits": [
+    "No source-registered Cove-50 shoulder CAD or load path."
+  ]
+}

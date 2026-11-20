@@ -1,0 +1,73 @@
+{
+  "schema": "cove50.numerical-revision-source-lock.v1",
+  "version": "r3-20261026",
+  "parent_source_lock": {
+    "path": "artifacts/robot/model/collisions/source-lock.json",
+    "sha256": "1378b785dbb47402198f266b31215d62aa171a9951212af93cca8b43c9a014c0",
+    "bytes": 2615
+  },
+  "inputs": {
+    "path": "artifacts/robot/model/timestep/revision-inputs.json",
+    "sha256": "b2de9dbdbc6e38a4fbc5aeabd1ed92d727e26bf392d24ef73e617c95e62838e3",
+    "bytes": 3143
+  },
+  "authored_sources": [
+    {
+      "path": "robot/model/timestep/common.py",
+      "sha256": "d6fdee24fdfd9b77b218ed78b65cd1afb063187ad5850bc21d3d23efefc94b6b",
+      "bytes": 2682
+    },
+    {
+      "path": "robot/model/timestep/mjlab_adapter.py",
+      "sha256": "50b5620cee203c95c935cbba9fc96d80fc34bb7e9f221ba97e3053bfb2e25d0a",
+      "bytes": 3800
+    },
+    {
+      "path": "robot/model/timestep/package.py",
+      "sha256": "11e013861b9f134c12b893f3dcc5de82e3dfe92bb3e91bdccb5c28ef44b8f5a1",
+      "bytes": 3804
+    },
+    {
+      "path": "robot/model/timestep/portable.py",
+      "sha256": "10b4cad85aad75dad6e7f392cc94a1ecd1bf967e86bb61ead7f2e0114d07a465",
+      "bytes": 2562
+    },
+    {
+      "path": "robot/model/timestep/revise.py",
+      "sha256": "56f96f6124a4715ae43f97657c83c7a7cacb9b372792fca29e959fcffe89ef3a",
+      "bytes": 9674
+    },
+    {
+      "path": "robot/model/timestep/runtime.py",
+      "sha256": "b063b7badb50129db6555d48aa62891b0d5fa9d885b233c48bd0cb992679d8a1",
+      "bytes": 9672
+    }
+  ],
+  "models": [
+    {
+      "path": "artifacts/robot/model/timestep/cove50.urdf",
+      "sha256": "8efcbf89f2949729ec78473d431c8a130a6bcf54164d961fbfad96c46eb58a02",
+      "bytes": 334157
+    },
+    {
+      "path": "artifacts/robot/model/timestep/cove50.ros.urdf",
+      "sha256": "9d3afdc57e606abed4673c65a445d3a221b1d7218515cf9c446408b0c8363668",
+      "bytes": 375958
+    },
+    {
+      "path": "artifacts/robot/model/timestep/cove50-rigid.xml",
+      "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+      "bytes": 393229
+    },
+    {
+      "path": "artifacts/robot/model/timestep/cove50-compliant.xml",
+      "sha256": "6c03d5f007772f3f8e75958880cdc9d4c25fbd26c6c4569ec2022f8cddf76148",
+      "bytes": 467084
+    }
+  ],
+  "validation": {
+    "path": "artifacts/robot/model/timestep/native-revision-validation.json",
+    "sha256": "b1c39b42bea42c0717e00971877882ca32b8e6d57f081a24ce41478d77f9200f",
+    "bytes": 6263
+  }
+}

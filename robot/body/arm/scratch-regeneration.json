@@ -1,0 +1,39 @@
+{
+  "schema": "robot-learning-lab.scratch-regeneration.v1",
+  "study": "robot/body/arm",
+  "artifacts": "artifacts/robot/body/arm",
+  "retained_native_evidence": [
+    "*/assembly-with-full-shell.glb",
+    "*/assembly-parts.json",
+    "*/manifest.json",
+    "*/cad-manifest.json",
+    "*/connectors-bilateral.step",
+    "*/parts/*.step",
+    "*/meshes/*.npz",
+    "*/renders/*.png",
+    "shell_hardware/*.step",
+    "shell_hardware/*.npz",
+    "topopt/*.npz",
+    "topopt/*-report.json",
+    "*.json",
+    "renders/*.png"
+  ],
+  "disposable_derived_outputs_removed": [
+    "*/parts/*.stl",
+    "*/meshes/*.stl",
+    "test_s3_truss_box.npz",
+    "test_s3_truss_box.step",
+    "zbuffer_renderer_bin",
+    "*/*-r6-*.json",
+    "*/*-r7-*.json",
+    "*/*-r8-*.json",
+    "*/*-r9-*.json",
+    "*/*-r10-*.json",
+    "*/*-r11-*.json"
+  ],
+  "regeneration_commands": {
+    "all_part_stls": ".venv/bin/python robot/body/arm/regenerate_derived.py --all-stls",
+    "single_part_stl": ".venv/bin/python robot/body/arm/regenerate_derived.py --step <PATH_TO_STEP> --output <OUTPUT_STL>",
+    "all_arm_glbs_and_renders": ".venv/bin/python robot/body/arm/package_and_render.py"
+  }
+}

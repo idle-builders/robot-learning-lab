@@ -1,0 +1,834 @@
+{
+  "schema": "cove50.forward-stop-worker-plan.v1",
+  "job_name": "cove50-forward-stop-20261030-r2",
+  "status": "source_frozen_awaiting_root_release",
+  "configuration": {
+    "path": "control/skills/forward-stop-learning/setup/config.json",
+    "sha256": "64305a109be32c18501379d11ad14a18d98cc588d3b0a5a09ecc0a7ff9e7541e",
+    "bytes": 6689
+  },
+  "source_seal": {
+    "path": "data/forward-stop-learning-20261030/source-seal.json",
+    "sha256": "6973061ddb46853aac2a1e369168be209612889eadfb1b4eb7f6dbd6190d61c4",
+    "bytes": 792
+  },
+  "worker_seal": {
+    "path": "data/forward-stop-learning-20261030/worker-seal.json",
+    "sha256": "9ca20409748fa469b3326b5073ffbcabecc4c647e1f25e5c2f368eb760d04093",
+    "bytes": 3352
+  },
+  "cases": [
+    {
+      "name": "before-forward30-230101",
+      "mode": "replay",
+      "profile": "forward30",
+      "seed": 230101,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-forward25-230101",
+      "mode": "replay",
+      "profile": "forward25",
+      "seed": 230101,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-short-stop-230101",
+      "mode": "replay",
+      "profile": "short-stop",
+      "seed": 230101,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 150,
+        "native_physics_steps": 12000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-long-stop-230101",
+      "mode": "replay",
+      "profile": "long-stop",
+      "seed": 230101,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 300,
+        "native_physics_steps": 24000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-quiet-230101",
+      "mode": "replay",
+      "profile": "quiet",
+      "seed": 230101,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-forward30-230102",
+      "mode": "replay",
+      "profile": "forward30",
+      "seed": 230102,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-forward25-230102",
+      "mode": "replay",
+      "profile": "forward25",
+      "seed": 230102,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-short-stop-230102",
+      "mode": "replay",
+      "profile": "short-stop",
+      "seed": 230102,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 150,
+        "native_physics_steps": 12000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-long-stop-230102",
+      "mode": "replay",
+      "profile": "long-stop",
+      "seed": 230102,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 300,
+        "native_physics_steps": 24000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "before-quiet-230102",
+      "mode": "replay",
+      "profile": "quiet",
+      "seed": 230102,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "train50",
+      "mode": "train",
+      "seed": 230300,
+      "checkpoint": "baseline200",
+      "planned": {
+        "simulator_transitions": 38400,
+        "native_physics_steps": 3072000,
+        "optimizer_steps": 1000,
+        "ppo_rounds": 50
+      }
+    },
+    {
+      "name": "after-forward30-230101",
+      "mode": "replay",
+      "profile": "forward30",
+      "seed": 230101,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-forward25-230101",
+      "mode": "replay",
+      "profile": "forward25",
+      "seed": 230101,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-short-stop-230101",
+      "mode": "replay",
+      "profile": "short-stop",
+      "seed": 230101,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 150,
+        "native_physics_steps": 12000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-long-stop-230101",
+      "mode": "replay",
+      "profile": "long-stop",
+      "seed": 230101,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 300,
+        "native_physics_steps": 24000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-quiet-230101",
+      "mode": "replay",
+      "profile": "quiet",
+      "seed": 230101,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-forward30-230102",
+      "mode": "replay",
+      "profile": "forward30",
+      "seed": 230102,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-forward25-230102",
+      "mode": "replay",
+      "profile": "forward25",
+      "seed": 230102,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-short-stop-230102",
+      "mode": "replay",
+      "profile": "short-stop",
+      "seed": 230102,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 150,
+        "native_physics_steps": 12000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-long-stop-230102",
+      "mode": "replay",
+      "profile": "long-stop",
+      "seed": 230102,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 300,
+        "native_physics_steps": 24000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    },
+    {
+      "name": "after-quiet-230102",
+      "mode": "replay",
+      "profile": "quiet",
+      "seed": 230102,
+      "checkpoint": "challenger250",
+      "planned": {
+        "simulator_transitions": 400,
+        "native_physics_steps": 32000,
+        "optimizer_steps": 0,
+        "ppo_rounds": 0
+      }
+    }
+  ],
+  "children": [
+    {
+      "name": "hardware",
+      "process_s": 30,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "bootstrap",
+      "process_s": 600,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-forward30-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-forward25-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-short-stop-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-long-stop-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-quiet-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-forward30-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-forward25-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-short-stop-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-long-stop-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "before-quiet-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "train50",
+      "process_s": 1800,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-forward30-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-forward25-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-short-stop-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-long-stop-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-quiet-230101",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-forward30-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-forward25-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-short-stop-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-long-stop-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    },
+    {
+      "name": "after-quiet-230102",
+      "process_s": 180,
+      "join_s": 15,
+      "pack_s": 20
+    }
+  ],
+  "hard_deadline_s": 7800,
+  "transport_reserve_s": 640,
+  "slack_s": 325,
+  "absolute_ttl_safety_s": 120,
+  "provider_policy": {
+    "executionTimeout": 8400000,
+    "ttl": 10800000
+  },
+  "completion_sidecar": {
+    "schema": "robot-learning-lab.completion-protocol.v1",
+    "completion_bytes_max": 1048576,
+    "final_pack_bytes_max": 1073741824,
+    "final_members_max": 4096,
+    "endgame_operations": 3,
+    "net_added_operations": 2,
+    "additional_reserve_s": 240,
+    "sidecar_conditional_create": true,
+    "maximum_automatic_retries": 0
+  },
+  "helpers": {
+    "sidecar": {
+      "path": "data/basic-skills-retry-20261029/arm-short-entry-curriculum-compute-r2/sidecar.py",
+      "sha256": "dc7f2cf62157a7547fc22ca1cc70d5655390ed9a749337e0e691dab9790e9ff4",
+      "bytes": 14892
+    },
+    "transport": {
+      "path": "control/common/compute/transport.py",
+      "sha256": "875ac8661969fe7cd5be4765911284afa2d82c29eac7f6c8c4af0eaefd88eec8",
+      "bytes": 1056
+    }
+  },
+  "dependency_manifest": {
+    "path": "data/forward-urdf-retry-20261026/compute/fit-bundle-r2/manifest.json",
+    "sha256": "9b70cf74ee85a1b1e5f2335fad36a148fb2251d4b1f64e366efaf960aff75dbe",
+    "bytes": 421051
+  },
+  "library_sources": [
+    {
+      "bytes": 44342,
+      "local_source_provenance": {
+        "bytes": 44342,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/entity/entity.py",
+        "sha256": "817896ec3ce69c8ef18cb3d8e2519b85d1db25f70126af5e643c34a0b054e572"
+      },
+      "module": "mjlab/entity/entity.py",
+      "sha256": "817896ec3ce69c8ef18cb3d8e2519b85d1db25f70126af5e643c34a0b054e572"
+    },
+    {
+      "bytes": 22061,
+      "local_source_provenance": {
+        "bytes": 22061,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/envs/manager_based_rl_env.py",
+        "sha256": "a381027e336d6313cd338d541230b36864657edac89708a33e7e60c0c6fb74d2"
+      },
+      "module": "mjlab/envs/manager_based_rl_env.py",
+      "sha256": "a381027e336d6313cd338d541230b36864657edac89708a33e7e60c0c6fb74d2"
+    },
+    {
+      "bytes": 21084,
+      "local_source_provenance": {
+        "bytes": 21084,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/envs/mdp/events.py",
+        "sha256": "fde5dae70acef17af1a22177c6e0fa44426873ccab79f56bb545cf53ebbb2ef3"
+      },
+      "module": "mjlab/envs/mdp/events.py",
+      "sha256": "fde5dae70acef17af1a22177c6e0fa44426873ccab79f56bb545cf53ebbb2ef3"
+    },
+    {
+      "bytes": 3900,
+      "local_source_provenance": {
+        "bytes": 3900,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/envs/mdp/observations.py",
+        "sha256": "493aab813b211cd25e173ef7072637b9a7e988eaed7ce4ec31130ee4497ff09f"
+      },
+      "module": "mjlab/envs/mdp/observations.py",
+      "sha256": "493aab813b211cd25e173ef7072637b9a7e988eaed7ce4ec31130ee4497ff09f"
+    },
+    {
+      "bytes": 5473,
+      "local_source_provenance": {
+        "bytes": 5473,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/envs/mdp/rewards.py",
+        "sha256": "02e42a1e15dc1a27a0cce4e3d2863a165094914118789a1ec4cfbf6ed97a9c60"
+      },
+      "module": "mjlab/envs/mdp/rewards.py",
+      "sha256": "02e42a1e15dc1a27a0cce4e3d2863a165094914118789a1ec4cfbf6ed97a9c60"
+    },
+    {
+      "bytes": 6733,
+      "local_source_provenance": {
+        "bytes": 6733,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/managers/action_manager.py",
+        "sha256": "fec79f933fd9437dc9fcb784e4f214b9bae4aad2252c2d2d1387b11b605a5332"
+      },
+      "module": "mjlab/managers/action_manager.py",
+      "sha256": "fec79f933fd9437dc9fcb784e4f214b9bae4aad2252c2d2d1387b11b605a5332"
+    },
+    {
+      "bytes": 19549,
+      "local_source_provenance": {
+        "bytes": 19549,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/managers/observation_manager.py",
+        "sha256": "db9feb383786b4b144efc8cc71c9a9804b6611b3d148b6ceed283cd66eef53a8"
+      },
+      "module": "mjlab/managers/observation_manager.py",
+      "sha256": "db9feb383786b4b144efc8cc71c9a9804b6611b3d148b6ceed283cd66eef53a8"
+    },
+    {
+      "bytes": 8478,
+      "local_source_provenance": {
+        "bytes": 8478,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/managers/recorder_manager.py",
+        "sha256": "29ed529ffa77d8a70108d44ae9235ba8f2fd20ea309e0c522e52f76a8523d2b6"
+      },
+      "module": "mjlab/managers/recorder_manager.py",
+      "sha256": "29ed529ffa77d8a70108d44ae9235ba8f2fd20ea309e0c522e52f76a8523d2b6"
+    },
+    {
+      "bytes": 5903,
+      "local_source_provenance": {
+        "bytes": 5903,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/managers/reward_manager.py",
+        "sha256": "8d1679cc4b0581dc0000493e0a661f3976c5f9c54f800bd825aee340a685f2a7"
+      },
+      "module": "mjlab/managers/reward_manager.py",
+      "sha256": "8d1679cc4b0581dc0000493e0a661f3976c5f9c54f800bd825aee340a685f2a7"
+    },
+    {
+      "bytes": 5156,
+      "local_source_provenance": {
+        "bytes": 5156,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/rl/runner.py",
+        "sha256": "61e9200bf304e3df71096cd69f28f4d5973157e61cdc549fc21b6f156326f77e"
+      },
+      "module": "mjlab/rl/runner.py",
+      "sha256": "61e9200bf304e3df71096cd69f28f4d5973157e61cdc549fc21b6f156326f77e"
+    },
+    {
+      "bytes": 3053,
+      "local_source_provenance": {
+        "bytes": 3053,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/rl/vecenv_wrapper.py",
+        "sha256": "d458aa421d72c979d0269a24e51a4b49a02e4ec8cb5a9d10e47290aa5d86a3e2"
+      },
+      "module": "mjlab/rl/vecenv_wrapper.py",
+      "sha256": "d458aa421d72c979d0269a24e51a4b49a02e4ec8cb5a9d10e47290aa5d86a3e2"
+    },
+    {
+      "bytes": 20557,
+      "local_source_provenance": {
+        "bytes": 20557,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/sensor/contact_sensor.py",
+        "sha256": "7b9df6a56df48ca93749abb627177e0670c35fe111fd5fe47bdf287cea86068d"
+      },
+      "module": "mjlab/sensor/contact_sensor.py",
+      "sha256": "7b9df6a56df48ca93749abb627177e0670c35fe111fd5fe47bdf287cea86068d"
+    },
+    {
+      "bytes": 29974,
+      "local_source_provenance": {
+        "bytes": 29974,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/sensor/raycast_sensor.py",
+        "sha256": "f8f4a02d87d9befe04586f217ca9f578f0514559cc775bb9873d09288d8055df"
+      },
+      "module": "mjlab/sensor/raycast_sensor.py",
+      "sha256": "f8f4a02d87d9befe04586f217ca9f578f0514559cc775bb9873d09288d8055df"
+    },
+    {
+      "bytes": 3204,
+      "local_source_provenance": {
+        "bytes": 3204,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/sensor/terrain_height_sensor.py",
+        "sha256": "18a7b190a01fe57cf1e2dcf597dedc3da410eef1d571f4ae000edb6a68e5d692"
+      },
+      "module": "mjlab/sensor/terrain_height_sensor.py",
+      "sha256": "18a7b190a01fe57cf1e2dcf597dedc3da410eef1d571f4ae000edb6a68e5d692"
+    },
+    {
+      "bytes": 1504,
+      "local_source_provenance": {
+        "bytes": 1504,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/tasks/velocity/mdp/observations.py",
+        "sha256": "4e56cefa6481c42e641902cc124cfdd02c3c92b45d8b294253aad0fc87ec9134"
+      },
+      "module": "mjlab/tasks/velocity/mdp/observations.py",
+      "sha256": "4e56cefa6481c42e641902cc124cfdd02c3c92b45d8b294253aad0fc87ec9134"
+    },
+    {
+      "bytes": 17110,
+      "local_source_provenance": {
+        "bytes": 17110,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/tasks/velocity/mdp/rewards.py",
+        "sha256": "5149776c24c8499c05c1f4941a295647779867efd645f78be02408fd85c96dfb"
+      },
+      "module": "mjlab/tasks/velocity/mdp/rewards.py",
+      "sha256": "5149776c24c8499c05c1f4941a295647779867efd645f78be02408fd85c96dfb"
+    },
+    {
+      "bytes": 11815,
+      "local_source_provenance": {
+        "bytes": 11815,
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/tasks/velocity/mdp/velocity_command.py",
+        "sha256": "b4c60a2c061946fbfafb324e4c6d3d035411a34d2b3b22a0202ea8ab2d20acaf"
+      },
+      "module": "mjlab/tasks/velocity/mdp/velocity_command.py",
+      "sha256": "b4c60a2c061946fbfafb324e4c6d3d035411a34d2b3b22a0202ea8ab2d20acaf"
+    },
+    {
+      "bytes": 339338,
+      "local_source_provenance": {
+        "bytes": 339338,
+        "path": ".venv-control/src/microduck_rl/src/mjlab_microduck/tasks/mdp.py",
+        "sha256": "f62b79259e1c34468a93d0c036e2960c6a3251ba319eaf8d82bdeb24f89105fc"
+      },
+      "module": "mjlab_microduck/tasks/mdp.py",
+      "sha256": "f62b79259e1c34468a93d0c036e2960c6a3251ba319eaf8d82bdeb24f89105fc"
+    },
+    {
+      "bytes": 24729,
+      "local_source_provenance": {
+        "bytes": 24729,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/algorithms/ppo.py",
+        "sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+      },
+      "module": "rsl_rl/algorithms/ppo.py",
+      "sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+    },
+    {
+      "bytes": 10334,
+      "local_source_provenance": {
+        "bytes": 10334,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/models/mlp_model.py",
+        "sha256": "6219ebb3ed4df036dae7ff1c30d0fbb169eaaa659e44a659dd757a292124476b"
+      },
+      "module": "rsl_rl/models/mlp_model.py",
+      "sha256": "6219ebb3ed4df036dae7ff1c30d0fbb169eaaa659e44a659dd757a292124476b"
+    },
+    {
+      "bytes": 12222,
+      "local_source_provenance": {
+        "bytes": 12222,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/modules/distribution.py",
+        "sha256": "4631eae1939dcd6b065d79c3c0128a88ba2c6126d08f46944c8795682a208a1b"
+      },
+      "module": "rsl_rl/modules/distribution.py",
+      "sha256": "4631eae1939dcd6b065d79c3c0128a88ba2c6126d08f46944c8795682a208a1b"
+    },
+    {
+      "bytes": 4673,
+      "local_source_provenance": {
+        "bytes": 4673,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/modules/normalization.py",
+        "sha256": "539e1193cebcc472585cd3df100946fb8d788c4aa0f9f5cbcb3387a64d312926"
+      },
+      "module": "rsl_rl/modules/normalization.py",
+      "sha256": "539e1193cebcc472585cd3df100946fb8d788c4aa0f9f5cbcb3387a64d312926"
+    },
+    {
+      "bytes": 10316,
+      "local_source_provenance": {
+        "bytes": 10316,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/runners/on_policy_runner.py",
+        "sha256": "39358a0a60219fdb360df7acddf80f6a382837aa58e2ec0ccf875df4afee4825"
+      },
+      "module": "rsl_rl/runners/on_policy_runner.py",
+      "sha256": "39358a0a60219fdb360df7acddf80f6a382837aa58e2ec0ccf875df4afee4825"
+    },
+    {
+      "bytes": 16640,
+      "local_source_provenance": {
+        "bytes": 16640,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/storage/rollout_storage.py",
+        "sha256": "ececf28e7412d24867066829cc443acae811f034f8e63975b90343947779918d"
+      },
+      "module": "rsl_rl/storage/rollout_storage.py",
+      "sha256": "ececf28e7412d24867066829cc443acae811f034f8e63975b90343947779918d"
+    },
+    {
+      "bytes": 15977,
+      "local_source_provenance": {
+        "bytes": 15977,
+        "path": ".venv-control/lib/python3.12/site-packages/rsl_rl/utils/utils.py",
+        "sha256": "4d094c17e54ab09a0d37b14711157f638f0bd929d0f1b49a3f89b4c8fc67caaa"
+      },
+      "module": "rsl_rl/utils/utils.py",
+      "sha256": "4d094c17e54ab09a0d37b14711157f638f0bd929d0f1b49a3f89b4c8fc67caaa"
+    },
+    {
+      "bytes": 39416,
+      "local_source_provenance": {
+        "bytes": 39416,
+        "path": ".venv-control/lib/python3.12/site-packages/torch/optim/adam.py",
+        "sha256": "b099132d262d6cb16eefa48ab4bae789a0655cafb8571e421ef4fe3d2ff7c34c"
+      },
+      "module": "torch/optim/adam.py",
+      "sha256": "b099132d262d6cb16eefa48ab4bae789a0655cafb8571e421ef4fe3d2ff7c34c"
+    },
+    {
+      "bytes": 49898,
+      "local_source_provenance": {
+        "bytes": 49898,
+        "path": ".venv-control/lib/python3.12/site-packages/torch/optim/optimizer.py",
+        "sha256": "71c46defba9abbc4831b328ddcc7db8e7771cc28da7a550c01820da70f7c5dad"
+      },
+      "module": "torch/optim/optimizer.py",
+      "sha256": "71c46defba9abbc4831b328ddcc7db8e7771cc28da7a550c01820da70f7c5dad"
+    },
+    {
+      "module": "mjlab/managers/command_manager.py",
+      "sha256": "2d4c81aa5f62172cb0dacf6b534341f4b09b017180ddd7c1987cb0730dd21fd0",
+      "bytes": 10092,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/managers/command_manager.py",
+        "sha256": "2d4c81aa5f62172cb0dacf6b534341f4b09b017180ddd7c1987cb0730dd21fd0",
+        "bytes": 10092
+      }
+    },
+    {
+      "module": "mujoco_warp/_src/types.py",
+      "sha256": "8f0b19d7b2bc039a419fa547ba6b732837327c0735f688ad34ace5afc4843e50",
+      "bytes": 85998,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/mujoco_warp/_src/types.py",
+        "sha256": "8f0b19d7b2bc039a419fa547ba6b732837327c0735f688ad34ace5afc4843e50",
+        "bytes": 85998
+      }
+    },
+    {
+      "module": "mjlab/sim/sim_data.py",
+      "sha256": "bc73da4811fc44336f9016d826ef1b2044b8cb0830f2ad01a06b9b84ffa8b4c6",
+      "bytes": 7633,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/sim/sim_data.py",
+        "sha256": "bc73da4811fc44336f9016d826ef1b2044b8cb0830f2ad01a06b9b84ffa8b4c6",
+        "bytes": 7633
+      }
+    },
+    {
+      "module": "mjlab/sim/sim.py",
+      "sha256": "2a8561e52d019b202cf105a6512abfdd8068701dafe321f43bbae96e346b2c68",
+      "bytes": 15218,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/mjlab/sim/sim.py",
+        "sha256": "2a8561e52d019b202cf105a6512abfdd8068701dafe321f43bbae96e346b2c68",
+        "bytes": 15218
+      }
+    },
+    {
+      "module": "torch/serialization.py",
+      "sha256": "7fe6755ba65409b510e75e0435a33f444c893a82ea817ff618a5be5943298a3c",
+      "bytes": 85086,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/torch/serialization.py",
+        "sha256": "7fe6755ba65409b510e75e0435a33f444c893a82ea817ff618a5be5943298a3c",
+        "bytes": 85086
+      }
+    },
+    {
+      "module": "torch/_weights_only_unpickler.py",
+      "sha256": "76b2eafeda2078538987d5cf18e99d6371b2f747eb4f059a513fcf0ef81cf10e",
+      "bytes": 22378,
+      "local_source_provenance": {
+        "path": ".venv-control/lib/python3.12/site-packages/torch/_weights_only_unpickler.py",
+        "sha256": "76b2eafeda2078538987d5cf18e99d6371b2f747eb4f059a513fcf0ef81cf10e",
+        "bytes": 22378
+      }
+    },
+    {
+      "module": "rsl_rl/utils/logger.py",
+      "sha256": "d9822d8317724507a7c817e85399db0db9e56a4eae959435138e75cf92e44b8d",
+      "bytes": 13933
+    }
+  ],
+  "planned": {
+    "controls": 45000,
+    "physics": 3600000,
+    "adam_calls": 1000,
+    "new_weight_sets": 1
+  },
+  "root_release_required": true,
+  "native_source_review": {
+    "path": "data/forward-stop-learning-20261030-independent/native-source-review.json",
+    "sha256": "d01fb90d78786fff9cde1554cddf53b47e5d3ca8b32eac9f0f1567f29d6719fc",
+    "bytes": 9450
+  },
+  "dictionary_cache_fixture": {
+    "path": "data/forward-stop-learning-20261030-independent/prove_dict_cache.py",
+    "sha256": "e6e123a8fdda524bfa7ca659f0a394da8a58680a5d94bb9c3e336552baa4b67e",
+    "bytes": 5898
+  },
+  "operational_repair_review": {
+    "path": "data/forward-stop-learning-20261030-independent/r2-operational-repair-review.json",
+    "sha256": "9d2877aee7a3a363ccb89b3c38b24a590742a9265558f270c6967bbfbda19a3f",
+    "bytes": 6091
+  },
+  "first_inspection_after_s": 900,
+  "minimum_inspection_spacing_s": 900,
+  "maximum_foreground_inspections": 8,
+  "source_only_proof": "Exact extracted worker imports its own native entry/schedule and commands; no path-preloaded checkout substitute. Actual CUDA/dependency attestation later is a counted zero-native bootstrap child.",
+  "storage": "Managed attached local session preserves active materialization through local consumers-complete; timeout/interrupt signals wrapper INTERRUPTED path. Work/evidence UUID is late-bound by infra/lab storage run."
+}

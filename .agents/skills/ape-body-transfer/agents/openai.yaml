@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ape Body Transfer"
+  short_description: "Compare ape bodies through physics and control"
+  default_prompt: "Use $ape-body-transfer to evaluate a body change against the retained ape control baseline."

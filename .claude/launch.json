@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "results-hub",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["infra/dashboard/results_hub.py", "serve"],
+      "port": 8805
+    }
+  ]
+}

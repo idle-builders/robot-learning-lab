@@ -1,0 +1,10 @@
+{
+  "_doc": "Fit classes and the elephant-foot settings read by modules/fits.py. clearance_mm = the interface's minimum distance at standing (positive = gap, negative = interference depth); a class band is [min, max]. The bands are REFERENCE VALUES for FDM parts of CF nylon / PETG-CF at 0.4 mm nozzle (printed-fit rules of thumb: 0.1-0.2 mm per side for sliding fits, 0.3-0.5 for loose, about 0.1 mm interference for press), NOT measured on this printer: replace them with the coupon results of the printer and material (printers.json coupon offsets) and set 'source' accordingly. A mating pair gets its class in part_settings.json: <part>.fit_classes = {<mating part>: <class>} (either part of the pair may carry it). Pairs closer than pair_radius_mm with no class are counted as coverage, not judged. elephant_foot: zone_mm = height above the bed that is looked at; mate_mm = a wall closer than this to another part at standing is a mating face; chamfer_min_mm = bed-edge inset at zone_mm that counts as a chamfer (catalogue: 0.2-0.5 mm).",
+  "pair_radius_mm": 1.0,
+  "classes": {
+    "press": {"min_mm": -0.15, "max_mm": 0.0, "source": "reference value, untested on this printer"},
+    "slide": {"min_mm": 0.15, "max_mm": 0.35, "source": "reference value, untested on this printer"},
+    "loose": {"min_mm": 0.35, "max_mm": 0.8, "source": "reference value, untested on this printer"}
+  },
+  "elephant_foot": {"zone_mm": 0.5, "mate_mm": 0.3, "chamfer_min_mm": 0.2, "sample_mm": 0.5}
+}

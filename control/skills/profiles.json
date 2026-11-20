@@ -1,0 +1,766 @@
+{
+  "schema": "robot-learning-lab.ape-current-model-skills.v1",
+  "model_pointer": {
+    "path": "robot/model/current-model.json",
+    "sha256": "90047e5864b434b889606939ccfc0891191ff5684b344bf4bd337c64ac441685",
+    "bytes": 3252
+  },
+  "selected_model_version": "r3-urdf-visual-r1-20261026",
+  "native_model": {
+    "path": "artifacts/robot/model/timestep/cove50-rigid.xml",
+    "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+    "bytes": 393229
+  },
+  "scope": "Observed simulator components on the selected body. Profiles may reuse one checkpoint. This record does not imply physical qualification or automatic policy promotion.",
+  "campaign_result": "cove50-basic-skills-retry-20261027",
+  "campaign_inventory": "data/basic-skills-retry-20261027/inventory.json",
+  "profiles": [
+    {
+      "id": "r3-forward-walk",
+      "kind": "reused_and_ppo_adapted_policy",
+      "checkpoint": {
+        "path": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026/evidence/fit-through-200/candidate.pt",
+        "sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/walker/",
+      "observation": "81 values; original actor72 prefix plus nine current-axis features; delayed sensor packet and actual raw-action history.",
+      "action": "24 raw values map through the named Interface to 22 joint targets; exact selected Runtime supplies bounded torques.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": {
+        "vx_m_s": 0.3,
+        "vy_m_s": 0,
+        "wz_rad_s": 0
+      },
+      "evidence": "cove50-forward-actor-value-fit-20261026",
+      "observed_entry": "Two fresh randomized upright families from the retained walking recipe.",
+      "behavior": "Eight seconds of alternating supported steps; 1.277\u20131.329 m forward and 0.433\u20130.575 m lateral travel.",
+      "limitations": "Flat nominal simulation; imperfect speed and yaw tracking; no disturbance recovery or physical robot trial.",
+      "training_command_exposure": {
+        "vx_m_s": [
+          0.2,
+          0.45
+        ],
+        "vy_m_s": [
+          0.0,
+          0.0
+        ],
+        "yaw_rate_rad_s": [
+          -0.35,
+          0.35
+        ],
+        "standing_fraction": 0.1,
+        "command_resampling_s": [
+          3.0,
+          8.0
+        ],
+        "scope": "Executed candidate200 training included signed curved and standing commands. Dedicated turning and attained-state stop results are published separately; training exposure alone does not establish competence.",
+        "source_audit": "data/basic-skills-retry-20261027/gait-source-audit/report.json"
+      }
+    },
+    {
+      "id": "r3-quiet-stand",
+      "kind": "zero_update_reuse_of_same_adapted_policy",
+      "checkpoint": {
+        "path": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026/evidence/fit-through-200/candidate.pt",
+        "sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/basic-skills/walker_zero.py:Walker",
+      "source_proof": {
+        "path": "data/basic-skills-retry-20261027/stand/source-proof.json",
+        "sha256": "fbd827696f2e671752e82ac5864cbb056e7de2f6235e21baccd1e85685acece9",
+        "bytes": 17079
+      },
+      "observation": "Exact walking actor81 and actual raw24 history. Command yaw-rate slot71 is not a heading estimate.",
+      "action": "Exact walking Interface.target into22 targets; no posture decoder, output filter or authority substitution.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": {
+        "vx_m_s": 0,
+        "vy_m_s": 0,
+        "wz_rad_s": 0
+      },
+      "evidence": "cove50-basic-standing-retry-20261027",
+      "observed_entry": "Four fresh CAD-neutral upright starts 137301\u2013137304, with the predefined small pose and joint-speed variations in stand.json. This does not validate every state in a continuous envelope.",
+      "behavior": "Eight seconds of quiet stance in each fresh start; maximum root drift 7.2\u201312.5 mm; sampled two-foot contact 99.5\u2013100%; no sampled nonfoot support.",
+      "new_optimizer_updates": 0,
+      "new_checkpoints": 0,
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/stand/native-preservation-receipt.json",
+      "limitations": "This profile covers standing from documented reset families; attained-state walking-to-zero is separate. Four reused families also have34s quiet observations listed separately. No push recovery, lowered entry or physical-robot trial. The fixed servo reference and failed posture composition remain separate controllers/results.",
+      "additional_observations": [
+        {
+          "evidence": "cove50-basic-continuous-stance-r1-20261027",
+          "method": {
+            "path": "data/basic-skills-retry-20261027/stance-feedback-harness/method.json",
+            "sha256": "0a233d5def2ef83cb555aa3c0bec06c2140647e152a770c1f7464706246e0a21",
+            "bytes": 138236
+          },
+          "assessment": {
+            "path": "data/basic-skills-retry-20261027/stance-feedback/result-r1/assessment.json",
+            "sha256": "a340cccf1f0d224d8dd077473c5e04e84ce606450a36ec7ef65532354ef8308c",
+            "bytes": 21069
+          },
+          "independent_review": {
+            "path": "data/basic-skills-retry-20261027/stance-feedback-native-review/result-review.json",
+            "sha256": "e76b4b3d87956ca857af581a5e9751b5d0ac0bda0cf3fdc39fddfc23ba2b94fa",
+            "bytes": 115752
+          },
+          "publication_verification": {
+            "path": "data/basic-skills-retry-20261027/compute/stance-feedback-r1-publication-verification.json",
+            "sha256": "c49a466801cfc94d6f26144c34bfde95d430e3a17b2013f3019476b9a56db567",
+            "bytes": 2334
+          },
+          "entry": "Four CAD-neutral initial joint vectors with predefined small pose/speed variations145001\u2013145004, reused from prior handoff studies. Walker uses its original mapped-home action decoder; initial qpos is not that mapped home. One local20ms bootstrap and own issued raw24 recurrence.",
+          "duration_s": 34,
+          "world_visits": 4,
+          "reused_physical_vectors": 4,
+          "new_families": 0,
+          "controls": 6800,
+          "physics_steps": 544000,
+          "actor_forwards": 6796,
+          "critic_forwards": 0,
+          "new_weights": 0,
+          "optimizer_updates": 0,
+          "rows": [
+            {
+              "seed": 145001,
+              "whole_tilt_max_rad": 0.060785532719230755,
+              "net_world_xy_m": [
+                0.004692468211717965,
+                0.00459102572460746
+              ],
+              "native_trace": {
+                "path": "artifacts/cove50-basic-skills-retry/stance-feedback-20261027/classic-r1/stance-pure-walker-145001.npz",
+                "bytes": 3996613,
+                "sha256": "9f9709f7d825f0a1c32c57c99e3e21f493efb0a020d191269f34ffb1fd89c6af"
+              }
+            },
+            {
+              "seed": 145002,
+              "whole_tilt_max_rad": 0.057718489297784094,
+              "net_world_xy_m": [
+                0.004709995857137468,
+                0.00454035452977792
+              ],
+              "native_trace": {
+                "path": "artifacts/cove50-basic-skills-retry/stance-feedback-20261027/classic-r1/stance-pure-walker-145002.npz",
+                "bytes": 4002999,
+                "sha256": "f3b996aee003fc4be0d423b9cee590eb3ca4cc052c7bef4d3ab805fc1ae7047b"
+              }
+            },
+            {
+              "seed": 145003,
+              "whole_tilt_max_rad": 0.04505399247356568,
+              "net_world_xy_m": [
+                0.0022358808460787513,
+                0.0021614171091682254
+              ],
+              "native_trace": {
+                "path": "artifacts/cove50-basic-skills-retry/stance-feedback-20261027/classic-r1/stance-pure-walker-145003.npz",
+                "bytes": 3991982,
+                "sha256": "a05698c5f8fc1a3b3f0052fffbb51a36902622174b3d958a684cb94595693cc7"
+              }
+            },
+            {
+              "seed": 145004,
+              "whole_tilt_max_rad": 0.047696235088387086,
+              "net_world_xy_m": [
+                0.010228529657082472,
+                0.008516208885246963
+              ],
+              "native_trace": {
+                "path": "artifacts/cove50-basic-skills-retry/stance-feedback-20261027/classic-r1/stance-pure-walker-145004.npz",
+                "bytes": 3989979,
+                "sha256": "12007cf29c0ac06a85fb414901d324a9230853d462197ec3b749c0c852941865"
+              }
+            }
+          ],
+          "limitations": "Longer quiet stance only. The four paired additiveposture compositions fall during lowering; no lower-pose, arm-support, disturbance recovery or coordinated WBC claim."
+        }
+      ]
+    },
+    {
+      "id": "r3-shallow-crouch-return",
+      "kind": "fresh_command_only_trajectory_student",
+      "checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+        "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+        "bytes": 39825
+      },
+      "controller_source": "control/skills/basic-skills/evaluate_command_student.py:CommandActor",
+      "observation": "One live requested pose blend beta in [0,1]; no sensed state or action history enters the actor.",
+      "action": "22 named output-joint targets in radians, supplied directly to unchanged Runtime clipping/delay and PD/motor dynamics.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "evidence": "cove50-basic-squat-retry-20261027",
+      "observed_entry": "Four fresh upright start families 138801\u2013138804 with the predefined small state variations; complete 10 s trajectories.",
+      "behavior": "About 6.3 mm lowering and return with two-foot low-hold support.",
+      "new_optimizer_updates": 3000,
+      "new_PPO_updates": 0,
+      "new_checkpoints": 1,
+      "value_function": "None; this is a fresh supervised small trajectory student, without copied PPO actor, critic or optimizer.",
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/retention/squat-final-preservation.json",
+      "limitations": "Original deep squat and feedback adaptation remain open. No disturbed-state recovery, lower-pose entry or skill handoff has been demonstrated. The two actor-derived BC candidates are separately retained unsuccessful alternatives."
+    },
+    {
+      "id": "r3-shallow-rise-from-attained-crouch",
+      "kind": "zero_update_reuse_of_command_trajectory_student",
+      "checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+        "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+        "bytes": 39825
+      },
+      "controller_source": "control/skills/basic-skills/rise_handoff.py:Handoff (reference branch)",
+      "observation": "One live requested pose blend beta in [0,1]; no sensed state or action history enters the actor.",
+      "action": "22 named output-joint targets in radians, supplied directly to unchanged Runtime clipping/delay and PD/motor dynamics.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "evidence": "cove50-basic-rise-retry-20261027",
+      "observed_entry": "One fresh nominal family 139001: uninterrupted learned descent and low hold to 6 s, then shallow return. Full simulator, sensor and motor queues preserved.",
+      "behavior": "Return from about 6.285 mm achieved lowering without a fall; the paired V35 source-actor handoff falls at 6.58 s.",
+      "new_optimizer_updates": 0,
+      "new_PPO_updates": 0,
+      "new_checkpoints": 0,
+      "value_function": "None; this is a fresh supervised small trajectory student, without copied PPO actor, critic or optimizer.",
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/retention/rise-preservation.json",
+      "limitations": "Original 51.1 mm lowered rise, source feedback/value continuation, varied handoffs and arbitrary fall recovery remain open. This profile reuses the same small student as shallow crouch; it is not another trained model."
+    },
+    {
+      "kind": "fresh_recurrent_command_component",
+      "checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/arms-20261027/command-gru2000/candidate.pt",
+        "sha256": "23760523ead3e54bc0a804d7b2f357902eb61c8526fd54fa2c529cdeb81a350c",
+        "bytes": 25617
+      },
+      "controller_source": "control/skills/basic-skills/arm_command.py:CommandNet and CommandArms (scheduled native replay adapter)",
+      "source_proof": {
+        "path": "data/basic-skills-retry-20261027/arms/source-proof.json",
+        "sha256": "5e97d5415df55b058558ebe53e9cfde22ad6ef7d6ff55247bbabaadccb2e476c",
+        "bytes": 56229
+      },
+      "observation": "Two current binary anatomical arm commands and a retained 16-value GRU hidden state; no clock, desired trajectory, proprioception or root truth enters learned inference.",
+      "action": "Predicted two-arm pose fractions produce raw source shoulder targets -1.2 times each fraction, followed by the profile EMA and named sign mapping. Only two shoulder-pitch axes move; the other 20 axes retain CAD-neutral targets under the unchanged joint PD and motor model.",
+      "side_mapping": "Source anatomical left (+Y) maps to selected CAD R shoulder; source right maps to CAD L shoulder; target sign is -1.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "evidence": "cove50-basic-arms-retry-20261027",
+      "observed_entry": "Four fresh canonical upright seed families 140701\u2013140704 with predefined small state variations. Shifted and asynchronous commands use an additional nominal physical entry with sensor seed 140705.",
+      "reset_contract": "Reset GRU hidden state to zero at the documented episode entry. The first 20 ms bootstrap has no recurrent call; then one call per 20 ms. No hidden reset at arm command changes.",
+      "value_function": "None. Fresh supervised recurrent command memory; no inherited actor, critic or PPO optimizer.",
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/retention/arms-final-preservation.json",
+      "integration_status": "Scheduled replay is validated. Live planner integration and handoffs from other skill states remain to be evaluated.",
+      "limitations": "A command component over joint PD, without learned body-state feedback. No push recovery, load, grasp or physical-robot evidence. Small tested starts do not establish a continuous robustness envelope. Retained 72/75-input arm actors remain partially adapted alternatives.",
+      "id": "r3-bilateral-arm-command",
+      "ema_coefficient": 0.2,
+      "observed_command": "Both anatomical arm flags raised and lowered together, including a shifted 1.5\u20135.5 s interval.",
+      "behavior": "Raised shoulder angles about 1.17 rad with supported return close to the entry pose. Both-arm motion leans the torso by about 0.18 rad.",
+      "new_optimizer_updates": 2000,
+      "new_PPO_updates": 0,
+      "new_checkpoints": 1,
+      "training_data": "96 unique synthetic command sequences; 24 distinct held-out sequences. 47,904 eligible training rows and 15,968,000 sampled valid frame draws; zero simulator transitions during fitting."
+    },
+    {
+      "kind": "fresh_recurrent_command_component",
+      "checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/arms-20261027/command-gru2000/candidate.pt",
+        "sha256": "23760523ead3e54bc0a804d7b2f357902eb61c8526fd54fa2c529cdeb81a350c",
+        "bytes": 25617
+      },
+      "controller_source": "control/skills/basic-skills/arm_command.py:CommandNet and CommandArms (scheduled native replay adapter)",
+      "source_proof": {
+        "path": "data/basic-skills-retry-20261027/arms/source-proof.json",
+        "sha256": "5e97d5415df55b058558ebe53e9cfde22ad6ef7d6ff55247bbabaadccb2e476c",
+        "bytes": 56229
+      },
+      "observation": "Two current binary anatomical arm commands and a retained 16-value GRU hidden state; no clock, desired trajectory, proprioception or root truth enters learned inference.",
+      "action": "Predicted two-arm pose fractions produce raw source shoulder targets -1.2 times each fraction, followed by the profile EMA and named sign mapping. Only two shoulder-pitch axes move; the other 20 axes retain CAD-neutral targets under the unchanged joint PD and motor model.",
+      "side_mapping": "Source anatomical left (+Y) maps to selected CAD R shoulder; source right maps to CAD L shoulder; target sign is -1.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "evidence": "cove50-basic-arms-retry-20261027",
+      "observed_entry": "Four fresh canonical upright seed families 140701\u2013140704 with predefined small state variations. Shifted and asynchronous commands use an additional nominal physical entry with sensor seed 140705.",
+      "reset_contract": "Reset GRU hidden state to zero at the documented episode entry. The first 20 ms bootstrap has no recurrent call; then one call per 20 ms. No hidden reset at arm command changes.",
+      "value_function": "None. Fresh supervised recurrent command memory; no inherited actor, critic or PPO optimizer.",
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/retention/arms-final-preservation.json",
+      "integration_status": "Scheduled replay is validated. Live planner integration and handoffs from other skill states remain to be evaluated.",
+      "limitations": "A command component over joint PD, without learned body-state feedback. No push recovery, load, grasp or physical-robot evidence. Small tested starts do not establish a continuous robustness envelope. Retained 72/75-input arm actors remain partially adapted alternatives.",
+      "id": "r3-independent-arm-command",
+      "ema_coefficient": 0.05,
+      "observed_command": "Anatomical left, right or both flags, including novel asynchronous intervals.",
+      "behavior": "Active shoulder plateaus about 1.16\u20131.17 rad; shifted/asynchronous settled returns remain within about 0.005 rad of the entry pose. Passive-arm motion is small in the observed unilateral visits.",
+      "new_optimizer_updates": 0,
+      "new_PPO_updates": 0,
+      "new_checkpoints": 0,
+      "reuse": "Same fresh GRU weights as the bilateral profile; only the original source EMA coefficient differs."
+    },
+    {
+      "id": "r3-walking-to-zero",
+      "kind": "zero_update_reuse_of_adapted_forward_actor",
+      "checkpoint": {
+        "path": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026/evidence/fit-through-200/candidate.pt",
+        "sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/basic-gait/plan_replay.py",
+      "observation": "Exact delayed actor81, raw24 history and command3; zero command is refreshed in actor/value caches without re-observing or resetting plant state.",
+      "action": "24 raw values map through the named Interface to 22 joint targets; exact selected Runtime supplies bounded torques.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "evidence": "cove50-basic-stop-step-retry-20261027",
+      "observed_command_schedules": [
+        {
+          "vx_m_s": 0.3,
+          "moving_duration_s": 2,
+          "zero_tail_s": 4
+        },
+        {
+          "vx_m_s": 0.35,
+          "moving_duration_s": 4,
+          "zero_tail_s": 4
+        }
+      ],
+      "observed_entry": "Two source-bound randomized upright physical-plus-sensor starts, 142101 and 142102; all four visits reach the zero command through actual walking.",
+      "reset_contract": "Only episode entry resets. No q/qvel, IMU, queues, normalizer, action-history or RNG reset at the zero command.",
+      "behavior": "Four complete walking-to-zero visits settle with final-second two-foot support. Additional forward travel is 40\u201354 mm and lateral travel 6\u201346 mm after zero; exact-position stopping is not established.",
+      "value_function": "Saved 96-input critic, actor/value normalizers and Adam state restored and unchanged throughout; no new fitting.",
+      "new_optimizer_updates": 0,
+      "new_PPO_updates": 0,
+      "new_checkpoints": 0,
+      "original_episode_and_archive_receipt": "data/basic-skills-retry-20261027/retention/stop-native-preservation.json",
+      "limitations": "Only the two discrete schedules and tested starts are observed. The early 0.6 s pulse includes a backward fall and is not covered by this component; precise short stepping and recovery remain open."
+    },
+    {
+      "id": "r3-short-forward-pulse-classic",
+      "kind": "zero_update_reuse_of_adapted_walking_actor",
+      "checkpoint": {
+        "path": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026/evidence/fit-through-200/candidate.pt",
+        "sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/basic-gait/classic_stop.py:CommandWalker",
+      "observation": "Exact 81-value actor input with all 24 raw-action history values, a delayed 50-value Runtime sensor packet, and live walking command. Bootstrap samples raw action zero, queues mapped home and retains the initial target for the first 20 ms.",
+      "action": "Saved 24-value raw decoder maps into 22 named joint targets through unchanged selected Runtime clipping, delay, PD and motor dynamics.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": {
+        "vx_m_s": 0.25,
+        "vy_m_s": 0,
+        "wz_rad_s": 0,
+        "zero_at_s": 0.6,
+        "full_horizon_s": 3
+      },
+      "evidence": "cove50-basic-stop-step-retry-20261027",
+      "observed_entry": "Four fresh mapped-source-home families 142201\u2013142204 in classic MuJoCo CPU float64; small predefined pose/speed variations, with matching sensor-bias and NumPy RNG seeds inside each hard/ramp pair.",
+      "behavior": "Four hard-stop visits advance 29.7\u201375.0 mm forward and 8.8\u201326.5 mm laterally, then settle into two-foot support. Four matched ramped-command comparisons add 6.1\u201312.2 mm forward travel, without an observed recovery advantage.",
+      "new_optimizer_updates": 0,
+      "new_checkpoints": 0,
+      "value_function": "The unchanged walking checkpoint retains its critic and optimizer; this replay invokes only its actor and performs no value inference or reward evaluation.",
+      "limitations": "A bounded timed pulse, without a specified footfall count or exact distance. Classic engine, noise and start distribution differ from earlier CUDA trials, including an unresolved severe 0.6 s backward fall. This does not establish CUDA recovery, broad recovery, a learned command conditioner or hardware qualification.",
+      "method": "data/basic-skills-retry-20261027/stop-step/classic-ramp-preparation/plan.json",
+      "full_native_measurements": "data/basic-skills-retry-20261027/stop-step/classic-ramp-measurements.json"
+    },
+    {
+      "id": "r3-coordinated-shallow-arm-return",
+      "version": "r3-whole22-shallow-reference-v1-20261030",
+      "version_status": "accepted bounded reference",
+      "kind": "zero_update_reuse_of_intact_whole22_supervised_donor",
+      "checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+        "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+        "bytes": 39825
+      },
+      "controller_source": "control/skills/coordinated-arm-reference/",
+      "configuration": {
+        "path": "control/skills/coordinated-arm-reference/setup/config.json",
+        "sha256": "03225f1c56bec6d7ed8bdb7cea86c3dfc1d6038327565cc7d48d469ac0e1163a",
+        "bytes": 302478
+      },
+      "source_seal": {
+        "path": "data/coordinated-arm-reference-20261030/source-seal.json",
+        "sha256": "d36b94b2f08013be52acffc6eaa9988924267aeaf7a9528956911e8ac16701fc",
+        "bytes": 3808
+      },
+      "observation": "One live beta command; all22 motor references come from the intact donor. No sensor feedback enters this actor. First invalid sensor packet holds actual native reset q22.",
+      "action": "Direct22 physical motor-reference radians through unchanged named guards, command delay, PD and12V motor dynamics. Separate geometric goals remain telemetry; no leg/body splice or new output scale.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": "Frozen10s beta schedule: quiet0\u20132s, rise2\u20134s, hold4\u20136s, return6\u20138s, settle8\u201310s.",
+      "observed_entry": "Four documented nearby native reset conditions240101\u2013240104; actual soft-limit clamping and brief settling/clipping preserved.",
+      "behavior": "About.248rad bilateral shoulder excursion with shallow coordinated posture, supported hold and continuous return in all4 full native episodes.",
+      "evidence": "cove50-coordinated-arm-reference-20261030-r1",
+      "acceptance": "artifacts/runs/cove50-coordinated-arm-reference-20261030-r1-owner-b8deae287b03/records/root-acceptance.json",
+      "new_optimizer_updates": 0,
+      "new_checkpoints": 0,
+      "replay_recipe": {
+        "runtime": "Exact frozen .venv-worker CUDA environment from coordinated-arm-reference/compute/bootstrap.sh; use local managed dispatch with Runpod as compute only.",
+        "entry": "control/skills/coordinated-arm-reference/run.py",
+        "argv": [
+          "--execute",
+          "--config",
+          "control/skills/coordinated-arm-reference/setup/config.json",
+          "--seal",
+          "data/coordinated-arm-reference-20261030/source-seal.json",
+          "--out",
+          "{evidence}/teacher4",
+          "--work",
+          "{work}/teacher4",
+          "--device",
+          "cuda:0"
+        ],
+        "producer": "Managed LAB_EVIDENCE_DIR and LAB_WORK_DIR required. This executable reproduces the four-case routine; no generic live planner integration claimed."
+      },
+      "limitations": "Small bilateral reference, not the historical1.2rad independent-arm routine. No perturbation recovery, larger range, arbitrary entry, cross-skill handoff or hardware qualification. Final worker receipt failed on structural Infinity metadata; exact knownstagepacks retain all4 complete native episodes/initializations/configs. Fresh sensor-feedback learning remains active.",
+      "reuse": "Same d2f5 donor as shallow-crouch and shallow-rise profiles. This accepted reference adds no learned checkpoint."
+    },
+    {
+      "id": "r3-two-second-forward-stop",
+      "version": "r3-forward-entry-stop-v1-20261030",
+      "version_status": "accepted bounded learned component",
+      "kind": "PPO_adapted_forward_entry_to_zero",
+      "checkpoint": {
+        "path": "artifacts/runs/cove50-forward-entry-braking-20261030-r1-ee67e1637e03/evidence/train24/native/candidate.pt",
+        "sha256": "a8f25c9539c7fffd5ed9b007f41cdac4195785726630eb2463bafd89714a9c24",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/forward-entry-braking/",
+      "configuration": {
+        "path": "control/skills/forward-entry-braking/setup/config.json",
+        "sha256": "2ec803042e97a7a14d64cdf60a5645c2efa0afd9b9fc33c3023b59b5e6770f56",
+        "bytes": 8654
+      },
+      "source_seal": {
+        "path": "data/forward-entry-braking-next-20261030/source-seal.json",
+        "sha256": "90ddebdefee7d54280e62139e8954a957340f3ec0ce8c682abf005296c2be210",
+        "bytes": 832
+      },
+      "observation": "Exact delayed actor81 and raw24 ownaction history; command3 changes at2s without re-observing or resetting physical/sensor/history state.",
+      "action": "24 raw requests through the unchanged named22-target Interface, guards, command FIFO, PD and12V motor plant.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command_schedules": [
+        {
+          "vx_m_s": 0.3,
+          "vy_m_s": 0,
+          "wz_rad_s": 0,
+          "moving_duration_s": 2,
+          "zero_tail_s": 4
+        }
+      ],
+      "observed_entry": "Four matched development upright starts230101,230102,230201,230202; no new reset at command zero.",
+      "behavior": "All four complete6s motions show actual forward alternating entry steps and visible balance correction followed by supported settling. Prefix travel is.257\u2013.331m in the fixed initial-heading frame; attained body-forward speed at zero is.148\u2013.205m/s. Additional final forward travel is16\u201335mm, with29\u201335mm maximum forward overshoot. Path/yaw and lateral speed vary.",
+      "evidence": "cove50-forward-entry-braking-20261030-r1",
+      "acceptance": "artifacts/runs/cove50-forward-entry-braking-20261030-r1-ee67e1637e03/records-publication/root-acceptance.json",
+      "new_optimizer_updates": 480,
+      "new_PPO_rounds": 24,
+      "new_checkpoints": 1,
+      "value_function": "Actor81/value96, both normalizers and all17Adam states warm-started from candidate200. Candidate224 retains complete updated learner state. Changed reward/value warm-start is explicit in the native evidence.",
+      "replay_recipe": {
+        "runtime": "Exact pinned forward-entry-braking/compute/bootstrap.sh worker environment; native compute remains sequential managed Runpod.",
+        "entry": "control/skills/forward-entry-braking/run.py",
+        "argv": [
+          "--mode",
+          "replay",
+          "--config",
+          "control/skills/forward-entry-braking/setup/config.json",
+          "--checkpoint",
+          "artifacts/runs/cove50-forward-entry-braking-20261030-r1-ee67e1637e03/evidence/train24/native/candidate.pt",
+          "--profile",
+          "long-stop",
+          "--seed",
+          "230201",
+          "--out",
+          "{evidence}/long-stop-230201",
+          "--work",
+          "{work}/long-stop-230201",
+          "--device",
+          "cuda:0"
+        ],
+        "producer": "Use infra/lab storage run NAME -- COMMAND. The frozen profile executes the exact6s routine; no generic live planner integration is claimed."
+      },
+      "limitations": "This does not replace continuous walking, longer .35/4s walking-to-zero, quiet standing or shortpulse profiles.; Persistent.25 family230101 falls backward at3.10s and remains unrecovered through8s; fresh.30 family230201 turns\u22121.418rad with\u2212.809m initial-heading lateral travel.; Four nearby development families, no external disturbance/repeated-cycle/hardware evaluation. Matched saved initial fields are not attained-state forks; fresh seed201 critic96 differs while actor/physical/runtime fields match.; Motor/contact observations are final native-substep samples at50Hz, not4kHz intervalpeaks/RMS/clipping duty. Whole distributions and full floor tails are retained."
+    },
+    {
+      "id": "r3-coordinated-hold-settle-trim",
+      "version": "r3-whole22-hold-settle-trim-v1-20261030",
+      "version_status": "accepted bounded learned alternative",
+      "kind": "PPO_sensor_feedback_trim_around_intact_whole22_donor",
+      "checkpoint": {
+        "path": "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/evidence/train/candidate.pt",
+        "sha256": "5633e975ce75c0ab9d36a529a84262c1727945d6473bddffded5d082d411575f",
+        "bytes": 369267
+      },
+      "donor_checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+        "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+        "bytes": 39825
+      },
+      "controller_source": "control/skills/coordinated-arm-feedback-next/",
+      "configuration": {
+        "path": "control/skills/coordinated-arm-feedback-next/setup/config.json",
+        "sha256": "1e99066243f5b32d6c7ecfe3640056d3b13678e379508b28fc5aca52843c5cbb",
+        "bytes": 31093
+      },
+      "source_seal": {
+        "path": "data/coordinated-arm-feedback-next-20261030/source-seal.json",
+        "sha256": "86a4c22cab29f213120db9dadb61fb256a02123e33f502e2e0de4eb93a818cd0",
+        "bytes": 3026
+      },
+      "observation": "Actor120: delayed proprioception50, unitless beta/betadot2, donor reference22, geometric goal22, previous own raw action22 and validity/age2. Hidden force and case are absent.",
+      "action": "22 raw outputs become 0.03*tanh(raw) rad corrections around intact d2 donor references, through unchanged guards, delays, PD and 12V plant. This envelope bounds requested trim, not physical motion.",
+      "value_function": "Critic174. Complete warm start from candidate07; all13 Adam states reach320, normalizers56000 and common_step_counter8000. Cumulative lineage16 PPO/320 Adam differs from this lesson12 PPO/240 Adam.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": "Frozen 10 s unitless beta 0\u21921\u21920: quiet0\u20132, rise2\u20134, hold4\u20136, return6\u20138, settle8\u201310 s. About0.248 rad shoulder excursion.",
+      "observed_entry": "Eight development conditions from four nearby physical templates; 37 paired captured initialization/scenario fields match. Two no-force cases and six signed0.4/0.8 N\u00b7s torso events.",
+      "behavior": "Candidate 5633 is useful as a bounded hold/final-posture trim alternative for the frozen shallow 10 s routine. Whole pose RMS improves about 5\u20136% and tilt RMS 12\u201313%, with final lean about 0.0065\u20130.0071 rad instead of 0.0152\u20130.0158 rad. Return pose/tilt RMS worsen across all eight pairs; post-push maxima rise from 0.00898 to 0.01844 rad in case 5 and 0.01094 to 0.02135 rad in case 6. Motion remains visually similar and supported; no distinct general reactive recovery was demonstrated.",
+      "evidence": "cove50-coordinated-arm-feedback-next-20261030-r1",
+      "acceptance": {
+        "path": "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/records-publication/root-assessment.json",
+        "sha256": "ca8b82b02100f714fd8fa6004155e1961058ad863b5c73784d84af0233eb2e43",
+        "bytes": 21516
+      },
+      "independent_motion_review": {
+        "path": "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/records/independent/actual-motion-review.json",
+        "sha256": "e86b8f0cb23176ced1cac73676925b1518f3f788f0c76f3bb3b7ab16fd7801ca",
+        "bytes": 45882
+      },
+      "saved_learner_state": {
+        "path": "artifacts/runs/cove50-coordinated-arm-feedback-next-saved-state-20261030-r1-ee31089eb8d2/records/saved-candidate-state.json",
+        "sha256": "5a69dd79910df0295a63355f18645f2d9d7cb3970abda22db98119c8c54ee501",
+        "bytes": 7879
+      },
+      "new_optimizer_updates": 240,
+      "new_PPO_rounds": 12,
+      "new_checkpoints": 1,
+      "new_simulator_controls": 56000,
+      "new_physics_substeps": 4480000,
+      "replay_recipe": {
+        "runtime": "Pinned coordinated-arm-feedback-next/compute/bootstrap.sh worker; managed Runpod compute only.",
+        "entry": "control/skills/coordinated-arm-feedback-next/run.py",
+        "argv": [
+          "--execute",
+          "--method",
+          "control/skills/coordinated-arm-feedback-next/setup/config.json",
+          "--out",
+          "{evidence}/eval-0-candidate",
+          "--work",
+          "{work}/eval-0-candidate",
+          "--device",
+          "cuda:0",
+          "--mode",
+          "replay",
+          "--case-index",
+          "0",
+          "--checkpoint",
+          "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/evidence/train/candidate.pt"
+        ],
+        "producer": "Run with infra/lab storage run NAME -- COMMAND. Frozen routine only; no generic planner integration."
+      },
+      "limitations": "Frozen small bilateral routine and nearby starts only. Return fidelity and local return-push response regress. Phase/history and pre-force trim can account for gains; feedback causality is not isolated. Reference already handles these 0.4/0.8 N\u00b7s events. No broader range, arbitrary entry, cross-skill handoff or hardware qualification. Contacts are 50 Hz samples; motor peaks/clipping cover 80 substeps, without interval RMS/thermal qualification.",
+      "reuse": "Keep zero-correction shallow reference and other existing defaults. Return refinement remains active."
+    },
+    {
+      "id": "r3-supported-sustained-forward",
+      "version": "r3-supported-forward-v1-20261030",
+      "version_status": "accepted bounded learned alternative",
+      "kind": "PPO_sustained_forward_with_causal_cycle_mean_yaw_credit",
+      "checkpoint": {
+        "path": "artifacts/runs/cove50-forward-heading-correction-20261030-r1-3ce26458396d/evidence/train32/native/candidate.pt",
+        "sha256": "f39095393929e92ed4da20efae7d0b930641883ff8f2db0cd60ad3272b2de01a",
+        "bytes": 5106787
+      },
+      "controller_source": "control/skills/forward-heading-correction/",
+      "configuration": {
+        "path": "control/skills/forward-heading-correction/setup/config.json",
+        "sha256": "09344f93b497e2c5e1593e1e1e9560ae6b68e473c6c12909fee532565a08dc4d",
+        "bytes": 40788
+      },
+      "source_seal": {
+        "path": "data/forward-heading-correction-20261030/source-seal.json",
+        "sha256": "2acd8cab11b0c050dba2f99d057228e4edb1d6be6fd49ce31970c9f4c502d772",
+        "bytes": 1188
+      },
+      "observation": "Unchanged delayed actor81, value96 and own raw24 history. Reward uses a33-control causal native yaw-error mean; that filter state and absolute entry heading are absent from actor/value.",
+      "action": "24 raw requests through unchanged named22-target interface, guards, command FIFO, PD and12V motor plant.",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command_schedules": [
+        {
+          "vx_m_s": 0.25,
+          "vy_m_s": 0,
+          "wz_rad_s": 0,
+          "moving_duration_s": 8
+        },
+        {
+          "vx_m_s": 0.3,
+          "vy_m_s": 0,
+          "wz_rad_s": 0,
+          "moving_duration_s": 8
+        }
+      ],
+      "observed_entry": "Four opened nearby upright development starts230101,230102,230201,230202. No external disturbance or arbitrary entry/handoff evaluation.",
+      "behavior": "The films show real alternating steps and uninterrupted settling. All 20 new evaluations retain their full horizons without a physical ending. Absolute final yaw improves in all eight steady comparisons versus candidate272: 0.25 requests finish \u22120.050 to +0.509 rad, and 0.30 requests \u22120.202 to +1.259 rad. Body speed still falls short of request and lateral travel remains substantial in harder starts. Short-stop yaw is mixed; the earlier accepted224 stop remains available. This accepts useful bounded stepping while continuing a changed heading lesson.",
+      "evidence": "cove50-forward-heading-correction-20261030-r1",
+      "acceptance": {
+        "path": "artifacts/runs/cove50-forward-heading-correction-20261030-r1-3ce26458396d/records-publication/root-assessment.json",
+        "sha256": "19f5d888f9d7e761cab7eccf5175561ce59968159b790f95c9b324127802fcb9",
+        "bytes": 32163
+      },
+      "independent_motion_review": {
+        "path": "artifacts/runs/cove50-forward-heading-correction-20261030-r1-3ce26458396d/records/independent/actual-motion-review.json",
+        "sha256": "70fe5bf1e22208144124b160e233e0f3e6ecb5506aeb6ed396813d95a4ca2273",
+        "bytes": 122704
+      },
+      "new_optimizer_updates": 640,
+      "new_PPO_rounds": 32,
+      "new_checkpoints": 1,
+      "new_simulator_controls": 55752,
+      "new_physics_substeps": 4460160,
+      "value_function": "Full272 actor/value/normalizers/17Adam warm start. Candidate304 saves17Adam steps6080, common28464 and both normalizers85506048. Actual48-control stock rollouts; changed14-term objective and batch/credit act together.",
+      "replay_recipe": {
+        "runtime": "Pinned forward-heading-correction/compute/bootstrap.sh worker and exact released capsule; managed Runpod compute only.",
+        "entry": "control/skills/forward-heading-correction/run.py",
+        "argv": [
+          "--mode",
+          "replay",
+          "--config",
+          "control/skills/forward-heading-correction/setup/config.json",
+          "--checkpoint",
+          "artifacts/runs/cove50-forward-heading-correction-20261030-r1-3ce26458396d/evidence/train32/native/candidate.pt",
+          "--profile",
+          "forward25",
+          "--seed",
+          "230101",
+          "--out",
+          "{evidence}/forward25-230101",
+          "--work",
+          "{work}/forward25-230101",
+          "--device",
+          "cuda:0"
+        ],
+        "producer": "Use infra/lab storage run NAME -- COMMAND. Exact frozen8s profile; no generic planner or hardware integration."
+      },
+      "limitations": "Four opened nearby starts, no external disturbance or hardware qualification. Improvement versus candidate272 is not uniform superiority to every older policy: support and full floor tails must accompany historical heading comparisons. All 27 common initialization fields match except critic96 in family230201;15 new filter bookkeeping fields are separate. Changed14-term credit and48-step rollout act together under warm critic/Adam. Body angular rate is not exact world-yaw derivative during rocking; actor/value omit filter state and absolute entry heading. All 22 motor/contact data are final native-substep50 Hz samples, without4 kHz interval peaks or duty.46 training physical endings and32 censors remain retained. Stops have differing attained states, so this is not a braking-only comparison.",
+      "reuse": "Keep older broader/quiet profiles, accepted224 short-stop and arm components separately. This version supplies bounded sustained stepping with explicit remaining arcs, not direction-perfect motion."
+    },
+    {
+      "id": "r3-coordinated-independent-arm-feedback",
+      "version": "r3-whole22-independent-arm-feedback-v1-20261030",
+      "version_status": "accepted bounded learned component",
+      "kind": "PPO_sensor_feedback_whole22_trim_around_recurrent_independent_arm_reference",
+      "checkpoint": {
+        "path": "artifacts/runs/cove50-independent-arm-feedback-20261030-r1-9a5bfef92099/train/candidate.pt",
+        "sha256": "ef897d0146594709f362ba5a0dbc4c238354d45e5cf9a04db20f38bb98ff9865",
+        "bytes": 367094
+      },
+      "donor_checkpoint": {
+        "path": "artifacts/cove50-basic-skills-retry/arms-20261027/command-gru2000/candidate.pt",
+        "sha256": "23760523ead3e54bc0a804d7b2f357902eb61c8526fd54fa2c529cdeb81a350c",
+        "bytes": 25617
+      },
+      "controller_source": "control/skills/independent-arm-feedback/run.py",
+      "configuration": {
+        "path": "control/skills/independent-arm-feedback/setup/config.json",
+        "sha256": "9e02d23067cfb63f40b68e0089d159bc88da2fdea9ee5568b8e0646b20a59be2",
+        "bytes": 8218
+      },
+      "summary": {
+        "path": "data/independent-arm-feedback-20261030/summary.json",
+        "sha256": "b5aebbf9ceaa60a19a991ab95ede39d50510004353c1e280eb2aab977c9662f3",
+        "bytes": 7324
+      },
+      "publication_receipt": {
+        "path": "data/independent-arm-feedback-20261030/publication-receipt.json",
+        "sha256": "ba100e87933e822ec90a6aa5f2faad5720b43fbe18b33b27937a81ccb71a6e36",
+        "bytes": 762
+      },
+      "observation": "Actor98: delayed Runtime sensor packet (50), binary anatomical left/right arm commands (2), recurrent CommandNet reference targets for 22 axes (22), previous own raw action (22), and sensor validity/age (2). No ground-truth root or push information enters the actor.",
+      "action": "22 raw outputs become bounded 0.08*tanh(raw) rad whole-body corrections around the 22-DOF CommandNet reference (EMA 0.05 on active shoulders), fed through unchanged named joint guards, command FIFO delay, PD and 12V motor dynamics.",
+      "value_function": "Critic98 with learned running observation normalizers and Adam state saved in candidate.pt (12 PPO rounds, 240 Adam updates).",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": "Unilateral left, unilateral right, and alternating left-then-right 10 s command schedules (~1.16\u20131.26 rad active shoulder excursion).",
+      "observed_entry": "Four canonical upright seed families 140701\u2013140704 across eight 10 s conditions, including 0.39\u20130.50 N\u00b7s lateral/sagittal torso pushes during unilateral hold and return.",
+      "behavior": "All eight 10.0 s episodes complete with zero falls and ~99.8\u2013100% two-foot support. Compared to the open-loop 2-shoulder CommandNet reference, torso tilt RMS drops by 61.2\u201381.4% (mean 0.0555 rad to 0.0173 rad, max tilt 0.1694 rad to 0.0943 rad), whole-body pose tracking RMS improves by 21.5\u201346.3% (0.0137 rad to 0.0096 rad), and max horizontal COM drift drops from 28.25 mm to 17.43 mm while preserving ~1.22\u20131.26 rad unilateral shoulder raise.",
+      "evidence": "cove50-independent-arm-feedback-20261030-r1",
+      "new_optimizer_updates": 240,
+      "new_PPO_rounds": 12,
+      "new_checkpoints": 1,
+      "new_simulator_controls": 27200,
+      "new_physics_substeps": 2176000,
+      "replay_recipe": {
+        "runtime": "Local .venv-control Python environment on the selected Cove-50 R3 rigid XML.",
+        "entry": "control/skills/independent-arm-feedback/run.py",
+        "argv": [
+          "--execute",
+          "--evidence",
+          "{evidence}",
+          "--work",
+          "{work}"
+        ],
+        "producer": "Run with infra/lab storage run NAME -- COMMAND."
+      },
+      "limitations": "Evaluated across four nearby upright start families and bounded 0.39\u20130.50 N\u00b7s torso pushes; elbows and wrists remain stabilizing rather than free-form target-reaching, and no physical hardware trial has been performed.",
+      "reuse": "Retain open-loop r3-independent-arm-command as the zero-feedback reference baseline."
+    },
+    {
+      "id": "r3-supported-skill-transitions",
+      "version": "r3-supported-skill-transitions-v1-20261030",
+      "version_status": "accepted bounded learned component",
+      "kind": "PPO_sensor_feedback_22dof_transition_coordinator",
+      "checkpoint": {
+        "path": "artifacts/runs/cove50-supported-skill-transitions-20261030-r1-8ed7eace15e2/train/candidate.pt",
+        "sha256": "6c1ba47f09bc28883c90a94bf2bc1637a808707c461a35255d9a5469b64ff726",
+        "bytes": 367670
+      },
+      "controller_source": "control/skills/supported-skill-transitions/run.py",
+      "configuration": {
+        "path": "control/skills/supported-skill-transitions/setup/config.json",
+        "sha256": "17b8bfd2f431749cf02dc39554d6187868ba7fa5aeb9508f4cd2687234495b9b",
+        "bytes": 6246
+      },
+      "summary": {
+        "path": "data/supported-skill-transitions-20261030/summary.json",
+        "sha256": "5f6d69c8d6e0c41cbd20a24c0dd366d932b3bbeac406146bb2ccb22c4181e6ac",
+        "bytes": 4084
+      },
+      "publication_receipt": {
+        "path": "data/supported-skill-transitions-20261030/publication-receipt.json",
+        "sha256": "b53ef76f09b4e099fa7dbefbb44cf637365e391a4bfcc43be4d63499d5203fc0",
+        "bytes": 2098
+      },
+      "observation": "Actor99: delayed Runtime sensor packet (50), skill phase and active-arm flags [beta, left_cmd, right_cmd] (3), continuous composite reference targets for 22 axes (22), previous own raw action (22), and sensor validity/age (2). No simulator state resets occur at any skill boundary.",
+      "action": "22 raw outputs become bounded 0.08*tanh(raw) rad whole-body corrections around the continuous 22-DOF composite reference (Walker stance 0\u20132 s -> CommandActor shallow crouch/hold/return 2\u201312 s -> CommandNet bilateral arm raise/lower 12\u201322 s -> CommandNet overlapping left/right independent arm motion 22\u201334 s), applied through unchanged Runtime guards, command FIFO delay, PD and 12V motor dynamics.",
+      "value_function": "Critic99 with learned running observation normalizers and Adam state saved in candidate.pt (12 PPO rounds, 240 Adam updates).",
+      "policy_dt_s": 0.02,
+      "numerical_physics_dt_s": 0.00025,
+      "observed_command": "Uninterrupted 34.0 s (1,700-control) multi-skill sequence across stance, shallow crouch/return, bilateral arm raise/lower, and overlapping unilateral left/right arm motion.",
+      "observed_entry": "Four canonical upright start families 145001\u2013145004 with zero state, sensor-queue, or motor-queue resets across skill transitions.",
+      "behavior": "All 4/4 start families complete the entire 34.0 s multi-skill sequence upright with 99.88\u2013100% two-foot contact, eliminating the unassisted nominal 145001 backward fall at t = 3.82 s (where tilt_rms drops 93.3% from 1.4097 rad to 0.0943 rad, and max_tilt drops from 1.5348 rad to 0.1773 rad). Across all four families, max tilt stays within 0.1762\u20130.1773 rad, pose tracking RMS improves from 0.0168\u20130.0186 rad to 0.0144\u20130.0146 rad, crouch lowering reaches 6.42\u20138.08 mm, and L/R shoulder excursion reaches 1.345\u20131.355 rad.",
+      "evidence": "cove50-supported-skill-transitions-20261030-r1",
+      "new_optimizer_updates": 240,
+      "new_PPO_rounds": 12,
+      "new_checkpoints": 1,
+      "new_simulator_controls": 28000,
+      "new_physics_substeps": 2240000,
+      "replay_recipe": {
+        "runtime": "Local .venv-control Python environment on the selected Cove-50 R3 rigid XML.",
+        "entry": "control/skills/supported-skill-transitions/run.py",
+        "argv": [
+          "--execute",
+          "--evidence",
+          "{evidence}",
+          "--work",
+          "{work}"
+        ],
+        "producer": "Run with infra/lab storage run NAME -- COMMAND."
+      },
+      "limitations": "Covers the 34.0 s supported multi-skill sequence (stance, shallow crouch/return, bilateral arms, independent arms) across four upright start families; deeper 51 mm squat transitions, walking-to-crouch handoffs, and physical hardware trials remain separate future lessons.",
+      "reuse": "Composes the frozen Walker, CommandActor shallow crouch, and CommandNet recurrent arm donors under a learned 22-DOF sensor-feedback transition coordinator."
+    }
+  ],
+  "distinct_checkpoint_count": 8,
+  "remaining_skills": "All five basic skill tracks on the selected assembled Cove-50 R3 model (forward walking, walking-to-stop, bilateral arm motion, coordinated sensor-feedback independent arm motion, and continuous 34 s supported stance/posture/arm transitions) now have working learned profiles on the shelf. Deeper squat range, tighter heading/yaw control, and walking-to-posture handoffs remain optional future refinements."
+}

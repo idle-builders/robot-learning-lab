@@ -1,0 +1,686 @@
+{
+ "_doc": "Named pose sets. Sources: leg_motion (KEY poses, realistic library, range GRID), fit_extremes = the last N poses of roll_flip_checks.fit_poses(), range_ends = single joints at one end of their range (deg).",
+ "key": {
+  "standing": true,
+  "leg_motion_key": true,
+  "fit_extremes": 8,
+  "range_ends": [
+   [
+    "R_hip_pitch",
+    -90
+   ],
+   [
+    "R_hip_pitch",
+    40
+   ],
+   [
+    "R_hip_roll",
+    -45
+   ],
+   [
+    "R_hip_roll",
+    25
+   ],
+   [
+    "R_hip_yaw",
+    -40
+   ],
+   [
+    "R_hip_yaw",
+    40
+   ],
+   [
+    "R_knee",
+    125
+   ]
+  ]
+ },
+ "library": {
+  "standing": false,
+  "leg_motion_library": true
+ },
+ "all": {
+  "standing": false,
+  "leg_motion_library": true,
+  "leg_motion_grid": true
+ },
+ "fit": {
+  "standing": false,
+  "fit_poses": true
+ },
+ "joint_sweep_wide_deg": {
+  "_doc": "Widest range each joint is swept over by range_sweep (deg): what the training tape asks for, with margin. Key = joint name without the R_/L_ prefix.",
+  "hip_yaw": [
+   -45,
+   45
+  ],
+  "hip_pitch": [
+   -115,
+   45
+  ],
+  "hip_roll": [
+   -45,
+   45
+  ],
+  "knee": [
+   0,
+   130
+  ],
+  "ankle_pitch": [
+   -40,
+   40
+  ],
+  "ankle_roll": [
+   -30,
+   30
+  ],
+  "shoulder_pitch": [
+   -90,
+   180
+  ],
+  "shoulder_roll": [
+   -30,
+   120
+  ],
+  "shoulder_yaw": [
+   -90,
+   90
+  ],
+  "elbow": [
+   0,
+   140
+  ],
+  "neck_yaw": [
+   -90,
+   90
+  ],
+  "neck_pitch": [
+   -45,
+   50
+  ]
+ },
+ "own_servo_part_prefixes": {
+  "_doc": "Per joint kind: part-name prefixes ({s} = side R/L) of the joint's own servo (case, horns, idler). A pair of two such parts is a servo-model contact, reported apart by range_sweep.",
+  "hip_yaw": [
+   "lower__{s}_yaw_servo_case_reference",
+   "{s}_yaw_upper_horn_reference",
+   "{s}_yaw_passive_idler_reference"
+  ],
+  "hip_pitch": [
+   "{s}_hip_pitch_ST3025_"
+  ],
+  "hip_roll": [
+   "{s}_roll_servo_case_reference",
+   "{s}_roll_upper_horn_reference",
+   "{s}_roll_passive_idler_reference"
+  ],
+  "knee": [
+   "{s}_knee_ST3025_"
+  ],
+  "ankle_pitch": [
+   "{s}_ankle_pitch_ST3025_"
+  ],
+  "ankle_roll": [
+   "{s}_B13_C047_foot_roll_"
+  ],
+  "shoulder_pitch": [
+   "upper__{s}_pitch_C047_"
+  ],
+  "shoulder_roll": [
+   "upper__{s}_roll_C047_"
+  ],
+  "shoulder_yaw": [
+   "upper__{s}_yaw_C047_"
+  ],
+  "elbow": [
+   "upper__{s}_elbow_C047_",
+   "upper__{s}_elbow_"
+  ],
+  "neck_yaw": [
+   "upper__neck_yaw_"
+  ],
+  "neck_pitch": [
+   "upper__neck_pitch_"
+  ]
+ },
+ "region_poses": {
+  "_doc": "Pose lists for parts on the arm, neck and torso links (manifest joints[].range_deg at the manifest of 2026-11-19: each joint at both ends of its range, named combinations, fingers open). A scope part whose owning link is in a region's links gets that region's poses instead of the leg-motion set: key = standing + `key`; library and all = key + `library_extra` (corner combinations of the chain); fit = key. Poses that name a joint the body lacks are ignored. Edit the degrees here when the joint limits change.",
+  "regions": {
+   "arm_R": {
+    "links": [
+     "R_shoulder_pitch_link",
+     "R_shoulder_roll_link",
+     "R_upper_arm",
+     "R_forearm",
+     "R_right_finger",
+     "R_left_finger"
+    ],
+    "key": {
+     "R_shoulder_pitch -60": {
+      "R_shoulder_pitch": -60.0
+     },
+     "R_shoulder_pitch +150": {
+      "R_shoulder_pitch": 150.0
+     },
+     "R_shoulder_roll -15": {
+      "R_shoulder_roll": -15.0
+     },
+     "R_shoulder_roll +95": {
+      "R_shoulder_roll": 95.0
+     },
+     "R_shoulder_yaw -60": {
+      "R_shoulder_yaw": -60.0
+     },
+     "R_shoulder_yaw +60": {
+      "R_shoulder_yaw": 60.0
+     },
+     "R_elbow +0": {
+      "R_elbow": 0.0
+     },
+     "R_elbow +95": {
+      "R_elbow": 95.0
+     },
+     "R_fingers open": {
+      "R_right_finger_opening": 45.0,
+      "R_left_finger_opening": -45.0
+     },
+     "R_shoulder_pitch -60 + R_elbow +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_elbow": 95.0
+     },
+     "R_shoulder_pitch +150 + R_elbow +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_elbow": 95.0
+     },
+     "R_shoulder_roll -15 + R_elbow +95": {
+      "R_shoulder_roll": -15.0,
+      "R_elbow": 95.0
+     },
+     "R_shoulder_roll +95 + R_elbow +95": {
+      "R_shoulder_roll": 95.0,
+      "R_elbow": 95.0
+     }
+    },
+    "library_extra": {
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw -60 elbow +0": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw -60 elbow +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw +60 elbow +0": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw +60 elbow +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw -60 elbow +0": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw -60 elbow +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw +60 elbow +0": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw +60 elbow +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw -60 elbow +0": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw -60 elbow +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw +60 elbow +0": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw +60 elbow +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": -15.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw -60 elbow +0": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw -60 elbow +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": -60.0,
+      "R_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw +60 elbow +0": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw +60 elbow +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": 95.0,
+      "R_shoulder_yaw": 60.0,
+      "R_elbow": 95.0
+     }
+    }
+   },
+   "arm_L": {
+    "links": [
+     "L_shoulder_pitch_link",
+     "L_shoulder_roll_link",
+     "L_upper_arm",
+     "L_forearm",
+     "L_right_finger",
+     "L_left_finger"
+    ],
+    "key": {
+     "L_shoulder_pitch -60": {
+      "L_shoulder_pitch": -60.0
+     },
+     "L_shoulder_pitch +150": {
+      "L_shoulder_pitch": 150.0
+     },
+     "L_shoulder_roll -15": {
+      "L_shoulder_roll": -15.0
+     },
+     "L_shoulder_roll +95": {
+      "L_shoulder_roll": 95.0
+     },
+     "L_shoulder_yaw -60": {
+      "L_shoulder_yaw": -60.0
+     },
+     "L_shoulder_yaw +60": {
+      "L_shoulder_yaw": 60.0
+     },
+     "L_elbow +0": {
+      "L_elbow": 0.0
+     },
+     "L_elbow +95": {
+      "L_elbow": 95.0
+     },
+     "L_fingers open": {
+      "L_right_finger_opening": 45.0,
+      "L_left_finger_opening": -45.0
+     },
+     "L_shoulder_pitch -60 + L_elbow +95": {
+      "L_shoulder_pitch": -60.0,
+      "L_elbow": 95.0
+     },
+     "L_shoulder_pitch +150 + L_elbow +95": {
+      "L_shoulder_pitch": 150.0,
+      "L_elbow": 95.0
+     },
+     "L_shoulder_roll -15 + L_elbow +95": {
+      "L_shoulder_roll": -15.0,
+      "L_elbow": 95.0
+     },
+     "L_shoulder_roll +95 + L_elbow +95": {
+      "L_shoulder_roll": 95.0,
+      "L_elbow": 95.0
+     }
+    },
+    "library_extra": {
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw -60 elbow +0": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw -60 elbow +95": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw +60 elbow +0": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll -15 shoulder_yaw +60 elbow +95": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw -60 elbow +0": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw -60 elbow +95": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw +60 elbow +0": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch -60 shoulder_roll +95 shoulder_yaw +60 elbow +95": {
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw -60 elbow +0": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw -60 elbow +95": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw +60 elbow +0": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll -15 shoulder_yaw +60 elbow +95": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": -15.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw -60 elbow +0": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw -60 elbow +95": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": -60.0,
+      "L_elbow": 95.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw +60 elbow +0": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 0.0
+     },
+     "corner shoulder_pitch +150 shoulder_roll +95 shoulder_yaw +60 elbow +95": {
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": 95.0,
+      "L_shoulder_yaw": 60.0,
+      "L_elbow": 95.0
+     }
+    }
+   },
+   "neck": {
+    "links": [
+     "neck_yaw",
+     "head"
+    ],
+    "key": {
+     "neck_yaw -60": {
+      "neck_yaw": -60.0
+     },
+     "neck_yaw +60": {
+      "neck_yaw": 60.0
+     },
+     "neck_pitch -30": {
+      "neck_pitch": -30.0
+     },
+     "neck_pitch +35": {
+      "neck_pitch": 35.0
+     }
+    },
+    "library_extra": {
+     "corner neck_yaw -60 neck_pitch -30": {
+      "neck_yaw": -60.0,
+      "neck_pitch": -30.0
+     },
+     "corner neck_yaw -60 neck_pitch +35": {
+      "neck_yaw": -60.0,
+      "neck_pitch": 35.0
+     },
+     "corner neck_yaw +60 neck_pitch -30": {
+      "neck_yaw": 60.0,
+      "neck_pitch": -30.0
+     },
+     "corner neck_yaw +60 neck_pitch +35": {
+      "neck_yaw": 60.0,
+      "neck_pitch": 35.0
+     }
+    }
+   },
+   "torso": {
+    "links": [
+     "torso"
+    ],
+    "key": {
+     "R_hip_yaw -30": {
+      "R_hip_yaw": -30.0
+     },
+     "R_hip_yaw +30": {
+      "R_hip_yaw": 30.0
+     },
+     "R_hip_pitch -58": {
+      "R_hip_pitch": -58.0
+     },
+     "R_hip_pitch +45": {
+      "R_hip_pitch": 45.0
+     },
+     "R_hip_roll -30": {
+      "R_hip_roll": -30.0
+     },
+     "R_hip_roll +25": {
+      "R_hip_roll": 25.0
+     },
+     "R_shoulder_pitch -60": {
+      "R_shoulder_pitch": -60.0
+     },
+     "R_shoulder_pitch +150": {
+      "R_shoulder_pitch": 150.0
+     },
+     "R_shoulder_roll -15": {
+      "R_shoulder_roll": -15.0
+     },
+     "R_shoulder_roll +95": {
+      "R_shoulder_roll": 95.0
+     },
+     "L_hip_yaw -30": {
+      "L_hip_yaw": -30.0
+     },
+     "L_hip_yaw +30": {
+      "L_hip_yaw": 30.0
+     },
+     "L_hip_pitch -58": {
+      "L_hip_pitch": -58.0
+     },
+     "L_hip_pitch +45": {
+      "L_hip_pitch": 45.0
+     },
+     "L_hip_roll -30": {
+      "L_hip_roll": -30.0
+     },
+     "L_hip_roll +25": {
+      "L_hip_roll": 25.0
+     },
+     "L_shoulder_pitch -60": {
+      "L_shoulder_pitch": -60.0
+     },
+     "L_shoulder_pitch +150": {
+      "L_shoulder_pitch": 150.0
+     },
+     "L_shoulder_roll -15": {
+      "L_shoulder_roll": -15.0
+     },
+     "L_shoulder_roll +95": {
+      "L_shoulder_roll": 95.0
+     },
+     "neck_yaw -60": {
+      "neck_yaw": -60.0
+     },
+     "neck_yaw +60": {
+      "neck_yaw": 60.0
+     },
+     "neck_pitch -30": {
+      "neck_pitch": -30.0
+     },
+     "neck_pitch +35": {
+      "neck_pitch": 35.0
+     },
+     "both hip_pitch -58": {
+      "R_hip_pitch": -58.0,
+      "L_hip_pitch": -58.0
+     },
+     "both hip_pitch +45": {
+      "R_hip_pitch": 45.0,
+      "L_hip_pitch": 45.0
+     },
+     "both shoulder_pitch -60": {
+      "R_shoulder_pitch": -60.0,
+      "L_shoulder_pitch": -60.0
+     },
+     "both shoulder_pitch +150": {
+      "R_shoulder_pitch": 150.0,
+      "L_shoulder_pitch": 150.0
+     },
+     "both shoulder_roll +95": {
+      "R_shoulder_roll": 95.0,
+      "L_shoulder_roll": 95.0
+     }
+    },
+    "library_extra": {
+     "both corner hip_yaw -30 hip_pitch -58 hip_roll -30": {
+      "R_hip_yaw": -30.0,
+      "R_hip_pitch": -58.0,
+      "R_hip_roll": -30.0,
+      "L_hip_yaw": -30.0,
+      "L_hip_pitch": -58.0,
+      "L_hip_roll": -30.0
+     },
+     "both corner hip_yaw -30 hip_pitch -58 hip_roll +25": {
+      "R_hip_yaw": -30.0,
+      "R_hip_pitch": -58.0,
+      "R_hip_roll": 25.0,
+      "L_hip_yaw": -30.0,
+      "L_hip_pitch": -58.0,
+      "L_hip_roll": 25.0
+     },
+     "both corner hip_yaw -30 hip_pitch +45 hip_roll -30": {
+      "R_hip_yaw": -30.0,
+      "R_hip_pitch": 45.0,
+      "R_hip_roll": -30.0,
+      "L_hip_yaw": -30.0,
+      "L_hip_pitch": 45.0,
+      "L_hip_roll": -30.0
+     },
+     "both corner hip_yaw -30 hip_pitch +45 hip_roll +25": {
+      "R_hip_yaw": -30.0,
+      "R_hip_pitch": 45.0,
+      "R_hip_roll": 25.0,
+      "L_hip_yaw": -30.0,
+      "L_hip_pitch": 45.0,
+      "L_hip_roll": 25.0
+     },
+     "both corner hip_yaw +30 hip_pitch -58 hip_roll -30": {
+      "R_hip_yaw": 30.0,
+      "R_hip_pitch": -58.0,
+      "R_hip_roll": -30.0,
+      "L_hip_yaw": 30.0,
+      "L_hip_pitch": -58.0,
+      "L_hip_roll": -30.0
+     },
+     "both corner hip_yaw +30 hip_pitch -58 hip_roll +25": {
+      "R_hip_yaw": 30.0,
+      "R_hip_pitch": -58.0,
+      "R_hip_roll": 25.0,
+      "L_hip_yaw": 30.0,
+      "L_hip_pitch": -58.0,
+      "L_hip_roll": 25.0
+     },
+     "both corner hip_yaw +30 hip_pitch +45 hip_roll -30": {
+      "R_hip_yaw": 30.0,
+      "R_hip_pitch": 45.0,
+      "R_hip_roll": -30.0,
+      "L_hip_yaw": 30.0,
+      "L_hip_pitch": 45.0,
+      "L_hip_roll": -30.0
+     },
+     "both corner hip_yaw +30 hip_pitch +45 hip_roll +25": {
+      "R_hip_yaw": 30.0,
+      "R_hip_pitch": 45.0,
+      "R_hip_roll": 25.0,
+      "L_hip_yaw": 30.0,
+      "L_hip_pitch": 45.0,
+      "L_hip_roll": 25.0
+     },
+     "both corner shoulder_pitch -60 shoulder_roll -15": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": -15.0,
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": -15.0
+     },
+     "both corner shoulder_pitch -60 shoulder_roll +95": {
+      "R_shoulder_pitch": -60.0,
+      "R_shoulder_roll": 95.0,
+      "L_shoulder_pitch": -60.0,
+      "L_shoulder_roll": 95.0
+     },
+     "both corner shoulder_pitch +150 shoulder_roll -15": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": -15.0,
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": -15.0
+     },
+     "both corner shoulder_pitch +150 shoulder_roll +95": {
+      "R_shoulder_pitch": 150.0,
+      "R_shoulder_roll": 95.0,
+      "L_shoulder_pitch": 150.0,
+      "L_shoulder_roll": 95.0
+     }
+    }
+   }
+  }
+ }
+}

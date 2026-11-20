@@ -1,0 +1,20 @@
+{
+  "schema": "cove50.basic-skills.stand-method.v1",
+  "skill": "quiet standing",
+  "duration_s": 8.0,
+  "physics_dt_s": 0.00025,
+  "control_dt_s": 0.02,
+  "rail_V": 12.0,
+  "command_delay_s": 0.02,
+  "feedback_delay_s": 0.01,
+  "peak_motor_envelope": false,
+  "initial_floor_clearance_m": 0.0002,
+  "controllers": ["posture-bc", "cad-neutral-hold"],
+  "starts": [
+    {"seed": 137001, "label": "nominal", "joint_sigma_rad": 0.0, "rpy_envelope_rad": 0.0, "joint_velocity_sigma_rad_s": 0.0},
+    {"seed": 137002, "label": "small-variation", "joint_sigma_rad": 0.002, "rpy_envelope_rad": 0.004, "joint_velocity_sigma_rad_s": 0.0},
+    {"seed": 137003, "label": "moderate-variation", "joint_sigma_rad": 0.005, "rpy_envelope_rad": 0.01, "joint_velocity_sigma_rad_s": 0.005},
+    {"seed": 137004, "label": "wider-variation", "joint_sigma_rad": 0.008, "rpy_envelope_rad": 0.015, "joint_velocity_sigma_rad_s": 0.01}
+  ],
+  "scope": "Four matched upright CAD-neutral fresh starts, no mid-episode perturbation, no fit. Full8s including falls and resting tail. First20ms holds exact initial measuredq pending sensor availability. All numerical physics steps count."
+}

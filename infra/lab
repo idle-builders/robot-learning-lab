@@ -1,0 +1,10 @@
+#!/bin/sh
+# Lab entry point. The only subcommand is storage (see docs/operations/storage-lifecycle.md).
+set -eu
+cd "$(dirname "$0")/.."
+if [ "${1:-}" = "storage" ]; then
+    shift
+    exec .venv/bin/python -B infra/storage/storage_cli.py "$@"
+fi
+echo "usage: infra/lab storage {run,finish,status,sync,clean,install} ..." >&2
+exit 2

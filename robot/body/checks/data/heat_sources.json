@@ -1,0 +1,49 @@
+{
+ "_doc": "Heat sources for the heat check (modules/heat.py). Each source kind lists the manifest roles it covers and the temperature a touching printed part can be exposed to (C), every value with its source or marked 'assumption'. `by_part` moves one named part to another kind or to null (not a source). screen: contact_mm = a printed surface point this close to the source surface is 'in contact' (tessellation and sample spacing read up to ~0.3 mm); near_mm = 'within a few mm'; search_mm = largest distance the check measures (farther reads as none). The check measures; it does not decide. temperature_C is the worst case the surface can reach, so a margin is material limit minus it. The hip yaw / roll servo cases carry role purchased_servo_case_family_reference and are servo cases too.",
+ "screen": {
+  "contact_mm": 0.3,
+  "near_mm": 3.0,
+  "search_mm": 10.0
+ },
+ "kinds": {
+  "servo_case": {
+   "roles": [
+    "motor",
+    "actuator",
+    "purchased_servo_case_family_reference"
+   ],
+   "temperature_C": 70.0,
+   "temperature_source": "Feetech STS3215 datasheet: torque off above 70 C INTERNAL temperature (docs/research/design-checks.md S8). Taken as the case surface worst case: assumption, the case is cooler than the winding, so this over-states the surface",
+   "also": {
+    "ambient_rating_C": 60.0,
+    "ambient_rating_source": "STS3250 listing: rated -20..60 C ambient (S8)"
+   }
+  },
+  "battery_cell": {
+   "roles": [
+    "battery_cell"
+   ],
+   "temperature_C": 60.0,
+   "temperature_source": "Molicel INR-21700-P50B continuous limit 60 C as set in the old torso thermal_evaluate.py P50B_SPEC.continuous_limit_C (cell can wall at the limit: worst case)",
+   "also": {
+    "bms_cutoff_C": 70.0,
+    "bms_cutoff_source": "same P50B_SPEC.bms_cutoff_limit_C"
+   }
+  },
+  "power_board": {
+   "roles": [
+    "source_power_board"
+   ],
+   "temperature_C": 85.0,
+   "temperature_source": "assumption: hottest part of a loaded buck / precharge board; no measurement or simulation exists (old thermal_evaluate.py models 1.8-11.5 W of board heat in air, not a surface temperature)"
+  },
+  "compute_board": {
+   "roles": [],
+   "temperature_C": 80.0,
+   "temperature_source": "assumption: SoC heat spreader / board surface of the ROCK 4D compute board under sustained load with its fan; no measurement exists here"
+  }
+ },
+ "by_part": {
+  "ROCK4D_official": "compute_board"
+ }
+}

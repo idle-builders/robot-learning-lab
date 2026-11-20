@@ -1,0 +1,392 @@
+{
+  "schema": "cove50.selected-sensors.v1",
+  "status": "selected",
+  "selected_on": "2026-10-26",
+  "authority": "Human instruction to mark all agreed head and body sensors selected and close the sensor design task.",
+  "result_id": "cove50-installed-sensing-v24",
+  "study_id": "cove50-installed-sensing",
+  "version": "v24",
+  "dashboard": "http://127.0.0.1:8805/design/?result=cove50-installed-sensing-v24&group=cove50-installed-sensing",
+  "source_geometry_result": "cove50-installed-sensing-v23",
+  "source_manifest": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/assembly-parts.json",
+  "source_manifest_sha256": "3daf246e96d2b1c53377e43464c77e49af029e4af62f0dbdb361c373109ad257",
+  "CAD_handoff": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/handoff.json",
+  "source_geometry_unchanged": true,
+  "items": [
+    {
+      "id": "depth",
+      "name": "Arducam B0410 240 x 180 ToF module",
+      "manufacturer_part_number": "B0410 / GoTronic36874",
+      "part_number": "B0410 / GoTronic36874",
+      "installed_quantity": 1,
+      "quantity": 1,
+      "buy_quantity": 1,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 58.9,
+      "currency": "EUR",
+      "purchase_cost": 58.9,
+      "supplier_url": "https://www.gotronic.fr/art-module-camera-time-of-flight-b0410-36874.htm",
+      "source_url": "https://www.gotronic.fr/art-module-camera-time-of-flight-b0410-36874.htm",
+      "availability_observed": "GoTronic lists 10 units in stock; destination delivery and delivered revision unconfirmed.",
+      "checked_date": "2026-10-26",
+      "part_names": [
+        "B0410_supplier_native_v23"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/B0410_supplier_native_v23.step"
+      ],
+      "placement": "Moving head, source camera translated [0,-4.4,0] mm from V22; 5 mm supports to the shared 1.5 mm carrier.",
+      "category": "purchased",
+      "component_kind": "sensor",
+      "notes": "Archived2022supplier CAD. Offer titleB0410 while page prose containsB0140typos. Host/firmware/FPC mapping unresolved. Includes15cmFFC and powerlead per supplier; full cable route/mate not represented.",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "B0410_supplier_native_v23": [
+          [
+            -40.000000126172004,
+            -24.13112060796,
+            436.1630252052216
+          ],
+          [
+            -1.9999998738189975,
+            -14.145002222161542,
+            475.00000012618096
+          ]
+        ]
+      }
+    },
+    {
+      "id": "RGB",
+      "name": "Arducam B0196 IMX219 8 MP USB 2 UVC camera",
+      "manufacturer_part_number": "B0196 / UC-626Rev.B",
+      "part_number": "B0196 / UC-626Rev.B",
+      "installed_quantity": 1,
+      "quantity": 1,
+      "buy_quantity": 1,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 33.9,
+      "currency": "EUR",
+      "purchase_cost": 33.9,
+      "supplier_url": "https://www.welectron.com/Arducam-B0196-8MP-1080P-USB-Camera-Module",
+      "source_url": "https://www.welectron.com/Arducam-B0196-8MP-1080P-USB-Camera-Module",
+      "availability_observed": "German Welectron page is orderable with approximately 3 months delivery. Earlier English listing said low stock; availability is conflicting, not confirmed immediate stock.",
+      "checked_date": "2026-10-26",
+      "part_names": [
+        "B0196_supplier_native_v23"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/B0196_supplier_native_v23.step"
+      ],
+      "placement": "Moving head, source camera translated [0,-4.4,0] mm from V22; 5 mm supports to the shared 1.5 mm carrier.",
+      "category": "purchased",
+      "component_kind": "sensor",
+      "notes": "Supplier native STEP87solids and datasheet. Fixedfocus200mm-infinity;1080p30MJPG and8MP15fps vendor modes;5V200mAmax. Replaces Waveshare21635 because sourceCADavailable for0.59EURmore. Page31mmmarketingversus38mmCAD/table discrepancy requires deliveredrevision confirmation. Included matching4pin-to-USBcable per supplier; routed mate not represented.",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "B0196_supplier_native_v23": [
+          [
+            1.9999998999999988,
+            -25.309000119432167,
+            439.1661999
+          ],
+          [
+            40.0000001,
+            -13.389800215650483,
+            477.1662001
+          ]
+        ]
+      }
+    },
+    {
+      "id": "body_motion",
+      "name": "Adafruit LSM6DSOX + LIS3MDL module",
+      "manufacturer_part_number": "4517",
+      "installed_quantity": 1,
+      "buy_quantity": 1,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 19.95,
+      "currency": "USD",
+      "purchase_cost": 19.95,
+      "supplier_url": "https://www.adafruit.com/product/4517",
+      "availability_observed": "Manufacturer page lists in stock.",
+      "checked_date": "2026-10-26",
+      "placement": "Fixed torso rear spine; board centre(-12,42,304)mm",
+      "part_names": [
+        "body_IMU_4517"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/v17/parts/body_IMU_4517.step"
+      ],
+      "category": "purchased",
+      "notes": "Accel/gyro required; extra magnetometer is not relied on for motor-adjacent heading. Official supplier STEP, 45 source solids retained.",
+      "installed_quantity_unit": "pieces",
+      "component_kind": "sensor",
+      "quantity": 1,
+      "part_number": "4517",
+      "source_url": "https://www.adafruit.com/product/4517",
+      "supplier": "Named supplier at linked page",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "body_IMU_4517": [
+          [
+            -24.7,
+            42.0,
+            295.10999999999996
+          ],
+          [
+            0.7000000000000037,
+            46.53,
+            312.89
+          ]
+        ]
+      }
+    },
+    {
+      "id": "foot_contacts",
+      "name": "Interlink FSR402 Short, solder tabs",
+      "manufacturer_part_number": "34-00015",
+      "installed_quantity": 6,
+      "buy_quantity": 6,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 2.99,
+      "currency": "USD",
+      "purchase_cost": 17.94,
+      "supplier_url": "https://www.interlinkelectronics.com/products/fsr-402-short",
+      "availability_observed": "Manufacturer offers the FSR402 Short from $2.99; exact solder-tab variant 34-00015 retained from earlier variant-specific observation. Checkout stock not re-confirmed.",
+      "checked_date": "2026-10-26",
+      "placement": "Each foot: outer forefoot(±80,-38),heel(±80,12),medial midfoot(±49,-5)mm; disk rear Z1.75mm",
+      "part_names": [
+        "R_toe_lateral_sensor",
+        "R_heel_lateral_sensor",
+        "R_mid_medial_sensor",
+        "L_toe_lateral_sensor",
+        "L_heel_lateral_sensor",
+        "L_mid_medial_sensor"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/v4/parts/R_toe_lateral_sensor.step",
+        "artifacts/cove50-sensor-integration/v4/parts/R_heel_lateral_sensor.step",
+        "artifacts/cove50-sensor-integration/v4/parts/R_mid_medial_sensor.step",
+        "artifacts/cove50-sensor-integration/v4/parts/L_toe_lateral_sensor.step",
+        "artifacts/cove50-sensor-integration/v4/parts/L_heel_lateral_sensor.step",
+        "artifacts/cove50-sensor-integration/v4/parts/L_mid_medial_sensor.step"
+      ],
+      "category": "purchased",
+      "notes": "Exact variant resolved by manufacturer400series datasheet p7. Manufacturer STEP archive filename30-00016 includes solder-tab components; those tabs match purchasable34-00015, not bare-tail34-00016. No mirrored purchased geometry. Six local contacts, not calibrated total foot force.",
+      "installed_quantity_unit": "pieces",
+      "component_kind": "sensor",
+      "quantity": 6,
+      "part_number": "34-00015",
+      "source_url": "https://www.interlinkelectronics.com/products/fsr-402-short",
+      "supplier": "Named supplier at linked page",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "R_toe_lateral_sensor": [
+          [
+            70.85599999999522,
+            -47.14400000000054,
+            1.0167998995401029
+          ],
+          [
+            89.1440000000023,
+            -17.634810924120004,
+            1.8621677721286038
+          ]
+        ],
+        "R_heel_lateral_sensor": [
+          [
+            70.8559999999977,
+            -8.365189075879998,
+            1.0167998995401029
+          ],
+          [
+            89.14400000000478,
+            21.14400000000054,
+            1.8621677721286038
+          ]
+        ],
+        "R_mid_medial_sensor": [
+          [
+            39.85599999999946,
+            -14.144000000002306,
+            1.0167998995401029
+          ],
+          [
+            69.36518907588,
+            4.144000000004767,
+            1.8621677721286038
+          ]
+        ],
+        "L_toe_lateral_sensor": [
+          [
+            -89.14400000000478,
+            -47.14400000000054,
+            1.0167998995401029
+          ],
+          [
+            -70.8559999999977,
+            -17.634810924120004,
+            1.8621677721286038
+          ]
+        ],
+        "L_heel_lateral_sensor": [
+          [
+            -89.1440000000023,
+            -8.365189075879998,
+            1.0167998995401029
+          ],
+          [
+            -70.85599999999522,
+            21.14400000000054,
+            1.8621677721286038
+          ]
+        ],
+        "L_mid_medial_sensor": [
+          [
+            -69.36518907588,
+            -14.144000000004766,
+            1.0167998995401029
+          ],
+          [
+            -39.85599999999946,
+            4.144000000002306,
+            1.8621677721286038
+          ]
+        ]
+      }
+    },
+    {
+      "id": "foot_readout",
+      "name": "Adafruit ADS7128 ADC/GPIO module",
+      "manufacturer_part_number": "6494",
+      "installed_quantity": 1,
+      "buy_quantity": 1,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 14.95,
+      "currency": "USD",
+      "purchase_cost": 14.95,
+      "supplier_url": "https://www.adafruit.com/product/6494",
+      "availability_observed": "Manufacturer page lists 43 in stock.",
+      "checked_date": "2026-10-26",
+      "placement": "Same spine carrier; board centre(-12,42,339)mm",
+      "part_names": [
+        "foot_ADC_6494"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/v17/parts/foot_ADC_6494.step"
+      ],
+      "category": "purchased",
+      "notes": "Six analogue footFSRchannels;twochannels spare. Unchanged official manufacturer module and carrier.",
+      "installed_quantity_unit": "pieces",
+      "component_kind": "sensor",
+      "quantity": 1,
+      "part_number": "6494",
+      "source_url": "https://www.adafruit.com/product/6494",
+      "supplier": "Named supplier at linked page",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "foot_ADC_6494": [
+          [
+            -27.240000000000002,
+            41.99999999999999,
+            330.10999999999996
+          ],
+          [
+            3.2399999999999993,
+            46.17780000000001,
+            347.89
+          ]
+        ]
+      }
+    },
+    {
+      "id": "hearing",
+      "name": "Adafruit ICS-43434 I2S microphone module",
+      "manufacturer_part_number": "6049",
+      "installed_quantity": 1,
+      "buy_quantity": 1,
+      "units_per_buy_unit": 1,
+      "buy_unit_price": 8.95,
+      "currency": "USD",
+      "purchase_cost": 8.95,
+      "supplier_url": "https://www.adafruit.com/product/6049",
+      "availability_observed": "Manufacturer page lists assembled module in stock; discontinued chip remains a lifecycle limitation.",
+      "checked_date": "2026-10-26",
+      "placement": "Right cheek, original acoustic axis; source module translated [-2.8,0,0] mm from V22 onto the compact carrier tab.",
+      "part_names": [
+        "microphone_6049_v23"
+      ],
+      "native_CAD": [
+        "artifacts/cove50-sensor-integration/original-shell-layout-20261026/parts/microphone_6049_v23.step"
+      ],
+      "category": "purchased",
+      "notes": "Complete digital module, no microphone PCB/preamp design. Manufacturer reports ICS43434 chip discontinued, while this exact assembled module is currently in stock. Official STEP83solids; no silent replacement by a different microphone. Rigid translation[-1,0,4]mm fromV17;source component retained.",
+      "installed_quantity_unit": "pieces",
+      "component_kind": "sensor",
+      "quantity": 1,
+      "part_number": "6049",
+      "source_url": "https://www.adafruit.com/product/6049",
+      "supplier": "Named supplier at linked page",
+      "process": "Buy the named module/variant; placement and attachment are the exact V23 native CAD listed here.",
+      "selection_status": "selected",
+      "selected_on": "2026-10-26",
+      "qualification_status": "Nominal CAD only; delivered hardware/capture/calibration unqualified",
+      "native_bounds_mm": {
+        "microphone_6049_v23": [
+          [
+            44.1674999,
+            -7.822,
+            455.745
+          ],
+          [
+            46.77000000000001,
+            4.878,
+            472.25500000000005
+          ]
+        ]
+      }
+    }
+  ],
+  "module_instances": 11,
+  "joint_feedback": {
+    "status": "selected_reuse_of_actuator_feedback",
+    "quantity": 22,
+    "additional_purchased_sensors": 0,
+    "limits": "Feedback capability and real capture must be checked per actuator; commanded pose is not measured position."
+  },
+  "excluded": [
+    "Hands/wrists and their sensors remain with the hand task.",
+    "Pats/strokes/touch and copper electrodes remain removed."
+  ],
+  "qualification_status": "Accepted component and nominal attachment design; not a built or electrically qualified robot.",
+  "limitations": [
+    "Nominal CAD, no fabricated unit or tolerance/strength/creep/screw-preload observations. Source revisions and generic fastener/spacer dimensions need delivered checks.",
+    "Worst nominal component-to-carrier face gaps are about0.49mm. LocalPCBcornerpocket uses a1.2mm source-loft inset limit; physical fit and insulation still need a first-unit check.",
+    "Finite25neckposes and selected native material comparisons do not establish continuous/fullrobot clearance or cable motion.",
+    "B0410 electrical/raw-capture tuple, complete mapped FFC/USB, protected bodypower endpoint, moving neckloop, installed RF antennas/card and physical calibration remain unresolved.",
+    "The actual source fan/sink are represented with flush intake/exhaust and an internal shroud. Native geometric fit is not installed airflow, temperature, noise or workload evidence.",
+    "New spacer/fastener details and sheet fabrication are unquoted. Retained dated commercial prices are source observations; no complete purchasable/landed-cost claim.",
+    "RGB is orderable but the visible European delivery estimate is about three months; no immediate-stock promise.",
+    "Sensor selection is accepted. The accepted combined head is governed by robot/electronics/head.json. Complete wiring, electrical capture, final fabrication procurement and physical qualification remain deferred under human acceptance."
+  ],
+  "current_combined_head": {
+    "record": "robot/electronics/head.json",
+    "result_id": "cove50-compute-head-local-regulator-r2-20261026",
+    "sensor_geometry_unchanged": true
+  }
+}

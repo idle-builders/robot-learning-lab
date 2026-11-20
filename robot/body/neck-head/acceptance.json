@@ -1,0 +1,137 @@
+{
+  "schema": "robot-learning-lab.design-acceptance.v1",
+  "selected_on": "2026-11-05",
+  "section": "Neck / head (FDM connectors)",
+  "robot_sections": [
+    "Neck",
+    "Head"
+  ],
+  "name": "Complete 4-Stage Torso-to-Head Blank-State 3D Generative FDM Neck & Head Architecture",
+  "study_id": "cove50-neck-head-fdm-combined",
+  "result_id": "cove50-neck-head-fdm-combined-r1",
+  "version": "r1",
+  "task": "T-zesmm6",
+  "idle_decision": "M-8jkx67",
+  "status": "user_selected_fdm_neck_head_connectors",
+  "user_statement": "yeah looks good lets lock that in. please upload, commit & cleanup everything. perform a review and then also mark that task as done.",
+  "scope": "Selected 4-stage 3D-printable FDM neck & head connector architecture (Stage 1 Neck Root Cradle, Stage 2 Yaw-to-Pitch L-Link, Stage 3 Pitch-to-Head Right-Side U-Cradle, Stage 4 Consolidated Head Sensor/Compute/Mic Carrier) with 34 pressed-in 304 SS compression sleeves (6+8+6+14), asymmetric 3D edge bevels (r_inner > r_outer), 0.0000 mm^3 overlap across all 29 yaw x pitch poses and 4 exterior shells, and matched 3D tetrahedral Gmsh FEM across PAHT-CF dry/wet and PETG-CF. Replaces 14 legacy sheet-metal/PA12 parts and v21 ribbon-clamp hardware. Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, MIPI ribbon flex fatigue, and learned-control qualification remain separate.",
+  "component_studies": {
+    "complete_4stage_combined": "cove50-neck-head-fdm-combined-r1",
+    "neck_head_truss_box": "cove50-neck-head-fdm-truss-box-r1",
+    "neck_head_topopt": "cove50-neck-head-fdm-topopt-r1"
+  },
+  "stage_selection": {
+    "stage1_neck_root_cradle": "Family 2 Blank-State 3D SIMP Arch with 6 pressed-in 304 SS sleeves (2x M3 torso spine + 4x M2 rear XM335 case + left cheek wrap, 3.37 g total, stall p99=28.59 MPa, u_max=0.4211 mm, 3.22x dry PAHT-CF SF)",
+    "stage2_neck_yaw_to_pitch_link": "Family 1 Ribbed Box-Cradle L-Link with 8 pressed-in 304 SS sleeves (4x M2 yaw horn + 4x M2 pitch horn, R=9.4 mm tangent circular upper dome, Z>=374.5 mm stepped deck, and deep triangulated corner gussets, 7.34 g total, stall p99=39.38 MPa, u_max=2.2875 mm, 2.34x dry PAHT-CF SF)",
+    "stage3_neck_pitch_to_head_cradle": "Family 2 Blank-State 3D SIMP Right-Side U-Cradle with 6 pressed-in 304 SS sleeves (4x M2 pitch case rear + 2x M3 head carrier tongue, 7.68 g total, stall p99=22.20 MPa, u_max=1.1812 mm, 4.14x dry PAHT-CF SF)",
+    "stage4_head_sensor_compute_carrier": "Family 1 Consolidated One-Piece Ribbed Sensor/Compute/Mic Carrier with 14 pressed-in 304 SS sleeves (2x M3 neck root + 4x M2.5 ROCK4D + 8x M2 stereo/wide cameras + integrated right mic wing + dorsal stiffening ribs in Y in [-11.40, -10.15], 10.18 g total, stall p99=17.89 MPa, u_max=2.6133 mm, 5.14x dry PAHT-CF SF)"
+  },
+  "represented_connector_and_sleeve_mass_g": 28.56,
+  "baseline_metal_and_carrier_mass_g": 52.67,
+  "source": {
+    "mechanical_STEP": {
+      "path": "artifacts/robot/body/neck-head/combined/connectors-4stage.step",
+      "sha256": "06edcab37a2f5d6b216eb47eea11e690973b37351d32b913c704866828c97190",
+      "bytes": 3885373
+    },
+    "inspection_GLB": {
+      "path": "artifacts/robot/body/neck-head/combined/assembly-with-full-shell.glb",
+      "sha256": "3d5d036b852e9f393782d1a8e1ef30521ed52d31bf2276f78b23fe8a9d6f596e",
+      "bytes": 53018620
+    },
+    "inspection_manifest": {
+      "path": "artifacts/robot/body/neck-head/combined/assembly-parts.json",
+      "sha256": "c11bd2ee82a7ae2ad2574db12e3b4fef1e3310535435e8ecd1497e9bfd00e065",
+      "bytes": 179162
+    },
+    "cad_manifest": {
+      "path": "artifacts/robot/body/neck-head/combined/manifest.json",
+      "sha256": "2408992fcc754cda9d7af7595dcc9512b9176a0d5806512690f5cb6f0e2f26ee",
+      "bytes": 10305
+    },
+    "baseline_audit": {
+      "path": "artifacts/robot/body/neck-head/neck-head-baseline-audit.json",
+      "sha256": "617760d71f4bd33dc4dd7dcaba8ec636654aab127ca8eb4654b89edd095225ab",
+      "bytes": 49809
+    },
+    "cad_rule_check": {
+      "path": "artifacts/robot/body/neck-head/neck-head-cad-rules-audit.json",
+      "sha256": "b43c0846fce02aebedda9115b89343fd8470a3f2ce100d979774e48015070bd3",
+      "bytes": 19092
+    },
+    "complete_4stage_fit_and_flexion_report": {
+      "path": "artifacts/robot/body/neck-head/neck-head-fit-and-flexion-report.json",
+      "sha256": "3d78d200137b21b80acffc82e0ef5cbb58cd959335157c6d9da7dc72d7ab50ad",
+      "bytes": 61333
+    },
+    "complete_4stage_fem_report": {
+      "path": "artifacts/robot/body/neck-head/neck-head-fem-evaluation.json",
+      "sha256": "208420e15e859347ed5b6d28f9b261719f1806779ccc19f0c8b9e1203ef9e6c9",
+      "bytes": 142192
+    },
+    "topopt_report": {
+      "path": "artifacts/robot/body/neck-head/neck-head-topopt-report.json",
+      "sha256": "f781a4292b8ff79fe37ebf87997385baccb8175a533dc823efaf6851f25c1692",
+      "bytes": 18456
+    },
+    "topopt_fields": {
+      "path": "artifacts/robot/body/neck-head/neck-head-topopt-fields.npz",
+      "sha256": "98f69d442227bf20e55d558a1bc9ef2977c5971fb851a000db4d16ceef7c0a8c",
+      "bytes": 11431
+    },
+    "record": {
+      "path": "artifacts/robot/body/neck-head/combined/cove50-neck-head-fdm-combined-r1-record.json",
+      "sha256": "040a8c4adc04e68c7ee659bc363e66838302f0733bd931f9cf495361b99d6e7b",
+      "bytes": 43831
+    },
+    "publication": {
+      "path": "artifacts/robot/body/neck-head/combined/cove50-neck-head-fdm-combined-r1-publication.json",
+      "sha256": "609c3e6cc4ccddbaf148d1713a48d7c115a7ca8b72354baaad8004c074eb0427",
+      "bytes": 114
+    }
+  },
+  "native_parts": {
+    "combined__neck_root_cradle_step": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_root_cradle.step",
+      "sha256": "cb9e60c42450b3431005d86106a6e0168c4dd2de294e255c0f9b94869c34dc9f",
+      "bytes": 573112
+    },
+    "combined__neck_root_cradle_npz": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_root_cradle.npz",
+      "sha256": "4593a824889784c387d3d25bd5f285ced6d8846a29bb010d502061c89c34c026",
+      "bytes": 541034
+    },
+    "combined__neck_yaw_to_pitch_link_step": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.step",
+      "sha256": "78102262331a9b9f2b67f856d700aa1be3d1b0c8479e449de8e5857d6f9e1d6b",
+      "bytes": 539299
+    },
+    "combined__neck_yaw_to_pitch_link_npz": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.npz",
+      "sha256": "9024eab695f3ca9ee9e5d24e1f6bf320febe372069489aff1a81c7a995566665",
+      "bytes": 535328
+    },
+    "combined__neck_pitch_to_head_cradle_step": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_pitch_to_head_cradle.step",
+      "sha256": "190b502f826dd0f3ba81455e81e0babc17b8e9fb3e2ae7d6e523214d4a1abc5e",
+      "bytes": 413028
+    },
+    "combined__neck_pitch_to_head_cradle_npz": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__neck_pitch_to_head_cradle.npz",
+      "sha256": "3b5ca3afb743faaee34daf860f03ed011e6851e2d8fc588d10c2c12eced14d6d",
+      "bytes": 355938
+    },
+    "combined__head_sensor_compute_carrier_step": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__head_sensor_compute_carrier.step",
+      "sha256": "5173bdf00fd75e3db45c4fe84a172ee5fc5ae8fe10b79d2eb0c9197f96945af2",
+      "bytes": 1818324
+    },
+    "combined__head_sensor_compute_carrier_npz": {
+      "path": "artifacts/robot/body/neck-head/parts/combined__head_sensor_compute_carrier.npz",
+      "sha256": "fbacc8399c22f84931232d4475c39668861764ede04d05da6144a07b7cd33073",
+      "bytes": 1879202
+    }
+  },
+  "qualification_limits": "Selected FDM neck & head connector CAD and linear P1 tetrahedral FEM verification (1g upright, 3g dynamic nod/turn, 6g fall recovery, and 1.60 N*m dual-axis XM335 stall across PAHT-CF dry/wet and PETG-CF with 34 bonded 304 SS compression sleeves). Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, MIPI ribbon flex fatigue, and learned-control transfer remain unqualified.",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-neck-head-fdm-combined-r1"
+}

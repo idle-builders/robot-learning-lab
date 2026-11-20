@@ -1,0 +1,490 @@
+{
+ "_doc": "Assembly order per subassembly, walked by the assembly check (docs/operations/working-rules.md: editing). Step: part (name / glob / list = one rigid group) or screw (name / glob / list), direction (manifest-frame vector the part travels while it goes in; or 'screw axis'), seeded (drafted, not confirmed), derived (how).",
+ "defaults": {
+  "max_mm": 60.0,
+  "step_mm": 1.0
+ },
+ "assemblies": {
+  "right_leg": {
+   "doc": "Seeded draft from the connection graph: parts of links ['R_ankle_pitch', 'R_foot', 'R_pitch_link', 'R_roll_link', 'R_shin', 'R_yaw_link'] ordered by fastened distance from the base; unreached by the graph: []. Designer: confirm or reorder, delete `seeded` once confirmed.",
+   "base": [
+    "lower__R_yaw_servo_case_reference"
+   ],
+   "steps": [
+    {
+     "id": "p01",
+     "part": "R_yaw_passive_idler_reference",
+     "direction": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 1 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference), snapped to the nearest axis"
+    },
+    {
+     "id": "p02",
+     "part": "R_yaw_upper_horn_reference",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 1 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference), snapped to the nearest axis"
+    },
+    {
+     "id": "p03",
+     "part": [
+      "R_hip_yaw_to_pitch_combined",
+      "R_hip_yaw_to_pitch_combined_steel_sleeves"
+     ],
+     "direction": [
+      -0.0,
+      0.0,
+      -1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 2 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A14_yaw_M3x14_0, R_A14_yaw_M3x14_1, R_A14_yaw_M3x14_2, R_A14_yaw_M3x14_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s04",
+     "screw": [
+      "R_A14_yaw_M3x14_0",
+      "R_A14_yaw_M3x14_1",
+      "R_A14_yaw_M3x14_2",
+      "R_A14_yaw_M3x14_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_hip_yaw_to_pitch_combined; driver path vs placed parts"
+    },
+    {
+     "id": "p05",
+     "part": "R_hip_pitch_ST3025_case",
+     "direction": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 3 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_A14_front_PA2x4_1, R_A14_front_PA2x4_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s06",
+     "screw": [
+      "R_A14_front_PA2x4_1",
+      "R_A14_front_PA2x4_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "2 screw(s) whose touched chain parts are all placed after R_hip_pitch_ST3025_case; driver path vs placed parts"
+    },
+    {
+     "id": "p07",
+     "part": "R_hip_pitch_ST3025_output",
+     "direction": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 4 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_hip_pitch_ST3025_case), snapped to the nearest axis"
+    },
+    {
+     "id": "p08",
+     "part": [
+      "R_hip_pitch_to_roll_roll_flip",
+      "R_hip_pitch_to_roll_roll_flip_steel_sleeves"
+     ],
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 14 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_hip_pitch_ST3025_output), snapped to the nearest axis"
+    },
+    {
+     "id": "p09",
+     "part": "R_roll_passive_idler_reference",
+     "direction": [
+      -0.0,
+      1.0,
+      -0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 15 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A9_hip_M3x4_1_0, R_A9_hip_M3x4_1_1, R_A9_hip_M3x4_1_2, R_A9_hip_M3x4_1_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s10",
+     "screw": [
+      "R_A9_hip_M3x4_1_0",
+      "R_A9_hip_M3x4_1_1",
+      "R_A9_hip_M3x4_1_2",
+      "R_A9_hip_M3x4_1_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference; driver path vs placed parts"
+    },
+    {
+     "id": "p11",
+     "part": "R_roll_upper_horn_reference",
+     "direction": [
+      -0.0,
+      -1.0,
+      -0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 15 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A9_hip_M3x4_0_0, R_A9_hip_M3x4_0_1, R_A9_hip_M3x4_0_2, R_A9_hip_M3x4_0_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s12",
+     "screw": [
+      "R_A9_hip_M3x4_0_0",
+      "R_A9_hip_M3x4_0_1",
+      "R_A9_hip_M3x4_0_2",
+      "R_A9_hip_M3x4_0_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_upper_horn_reference; driver path vs placed parts"
+    },
+    {
+     "id": "p13",
+     "part": "R_roll_servo_case_reference",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 16 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_roll_upper_horn_reference, R_roll_passive_idler_reference), snapped to the nearest axis"
+    },
+    {
+     "id": "s14",
+     "screw": [
+      "R_A13_roll_face0_PA2x3_0",
+      "R_A13_roll_face0_PA2x3_1",
+      "R_A13_roll_face0_PA2x3_2",
+      "R_A13_roll_face0_PA2x3_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_servo_case_reference; driver path vs placed parts"
+    },
+    {
+     "id": "s15",
+     "screw": [
+      "R_A13_roll_face1_PA2x3_0",
+      "R_A13_roll_face1_PA2x3_1",
+      "R_A13_roll_face1_PA2x3_2",
+      "R_A13_roll_face1_PA2x3_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_servo_case_reference; driver path vs placed parts"
+    },
+    {
+     "id": "p16",
+     "part": [
+      "R_thigh_roll_flip",
+      "R_thigh_roll_flip_steel_sleeves"
+     ],
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 18 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_roll_servo_case_reference, R_hip_pitch_to_roll_roll_flip), snapped to the nearest axis"
+    },
+    {
+     "id": "p17",
+     "part": "R_knee_ST3025_case",
+     "direction": [
+      -0.999,
+      0.0,
+      -0.047
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 5 screw(s) joining it to placed parts (R_knee_ST3025_PA2x8_0, R_knee_ST3025_PA2x8_1, R_knee_ST3025_PA2x8_2, R_knee_ST3025_PA2x8_3, R_knee_ST3025_PA2x8_4), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s18",
+     "screw": [
+      "R_knee_ST3025_PA2x8_0",
+      "R_knee_ST3025_PA2x8_1",
+      "R_knee_ST3025_PA2x8_2",
+      "R_knee_ST3025_PA2x8_3",
+      "R_knee_ST3025_PA2x8_4"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "5 screw(s) whose touched chain parts are all placed after R_knee_ST3025_case; driver path vs placed parts"
+    },
+    {
+     "id": "p19",
+     "part": "R_thigh_shell_back",
+     "direction": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_rear_carrier_shell_thigh_back_1_M3x8, R_Thigh_rear_carrier_shell_thigh_back_2_M3x8), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s20",
+     "screw": "R_Thigh_rear_carrier_shell_thigh_back_1_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
+    },
+    {
+     "id": "s21",
+     "screw": "R_Thigh_rear_carrier_shell_thigh_back_2_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
+    },
+    {
+     "id": "p22",
+     "part": "R_thigh_shell_front",
+     "direction": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_carrier_shell_thigh_front_1_M3x8, R_Thigh_carrier_shell_thigh_front_2_M3x8), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s23",
+     "screw": "R_Thigh_carrier_shell_thigh_front_1_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
+    },
+    {
+     "id": "s24",
+     "screw": "R_Thigh_carrier_shell_thigh_front_2_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
+    },
+    {
+     "id": "p25",
+     "part": "R_knee_ST3025_output",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 20 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_knee_ST3025_case), snapped to the nearest axis"
+    },
+    {
+     "id": "p26",
+     "part": [
+      "R_shin_combined",
+      "R_shin_combined_steel_sleeves"
+     ],
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 30 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_knee_ST3025_output), snapped to the nearest axis"
+    },
+    {
+     "id": "p27",
+     "part": "R_shin_back_hard_cover",
+     "direction": [
+      0.999,
+      0.0,
+      0.047
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 31 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_shin_back_cover_PA2x8_0, R_shin_back_cover_PA2x8_1, R_shin_back_cover_PA2x8_2, R_shin_back_cover_PA2x8_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s28",
+     "screw": [
+      "R_shin_back_cover_PA2x8_0",
+      "R_shin_back_cover_PA2x8_1",
+      "R_shin_back_cover_PA2x8_2",
+      "R_shin_back_cover_PA2x8_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_shin_back_hard_cover; driver path vs placed parts"
+    },
+    {
+     "id": "p29",
+     "part": "R_shin_front_hard_cover",
+     "direction": [
+      0.0,
+      1.0,
+      -0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 31 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Shin_carrier_shell_shin_front_1_M3x8, R_Shin_carrier_shell_shin_front_2_M3x8), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s30",
+     "screw": "R_Shin_carrier_shell_shin_front_1_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover; driver path vs placed parts"
+    },
+    {
+     "id": "s31",
+     "screw": "R_Shin_carrier_shell_shin_front_2_M3x8",
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover; driver path vs placed parts"
+    },
+    {
+     "id": "p32",
+     "part": "R_ankle_pitch_ST3025_case",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 40 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_shin_combined), snapped to the nearest axis"
+    },
+    {
+     "id": "p33",
+     "part": "R_ankle_pitch_ST3025_output",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 41 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_ankle_pitch_ST3025_case), snapped to the nearest axis"
+    },
+    {
+     "id": "p34",
+     "part": [
+      "R_ankle_coupler_combined",
+      "R_ankle_coupler_combined_steel_sleeves"
+     ],
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 51 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_ankle_pitch_ST3025_output), snapped to the nearest axis"
+    },
+    {
+     "id": "p35",
+     "part": "R_B13_C047_foot_roll_main_horn",
+     "direction": [
+      -0.0,
+      -1.0,
+      -0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 52 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_B13_output_NBK_M3x4_H0p8_0, R_B13_output_NBK_M3x4_H0p8_1, R_B13_output_NBK_M3x4_H0p8_2, R_B13_output_NBK_M3x4_H0p8_3), head to tip when the part carries the head, else reversed"
+    },
+    {
+     "id": "s36",
+     "screw": [
+      "R_B13_output_NBK_M3x4_H0p8_0",
+      "R_B13_output_NBK_M3x4_H0p8_1",
+      "R_B13_output_NBK_M3x4_H0p8_2",
+      "R_B13_output_NBK_M3x4_H0p8_3"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "4 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_main_horn; driver path vs placed parts"
+    },
+    {
+     "id": "p37",
+     "part": "R_B13_C047_foot_roll_case",
+     "direction": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 53 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_main_horn), snapped to the nearest axis"
+    },
+    {
+     "id": "s38",
+     "screw": [
+      "R_B13_front_PA2x6_0",
+      "R_B13_front_PA2x6_1"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case; driver path vs placed parts"
+    },
+    {
+     "id": "s39",
+     "screw": [
+      "R_B13_rear_PA2x6_0",
+      "R_B13_rear_PA2x6_1"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case; driver path vs placed parts"
+    },
+    {
+     "id": "p40",
+     "part": "R_B13_C047_foot_roll_rear_idler",
+     "direction": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 54 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis"
+    },
+    {
+     "id": "p41",
+     "part": [
+      "R_foot_monocoque_combined",
+      "R_foot_monocoque_combined_steel_sleeves"
+     ],
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 55 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis"
+    },
+    {
+     "id": "p42",
+     "part": "R_foot_boot_shell",
+     "direction": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 63 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case, R_foot_monocoque_combined), snapped to the nearest axis"
+    },
+    {
+     "id": "p43",
+     "part": "R_foot_sole_shell",
+     "direction": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "seeded": true,
+     "derived": "graph order, fastened distance 65 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_foot_monocoque_combined), snapped to the nearest axis"
+    }
+   ]
+  }
+ }
+}

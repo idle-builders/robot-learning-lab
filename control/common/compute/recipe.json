@@ -1,0 +1,13 @@
+{
+  "capacity_worlds": [256, 512, 1024],
+  "capacity_controls": 48,
+  "eval_seeds": [136101, 136201],
+  "train_seed": 136100,
+  "eval_velocity_x": 0.3,
+  "target_rounds": 400,
+  "minimum_rounds": 200,
+  "chunk_rounds": 100,
+  "hard_deadline_s": 3420,
+  "trace_budget_bytes": 8000000000,
+  "source_checkpoint": "artifacts/ape-low-level-training-20261015/shared-forward-turn/native/bc/bc-best.pt"
+}

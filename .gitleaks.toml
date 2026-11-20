@@ -1,0 +1,10 @@
+# Gitleaks configuration: the default rules, plus one narrow allowlist for this repository's
+# identifier fields that the generic-api-key rule mistakes for keys (stage and artifact names).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Stage, study and artifact identifiers, not credentials"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''\b(stage_key|stg_key|output_key|source_key|physical_identity_key|campaign_key)\b''', '''\bstage[0-9]_[a-z0-9_]+\b''']

@@ -1,0 +1,60 @@
+{
+  "schema": "cove50.current-learning-model.v1",
+  "version": "r3-20261026",
+  "status": "provisional_continuous_servo_resolution_corrected_model",
+  "source_study": "cove50-electronics-integrated",
+  "source_result": "cove50-electronics-integrated-r1-20261026",
+  "source_manifest": {
+    "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+    "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399",
+    "bytes": 1555977
+  },
+  "rigid_URDF": {
+    "path": "artifacts/robot/model/timestep/cove50.urdf",
+    "sha256": "8efcbf89f2949729ec78473d431c8a130a6bcf54164d961fbfad96c46eb58a02",
+    "bytes": 334157
+  },
+  "rigid_MJCF": {
+    "path": "artifacts/robot/model/timestep/cove50-rigid.xml",
+    "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+    "bytes": 393229
+  },
+  "compliant_MJCF": {
+    "path": "artifacts/robot/model/timestep/cove50-compliant.xml",
+    "sha256": "6c03d5f007772f3f8e75958880cdc9d4c25fbd26c6c4569ec2022f8cddf76148",
+    "bytes": 467084
+  },
+  "actuators": {
+    "path": "artifacts/robot/model/timestep/actuators.json",
+    "sha256": "c6a85db7a16162da058c39a297469930d54f3f1809eb528535456de61aeb6e0a",
+    "bytes": 34031
+  },
+  "sensors": {
+    "path": "artifacts/robot/model/timestep/sensors.json",
+    "sha256": "3bb2ecd3bc0f227cfc03c4536b5c1f607a7167a009d6563deaa48f934bef4724",
+    "bytes": 20457
+  },
+  "report": {
+    "path": "artifacts/robot/model/timestep/native-revision-validation.json",
+    "sha256": "b1c39b42bea42c0717e00971877882ca32b8e6d57f081a24ce41478d77f9200f",
+    "bytes": 6263
+  },
+  "mass_estimate_kg": 3.830267763756974,
+  "actuated_axes": 22,
+  "scope": "Same selected CAD/physical contracts with0.25ms rigid continuous-servo evaluation. No completed step, installed-servo calibration or tuning-readiness promotion implied.",
+  "parent_model": {
+    "path": "artifacts/robot/model/collisions/current-model.json",
+    "sha256": "9c616a33dd1ed9d400a0cf1a7bd69a22c2015104e3a61393c9913c4145ce215a",
+    "bytes": 2335
+  },
+  "evidence_seal": {
+    "path": "artifacts/robot/model/timestep/evidence-seal.json",
+    "sha256": "8db5a51484fb3c750fb2e2a64587097b62e8972d4a3f263402b3f24ca9d70b95",
+    "bytes": 298887
+  },
+  "timing": {
+    "path": "artifacts/robot/model/timestep/timing.json",
+    "sha256": "b224cac89dc6514940295ff2e1509f71598d65bf5fc090f109ab501ba5f82efc",
+    "bytes": 2456
+  }
+}

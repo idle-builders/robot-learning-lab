@@ -1,0 +1,157 @@
+{
+  "schema": "cove50.turn-cuda-batch.v1",
+  "device": "cuda:0",
+  "hard_deadline_s": 1650,
+  "stage_timeout_s": 180,
+  "cases": [
+    {
+      "name": "candidate200-moving-left-141001",
+      "policy": "candidate200",
+      "profile": "moving-left",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-moving-right-141001",
+      "policy": "candidate200",
+      "profile": "moving-right",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-pure-left-141001",
+      "policy": "candidate200",
+      "profile": "pure-left",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-pure-right-141001",
+      "policy": "candidate200",
+      "profile": "pure-right",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-forward-to-left-141001",
+      "policy": "candidate200",
+      "profile": "forward-to-left",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 150
+    },
+    {
+      "name": "candidate200-forward-to-right-141001",
+      "policy": "candidate200",
+      "profile": "forward-to-right",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 150
+    },
+    {
+      "name": "candidate200-moving-left-141002",
+      "policy": "candidate200",
+      "profile": "moving-left",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-moving-right-141002",
+      "policy": "candidate200",
+      "profile": "moving-right",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-pure-left-141002",
+      "policy": "candidate200",
+      "profile": "pure-left",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-pure-right-141002",
+      "policy": "candidate200",
+      "profile": "pure-right",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 200
+    },
+    {
+      "name": "candidate200-forward-to-left-141002",
+      "policy": "candidate200",
+      "profile": "forward-to-left",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 150
+    },
+    {
+      "name": "candidate200-forward-to-right-141002",
+      "policy": "candidate200",
+      "profile": "forward-to-right",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/method-r1.json",
+      "controls": 150
+    },
+    {
+      "name": "source-bc-pure-left-141001",
+      "policy": "source-bc",
+      "profile": "pure-left",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/source-comparison-r1/method.json",
+      "controls": 200
+    },
+    {
+      "name": "source-bc-pure-right-141001",
+      "policy": "source-bc",
+      "profile": "pure-right",
+      "seed": 141001,
+      "method": "data/basic-skills-retry-20261027/turn/source-comparison-r1/method.json",
+      "controls": 200
+    },
+    {
+      "name": "source-bc-pure-left-141002",
+      "policy": "source-bc",
+      "profile": "pure-left",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/source-comparison-r1/method.json",
+      "controls": 200
+    },
+    {
+      "name": "source-bc-pure-right-141002",
+      "policy": "source-bc",
+      "profile": "pure-right",
+      "seed": 141002,
+      "method": "data/basic-skills-retry-20261027/turn/source-comparison-r1/method.json",
+      "controls": 200
+    }
+  ],
+  "planned_controls": 3000,
+  "planned_physics_steps": 240000,
+  "policy_checkpoints": 2,
+  "optimizer_updates": 0,
+  "worlds_per_visit": 1,
+  "independent_gpu_start_families": 2,
+  "cpu_probe": "First CPU moving-left141001 is retained separately. Complete12-case CUDA candidate grid provides same-device starts for4source pure-turn pairs; CPU/CUDA same seed is not assumed identical.",
+  "combined_cpu_gpu_counts": {
+    "visits": 17,
+    "controls": 3200,
+    "physics_steps": 256000,
+    "seed_device_families": 3
+  },
+  "provider_policy": {
+    "execution_timeout_ms": 1800000,
+    "ttl_ms": 2400000,
+    "workers_min": 0,
+    "workers_max": 1,
+    "idle_timeout_s": 5
+  },
+  "collection": "Sequential complete native attempts, all original flags/tails. No extra smoke episodes, fitting, scripts steering motion, resubmission or provider polling."
+}

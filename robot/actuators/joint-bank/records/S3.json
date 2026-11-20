@@ -1,0 +1,33 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "S3",
+  "region": "shoulder",
+  "name": "Two-input differential shoulder",
+  "architecture": "rotary_differential",
+  "maturity": "bench",
+  "summary": "Source-scale differential with remote input-drive study.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/parametric/differential-input-drive/README.md",
+      "sha256": "f66a243055093dcdcada1c995bbf6b71d648aadc3792b67f1f3a005a829a56b6"
+    },
+    {
+      "name": "finite_screen",
+      "role": "motion_data",
+      "path": "studies/cove50-morphology/joint-box/parametric/differential-input-drive/output/finite-screen.json",
+      "sha256": "14766184c22ee07db4cb4233d62a2a43e54d9dda10f3530bb8c8d4fab7c5d8c4"
+    }
+  ],
+  "limits": [
+    "Bench rail is not an ape torso receiver; belt installation and rating unresolved."
+  ]
+}

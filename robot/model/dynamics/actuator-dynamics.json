@@ -1,0 +1,702 @@
+{
+ "schema": "cove50.actuator-dynamics.v1",
+ "version": "r4-dynamics-20261105",
+ "parent_model": "r3-urdf-visual-r1-20261026",
+ "status": "best estimates pending bench identification; nothing here is measured on a Cove-50 part",
+ "scope": "Joint-side actuator dynamics layered on the unchanged R3 rigid MJCF, URDF, masses, sensors and timing. 'nominal' is the best estimate used by default; 'low' and 'high' bound it for sensitivity, not for randomization.",
+ "law": {
+  "feetech_duty": "Firmware position loop (BAM STS3215 model): the internal target moves toward the commanded target at most target_rate_limit_rad_s; duty = clamp(duty_gain_per_rad * (internal target - q, less half the backlash), +-max_duty); output torque = stall_torque_Nm * (duty - qd / no_load_speed_rad_s), limited to +-stall_torque_Nm (current limit). This keeps the catalog torque-speed line at full duty and adds the back-EMF damping stall/no-load speed inside it.",
+  "joint": "armature_kg_m2 and frictionloss_Nm are MuJoCo joint attributes (reflected rotor inertia and Coulomb friction at the output). No extra viscous damping: the catalog no-load speed already contains it.",
+  "rated_torque": "Continuous (thermal) reference only. The physical limit is the full curve; RMS current over rated current is reported as the heat proxy."
+ },
+ "models": {
+  "c047": {
+   "model": "FEETECH ST-3215-C047 (12 V, 1:345)",
+   "joints": "20 body joints (R3 selection)",
+   "mass_kg": 0.055,
+   "stall_torque_Nm": 2.941995,
+   "no_load_speed_rad_s": 4.71710608647116,
+   "rated_torque_Nm": 0.980665,
+   "idle_current_A": 0.03,
+   "stall_current_A": 2.7,
+   "rated_current_A": 0.9,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 5.312,
+    "low": 4.0,
+    "high": 6.6,
+    "source": "BAM STS3215 firmware model: kp 32 x error_gain 0.166 x fitted ratio 1.00-1.16 (m1 1.005, m6 1.162); the C047 runs the same Feetech STS firmware (assumed)"
+   },
+   "max_duty": {
+    "nominal": 0.97,
+    "source": "BAM STS3215 oscilloscope measurement"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 5.2,
+    "low": 4.72,
+    "high": 7.0,
+    "source": "BAM STS3215 fitted max_velocity 5.29 (m1) / 5.10 (m6) at 7.4 V, about 1.1x its no-load speed; applied as 1.1x the C047 no-load speed (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.024,
+    "low": 0.015,
+    "high": 0.03,
+    "source": "BAM STS3215 7.4 V, same 1:345 gear: 0.0261 (m1), 0.0216 (m6); github.com/Rhoban/bam/tree/main/bam/params/feetech_sts3215_7_4V"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.052,
+    "low": 0.03,
+    "high": 0.1,
+    "source": "BAM STS3215 friction_base 0.0515 (m1), 0.0533 (m6); load-dependent friction (m6) not modelled"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "half the 0.5 deg catalog upper bound in actuators.json (assumption)"
+   }
+  },
+  "sts3250": {
+   "model": "FEETECH STS3250 (12 V, 1:345)",
+   "joints": "candidate on the 20 C047 joints, CAD unchanged",
+   "mass_kg": 0.0745,
+   "stall_torque_Nm": 4.9,
+   "no_load_speed_rad_s": 7.873,
+   "rated_torque_Nm": 1.6333,
+   "idle_current_A": 0.024,
+   "stall_current_A": 4.2,
+   "rated_current_A": 1.416,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 5.312,
+    "low": 4.0,
+    "high": 6.6,
+    "source": "same Feetech STS firmware as the STS3215 (assumption)"
+   },
+   "max_duty": {
+    "nominal": 0.97,
+    "source": "as STS3215"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 8.66,
+    "low": 7.87,
+    "high": 10.0,
+    "source": "1.1x no-load speed, by the STS3215 pattern (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.024,
+    "low": 0.015,
+    "high": 0.04,
+    "source": "no identification published; same 1:345 gear and case as the STS3215, motor stronger so the rotor may be heavier (assumption)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.052,
+    "low": 0.03,
+    "high": 0.1,
+    "source": "as STS3215 (assumption)"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "as C047 (assumption)"
+   },
+   "catalog_source": "servodatabase.com/servo/feetech/sts3250: 4.9 N m stall and 0.133 s/60 deg at 12 V, 74.5 g, 4.2 A stall; rated = stall/3 (no rating published)"
+  },
+  "st3025": {
+   "model": "Waveshare ST3025 (12 V, brushless serial-bus servo)",
+   "joints": "candidate on the 20 C047 joints, CAD unchanged",
+   "mass_kg": 0.124,
+   "stall_torque_Nm": 3.9227,
+   "no_load_speed_rad_s": 8.901,
+   "rated_torque_Nm": 1.324,
+   "idle_current_A": 0.006,
+   "no_load_current_A": 0.38,
+   "stall_current_A": 4.4,
+   "rated_current_A": 1.5,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "BAM ST3025 model: kp 32 x error_gain 0.166 x fitted ratio 1.18 (m1) / 1.25 (m6)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "BAM ST3025 default (not measured)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 8.9,
+    "high": 1000.0,
+    "source": "BAM's ST3025 model has no target rate limit (1000 = none)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.0046,
+    "low": 0.0035,
+    "high": 0.006,
+    "source": "BAM ST3025 identification 0.00436 (m1), 0.00478 (m6); github.com/Rhoban/bam/tree/main/bam/params/waveshare_st3025"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.05,
+    "low": 0.03,
+    "high": 0.1,
+    "source": "BAM ST3025 friction_base 0.0519 (m1), 0.0488 (m6)"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; as C047 (assumption)"
+   },
+   "catalog_source": "waveshare.com/wiki/ST3025_Servo: 40 kg cm stall and 0.117 s/60 deg (85 rpm) at 12 V, 6 mA static (the idle current the current model uses, as the C047's 0.03 A), 0.38 A no-load running, 1.5 A rated, 4.4 A stall, Kt 9 kg cm/A (rated torque = Kt x 1.5 A), 40x20x40 mm; 124 g from Waveshare listings"
+  },
+  "xm335": {
+   "model": "ROBOTIS XM335-T323-T (neck, 1:323)",
+   "joints": "neck yaw and pitch; existing R3 law kept",
+   "law": "r3",
+   "armature_kg_m2": {
+    "nominal": 0.0016,
+    "low": 0.001,
+    "high": 0.004,
+    "source": "no XM335 identification; BAM XL330 (similar 330-size ROBOTIS servo) 0.00161 (assumption)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.019,
+    "low": 0.01,
+    "high": 0.04,
+    "source": "BAM XL330 friction_base 0.0191 (assumption)"
+   }
+  },
+  "ak45-10": {
+   "model": "CubeMars AK45-10 V3.0 KV75 (24 V, 10:1 planetary, integrated driver)",
+   "joints": "candidate on the knees only; CAD unchanged (only its mass is placed at the joint)",
+   "mass_kg": 0.262,
+   "stall_torque_Nm": 7.0,
+   "no_load_speed_rad_s": 18.85,
+   "rated_torque_Nm": 2.5,
+   "idle_current_A": 0.1,
+   "stall_current_A": 5.0,
+   "rated_current_A": 1.9,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "the driver's position loop is user-set (SERVO/MIT mode); the ST3025's BAM-fitted gain is assumed so a comparison isolates torque-speed, rotor inertia and mass"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed (1000 = none)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.001573,
+    "low": 0.001259,
+    "high": 0.001888,
+    "source": "catalog rotor inertia 157.33 g cm2 x 10^2 gear ratio; reflected at the output"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.1,
+    "low": 0.05,
+    "high": 0.2,
+    "source": "catalog backdrivable torque 0.1 N m, taken as output Coulomb friction (assumption)"
+   },
+   "backlash_rad": {
+    "nominal": 0.00524,
+    "low": 0.0,
+    "high": 0.00524,
+    "source": "catalog backlash 18 arcmin"
+   },
+   "catalog_source": "cubemars.com/de/product/ak45-10-v3-0-kv75-robotic-actuator.html (read 2026-11-06): 24 V, 2.5 N m rated at 120 rpm, 7 N m peak, 180 rpm no-load, 1.9 A rated, 5 A peak, 0.127 N m/A motor Kt, 10:1, 157.33 g cm2 rotor, 262 g, phi53 x 45.2 mm, 39 W max continuous, 18 arcmin. Law: the line from 7 N m at standstill to 180 rpm passes the 2.5 N m / 120 rpm rated point (2.33 N m), so peak torque is used as the stall intercept. Rail: the runtime scales every law by rail/12 (11.1/12 for the 3S pack); a 6S pack (22.2 V) on a 24 V rating gives the same 0.925, so the 24 V catalog enters unchanged and the knees need their own 6S supply. Currents are at 22-24 V, not comparable in amps with the 11.1 V servos. No-load current is not published; 0.1 A is an assumption.",
+   "knee_study": "studies/cove50-engineering-competition/knee-studio/A/integrated-drive-alternative.md"
+  },
+  "ak60-6": {
+   "model": "CubeMars AK60-6 V3.0 KV80 (24 V, 6:1 planetary, integrated driver)",
+   "joints": "candidate on the knees only; CAD unchanged (only its mass is placed at the joint)",
+   "mass_kg": 0.38,
+   "stall_torque_Nm": 9.0,
+   "no_load_speed_rad_s": 33.51,
+   "rated_torque_Nm": 3.0,
+   "idle_current_A": 0.1,
+   "stall_current_A": 10.3,
+   "rated_current_A": 3.8,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "the driver's position loop is user-set (SERVO/MIT mode); the ST3025's BAM-fitted gain is assumed so a comparison isolates torque-speed, rotor inertia and mass"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed (1000 = none)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.000877,
+    "low": 0.000701,
+    "high": 0.001052,
+    "source": "catalog rotor inertia 243.5 g cm2 x 6^2 gear ratio; reflected at the output"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.2,
+    "low": 0.1,
+    "high": 0.3,
+    "source": "catalog back-drive torque 0.2 N m, taken as output Coulomb friction (assumption)"
+   },
+   "backlash_rad": {
+    "nominal": 0.00524,
+    "low": 0.0,
+    "high": 0.00873,
+    "source": "not published ('low backlash'); the AK45-10's 18 arcmin assumed"
+   },
+   "catalog_source": "cubemars.com/product/ak60-6-v3-0-kv80-robotic-actuator.html (read 2026-11-06): 24/48 V, 3 N m rated at 233 rpm (24 V), 9 N m peak, 320 rpm no-load (24 V), 3.8 A rated, 10.3 A peak (24 V), 0.135 N m/A motor Kt, 6:1, 243.5 g cm2 rotor, 380 g, phi79 x 43 mm, USD 229.90. Law: a line from 9 N m to 320 rpm, slightly conservative against the 3 N m / 233 rpm rated point (2.45 N m on the line). Rail as the AK45-10 (6S pack). No-load current is not published; 0.1 A is an assumption."
+  },
+  "st3215-hs": {
+   "model": "Waveshare ST3215-HS (12 V, high-speed serial-bus servo, STS3215 case)",
+   "joints": "knee candidate on the 12 V rail; CAD unchanged",
+   "mass_kg": 0.055,
+   "stall_torque_Nm": 1.9613,
+   "no_load_speed_rad_s": 11.1,
+   "rated_torque_Nm": 0.6538,
+   "idle_current_A": 0.03,
+   "stall_current_A": 2.4,
+   "rated_current_A": 0.8,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 5.312,
+    "low": 4.0,
+    "high": 6.6,
+    "source": "same Feetech STS firmware as the STS3215 (assumption)"
+   },
+   "max_duty": {
+    "nominal": 0.97,
+    "source": "as STS3215"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 12.21,
+    "low": 11.1,
+    "high": 14.0,
+    "source": "1.1x no-load speed, by the STS3215 pattern (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.0043,
+    "low": 0.0025,
+    "high": 0.008,
+    "source": "gear ratio not published; 45 against 106 rpm with the ST3215's motor suggests about 1:146, so BAM's STS3215 0.024 at 1:345 scales to about 0.0043 (assumption)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.05,
+    "low": 0.03,
+    "high": 0.1,
+    "source": "as STS3215 (assumption)"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "as C047 (assumption)"
+   },
+   "catalog_source": "waveshare.com/wiki/ST3215-HS_Servo_Motor (read 2026-11-06): 6-12.6 V, 20 kg cm at 12 V, 0.094 s/60 deg (106 rpm) at 12 V, 2.4 A locked rotor, 45.22 x 35 x 24.72 mm; mass not published, the STS3215 case mass 55 g assumed; rated = stall/3 (no rating published), rated current from the listed 8.3 kg cm/A"
+  },
+  "rsbl85-12": {
+   "model": "Waveshare RSBL85-12 (12 V, brushless RS-485 bus servo, 254:1 steel)",
+   "joints": "knee candidate on the 12 V rail; CAD unchanged",
+   "mass_kg": 0.215,
+   "stall_torque_Nm": 8.3,
+   "no_load_speed_rad_s": 6.16,
+   "rated_torque_Nm": 2.767,
+   "idle_current_A": 0.1,
+   "stall_current_A": 7.9,
+   "rated_current_A": 2.63,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "BAM ST3025 model: kp 32 x error_gain 0.166 x fitted ratio 1.18 (m1) / 1.25 (m6)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "BAM ST3025 default (not measured)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 8.9,
+    "high": 1000.0,
+    "source": "BAM's ST3025 model has no target rate limit (1000 = none)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.01,
+    "low": 0.005,
+    "high": 0.02,
+    "source": "not published; between the brushless ST3025 (0.0046, BAM) and a 1:345 brushed servo (0.024), for a 254:1 brushless gear (assumption)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.08,
+    "low": 0.05,
+    "high": 0.15,
+    "source": "not published; above the ST3025 for the larger steel gear train (assumption)"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; as C047 (assumption)"
+   },
+   "catalog_source": "servodatabase.com/servo/waveshare/rsbl85-12 (read 2026-11-06): 9-12 V, 85 kg cm (8.3 N m) and 0.17 s/60 deg at 12 V, 215 g, 62 x 34 x 47 mm, 254:1 steel, brushless, stall current <= 7.9 A, idle 0.54 A running; rated = stall/3 (no rating published). Servodatabase is partly community-sourced."
+  },
+  "st3025-x1.5": {
+   "model": "Waveshare ST3025 driving the knee through a 1:1.5 speed-up stage (belt or gear; a design option, not a product)",
+   "joints": "knee option on the 12 V rail; CAD unchanged (only the added mass is placed at the joint)",
+   "mass_kg": 0.144,
+   "stall_torque_Nm": 2.6151,
+   "no_load_speed_rad_s": 13.351,
+   "rated_torque_Nm": 0.8827,
+   "idle_current_A": 0.006,
+   "no_load_current_A": 0.38,
+   "stall_current_A": 4.4,
+   "rated_current_A": 1.5,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 4.287,
+    "low": 3.533,
+    "high": 4.667,
+    "source": "the ST3025's BAM gain per servo radian / 1.5: a 1:1.5 speed-up stage turns the servo 1/1.5 rad per knee radian. Revision 3.2 had this inverted (9.645); knee-geared-stance-20261106 ran with it, a position loop 2.25x stiffer than this derivation"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "BAM ST3025 default (not measured)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 8.9,
+    "high": 1000.0,
+    "source": "BAM's ST3025 model has no target rate limit (1000 = none)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.002044,
+    "low": 0.001556,
+    "high": 0.002667,
+    "source": "the ST3025's BAM value divided by 1.5^2 (reflected through the stage)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.0333,
+    "low": 0.02,
+    "high": 0.0667,
+    "source": "the ST3025's BAM value divided by 1.5; the stage's own losses not modelled"
+   },
+   "backlash_rad": {
+    "nominal": 0.0044,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; as C047 (assumption)"
+   },
+   "catalog_source": "Derived from the st3025 entry: torque / 1.5, speed x 1.5, rotor inertia / 2.25; 20 g assumed for the stage. Current per output torque scales with it (stall current unchanged at the lower stall torque)."
+  },
+  "edulite-05": {
+   "model": "RobStride EduLite 05 (48 V rated, 15-60 V; 9:1 QDD, integrated driver, CAN)",
+   "joints": "candidate leg joint",
+   "mass_kg": 0.242,
+   "stall_torque_Nm": 6.0,
+   "no_load_speed_rad_s": 22.51,
+   "rated_torque_Nm": 1.8,
+   "idle_current_A": 0.14,
+   "stall_current_A": 11.0,
+   "rated_current_A": 2.6,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "driver position loop is user-set; the ST3025's BAM-fitted gain per output radian is assumed (kp = peak torque x gain)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed"
+   },
+   "backlash_rad": {
+    "nominal": 0.0035,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; typical small planetary QDD (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.002,
+    "low": 0.001,
+    "high": 0.004,
+    "source": "not published; rotor about 250 g cm2 by CubeMars sizes x 9^2 (estimate)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.05,
+    "low": 0.025,
+    "high": 0.1,
+    "source": "not published (assumption)"
+   },
+   "catalog_source": "robstride.com/products/eduLite05 (read 2026-11-06 in the browser): $80, 6 N m peak, 1.8 N m rated, 430 rpm no-load at 48 V (22.5 rad/s scaled to 24 V), 242 g, 46 x 46 x 44 mm, Kt 0.94 N m/Arms, 11 Apk peak phase current, 2.6 Apk rated. Peak torque is used as the stall intercept of a line to no-load speed (conservative for a current-limited QDD at mid speed). Values at 24 V; the runtime rail/12 factor equals 22.2/24 (6S). Catalogue: robot/actuators/category-round/catalogue.json."
+  },
+  "gim3505-8": {
+   "model": "SteadyWin GIM3505-8 (24 V, 12-48 V; 8:1 planetary, GDS34 driver, CAN)",
+   "joints": "candidate arm and hip-yaw joint",
+   "mass_kg": 0.097,
+   "stall_torque_Nm": 1.27,
+   "no_load_speed_rad_s": 40.21,
+   "rated_torque_Nm": 0.65,
+   "idle_current_A": 0.1,
+   "stall_current_A": 2.4,
+   "rated_current_A": 1.2,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "driver position loop is user-set; the ST3025's BAM-fitted gain per output radian is assumed (kp = peak torque x gain)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed"
+   },
+   "backlash_rad": {
+    "nominal": 0.0035,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; typical small planetary QDD (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.00032,
+    "low": 0.00016,
+    "high": 0.00064,
+    "source": "not published; rotor about 50 g cm2 by CubeMars sizes x 8^2 (estimate)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.03,
+    "low": 0.015,
+    "high": 0.06,
+    "source": "not published (assumption)"
+   },
+   "catalog_source": "roboticscenter.ai store page (read 2026-11-06 in the browser): $56 on backorder, 24 V nominal (12-48 V), 384 rpm after reduction, 0.65 N m nominal; 1.27 N m peak and 97 g from the catalogue sources; phi43 x 30 mm with driver. Peak torque is used as the stall intercept of a line to no-load speed (conservative for a current-limited QDD at mid speed). Values at 24 V; the runtime rail/12 factor equals 22.2/24 (6S). Catalogue: robot/actuators/category-round/catalogue.json."
+  },
+  "dm-j3507": {
+   "model": "Damiao DM-J3507-2EC (24 V; 7:1, integrated driver, CAN-FD)",
+   "joints": "candidate leg joint",
+   "mass_kg": 0.15,
+   "stall_torque_Nm": 3.0,
+   "no_load_speed_rad_s": 48.17,
+   "rated_torque_Nm": 0.8,
+   "idle_current_A": 0.1,
+   "stall_current_A": 8.3,
+   "rated_current_A": 3.0,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "driver position loop is user-set; the ST3025's BAM-fitted gain per output radian is assumed (kp = peak torque x gain)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed"
+   },
+   "backlash_rad": {
+    "nominal": 0.0035,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; typical small planetary QDD (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.0006,
+    "low": 0.0003,
+    "high": 0.0012,
+    "source": "not published; rotor about 120 g cm2 by size x 7^2 (estimate)"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.05,
+    "low": 0.025,
+    "high": 0.1,
+    "source": "not published (assumption)"
+   },
+   "catalog_source": "Damiao 2025 selection manual and retailer pages (catalogue): 3 N m peak, 0.8 N m rated, 460 rpm no-load, 150 g, phi46 x 37.9 mm, $89. Peak torque is used as the stall intercept of a line to no-load speed (conservative for a current-limited QDD at mid speed). Values at 24 V; the runtime rail/12 factor equals 22.2/24 (6S). Catalogue: robot/actuators/category-round/catalogue.json."
+  },
+  "dm-j4310": {
+   "model": "Damiao DM-J4310-2EC V1.1 (24 V; 10:1, integrated driver, CAN-FD)",
+   "joints": "candidate hip roll",
+   "mass_kg": 0.3,
+   "stall_torque_Nm": 7.0,
+   "no_load_speed_rad_s": 20.94,
+   "rated_torque_Nm": 3.0,
+   "idle_current_A": 0.1,
+   "stall_current_A": 7.5,
+   "rated_current_A": 2.5,
+   "supply_V": 24.0,
+   "law": "feetech_duty",
+   "duty_gain_per_rad": {
+    "nominal": 6.43,
+    "low": 5.3,
+    "high": 7.0,
+    "source": "driver position loop is user-set; the ST3025's BAM-fitted gain per output radian is assumed (kp = peak torque x gain)"
+   },
+   "max_duty": {
+    "nominal": 1.0,
+    "source": "full bus voltage (assumption)"
+   },
+   "target_rate_limit_rad_s": {
+    "nominal": 1000.0,
+    "low": 15.0,
+    "high": 1000.0,
+    "source": "no firmware target-rate limit assumed"
+   },
+   "backlash_rad": {
+    "nominal": 0.0035,
+    "low": 0.0,
+    "high": 0.0087,
+    "source": "not published; typical small planetary QDD (assumption)"
+   },
+   "armature_kg_m2": {
+    "nominal": 0.0018,
+    "low": 0.0009,
+    "high": 0.0036,
+    "source": "catalog rotational inertia 1.8e-5 kg m2 taken at the rotor, x 10^2"
+   },
+   "frictionloss_Nm": {
+    "nominal": 0.05,
+    "low": 0.025,
+    "high": 0.1,
+    "source": "not published (assumption)"
+   },
+   "catalog_source": "damiao.enactic.ai DM-J4310-2EC V1.1 (catalogue): 7 N m peak, 3 N m rated, 200 rpm no-load, 300 g, phi56 x 46 mm, $116. Peak torque is used as the stall intercept of a line to no-load speed (conservative for a current-limited QDD at mid speed). Values at 24 V; the runtime rail/12 factor equals 22.2/24 (6S). Catalogue: robot/actuators/category-round/catalogue.json."
+  }
+ },
+ "unchanged_from_r3": [
+  "link masses, inertias and geometry",
+  "collision geometry and friction 0.8",
+  "sensors, IMU and 4096-count encoders",
+  "20 ms command and 10 ms feedback delay, 50 Hz control, 0.25 ms physics",
+  "12 V rail"
+ ],
+ "supply": {
+  "rail_V": {
+   "nominal": 11.1,
+   "low": 10.5,
+   "high": 12.6,
+   "source": "3S3P pack in the internal power packaging study (cove50-internal-power-space-r7): 11.1 V nominal, 12.6 V full, about 10.5 V low or sagging under load; body servos assumed on the pack rail (catalog figures are at 12 V and scale with rail voltage). The XM335 neck keeps R3's regulated rail capped at 12 V."
+  },
+  "note": "Jobs bundled before 2026-11-05 10:15 UTC (r4-{c047,sts3250,st3025}-20261105) ran at 12 V."
+ },
+ "joint_ranges_deg": {
+  "note": "Best-estimate ranges for joints whose R3 source range is unspecified, per side (R_ and L_). R3 sign convention: hip pitch - flexes.",
+  "source": "Assumption. The selected hip (hip-direct-serial-low-roll r3) specifies no range, and R3 exported the six hip axes unlimited with a +-0.35 rad diagnostic command envelope that is not a joint limit. Nominal values follow primate/human hip range of motion (flexion about 120 deg, extension 20-30 deg, abduction about 45 deg, adduction 20-30 deg, rotation 35-45 deg) narrowed for a compact servo hip, and cover the agility motion set (hip pitch -82..+12 deg, roll +-22 deg, yaw -20..+16 deg) with margin; low is the narrowest range that still covers the motion set. Moving-part clearance in CAD and the actual mechanical stops are unqualified (a CAD sweep or bench check).",
+  "joints": {
+   "hip_yaw": {
+    "nominal": [
+     -45,
+     45
+    ],
+    "low": [
+     -30,
+     30
+    ],
+    "high": [
+     -60,
+     60
+    ]
+   },
+   "hip_pitch": {
+    "nominal": [
+     -110,
+     30
+    ],
+    "low": [
+     -90,
+     20
+    ],
+    "high": [
+     -125,
+     40
+    ]
+   },
+   "hip_roll": {
+    "nominal": [
+     -35,
+     35
+    ],
+    "low": [
+     -25,
+     25
+    ],
+    "high": [
+     -45,
+     45
+    ]
+   }
+  }
+ },
+ "revision": 4,
+ "revisions": [
+  {
+   "revision": 1,
+   "note": "Actuator dynamics (rotor inertia, friction, Feetech duty loop, rate limit, backlash, catalog law) at a 12 V rail; jobs r4-{c047,sts3250,st3025}-20261105."
+  },
+  {
+   "revision": 1.1,
+   "note": "Adds supply.rail_V (11.1 V 3S3P pack); jobs tape-*-20261105."
+  },
+  {
+   "revision": 2,
+   "note": "Adds best-estimate hip ranges (joint_ranges_deg) in place of the +-0.35 rad diagnostic hip command envelope; first used by tape2-*-20261105."
+  },
+  {
+   "revision": 3,
+   "note": "Adds two 24 V brushless knee candidates (ak45-10, ak60-6) from CubeMars catalog pages for the stronger-knee mixed sets; earlier models unchanged."
+  },
+  {
+   "revision": 3.1,
+   "note": "Adds two 12 V knee candidates on the existing rail (st3215-hs: faster, weaker; rsbl85-12: stronger, slower)."
+  },
+  {
+   "revision": 3.2,
+   "note": "Adds st3025-x1.5: the ST3025 knee through an assumed 1:1.5 speed-up stage, a same-rail design option."
+  },
+  {
+   "revision": 3.3,
+   "note": "Corrects the st3025-x1.5 duty gain per knee radian (6.43/1.5 = 4.287, was 9.645 in 3.2, inverted); knee-geared-stance-20261106 ran with the 3.2 value."
+  },
+  {
+   "revision": 4,
+   "note": "Adds four 24 V brushless joint motors (edulite-05, gim3505-8, dm-j3507, dm-j4310) from the category-round catalogue for whole-body 24 V plant variants."
+  }
+ ]
+}

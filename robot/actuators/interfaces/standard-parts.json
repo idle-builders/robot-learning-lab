@@ -1,0 +1,2856 @@
+{
+ "schema": "robot-learning-lab.standard-parts.v1",
+ "note": "Built by standard_parts.py from each maker's official STEP and drawing; edit the script, not this file. Frames are the STEP files' own; the mount check registers each instance to them.",
+ "screw_families": {
+  "M1.7": {
+   "major_dia_mm": 1.7,
+   "tap_dia_mm": 1.35,
+   "clearance_dia_mm": [
+    1.85,
+    2.0
+   ],
+   "head_dia_mm": [
+    3.0,
+    3.4
+   ]
+  },
+  "M2": {
+   "major_dia_mm": 2.0,
+   "tap_dia_mm": 1.6,
+   "clearance_dia_mm": [
+    2.2,
+    2.4
+   ],
+   "head_dia_mm": [
+    3.5,
+    3.8
+   ]
+  },
+  "PA2": {
+   "major_dia_mm": 2.0,
+   "tap_dia_mm": 1.6,
+   "clearance_dia_mm": [
+    2.2,
+    2.4
+   ],
+   "head_dia_mm": [
+    3.5,
+    3.8
+   ],
+   "note": "thread-forming screw for plastics; terminal is a 1.6-1.7 mm pilot hole in plastic, no nut"
+  },
+  "M2.5": {
+   "major_dia_mm": 2.5,
+   "tap_dia_mm": 2.05,
+   "clearance_dia_mm": [
+    2.7,
+    2.9
+   ],
+   "head_dia_mm": [
+    4.5,
+    5.0
+   ]
+  },
+  "M3": {
+   "major_dia_mm": 3.0,
+   "tap_dia_mm": 2.5,
+   "clearance_dia_mm": [
+    3.2,
+    3.4
+   ],
+   "head_dia_mm": [
+    5.5,
+    5.7
+   ]
+  }
+ },
+ "engagement_reference_x_major_dia": {
+  "aluminium": 1.5,
+  "steel": 1.0,
+  "plastic": 2.0,
+  "brass": 1.5
+ },
+ "sleeve": {
+  "material": "304 stainless tube, pressed in (owner M-pxbsxq)",
+  "rule": "every hole where a printed part is clamped under a screw head or nut carries one; holes a screw threads into carry none (owner 2026-11-18)",
+  "bore_for": {
+   "M2": [
+    2.2,
+    2.4
+   ],
+   "PA2": [
+    2.2,
+    2.4
+   ],
+   "M2.5": [
+    2.7,
+    2.9
+   ],
+   "M3": [
+    3.2,
+    3.4
+   ]
+  },
+  "head_bearing": "the head (or washer) should bear on the sleeve's steel end: report the bearing ring width min(head r, sleeve outer r) - sleeve inner r (mm)"
+ },
+ "motors": {
+  "ST3025": {
+   "maker": "Waveshare (Feetech ST-3025-C002)",
+   "tiers": [
+    "fast leg: hip pitch, knee, ankle pitch"
+   ],
+   "frame": "output axis along +z through (x 10, y 0); horn on +z",
+   "step": "artifacts/cove50-engineering-competition/elbow-studio/direct-servo/r1/source/ST3025-MODEL/ST3025-MODEL.stp",
+   "step_sha256": "91508ce9e50ff9294570d3b490058d439b1bb3ac1a2c93756951eafaa62914a4",
+   "members": {
+    "horn": [
+     2,
+     7
+    ],
+    "idler": [
+     8,
+     9,
+     15
+    ]
+   },
+   "case_exterior": [
+    0,
+    4,
+    5
+   ],
+   "case_material": "aluminium",
+   "drawing": "Waveshare ST3025 product drawing (wiki); tap depths from the official STEP",
+   "mount_holes": [
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      -18.0,
+      -7.999,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      -18.0,
+      8.001,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      -17.0,
+      0.001,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      -10.0,
+      -6.999,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      -10.0,
+      7.001,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.5",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      18.0,
+      -7.999,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.6",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 4,
+     "face": "+z",
+     "opening_mm": [
+      18.0,
+      8.001,
+      18.55
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case+z.7",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -10.0,
+      -7.0,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.0,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case-z.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -10.0,
+      7.0,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.0,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case-z.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -2.5,
+      -7.5,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.0,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case-z.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -2.5,
+      7.5,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.0,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3025.case-z.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 7,
+     "face": "+z",
+     "opening_mm": [
+      3.0,
+      -0.0,
+      22.85
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.95,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.horn+z.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.95,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 7,
+     "face": "+z",
+     "opening_mm": [
+      10.0,
+      -7.0,
+      22.85
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.95,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.horn+z.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.95,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 2,
+     "face": "+z",
+     "opening_mm": [
+      10.0,
+      0.0,
+      23.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 9.8,
+     "thread": "M3",
+     "through": false,
+     "centre": true,
+     "hole_id": "ST3025.horn+z.centre.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 4.5,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 7,
+     "face": "+z",
+     "opening_mm": [
+      10.0,
+      7.0,
+      22.85
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.95,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.horn+z.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.95,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 7,
+     "face": "+z",
+     "opening_mm": [
+      17.0,
+      -0.0,
+      22.85
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.95,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.horn+z.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.95,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      10.0,
+      0.0,
+      -24.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.1,
+     "modelled_depth_mm": 4.5,
+     "thread": "M2.5",
+     "through": false,
+     "centre": true,
+     "hole_id": "ST3025.idler-z.centre.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.75,
+     "reference_engagement_mm": 3.75,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "idler",
+     "solid": 9,
+     "face": "-z",
+     "opening_mm": [
+      3.0,
+      0.0,
+      -26.05
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 3.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.idler-z.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 3.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 9,
+     "face": "-z",
+     "opening_mm": [
+      10.0,
+      -7.0,
+      -26.05
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 3.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.idler-z.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 3.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 15,
+     "face": "-z",
+     "opening_mm": [
+      10.0,
+      0.0,
+      -25.85
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 1.4,
+     "thread": "M3",
+     "through": true,
+     "centre": true,
+     "hole_id": "ST3025.idler-z.centre.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 1.4,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 9,
+     "face": "-z",
+     "opening_mm": [
+      10.0,
+      7.0,
+      -26.05
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 3.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.idler-z.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 3.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 9,
+     "face": "-z",
+     "opening_mm": [
+      17.0,
+      0.0,
+      -26.05
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 3.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3025.idler-z.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 3.5,
+     "reference_basis": "tapped through the member: its thickness"
+    }
+   ],
+   "case_screw_holes": [
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      17.65,
+      7.65,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 3.8,
+     "modelled_depth_mm": 2.0,
+     "thread": null,
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      17.65,
+      7.65,
+      -19.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.05,
+     "modelled_depth_mm": 3.75,
+     "thread": "M2.5",
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -17.65,
+      7.65,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 3.8,
+     "modelled_depth_mm": 2.0,
+     "thread": null,
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -17.65,
+      7.65,
+      -19.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.05,
+     "modelled_depth_mm": 3.75,
+     "thread": "M2.5",
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -17.65,
+      -7.65,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 3.8,
+     "modelled_depth_mm": 2.0,
+     "thread": null,
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      -17.65,
+      -7.65,
+      -19.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 2.05,
+     "modelled_depth_mm": 3.75,
+     "thread": "M2.5",
+     "through": true
+    },
+    {
+     "member": "case",
+     "solid": 5,
+     "face": "-z",
+     "opening_mm": [
+      17.65,
+      -7.65,
+      -21.45
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 3.8,
+     "modelled_depth_mm": 2.0,
+     "thread": null,
+     "through": false
+    }
+   ],
+   "other_holes": [
+    {
+     "member": "horn",
+     "solid": 7,
+     "face": "+z",
+     "opening_mm": [
+      10.0,
+      -0.0,
+      24.9
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 3.1,
+     "modelled_depth_mm": 1.4,
+     "thread": null,
+     "through": true,
+     "centre": true
+    },
+    {
+     "member": "idler",
+     "solid": 8,
+     "face": "-z",
+     "opening_mm": [
+      10.0,
+      0.0,
+      -24.35
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 5.0,
+     "modelled_depth_mm": 2.3,
+     "thread": null,
+     "through": true,
+     "centre": true
+    }
+   ],
+   "summary": {
+    "case+z": 7,
+    "case-z": 4,
+    "horn+z": 4,
+    "horn+z.centre": 1,
+    "idler-z.centre": 2,
+    "idler-z": 4
+   },
+   "output_axis": [
+    [
+     10.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ]
+  },
+  "ST3215": {
+   "maker": "Waveshare ST3215 12 V (= Feetech ST-3215 12 V, C047 case)",
+   "tiers": [
+    "light: hip yaw, ankle roll"
+   ],
+   "frame": "output axis along +y through (x -25.5, z 0); horn on +y",
+   "step": "artifacts/robot/actuators/interfaces/sources/st3215-3d/ST3215.step",
+   "step_sha256": "58e38e4dc49f97df738c5f229f9aa8a7dce64a0a1d01335486a52d53e6017e8a",
+   "members": {
+    "horn": [
+     6
+    ],
+    "idler": [
+     7
+    ],
+    "shaft": [
+     5
+    ]
+   },
+   "case_exterior": [
+    0,
+    1,
+    2
+   ],
+   "case_material": "plastic",
+   "drawing": "Waveshare ST3215-2D.zip ST3215.pdf (SCS215, 2022-06-08): 4 M2 per face, horn 4-M3 on dia 14, output 10.11 from the edge; no tap depth given",
+   "mount_holes": [
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      -17.2,
+      6.2,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.4,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case+y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      -17.2,
+      6.2,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.4,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case+y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      3.5,
+      6.2,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.4,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case+y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      3.5,
+      6.2,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.4,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case+y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-y",
+     "opening_mm": [
+      -17.2,
+      -25.4,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case-y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-y",
+     "opening_mm": [
+      -17.2,
+      -25.4,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case-y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-y",
+     "opening_mm": [
+      7.25,
+      -25.4,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case-y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-y",
+     "opening_mm": [
+      7.25,
+      -25.4,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "ST3215.case-y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 4.0,
+     "reference_basis": "2.0 x major dia (plastic)"
+    },
+    {
+     "member": "horn",
+     "solid": 6,
+     "face": "+y",
+     "opening_mm": [
+      -32.5,
+      9.6,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.horn+y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 6,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.6,
+      -7.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.horn+y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 6,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.6,
+      7.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.horn+y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 6,
+     "face": "+y",
+     "opening_mm": [
+      -18.5,
+      9.6,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.horn+y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 7,
+     "face": "-y",
+     "opening_mm": [
+      -32.5,
+      -27.65,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      -0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.2,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.idler-y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.2,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 2,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -28.2,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.6,
+     "modelled_depth_mm": 5.4,
+     "thread": "M3",
+     "through": false,
+     "centre": true,
+     "hole_id": "ST3215.idler-y.centre.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 4.5,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "idler",
+     "solid": 7,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -27.65,
+      -7.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.2,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.idler-y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.2,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 7,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -27.65,
+      7.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.2,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.idler-y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.2,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 7,
+     "face": "-y",
+     "opening_mm": [
+      -18.5,
+      -27.65,
+      -0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      -0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.2,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "ST3215.idler-y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.2,
+     "reference_basis": "tapped through the member: its thickness"
+    }
+   ],
+   "case_screw_holes": [
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      4.9,
+      9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 3.5,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      4.9,
+      -9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 3.5,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      7.25,
+      4.9,
+      -10.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.2,
+     "modelled_depth_mm": 0.1,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+y",
+     "opening_mm": [
+      7.25,
+      4.9,
+      10.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.2,
+     "modelled_depth_mm": 0.1,
+     "thread": null,
+     "through": false
+    }
+   ],
+   "other_holes": [
+    {
+     "member": "horn",
+     "solid": 6,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.6,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 3.2,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": true,
+     "centre": true
+    }
+   ],
+   "summary": {
+    "case+y": 4,
+    "case-y": 4,
+    "horn+y": 4,
+    "idler-y": 4,
+    "idler-y.centre": 1
+   },
+   "output_axis": [
+    [
+     -25.5,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ]
+   ]
+  },
+  "STS3250": {
+   "maker": "Feetech STS3250 (ST-3250-C001)",
+   "tiers": [
+    "strong: hip roll, shoulder pitch/roll/yaw, elbow"
+   ],
+   "frame": "output axis along +y through (x -25.5, z 0); horn on +y (same case frame as ST3215)",
+   "step": "artifacts/robot/actuators/interfaces/sources/feetech_sts3250.step",
+   "step_sha256": "cf46f17da455e1f158114791bb31404c24d925e8a758bbd6189f8ee815a571bf",
+   "members": {
+    "horn": [
+     11
+    ],
+    "idler": [
+     12
+    ],
+    "shaft": [
+     9,
+     10
+    ]
+   },
+   "case_exterior": [
+    0,
+    1,
+    2
+   ],
+   "case_material": "aluminium",
+   "drawing": "Feetech STS3250 product specification A/0 2024-01-16 p6-7: 4-M2.0 per face, horn 4-M3 on dia 14 (4.5 thick), idler 4-M3 (3.1), rocker screw M3x6, case aluminium. STEP is a community model (step.parts, earthtojake); Feetech publishes none",
+   "mount_holes": [
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -17.2,
+      6.2,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 3.9,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case+y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -17.2,
+      6.2,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 3.9,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case+y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      3.5,
+      6.2,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 3.9,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case+y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      3.5,
+      6.2,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 3.9,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case+y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "-y",
+     "opening_mm": [
+      -17.2,
+      -25.4,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case-y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "-y",
+     "opening_mm": [
+      -17.2,
+      -25.4,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case-y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "-y",
+     "opening_mm": [
+      7.25,
+      -25.4,
+      -10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case-y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "-y",
+     "opening_mm": [
+      7.25,
+      -25.4,
+      10.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "STS3250.case-y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 11,
+     "face": "+y",
+     "opening_mm": [
+      -32.5,
+      9.2,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.horn+y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 11,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.2,
+      -7.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.horn+y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 11,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.2,
+      7.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.horn+y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "horn",
+     "solid": 11,
+     "face": "+y",
+     "opening_mm": [
+      -18.5,
+      9.2,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.5,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.horn+y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.5,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 12,
+     "face": "-y",
+     "opening_mm": [
+      -32.5,
+      -27.4,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.1,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.idler-y.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.1,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 1,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -28.2,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.6,
+     "modelled_depth_mm": 5.4,
+     "thread": "M3",
+     "through": false,
+     "centre": true,
+     "hole_id": "STS3250.idler-y.centre.1",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 4.5,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "idler",
+     "solid": 12,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -27.4,
+      -7.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.1,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.idler-y.2",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.1,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 12,
+     "face": "-y",
+     "opening_mm": [
+      -25.5,
+      -27.4,
+      7.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.1,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.idler-y.3",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.1,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 12,
+     "face": "-y",
+     "opening_mm": [
+      -18.5,
+      -27.4,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.5,
+     "modelled_depth_mm": 2.1,
+     "thread": "M3",
+     "through": true,
+     "hole_id": "STS3250.idler-y.4",
+     "drawing_max_tap_depth_mm": null,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 4.5,
+     "reference_engagement_mm": 2.1,
+     "reference_basis": "tapped through the member: its thickness"
+    }
+   ],
+   "case_screw_holes": [
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      7.25,
+      4.9,
+      10.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.0,
+     "modelled_depth_mm": 7.1,
+     "thread": "M2.5",
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      3.4,
+      -9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.0,
+     "modelled_depth_mm": 5.6,
+     "thread": "M2.5",
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      4.9,
+      -9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 4.0,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      3.4,
+      9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.0,
+     "modelled_depth_mm": 5.6,
+     "thread": "M2.5",
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      -32.6,
+      4.9,
+      9.35
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 4.0,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+y",
+     "opening_mm": [
+      7.25,
+      4.9,
+      -10.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 2.0,
+     "modelled_depth_mm": 7.1,
+     "thread": "M2.5",
+     "through": false
+    }
+   ],
+   "other_holes": [
+    {
+     "member": "horn",
+     "solid": 11,
+     "face": "+y",
+     "opening_mm": [
+      -25.5,
+      9.2,
+      0.0
+     ],
+     "axis_out": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "tap_dia_mm": 3.2,
+     "modelled_depth_mm": 0.9,
+     "thread": null,
+     "through": true,
+     "centre": true
+    }
+   ],
+   "summary": {
+    "case+y": 4,
+    "case-y": 4,
+    "horn+y": 4,
+    "idler-y": 4,
+    "idler-y.centre": 1
+   },
+   "output_axis": [
+    [
+     -25.5,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ]
+   ]
+  },
+  "XM335": {
+   "maker": "ROBOTIS DYNAMIXEL XM335-T323-T",
+   "tiers": [
+    "neck yaw, neck pitch"
+   ],
+   "frame": "output axis along +z through (x 0, y 0); horn on +z",
+   "step": "artifacts/robot/actuators/interfaces/sources/XM335.stp",
+   "step_sha256": "df2e22d7110e8de1db42a71e409d6cc3984195fcdbb0144b79e0415441b407e7",
+   "members": {
+    "horn": [
+     5,
+     6
+    ],
+    "idler": [
+     3,
+     4
+    ]
+   },
+   "case_exterior": [
+    0,
+    1,
+    2
+   ],
+   "case_material": "plastic",
+   "drawing": "ROBOTIS XM335.pdf (2026-01-12): horn 4-M2 TAP DP4.5 PCD 12; idler 4-M2 TAP DP2 PCD 12; side/back/bottom M2 TAP DP2; 2-M1.7 TAP DP3 front and rear",
+   "mount_holes": [
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+x",
+     "opening_mm": [
+      9.3,
+      -22.5,
+      -2.75
+     ],
+     "axis_out": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 18.6,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.case+x.1",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "+x",
+     "opening_mm": [
+      9.3,
+      -13.0,
+      -2.75
+     ],
+     "axis_out": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 18.6,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.case+x.2",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      -7.7,
+      -23.5,
+      2.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.3,
+     "modelled_depth_mm": 2.8,
+     "thread": "M1.7",
+     "through": false,
+     "hole_id": "XM335.case+z.1",
+     "drawing_max_tap_depth_mm": 3.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 3.4,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      7.7,
+      -23.5,
+      2.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.3,
+     "modelled_depth_mm": 2.8,
+     "thread": "M1.7",
+     "through": false,
+     "hole_id": "XM335.case+z.2",
+     "drawing_max_tap_depth_mm": 3.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 3.4,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-x",
+     "opening_mm": [
+      -9.3,
+      -22.5,
+      -8.25
+     ],
+     "axis_out": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-x.1",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-x",
+     "opening_mm": [
+      -9.3,
+      -22.5,
+      -2.75
+     ],
+     "axis_out": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 18.6,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.case-x.2",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-x",
+     "opening_mm": [
+      -9.3,
+      -13.0,
+      -8.25
+     ],
+     "axis_out": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-x.3",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-x",
+     "opening_mm": [
+      -9.3,
+      -13.0,
+      -2.75
+     ],
+     "axis_out": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 18.6,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.case-x.4",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-y",
+     "opening_mm": [
+      -6.5,
+      -25.3,
+      -8.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-y.1",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-y",
+     "opening_mm": [
+      -6.5,
+      -25.3,
+      -2.75
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-y.2",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-y",
+     "opening_mm": [
+      6.5,
+      -25.3,
+      -8.25
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-y.3",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 0,
+     "face": "-y",
+     "opening_mm": [
+      6.5,
+      -25.3,
+      -2.75
+     ],
+     "axis_out": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 1.8,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.case-y.4",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 4.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      -7.7,
+      -23.5,
+      -13.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.3,
+     "modelled_depth_mm": 2.8,
+     "thread": "M1.7",
+     "through": false,
+     "hole_id": "XM335.case-z.1",
+     "drawing_max_tap_depth_mm": 3.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 3.4,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      7.7,
+      -23.5,
+      -13.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.3,
+     "modelled_depth_mm": 2.8,
+     "thread": "M1.7",
+     "through": false,
+     "hole_id": "XM335.case-z.2",
+     "drawing_max_tap_depth_mm": 3.0,
+     "terminal_material": "plastic",
+     "material_reference_engagement_mm": 3.4,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "horn",
+     "solid": 5,
+     "face": "+z",
+     "opening_mm": [
+      -6.0,
+      0.0,
+      7.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.1,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.horn+z.1",
+     "drawing_max_tap_depth_mm": 4.5,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 5,
+     "face": "+z",
+     "opening_mm": [
+      0.0,
+      -6.0,
+      7.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.1,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.horn+z.2",
+     "drawing_max_tap_depth_mm": 4.5,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 5,
+     "face": "+z",
+     "opening_mm": [
+      0.0,
+      6.0,
+      7.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.1,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.horn+z.3",
+     "drawing_max_tap_depth_mm": 4.5,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "horn",
+     "solid": 5,
+     "face": "+z",
+     "opening_mm": [
+      6.0,
+      0.0,
+      7.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 4.1,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.horn+z.4",
+     "drawing_max_tap_depth_mm": 4.5,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 3.0,
+     "reference_basis": "1.5 x major dia (aluminium)"
+    },
+    {
+     "member": "idler",
+     "solid": 4,
+     "face": "-z",
+     "opening_mm": [
+      -6.0,
+      0.0,
+      -18.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.3,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.idler-z.1",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "idler",
+     "solid": 4,
+     "face": "-z",
+     "opening_mm": [
+      0.0,
+      -6.0,
+      -18.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.3,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.idler-z.2",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    },
+    {
+     "member": "idler",
+     "solid": 4,
+     "face": "-z",
+     "opening_mm": [
+      0.0,
+      6.0,
+      -18.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.0,
+     "thread": "M2",
+     "through": true,
+     "hole_id": "XM335.idler-z.3",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "tapped through the member: its thickness"
+    },
+    {
+     "member": "idler",
+     "solid": 4,
+     "face": "-z",
+     "opening_mm": [
+      6.0,
+      0.0,
+      -18.3
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.6,
+     "modelled_depth_mm": 2.3,
+     "thread": "M2",
+     "through": false,
+     "hole_id": "XM335.idler-z.4",
+     "drawing_max_tap_depth_mm": 2.0,
+     "terminal_material": "aluminium",
+     "material_reference_engagement_mm": 3.0,
+     "reference_engagement_mm": 2.0,
+     "reference_basis": "drawing tap depth"
+    }
+   ],
+   "case_screw_holes": [],
+   "other_holes": [
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      0.0,
+      8.0,
+      1.4
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.4,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      -8.0,
+      -2.2,
+      1.4
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.4,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      7.5,
+      -4.5,
+      1.4
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.4,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      4.5,
+      -23.5,
+      2.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 3.1,
+     "modelled_depth_mm": 1.3,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 1,
+     "face": "+z",
+     "opening_mm": [
+      4.5,
+      -23.5,
+      1.5
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.5,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      0.0,
+      8.0,
+      -12.6
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.6,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      7.5,
+      -4.5,
+      -12.6
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.6,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      4.5,
+      -23.5,
+      -13.8
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 3.1,
+     "modelled_depth_mm": 1.1,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      4.5,
+      -23.5,
+      -12.7
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.7,
+     "thread": null,
+     "through": false
+    },
+    {
+     "member": "case",
+     "solid": 2,
+     "face": "-z",
+     "opening_mm": [
+      -8.0,
+      -2.2,
+      -12.6
+     ],
+     "axis_out": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "tap_dia_mm": 1.8,
+     "modelled_depth_mm": 1.6,
+     "thread": null,
+     "through": false
+    }
+   ],
+   "summary": {
+    "case+x": 2,
+    "case+z": 2,
+    "case-x": 4,
+    "case-y": 4,
+    "case-z": 2,
+    "horn+z": 4,
+    "idler-z": 4
+   },
+   "output_axis": [
+    [
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ]
+  }
+ }
+}

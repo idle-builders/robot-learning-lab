@@ -1,0 +1,29 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "T1",
+  "region": "torso_waist",
+  "name": "Direct supported waist yaw",
+  "architecture": "direct_module",
+  "maturity": "source_only",
+  "summary": "DLR TORO direct waist yaw source pattern.",
+  "source_record_ids": [
+    "DLR-TORO-14-WAIST-YAW"
+  ],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "grammar",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/draft/joint-box.json",
+      "sha256": "fe806f65873cdfd1f18d44556ad17f096fd3dcb959260a2ddff272a8b8ac4d83"
+    }
+  ],
+  "limits": [
+    "No Cove-50 trunk-to-pelvis receiver or waist coupon."
+  ]
+}

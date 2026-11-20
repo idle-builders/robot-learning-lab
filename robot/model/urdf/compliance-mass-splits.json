@@ -1,0 +1,16 @@
+[
+  {
+    "source": "lower__R_B13R14_rear_sole_M3_nut_1",
+    "source_link": "flex_R-foot-brackets",
+    "target_link": "R_foot",
+    "mass_kg": 1e-06,
+    "reason": "Mass-conserving numerical allocation for a moving intermediate body. No invented extra robot mass."
+  },
+  {
+    "source": "lower__L_B13R14_rear_sole_M3_nut_1",
+    "source_link": "flex_L-foot-brackets",
+    "target_link": "L_foot",
+    "mass_kg": 1e-06,
+    "reason": "Mass-conserving numerical allocation for a moving intermediate body. No invented extra robot mass."
+  }
+]

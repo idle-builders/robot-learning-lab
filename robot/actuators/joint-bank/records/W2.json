@@ -1,0 +1,43 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "W2",
+  "region": "wrist_hand",
+  "name": "Remote tendon wrist or hand",
+  "architecture": "remote_tendon",
+  "maturity": "local_trial",
+  "summary": "Finite tendon guide and retention geometry, useful as a routing component study.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/tendon-finite-route/installable-retention/README.md",
+      "sha256": "46aebb3ab0870d0196051bc5d8cb4238e8a0d2937ab081200043d19fdb0f8135"
+    },
+    {
+      "name": "trial_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/tendon-finite-route/installable-retention/output/neutral-installed-33parts.step",
+      "sha256": "5565b79876c16ecbafc8c7428570db2c03b1bb75133fd8cf9865fbcc745f6673",
+      "units": "mm",
+      "frame": "local tendon guide study"
+    },
+    {
+      "name": "trial_glb",
+      "role": "cad_glb",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/tendon-finite-route/installable-retention/output/neutral-installed-33parts.glb",
+      "sha256": "b2003c05200288aedee64c76f74ee9ee62e52cdc7312a7ffa6cb57c6b71b3bc4",
+      "units": "m",
+      "frame": "local tendon guide study"
+    }
+  ],
+  "limits": [
+    "No complete installed hand or actuator capacity; staged model is a routing trial."
+  ]
+}

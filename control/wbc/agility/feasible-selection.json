@@ -1,0 +1,215 @@
+{
+ "schema": "cove50.agility.feasible-selection.v1",
+ "allocation": "st3025-pitch-roll-sts3250",
+ "rule": "exclude a motion when, for the mixed allocation at nominal rotor inertia, the larger of the leg/arm shares of frames beyond the stall curve exceeds 10%, or the 95th-percentile base residual force exceeds 5% of body weight (the floor cannot carry it)",
+ "source": "artifacts/runs/cove50-agility-allocation-20261105-390edb857618/report.json (record cove50-wbc-servo-allocation-20261105)",
+ "keep": [
+  {
+   "motion": "alternating-arms",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.7
+  },
+  {
+   "motion": "alternating-arms-x2",
+   "beyond_pct": 0.0,
+   "residual_pct": 3.3
+  },
+  {
+   "motion": "arm-display-0.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.2
+  },
+  {
+   "motion": "arm-display-1hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.5
+  },
+  {
+   "motion": "bilateral-arms",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.5
+  },
+  {
+   "motion": "bilateral-arms-x2",
+   "beyond_pct": 0.4,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "chest-beat-1hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.2
+  },
+  {
+   "motion": "chest-beat-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.2
+  },
+  {
+   "motion": "deep-rise",
+   "beyond_pct": 0.0,
+   "residual_pct": 1.0
+  },
+  {
+   "motion": "deep-rise-x2",
+   "beyond_pct": 0.0,
+   "residual_pct": 2.9
+  },
+  {
+   "motion": "deep-squat",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "deep-squat-x2",
+   "beyond_pct": 0.0,
+   "residual_pct": 1.0
+  },
+  {
+   "motion": "forward-walk",
+   "beyond_pct": 0.2,
+   "residual_pct": 2.1
+  },
+  {
+   "motion": "hop-1cm",
+   "beyond_pct": 9.0,
+   "residual_pct": 2.9
+  },
+  {
+   "motion": "knee-bounce-1.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.6
+  },
+  {
+   "motion": "knee-bounce-2.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 2.8
+  },
+  {
+   "motion": "march-0.5s",
+   "beyond_pct": 6.1,
+   "residual_pct": 3.4
+  },
+  {
+   "motion": "overhead-wave-1hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.4
+  },
+  {
+   "motion": "overhead-wave-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.7
+  },
+  {
+   "motion": "quick-crouch-0.35s",
+   "beyond_pct": 0.2,
+   "residual_pct": 0.7
+  },
+  {
+   "motion": "quick-crouch-0.6s",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.4
+  },
+  {
+   "motion": "side-sway-0.75hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.3
+  },
+  {
+   "motion": "side-sway-1.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.8
+  },
+  {
+   "motion": "turn-30dps",
+   "beyond_pct": 0.2,
+   "residual_pct": 3.2
+  },
+  {
+   "motion": "turn-60dps",
+   "beyond_pct": 1.9,
+   "residual_pct": 3.2
+  },
+  {
+   "motion": "walk-stop",
+   "beyond_pct": 0.0,
+   "residual_pct": 1.4
+  }
+ ],
+ "exclude": [
+  {
+   "motion": "alternating-arms-x4",
+   "beyond_pct": 1.6,
+   "residual_pct": 35.6
+  },
+  {
+   "motion": "arm-display-2hz",
+   "beyond_pct": 24.3,
+   "residual_pct": 4.0
+  },
+  {
+   "motion": "bilateral-arms-x4",
+   "beyond_pct": 0.0,
+   "residual_pct": 7.3
+  },
+  {
+   "motion": "chest-beat-3hz",
+   "beyond_pct": 10.7,
+   "residual_pct": 0.3
+  },
+  {
+   "motion": "deep-rise-x4",
+   "beyond_pct": 0.0,
+   "residual_pct": 12.3
+  },
+  {
+   "motion": "deep-squat-x4",
+   "beyond_pct": 0.0,
+   "residual_pct": 5.2
+  },
+  {
+   "motion": "forward-walk-x1.25",
+   "beyond_pct": 0.6,
+   "residual_pct": 11.1
+  },
+  {
+   "motion": "forward-walk-x1.5",
+   "beyond_pct": 3.8,
+   "residual_pct": 25.1
+  },
+  {
+   "motion": "hop-2cm",
+   "beyond_pct": 10.5,
+   "residual_pct": 6.2
+  },
+  {
+   "motion": "hop-4cm",
+   "beyond_pct": 11.2,
+   "residual_pct": 6.2
+  },
+  {
+   "motion": "knee-bounce-3.5hz",
+   "beyond_pct": 15.7,
+   "residual_pct": 12.3
+  },
+  {
+   "motion": "march-0.33s",
+   "beyond_pct": 20.9,
+   "residual_pct": 4.0
+  },
+  {
+   "motion": "overhead-wave-3hz",
+   "beyond_pct": 11.8,
+   "residual_pct": 1.3
+  },
+  {
+   "motion": "quick-crouch-0.2s",
+   "beyond_pct": 5.5,
+   "residual_pct": 5.0
+  },
+  {
+   "motion": "side-sway-2.5hz",
+   "beyond_pct": 15.0,
+   "residual_pct": 17.1
+  }
+ ]
+}

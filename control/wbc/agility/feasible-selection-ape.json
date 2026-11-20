@@ -1,0 +1,160 @@
+{
+ "schema": "cove50.agility.feasible-selection.v1",
+ "catalogue": "ape (library.py --catalogue ape)",
+ "allocation": "st3025-pitch-roll-sts3250",
+ "rule": "exclude a motion when, for the mixed allocation at nominal rotor inertia, the larger of the leg/arm shares of frames beyond the stall curve exceeds 10%, or the 95th-percentile base residual force exceeds 5% of body weight (the floor cannot carry it)",
+ "source": [
+  "artifacts/runs/cove50-agility-allocation-ape-r2-20261106-d3652cd3f6b4/report.json",
+  "artifacts/runs/cove50-agility-allocation-shuffle-r4-20261106-7267b842ff72/report.json"
+ ],
+ "keep": [
+  {
+   "motion": "ape-crouch-bounce-1.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.4
+  },
+  {
+   "motion": "ape-crouch-bounce-2.5hz",
+   "beyond_pct": 0.2,
+   "residual_pct": 0.5
+  },
+  {
+   "motion": "ape-crouch-bounce-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.6
+  },
+  {
+   "motion": "bilateral-arms-x3",
+   "beyond_pct": 0.6,
+   "residual_pct": 3.9
+  },
+  {
+   "motion": "chest-beat-2.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.2
+  },
+  {
+   "motion": "crouch-scan-0.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.6
+  },
+  {
+   "motion": "deep-squat-x3",
+   "beyond_pct": 0.0,
+   "residual_pct": 2.5
+  },
+  {
+   "motion": "excited-beat-bounce-1.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.7
+  },
+  {
+   "motion": "excited-beat-bounce-2.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 1.3
+  },
+  {
+   "motion": "excited-beat-bounce-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "forward-walk-x1.1",
+   "beyond_pct": 0.0,
+   "residual_pct": 4.1
+  },
+  {
+   "motion": "knee-bounce-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "overhead-wave-2.5hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 1.0
+  },
+  {
+   "motion": "quick-crouch-0.27s",
+   "beyond_pct": 2.0,
+   "residual_pct": 1.1
+  },
+  {
+   "motion": "side-rock-reach-0.5hz",
+   "beyond_pct": 1.5,
+   "residual_pct": 0.4
+  },
+  {
+   "motion": "side-shuffle-0.33s",
+   "beyond_pct": 8.8,
+   "residual_pct": 3.6
+  },
+  {
+   "motion": "side-shuffle-0.4s",
+   "beyond_pct": 4.4,
+   "residual_pct": 3.4
+  },
+  {
+   "motion": "side-shuffle-0.5s",
+   "beyond_pct": 0.4,
+   "residual_pct": 3.4
+  },
+  {
+   "motion": "side-shuffle-0.6s",
+   "beyond_pct": 0.2,
+   "residual_pct": 3.4
+  },
+  {
+   "motion": "side-shuffle-0.8s",
+   "beyond_pct": 0.2,
+   "residual_pct": 3.3
+  }
+ ],
+ "exclude": [
+  {
+   "motion": "alternating-arms-x3",
+   "beyond_pct": 1.2,
+   "residual_pct": 17.0
+  },
+  {
+   "motion": "arm-display-1.5hz",
+   "beyond_pct": 17.1,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "deep-rise-x3",
+   "beyond_pct": 0.0,
+   "residual_pct": 6.0
+  },
+  {
+   "motion": "hop-1.5cm",
+   "beyond_pct": 10.4,
+   "residual_pct": 5.1
+  },
+  {
+   "motion": "knee-bounce-3hz",
+   "beyond_pct": 4.6,
+   "residual_pct": 7.0
+  },
+  {
+   "motion": "march-0.4s",
+   "beyond_pct": 15.5,
+   "residual_pct": 3.7
+  },
+  {
+   "motion": "side-rock-reach-0.75hz",
+   "beyond_pct": 14.1,
+   "residual_pct": 0.6
+  },
+  {
+   "motion": "side-rock-reach-1hz",
+   "beyond_pct": 23.6,
+   "residual_pct": 0.9
+  },
+  {
+   "motion": "side-sway-2hz",
+   "beyond_pct": 0.0,
+   "residual_pct": 6.0
+  }
+ ],
+ "note": "The side-shuffle rows come from the second source (library.py --catalogue ape --only \"side shuffle\"); the other 24 motions are unchanged."
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "robot-learning-lab.policy-registry.v1",
+  "part": "control/wbc",
+  "scope": "The whole-body controller. A run is the commit plus its launch configuration; outputs are in artifacts/runs/<run_id>/ and the private bucket. Promoting a policy is a commit to this file.",
+  "body": "r3 with r4 dynamics and the r5 tier-3 motor map (robot/model/)",
+  "promoted": null,
+  "note": "No WBC policy has been promoted yet; the latest trained runs are listed on the learning dashboard (skill 16)."
+}

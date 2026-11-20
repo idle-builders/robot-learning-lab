@@ -1,0 +1,1929 @@
+{
+  "links": {
+    "torso": {
+      "mass_kg": 1.4997467035915735,
+      "com_link_m": [
+        -0.008645140110748845,
+        0.00030683254172294926,
+        0.002775862701882903
+      ],
+      "com_model_m": [
+        -0.008645140110748845,
+        0.00030683254172294926,
+        0.3027758627018829
+      ],
+      "inertia_kg_m2": [
+        [
+          0.004655226873476193,
+          6.483564608784236e-05,
+          3.532162321566424e-05
+        ],
+        [
+          6.483564608784236e-05,
+          0.0035799109571382154,
+          3.0270127821547214e-05
+        ],
+        [
+          3.532162321566424e-05,
+          3.0270127821547214e-05,
+          0.0023613640097001325
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        0.0023601168858536016,
+        0.0035766647612404164,
+        0.004659720193220521
+      ],
+      "parts": [
+        "Cell_04__P50B_max_can_envelope",
+        "Cell_04__two_layer_5413_wrap",
+        "Cell_06__P50B_max_can_envelope",
+        "Cell_06__two_layer_5413_wrap",
+        "Cell_04__native_terminal_PCB_and_fuse",
+        "Cell_04__vented_terminal_cover",
+        "Cell_04__terminal_5413_face_and_edge_insulation",
+        "Cell_04__positive_solder_process_allowance",
+        "Cell_04__negative_end_insulator",
+        "Cell_06__native_terminal_PCB_and_fuse",
+        "Cell_06__vented_terminal_cover",
+        "Cell_06__terminal_5413_face_and_edge_insulation",
+        "Cell_06__positive_solder_process_allowance",
+        "Cell_06__negative_end_insulator",
+        "BMS_back_spacer_R_3225_plain",
+        "Cell_capture_bridge_00",
+        "Cell_capture_00_M2x8",
+        "Cell_capture_00_front_washer",
+        "Cell_capture_bridge_01",
+        "Cell_capture_01_M2x8",
+        "Cell_capture_01_front_washer",
+        "Cell_capture_bridge_02",
+        "Cell_capture_02_M2x8",
+        "Cell_capture_02_front_washer",
+        "Cell_capture_bridge_03",
+        "Cell_capture_03_M2x6",
+        "Cell_capture_03_front_washer",
+        "Cell_capture_bridge_04",
+        "Cell_capture_04_M2x8",
+        "Cell_capture_04_front_washer",
+        "Cell_capture_bridge_05",
+        "Cell_capture_05_M2x6",
+        "Cell_capture_05_front_washer",
+        "Cell_capture_bridge_06",
+        "Cell_capture_06_M2x8",
+        "Cell_capture_06_front_washer",
+        "Cell_capture_bridge_07",
+        "Cell_capture_07_M2x8",
+        "Cell_capture_07_front_washer",
+        "Cell_capture_bridge_08",
+        "Cell_capture_08_M2x8",
+        "Cell_capture_08_front_washer",
+        "Cell_capture_bridge_09",
+        "Cell_capture_09_M2x8",
+        "Cell_capture_09_front_washer",
+        "Cell_capture_bridge_10",
+        "Cell_capture_10_M2x8",
+        "Cell_capture_10_front_washer",
+        "Cell_capture_bridge_11",
+        "Cell_capture_11_M2x8",
+        "Cell_capture_11_front_washer",
+        "Cell_capture_bridge_12",
+        "Cell_capture_12_M2x8",
+        "Cell_capture_12_front_washer",
+        "Cell_capture_bridge_13",
+        "Cell_capture_13_M2x12",
+        "Cell_capture_13_front_1mm_spacer",
+        "Cell_capture_13_front_washer",
+        "Cell_capture_bridge_14",
+        "Cell_capture_14_M2x12",
+        "Cell_capture_14_front_1mm_spacer",
+        "Cell_capture_14_front_washer",
+        "Common_power_carrier_mounting_r33",
+        "Main_frame_L_310_PEEK_spacer",
+        "Main_frame_L_310_M2x20",
+        "Main_frame_L_310_washer",
+        "Main_frame_L_330_PEEK_spacer",
+        "Main_frame_L_330_M2x20",
+        "Main_frame_L_330_washer",
+        "Main_frame_R_310_PEEK_spacer",
+        "Main_frame_R_310_M2x20",
+        "Main_frame_R_310_washer",
+        "Main_frame_R_330_PEEK_spacer",
+        "Main_frame_R_330_M2x20",
+        "Main_frame_R_330_washer",
+        "Main_precharge_PA12_open_tray",
+        "Power_supervisor_PA12_open_tray",
+        "Cell_07_removable_front_clamp_L",
+        "Cell_07_removable_front_clamp_R",
+        "Power_supervisor_H3_M2x12",
+        "Power_supervisor_H3_front_washer",
+        "Power_supervisor_H3_rear_washer",
+        "Power_supervisor_H3_M2_nut",
+        "Power_supervisor_H4_M2x12",
+        "Power_supervisor_H4_front_washer",
+        "Power_supervisor_H4_rear_washer",
+        "Power_supervisor_H4_M2_nut",
+        "ape_body_shell__torso_front_relief4_r33",
+        "ape_body_shell__torso_back_relief4_r33",
+        "ape_body_shell__chest_indicator_relief4_r33",
+        "Main_H1_2mm_front_spacer",
+        "Main_H2_2mm_front_spacer",
+        "Supervisor_frame_M3x6_0",
+        "Supervisor_frame_M3_washer_0_0",
+        "Supervisor_frame_M3_washer_0_1",
+        "Supervisor_frame_M3_washer_0_2",
+        "Supervisor_frame_M3x6_1",
+        "Supervisor_frame_M3_washer_1_0",
+        "Supervisor_frame_M3_washer_1_1",
+        "Supervisor_frame_M3_washer_1_2",
+        "Supervisor_frame_M3x6_2",
+        "Supervisor_frame_M3_washer_2_0",
+        "Supervisor_frame_M3_washer_2_1",
+        "Supervisor_frame_M3_washer_2_2",
+        "Supervisor_frame_M3x6_3",
+        "Supervisor_frame_M3_washer_3_0",
+        "Supervisor_frame_M3_washer_3_1",
+        "Supervisor_frame_M3_washer_3_2",
+        "Cell7_L_M2x12",
+        "Cell7_L_front_washer",
+        "Cell7_L_rear_washer",
+        "Cell7_L_M2_nut",
+        "Cell7_R_M2x12",
+        "Cell7_R_front_washer",
+        "Cell7_R_rear_washer",
+        "Cell7_R_M2_nut",
+        "Cell7_upper_TPU_pad_0",
+        "Cell7_upper_TPU_pad_1",
+        "upper__cowl_M2_nut_1",
+        "upper__cowl_M2x10_countersunk_1",
+        "upper__cowl_M2_nut_0",
+        "upper__cowl_M2x10_countersunk_0",
+        "upper__simple_continuous_rear_neck_cowl",
+        "upper__neck_root_M2_washer_3",
+        "upper__neck_root_M2x6_3",
+        "upper__neck_root_M2_washer_2",
+        "upper__neck_root_M2x6_2",
+        "upper__neck_root_M2_washer_1",
+        "upper__neck_root_M2x6_1",
+        "upper__neck_root_M2_washer_0",
+        "upper__neck_root_M2x6_0",
+        "upper__neck_yaw_case_XM335",
+        "upper__L_pitch_C047_case",
+        "upper__R_pitch_C047_case",
+        "upper__A_R_clocked_pitch_washer_3",
+        "upper__A_R_clocked_pitch_spacer_3mm_3",
+        "upper__A_R_clocked_pitch_PA2x10_3",
+        "upper__A_R_clocked_pitch_washer_2",
+        "upper__A_R_clocked_pitch_spacer_3mm_2",
+        "upper__A_R_clocked_pitch_PA2x10_2",
+        "upper__A_R_clocked_pitch_washer_1",
+        "upper__A_R_clocked_pitch_spacer_3mm_1",
+        "upper__A_R_clocked_pitch_PA2x10_1",
+        "upper__A_R_clocked_pitch_washer_0",
+        "upper__A_R_clocked_pitch_spacer_3mm_0",
+        "upper__A_R_clocked_pitch_PA2x10_0",
+        "upper__A_L_clocked_pitch_washer_3",
+        "upper__A_L_clocked_pitch_spacer_3mm_3",
+        "upper__A_L_clocked_pitch_PA2x10_3",
+        "upper__A_L_clocked_pitch_washer_2",
+        "upper__A_L_clocked_pitch_spacer_3mm_2",
+        "upper__A_L_clocked_pitch_PA2x10_2",
+        "upper__A_L_clocked_pitch_washer_1",
+        "upper__A_L_clocked_pitch_spacer_3mm_1",
+        "upper__A_L_clocked_pitch_PA2x10_1",
+        "upper__A_L_clocked_pitch_washer_0",
+        "upper__A_L_clocked_pitch_spacer_3mm_0",
+        "upper__A_L_clocked_pitch_PA2x10_0",
+        "lower__L_yaw_servo_case_reference",
+        "lower__R_yaw_servo_case_reference",
+        "carrier_M2p5x12_0",
+        "carrier_M2p5_nut_0",
+        "carrier_M2p5x12_1",
+        "carrier_M2p5_nut_1",
+        "IMU_M2x6_0",
+        "IMU_M2x6_1",
+        "IMU_M2x6_2",
+        "IMU_M2x6_3",
+        "ADC_M2x6_0",
+        "ADC_M2x6_1",
+        "ADC_M2x6_2",
+        "ADC_M2x6_3",
+        "IMU_ADC_carrier_v17",
+        "body_IMU_4517",
+        "foot_ADC_6494",
+        "fixed_neck_ribbon_anchor_v21",
+        "fixed_neck_ribbon_cap_v21",
+        "fixed_neck_ribbon_pad_rear_v21",
+        "fixed_neck_ribbon_pad_front_v21",
+        "fixed_ribbon_M2x8_0_v21",
+        "fixed_ribbon_M2_washer_0_v21",
+        "fixed_ribbon_M2x8_1_v21",
+        "fixed_ribbon_M2_washer_1_v21",
+        "neck_anchor_M3x16_CSK_1_v21",
+        "neck_anchor_front_washer_1_v21",
+        "neck_anchor_M3nut_1_v21",
+        "neck_anchor_M3x16_CSK_3_v21",
+        "neck_anchor_front_washer_3_v21",
+        "neck_anchor_M3nut_3_v21",
+        "Cell_01__P50B_max_can_envelope",
+        "Cell_01__two_layer_5413_wrap",
+        "Cell_02__P50B_max_can_envelope",
+        "Cell_02__two_layer_5413_wrap",
+        "Cell_03__P50B_max_can_envelope",
+        "Cell_03__two_layer_5413_wrap",
+        "Cell_05__P50B_max_can_envelope",
+        "Cell_05__two_layer_5413_wrap",
+        "Cell_07__P50B_max_can_envelope",
+        "Cell_07__two_layer_5413_wrap",
+        "Cell_08__P50B_max_can_envelope",
+        "Cell_08__two_layer_5413_wrap",
+        "Cell_09__P50B_max_can_envelope",
+        "Cell_09__two_layer_5413_wrap",
+        "lower_cradle_nut_L_224",
+        "lower_cradle_nut_R_224",
+        "lower_cradle_screw_L_252",
+        "lower_cradle_nut_L_252",
+        "lower_cradle_screw_R_252",
+        "lower_cradle_nut_R_252",
+        "BMS_native_board_with_FET_hulls",
+        "BMS_insulating_gap_pad",
+        "BMS_back_spacer_L_3225",
+        "BMS_PEEK_screw_L_3225",
+        "BMS_back_spacer_L_2735",
+        "BMS_PEEK_screw_L_2735",
+        "BMS_PEEK_screw_R_3225",
+        "BMS_back_spacer_R_2735",
+        "BMS_PEEK_screw_R_2735",
+        "BMS_recessed_fastener_front_guard",
+        "Cell_01__native_terminal_PCB_and_fuse",
+        "Cell_01__vented_terminal_cover",
+        "Cell_01__terminal_5413_face_and_edge_insulation",
+        "Cell_01__positive_solder_process_allowance",
+        "Cell_01__negative_end_insulator",
+        "Cell_02__native_terminal_PCB_and_fuse",
+        "Cell_02__vented_terminal_cover",
+        "Cell_02__terminal_5413_face_and_edge_insulation",
+        "Cell_02__positive_solder_process_allowance",
+        "Cell_02__negative_end_insulator",
+        "Cell_03__native_terminal_PCB_and_fuse",
+        "Cell_03__vented_terminal_cover",
+        "Cell_03__terminal_5413_face_and_edge_insulation",
+        "Cell_03__positive_solder_process_allowance",
+        "Cell_03__negative_end_insulator",
+        "Cell_05__native_terminal_PCB_and_fuse",
+        "Cell_05__vented_terminal_cover",
+        "Cell_05__terminal_5413_face_and_edge_insulation",
+        "Cell_05__positive_solder_process_allowance",
+        "Cell_05__negative_end_insulator",
+        "Cell_07__native_terminal_PCB_and_fuse",
+        "Cell_07__vented_terminal_cover",
+        "Cell_07__terminal_5413_face_and_edge_insulation",
+        "Cell_07__positive_solder_process_allowance",
+        "Cell_07__negative_end_insulator",
+        "Cell_08__native_terminal_PCB_and_fuse",
+        "Cell_08__vented_terminal_cover",
+        "Cell_08__terminal_5413_face_and_edge_insulation",
+        "Cell_08__positive_solder_process_allowance",
+        "Cell_08__negative_end_insulator",
+        "Cell_09__native_terminal_PCB_and_fuse",
+        "Cell_09__vented_terminal_cover",
+        "Cell_09__terminal_5413_face_and_edge_insulation",
+        "Cell_09__positive_solder_process_allowance",
+        "Cell_09__negative_end_insulator",
+        "Cell5_frame_secondary_sleeve_reservation",
+        "lower_cradle_lugs_224_with_waist_guard_r18",
+        "lower_cradle_lugs_252_retained_outer_r18",
+        "Power_supervisor_source_board",
+        "Power_supervisor_H1_M2x12",
+        "Power_supervisor_H1_front_washer",
+        "Power_supervisor_H1_rear_washer",
+        "Power_supervisor_H1_M2_nut",
+        "Power_supervisor_H2_M2x12",
+        "Power_supervisor_H2_front_washer",
+        "Power_supervisor_H2_rear_washer",
+        "Power_supervisor_H2_M2_nut",
+        "Main_precharge_source_board",
+        "Main_precharge_H1_M2x12",
+        "Main_precharge_H1_front_washer",
+        "Main_precharge_H1_rear_washer",
+        "Main_precharge_H1_M2_nut",
+        "Main_precharge_H2_M2x12",
+        "Main_precharge_H2_front_washer",
+        "Main_precharge_H2_rear_washer",
+        "Main_precharge_H2_M2_nut",
+        "ape_body_shell__neck_collar",
+        "ape_body_shell__pelvis_front",
+        "ape_body_shell__pelvis_back",
+        "unrepresented_installation_allowance_torso"
+      ]
+    },
+    "R_shoulder_pitch_link": {
+      "mass_kg": 0.07778588902618698,
+      "com_link_m": [
+        0.0028744758592823437,
+        0.05594763988505886,
+        -0.0038837216164068766
+      ],
+      "com_model_m": [
+        -0.006125524140717656,
+        0.10794763988505886,
+        0.3481162783835931
+      ],
+      "inertia_kg_m2": [
+        [
+          4.660363122649803e-05,
+          -3.71322017737096e-07,
+          -5.018071182475076e-07
+        ],
+        [
+          -3.71322017737096e-07,
+          2.168241475213564e-05,
+          2.2360412415979174e-06
+        ],
+        [
+          -5.018071182475076e-07,
+          2.2360412415979174e-06,
+          4.318199792510867e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.1448297979052503e-05,
+        4.332422395827101e-05,
+        4.669552196641884e-05
+      ],
+      "parts": [
+        "upper__R_roll_case_PA2x7_4",
+        "upper__R_roll_case_washer4",
+        "upper__R_roll_case_spacer4",
+        "upper__R_roll_case_PA2x7_3",
+        "upper__R_roll_case_washer3",
+        "upper__R_roll_case_spacer3",
+        "upper__R_roll_case_PA2x7_2",
+        "upper__R_roll_case_washer2",
+        "upper__R_roll_case_spacer2",
+        "upper__R_roll_case_PA2x7_1",
+        "upper__R_roll_case_washer1",
+        "upper__R_roll_case_spacer1",
+        "upper__R_pitch_central_rocker_M3x6",
+        "upper__R_pitch_horn_M3x6_4",
+        "upper__R_pitch_horn_washer4",
+        "upper__R_pitch_horn_M3x6_3",
+        "upper__R_pitch_horn_washer3",
+        "upper__R_pitch_horn_M3x6_2",
+        "upper__R_pitch_horn_washer2",
+        "upper__R_pitch_horn_M3x6_1",
+        "upper__R_pitch_horn_washer1",
+        "upper__R_pitch_to_roll_one_piece",
+        "upper__R_roll_C047_case",
+        "upper__R_pitch_C047_rear_idler",
+        "upper__R_pitch_C047_main_horn"
+      ]
+    },
+    "R_shoulder_roll_link": {
+      "mass_kg": 0.07466903066704764,
+      "com_link_m": [
+        0.0031939879938852433,
+        0.01799259795232684,
+        -0.04362904874864776
+      ],
+      "com_model_m": [
+        0.00019398799388524316,
+        0.12999259795232684,
+        0.31637095125135223
+      ],
+      "inertia_kg_m2": [
+        [
+          3.930905671722844e-05,
+          4.171705889927212e-06,
+          -8.32792585016991e-06
+        ],
+        [
+          4.171705889927212e-06,
+          4.439439484458004e-05,
+          9.787301106147841e-06
+        ],
+        [
+          -8.32792585016991e-06,
+          9.787301106147841e-06,
+          2.3803262348099993e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.6168000558522224e-05,
+        4.2933255845654826e-05,
+        4.840545750573144e-05
+      ],
+      "parts": [
+        "upper__R_yaw_case_PA2x7_4",
+        "upper__R_yaw_case_washer4",
+        "upper__R_yaw_case_spacer4",
+        "upper__R_yaw_case_PA2x7_3",
+        "upper__R_yaw_case_washer3",
+        "upper__R_yaw_case_spacer3",
+        "upper__R_yaw_case_PA2x7_2",
+        "upper__R_yaw_case_washer2",
+        "upper__R_yaw_case_spacer2",
+        "upper__R_yaw_case_PA2x7_1",
+        "upper__R_yaw_case_washer1",
+        "upper__R_yaw_case_spacer1",
+        "upper__R_roll_central_rocker_M3x6",
+        "upper__R_roll_horn_M3x6_4",
+        "upper__R_roll_horn_washer4",
+        "upper__R_roll_horn_M3x6_3",
+        "upper__R_roll_horn_washer3",
+        "upper__R_roll_horn_M3x6_2",
+        "upper__R_roll_horn_washer2",
+        "upper__R_roll_horn_M3x6_1",
+        "upper__R_roll_horn_washer1",
+        "upper__R_roll_to_yaw_one_piece",
+        "upper__R_yaw_C047_case",
+        "upper__R_roll_C047_main_horn"
+      ]
+    },
+    "R_upper_arm": {
+      "mass_kg": 0.05637351028640504,
+      "com_link_m": [
+        -0.010839188960158237,
+        -0.00014917239517747705,
+        0.001874988118019727
+      ],
+      "com_model_m": [
+        -0.000839188960158237,
+        0.13385082760482253,
+        0.3078749881180197
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00010822362921056215,
+          -3.1820865901647634e-06,
+          7.620429872267119e-06
+        ],
+        [
+          -3.1820865901647634e-06,
+          9.107909690712523e-05,
+          3.7562641611376344e-05
+        ],
+        [
+          7.620429872267119e-06,
+          3.7562641611376344e-05,
+          4.7744061161982585e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.523912981849835e-05,
+        0.0001087571564662484,
+        0.00011305050099492321
+      ],
+      "parts": [
+        "upper__R_elbow_central_rocker_M3x6",
+        "upper__R_elbow_horn_M3x6_4",
+        "upper__R_elbow_horn_washer4",
+        "upper__R_elbow_horn_M3x6_3",
+        "upper__R_elbow_horn_washer3",
+        "upper__R_elbow_horn_M3x6_2",
+        "upper__R_elbow_horn_washer2",
+        "upper__R_elbow_horn_M3x6_1",
+        "upper__R_elbow_horn_washer1",
+        "upper__R_yaw_central_rocker_M3x6",
+        "upper__R_yaw_horn_M3x6_4",
+        "upper__R_yaw_horn_washer4",
+        "upper__R_yaw_horn_M3x6_3",
+        "upper__R_yaw_horn_washer3",
+        "upper__R_yaw_horn_M3x6_2",
+        "upper__R_yaw_horn_washer2",
+        "upper__R_yaw_horn_M3x6_1",
+        "upper__R_yaw_horn_washer1",
+        "upper__R_yaw_to_elbow_one_piece",
+        "upper__R_elbow_C047_main_horn",
+        "upper__R_yaw_C047_main_horn",
+        "ape_body_shell__R_upper_arm_back",
+        "ape_body_shell__R_upper_arm_front",
+        "ape_body_shell__R_shoulder_trim"
+      ]
+    },
+    "R_forearm": {
+      "mass_kg": 0.15088808010757374,
+      "com_link_m": [
+        -0.00038219612339443444,
+        -0.0014751102401816818,
+        -0.03758672894833667
+      ],
+      "com_model_m": [
+        0.0026178038766055656,
+        0.1435248897598183,
+        0.21441327105166333
+      ],
+      "inertia_kg_m2": [
+        [
+          0.0002892678826101014,
+          -1.3335546993685522e-06,
+          1.660797835509457e-05
+        ],
+        [
+          -1.3335546993685522e-06,
+          0.0002883590069080238,
+          8.113889199611752e-06
+        ],
+        [
+          1.660797835509457e-05,
+          8.113889199611752e-06,
+          5.354553398042064e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        5.209743815651094e-05,
+        0.00028836198867332084,
+        0.00029071299666871397
+      ],
+      "parts": [
+        "upper__R_elbow_case_PA2x7_4",
+        "upper__R_elbow_case_washer4",
+        "upper__R_elbow_case_spacer4",
+        "upper__R_elbow_case_PA2x7_3",
+        "upper__R_elbow_case_washer3",
+        "upper__R_elbow_case_spacer3",
+        "upper__R_elbow_case_PA2x7_2",
+        "upper__R_elbow_case_washer2",
+        "upper__R_elbow_case_spacer2",
+        "upper__R_elbow_case_PA2x7_1",
+        "upper__R_elbow_case_washer1",
+        "upper__R_elbow_case_spacer1",
+        "upper__R_forearm_wrist_one_piece",
+        "upper__R_elbow_C047_case",
+        "ape_body_shell__R_elbow_cuff",
+        "ape_body_shell__left_smooth_paw",
+        "ape_body_shell__R_wrist_cuff",
+        "ape_body_shell__R_forearm_back",
+        "ape_body_shell__R_forearm_front",
+        "unrepresented_installation_allowance_R_forearm"
+      ]
+    },
+    "L_shoulder_pitch_link": {
+      "mass_kg": 0.07778588902618432,
+      "com_link_m": [
+        0.002874475860394677,
+        -0.055947639885052934,
+        -0.0038837216164067656
+      ],
+      "com_model_m": [
+        -0.006125524139605322,
+        -0.10794763988505293,
+        0.3481162783835932
+      ],
+      "inertia_kg_m2": [
+        [
+          4.660363122648635e-05,
+          3.713220118207557e-07,
+          -5.01807118630281e-07
+        ],
+        [
+          3.713220118207557e-07,
+          2.1682414751635498e-05,
+          -2.2360412415962653e-06
+        ],
+        [
+          -5.01807118630281e-07,
+          -2.2360412415962653e-06,
+          4.3181997924601635e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.144829797870253e-05,
+        4.332422395784378e-05,
+        4.6695521966177155e-05
+      ],
+      "parts": [
+        "upper__L_roll_case_PA2x7_4",
+        "upper__L_roll_case_washer4",
+        "upper__L_roll_case_spacer4",
+        "upper__L_roll_case_PA2x7_3",
+        "upper__L_roll_case_washer3",
+        "upper__L_roll_case_spacer3",
+        "upper__L_roll_case_PA2x7_2",
+        "upper__L_roll_case_washer2",
+        "upper__L_roll_case_spacer2",
+        "upper__L_roll_case_PA2x7_1",
+        "upper__L_roll_case_washer1",
+        "upper__L_roll_case_spacer1",
+        "upper__L_pitch_central_rocker_M3x6",
+        "upper__L_pitch_horn_M3x6_4",
+        "upper__L_pitch_horn_washer4",
+        "upper__L_pitch_horn_M3x6_3",
+        "upper__L_pitch_horn_washer3",
+        "upper__L_pitch_horn_M3x6_2",
+        "upper__L_pitch_horn_washer2",
+        "upper__L_pitch_horn_M3x6_1",
+        "upper__L_pitch_horn_washer1",
+        "upper__L_pitch_to_roll_one_piece",
+        "upper__L_roll_C047_case",
+        "upper__L_pitch_C047_rear_idler",
+        "upper__L_pitch_C047_main_horn"
+      ]
+    },
+    "L_shoulder_roll_link": {
+      "mass_kg": 0.07466903066704356,
+      "com_link_m": [
+        0.003193987993884223,
+        -0.017992597952398784,
+        -0.04362904874861595
+      ],
+      "com_model_m": [
+        0.00019398799388422282,
+        -0.1299925979523988,
+        0.31637095125138404
+      ],
+      "inertia_kg_m2": [
+        [
+          3.9309056717221786e-05,
+          -4.17170588984992e-06,
+          -8.327925850198501e-06
+        ],
+        [
+          -4.17170588984992e-06,
+          4.439439484478963e-05,
+          -9.78730110592842e-06
+        ],
+        [
+          -8.327925850198501e-06,
+          -9.78730110592842e-06,
+          2.380326234787874e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.6168000558519206e-05,
+        4.293325584563602e-05,
+        4.840545750573492e-05
+      ],
+      "parts": [
+        "upper__L_yaw_case_PA2x7_4",
+        "upper__L_yaw_case_washer4",
+        "upper__L_yaw_case_spacer4",
+        "upper__L_yaw_case_PA2x7_3",
+        "upper__L_yaw_case_washer3",
+        "upper__L_yaw_case_spacer3",
+        "upper__L_yaw_case_PA2x7_2",
+        "upper__L_yaw_case_washer2",
+        "upper__L_yaw_case_spacer2",
+        "upper__L_yaw_case_PA2x7_1",
+        "upper__L_yaw_case_washer1",
+        "upper__L_yaw_case_spacer1",
+        "upper__L_roll_central_rocker_M3x6",
+        "upper__L_roll_horn_M3x6_4",
+        "upper__L_roll_horn_washer4",
+        "upper__L_roll_horn_M3x6_3",
+        "upper__L_roll_horn_washer3",
+        "upper__L_roll_horn_M3x6_2",
+        "upper__L_roll_horn_washer2",
+        "upper__L_roll_horn_M3x6_1",
+        "upper__L_roll_horn_washer1",
+        "upper__L_roll_to_yaw_one_piece",
+        "upper__L_yaw_C047_case",
+        "upper__L_roll_C047_main_horn"
+      ]
+    },
+    "L_upper_arm": {
+      "mass_kg": 0.05636400248992255,
+      "com_link_m": [
+        -0.010837506799003836,
+        0.00015234744084946517,
+        0.0018696330102939696
+      ],
+      "com_model_m": [
+        -0.0008375067990038359,
+        -0.13384765255915054,
+        0.30786963301029396
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00010821407780380599,
+          3.182477243028954e-06,
+          7.616358856426889e-06
+        ],
+        [
+          3.182477243028954e-06,
+          9.106557816136118e-05,
+          -3.756827289758314e-05
+        ],
+        [
+          7.616358856426889e-06,
+          -3.756827289758314e-05,
+          4.7741929945368245e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.5229943870444363e-05,
+        0.00010874801366683667,
+        0.00011304362837325434
+      ],
+      "parts": [
+        "upper__L_elbow_central_rocker_M3x6",
+        "upper__L_elbow_horn_M3x6_4",
+        "upper__L_elbow_horn_washer4",
+        "upper__L_elbow_horn_M3x6_3",
+        "upper__L_elbow_horn_washer3",
+        "upper__L_elbow_horn_M3x6_2",
+        "upper__L_elbow_horn_washer2",
+        "upper__L_elbow_horn_M3x6_1",
+        "upper__L_elbow_horn_washer1",
+        "upper__L_yaw_central_rocker_M3x6",
+        "upper__L_yaw_horn_M3x6_4",
+        "upper__L_yaw_horn_washer4",
+        "upper__L_yaw_horn_M3x6_3",
+        "upper__L_yaw_horn_washer3",
+        "upper__L_yaw_horn_M3x6_2",
+        "upper__L_yaw_horn_washer2",
+        "upper__L_yaw_horn_M3x6_1",
+        "upper__L_yaw_horn_washer1",
+        "upper__L_yaw_to_elbow_one_piece",
+        "upper__L_elbow_C047_main_horn",
+        "upper__L_yaw_C047_main_horn",
+        "ape_body_shell__L_upper_arm_back",
+        "ape_body_shell__L_upper_arm_front",
+        "ape_body_shell__L_shoulder_trim"
+      ]
+    },
+    "L_forearm": {
+      "mass_kg": 0.15023331807417684,
+      "com_link_m": [
+        -0.0004850860077808103,
+        0.001632359757297891,
+        -0.03723146916577105
+      ],
+      "com_model_m": [
+        0.0025149139922191898,
+        -0.1433676402427021,
+        0.21476853083422895
+      ],
+      "inertia_kg_m2": [
+        [
+          0.0002844557795192076,
+          8.401110097412098e-07,
+          1.5424681763042752e-05
+        ],
+        [
+          8.401110097412098e-07,
+          0.00028349084216217237,
+          -6.164630178201483e-06
+        ],
+        [
+          1.5424681763042752e-05,
+          -6.164630178201483e-06,
+          5.277931249790594e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        5.159075200699342e-05,
+        0.00028356037906138404,
+        0.0002855748031109086
+      ],
+      "parts": [
+        "upper__L_elbow_case_PA2x7_4",
+        "upper__L_elbow_case_washer4",
+        "upper__L_elbow_case_spacer4",
+        "upper__L_elbow_case_PA2x7_3",
+        "upper__L_elbow_case_washer3",
+        "upper__L_elbow_case_spacer3",
+        "upper__L_elbow_case_PA2x7_2",
+        "upper__L_elbow_case_washer2",
+        "upper__L_elbow_case_spacer2",
+        "upper__L_elbow_case_PA2x7_1",
+        "upper__L_elbow_case_washer1",
+        "upper__L_elbow_case_spacer1",
+        "upper__L_forearm_wrist_one_piece",
+        "upper__L_elbow_C047_case",
+        "ape_body_shell__L_elbow_cuff",
+        "ape_body_shell__right_smooth_paw",
+        "ape_body_shell__L_wrist_cuff",
+        "ape_body_shell__L_forearm_back",
+        "ape_body_shell__L_forearm_front",
+        "unrepresented_installation_allowance_L_forearm"
+      ]
+    },
+    "neck_yaw": {
+      "mass_kg": 0.019193676565787174,
+      "com_link_m": [
+        -4.438620916171008e-05,
+        -0.014219663144758395,
+        0.024830287695893405
+      ],
+      "com_model_m": [
+        -0.00504438620916171,
+        -0.014219663144758395,
+        0.3898302876958934
+      ],
+      "inertia_kg_m2": [
+        [
+          8.231859484600034e-06,
+          -7.002712564907201e-09,
+          2.7707076224806583e-08
+        ],
+        [
+          -7.002712564907201e-09,
+          6.7838615480277634e-06,
+          2.428957320302152e-06
+        ],
+        [
+          2.7707076224806583e-08,
+          2.428957320302152e-06,
+          3.0668463685842555e-06
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.8668192611528682e-06,
+        7.98362136665646e-06,
+        8.232126773402724e-06
+      ],
+      "parts": [
+        "upper__neck_pitch_horn_M2x5_1",
+        "upper__neck_pitch_horn_M2x5_0",
+        "upper__neck_yaw_horn_M2x5_1",
+        "upper__neck_yaw_horn_M2x5_0",
+        "upper__one_piece_bent_neck_L",
+        "upper__neck_pitch_front_horn",
+        "upper__neck_yaw_front_horn"
+      ]
+    },
+    "head": {
+      "mass_kg": 0.2612706870269285,
+      "com_link_m": [
+        0.0034031568246067683,
+        0.01239627608936531,
+        0.026018883074292065
+      ],
+      "com_model_m": [
+        -0.0015968431753932318,
+        -0.0011037239106346907,
+        0.44001888307429204
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00031908961408425767,
+          8.935445632730798e-07,
+          -1.9099927839713826e-06
+        ],
+        [
+          8.935445632730798e-07,
+          0.0002641168042438365,
+          -1.4650385206827308e-05
+        ],
+        [
+          -1.9099927839713826e-06,
+          -1.4650385206827308e-05,
+          0.0002305073192187257
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        0.00022499468609224013,
+        0.000269560500208684,
+        0.00031915855124589566
+      ],
+      "parts": [
+        "upper__neck_head_M2_washer_3",
+        "upper__neck_head_M2x5_3",
+        "upper__neck_head_M2_washer_2",
+        "upper__neck_head_M2x5_2",
+        "upper__neck_head_M2_washer_1",
+        "upper__neck_head_M2x5_1",
+        "upper__neck_head_M2_washer_0",
+        "upper__neck_head_M2x5_0",
+        "upper__neck_pitch_case_XM335",
+        "B0410_supplier_native_v23",
+        "B0196_supplier_native_v23",
+        "microphone_6049_v23",
+        "ROCK4D_official",
+        "Radian_INL25001_bare",
+        "SameSky_4010_fan",
+        "TIM_3M8810_cut",
+        "Wuerth_61304021821_official",
+        "compute_rear_nut_2",
+        "compute_rear_nut_3",
+        "compute_rear_washer_2",
+        "compute_rear_washer_3",
+        "fan_M3_-21_462",
+        "fan_M3_11_430",
+        "fan_M3_11_462",
+        "fan_M3x16_guide",
+        "fan_black_formed_lead",
+        "fan_bridge_nut_0",
+        "fan_bridge_nut_1",
+        "fan_bridge_standoff_0",
+        "fan_bridge_standoff_1",
+        "fan_guide_front_washer",
+        "fan_lead_guide_r16",
+        "fan_nut_-21_430",
+        "fan_nut_-21_462",
+        "fan_nut_11_430",
+        "fan_nut_11_462",
+        "fan_red_formed_lead",
+        "fan_tach_insulating_cap",
+        "fan_washer_-21_430",
+        "fan_washer_-21_462",
+        "fan_washer_11_430",
+        "fan_washer_11_462",
+        "fan_yellow_formed_lead",
+        "heatsink_nonpreloaded_guard",
+        "single_shared_carrier_v23",
+        "compact_neck_U_strap_v23",
+        "neck_M3x6_countersunk_0",
+        "neck_M3x6_countersunk_1",
+        "B0410_M2_FF5_spacer_0_v23",
+        "B0410_camera_M2x4_0",
+        "B0410_camera_washer_0",
+        "B0410_plate_M2x4_0",
+        "B0410_M2_FF5_spacer_1_v23",
+        "B0410_camera_M2x4_1",
+        "B0410_camera_washer_1",
+        "B0410_plate_M2x4_1",
+        "B0410_M2_FF5_spacer_2_v23",
+        "B0410_camera_M2x4_2",
+        "B0410_camera_washer_2",
+        "B0410_plate_M2x4_2",
+        "B0410_M2_FF5_spacer_3_v23",
+        "B0410_camera_M2x4_3",
+        "B0410_camera_washer_3",
+        "B0410_plate_M2x4_3",
+        "B0196_M2_FF5_spacer_0_v23",
+        "B0196_camera_M2x4_0",
+        "B0196_camera_washer_0",
+        "B0196_plate_M2x4_0",
+        "B0196_M2_FF5_spacer_1_v23",
+        "B0196_camera_M2x4_1",
+        "B0196_camera_washer_1",
+        "B0196_plate_M2x4_1",
+        "B0196_M2_FF5_spacer_2_v23",
+        "B0196_camera_M2x4_2",
+        "B0196_camera_washer_2",
+        "B0196_plate_M2x4_2",
+        "B0196_M2_FF5_spacer_3_v23",
+        "B0196_camera_M2x4_3",
+        "B0196_camera_washer_3",
+        "B0196_plate_M2x4_3",
+        "compute_FF4_spacer_0",
+        "compute_M2p5_CS30_0",
+        "compute_FF4_spacer_1",
+        "compute_M2p5_CS30_1",
+        "compute_FF4_spacer_2",
+        "compute_M2p5_CS10_2",
+        "compute_FF4_spacer_3",
+        "compute_M2p5_CS10_3",
+        "microphone_compact_tab_v23",
+        "mic_foot_M2x3_0",
+        "mic_foot_M2x3_1",
+        "mic_side_M2x4_lowhead_0",
+        "mic_side_shim_0",
+        "mic_side_M2x4_lowhead_1",
+        "mic_side_shim_1",
+        "flush_skin_M2x8_-1",
+        "flush_skin_M2x8_1",
+        "original_profile_head_skin_v23",
+        "horizontal_RF_plug_source",
+        "horizontal_RF_radiator_source",
+        "horizontal_RF_formed_coax",
+        "vertical_RF_plug_source",
+        "vertical_RF_radiator_source",
+        "vertical_RF_formed_coax",
+        "combined_RF_and_regulator_bridge",
+        "Pololu_D24V50F5_official_alternative",
+        "regulator_M2x8_0",
+        "regulator_M2x8_1",
+        "regulator_M2_nut_0",
+        "regulator_M2_nut_1",
+        "regulated_5V_trunk",
+        "regulated_return_trunk",
+        "positive_solder_bus",
+        "return_solder_bus",
+        "GPIO2_power",
+        "GPIO4_power",
+        "GPIO6_return",
+        "GPIO9_return",
+        "GPIO14_return",
+        "GPIO20_return",
+        "GPIO25_return",
+        "GPIO30_return",
+        "GPIO34_return",
+        "GPIO39_return",
+        "fan_red_bus_link",
+        "fan_black_bus_link",
+        "12V_head_input",
+        "12V_head_return",
+        "unrepresented_installation_allowance_head"
+      ]
+    },
+    "R_yaw_link": {
+      "mass_kg": 0.07511964959966082,
+      "com_link_m": [
+        8.369622783027664e-08,
+        -0.014209517055839116,
+        -0.03438661703399479
+      ],
+      "com_model_m": [
+        -0.0019999163037721698,
+        0.04479048294416088,
+        0.2403633829660052
+      ],
+      "inertia_kg_m2": [
+        [
+          4.223439990715713e-05,
+          -7.896434158626542e-11,
+          7.05664626095852e-11
+        ],
+        [
+          -7.896434158626542e-11,
+          3.356885848763113e-05,
+          -1.0028663223826257e-05
+        ],
+        [
+          7.05664626095852e-11,
+          -1.0028663223826257e-05,
+          1.6808176194117214e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.211930910954817e-05,
+        3.825772556958274e-05,
+        4.2234399909774555e-05
+      ],
+      "parts": [
+        "lower__R_A14_yaw_flat_shim1_3",
+        "lower__R_A14_yaw_M3x14_3",
+        "lower__R_A14_yaw_flat_shim1_2",
+        "lower__R_A14_yaw_M3x14_2",
+        "lower__R_A14_yaw_flat_shim1_1",
+        "lower__R_A14_yaw_M3x14_1",
+        "lower__R_A14_yaw_flat_shim1_0",
+        "lower__R_A14_yaw_M3x14_0",
+        "lower__R_A14_front_PA2x4_3",
+        "lower__R_A14_front_PA2x4_2",
+        "lower__R_A14_front_PA2x4_1",
+        "lower__R_A14_front_PA2x4_0",
+        "lower__R_A14_plain3_inside_yaw_pitch",
+        "lower__R_pitch_servo_case_reference",
+        "lower__R_C_hip_yaw_ring_8mm_0",
+        "lower__R_yaw_passive_idler_reference",
+        "lower__R_yaw_upper_horn_reference"
+      ]
+    },
+    "R_pitch_link": {
+      "mass_kg": 0.07601693958624699,
+      "com_link_m": [
+        -0.004945826106483918,
+        -0.005644024072210235,
+        -0.02309961511250158
+      ],
+      "com_model_m": [
+        -0.0069458261064839185,
+        0.05335597592778976,
+        0.19590038488749842
+      ],
+      "inertia_kg_m2": [
+        [
+          2.7634327137557196e-05,
+          -2.8426870253335086e-07,
+          -9.890012784742808e-07
+        ],
+        [
+          -2.8426870253335086e-07,
+          2.2681959634877637e-05,
+          -4.480806864305373e-06
+        ],
+        [
+          -9.890012784742808e-07,
+          -4.480806864305373e-06,
+          2.265372477189801e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.810158626918819e-05,
+        2.6863148510146482e-05,
+        2.800527676499817e-05
+      ],
+      "parts": [
+        "lower__R_A13_pitch_horn_M3x12_3",
+        "lower__R_A13_pitch_horn_M3x12_2",
+        "lower__R_A13_pitch_horn_M3x12_1",
+        "lower__R_A13_pitch_horn_M3x12_0",
+        "lower__R_A13_roll_face1_PA2x3_3",
+        "lower__R_A13_roll_face1_PA2x3_2",
+        "lower__R_A13_roll_face1_PA2x3_1",
+        "lower__R_A13_roll_face1_PA2x3_0",
+        "lower__R_A13_roll_face0_PA2x3_3",
+        "lower__R_A13_roll_face0_PA2x3_2",
+        "lower__R_A13_roll_face0_PA2x3_1",
+        "lower__R_A13_roll_face0_PA2x3_0",
+        "lower__R_A13_pitch_output_ring8",
+        "lower__R_A13_pitch_roll_positive_L",
+        "lower__R_A13_pitch_roll_negative_L",
+        "lower__R_pitch_passive_idler_reference",
+        "lower__R_pitch_upper_horn_reference",
+        "lower__R_roll_servo_case_reference"
+      ]
+    },
+    "R_roll_link": {
+      "mass_kg": 0.1272617723294137,
+      "com_link_m": [
+        -0.01772800968458982,
+        -0.005218375586413665,
+        -0.026801706129392755
+      ],
+      "com_model_m": [
+        -0.005728009684589818,
+        0.058781624413586336,
+        0.16319829387060725
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00017992458219262287,
+          3.5071986903950907e-07,
+          1.1361963060262186e-05
+        ],
+        [
+          3.5071986903950907e-07,
+          0.00018200545575469237,
+          6.68277190381404e-06
+        ],
+        [
+          1.1361963060262186e-05,
+          6.68277190381404e-06,
+          6.466437436619759e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        6.318649499414501e-05,
+        0.00018050281802574328,
+        0.00018290509929362445
+      ],
+      "parts": [
+        "lower__R_A9_hip_M3x4_1_3",
+        "lower__R_A9_hip_M3x4_1_2",
+        "lower__R_A9_hip_M3x4_1_1",
+        "lower__R_A9_hip_M3x4_1_0",
+        "lower__R_A9_hip_M3x4_0_3",
+        "lower__R_A9_hip_M3x4_0_2",
+        "lower__R_A9_hip_M3x4_0_1",
+        "lower__R_A9_hip_M3x4_0_0",
+        "lower__R_A9_BPA2x3_proposal_3",
+        "lower__R_A9_BPA2x3_proposal_2",
+        "lower__R_A9_BPA2x3_proposal_1",
+        "lower__R_A9_BPA2x3_proposal_0",
+        "lower__R_A10_one_piece_direct_upper",
+        "lower__R_C047_knee_case",
+        "lower__R_roll_passive_idler_reference",
+        "lower__R_roll_upper_horn_reference",
+        "ape_body_shell__left_hip_flex_envelope",
+        "ape_body_shell__R_thigh_back",
+        "ape_body_shell__R_thigh_front"
+      ]
+    },
+    "L_yaw_link": {
+      "mass_kg": 0.07511964958375458,
+      "com_link_m": [
+        8.369328438270762e-08,
+        0.014209517058146388,
+        -0.03438661703493298
+      ],
+      "com_model_m": [
+        -0.0019999163067156173,
+        -0.04479048294185361,
+        0.240363382965067
+      ],
+      "inertia_kg_m2": [
+        [
+          4.223439990404025e-05,
+          7.896189393672545e-11,
+          7.056960254636214e-11
+        ],
+        [
+          7.896189393672545e-11,
+          3.3568858485094686e-05,
+          1.0028663223016555e-05
+        ],
+        [
+          7.056960254636214e-11,
+          1.0028663223016555e-05,
+          1.6808176191026777e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.211930910717843e-05,
+        3.8257725566325645e-05,
+        4.223439990665764e-05
+      ],
+      "parts": [
+        "lower__L_A14_yaw_flat_shim1_3",
+        "lower__L_A14_yaw_M3x14_3",
+        "lower__L_A14_yaw_flat_shim1_2",
+        "lower__L_A14_yaw_M3x14_2",
+        "lower__L_A14_yaw_flat_shim1_1",
+        "lower__L_A14_yaw_M3x14_1",
+        "lower__L_A14_yaw_flat_shim1_0",
+        "lower__L_A14_yaw_M3x14_0",
+        "lower__L_A14_front_PA2x4_3",
+        "lower__L_A14_front_PA2x4_2",
+        "lower__L_A14_front_PA2x4_1",
+        "lower__L_A14_front_PA2x4_0",
+        "lower__L_A14_plain3_inside_yaw_pitch",
+        "lower__L_pitch_servo_case_reference",
+        "lower__L_C_hip_yaw_ring_8mm_0",
+        "lower__L_yaw_passive_idler_reference",
+        "lower__L_yaw_upper_horn_reference"
+      ]
+    },
+    "L_pitch_link": {
+      "mass_kg": 0.07599050775117708,
+      "com_link_m": [
+        -0.0038996301228082474,
+        0.005649117715980777,
+        -0.023108632399443385
+      ],
+      "com_model_m": [
+        -0.005899630122808247,
+        -0.05335088228401922,
+        0.19589136760055662
+      ],
+      "inertia_kg_m2": [
+        [
+          2.76103043037992e-05,
+          2.161098627301249e-07,
+          -5.8718646708391e-07
+        ],
+        [
+          2.161098627301249e-07,
+          2.2568528419318405e-05,
+          4.470768878391379e-06
+        ],
+        [
+          -5.8718646708391e-07,
+          4.470768878391379e-06,
+          2.2552958349052832e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        1.8056143687094796e-05,
+        2.6935140637091872e-05,
+        2.774050674798377e-05
+      ],
+      "parts": [
+        "lower__L_A13_pitch_horn_M3x12_3",
+        "lower__L_A13_pitch_horn_M3x12_2",
+        "lower__L_A13_pitch_horn_M3x12_1",
+        "lower__L_A13_pitch_horn_M3x12_0",
+        "lower__L_A13_roll_face1_PA2x3_3",
+        "lower__L_A13_roll_face1_PA2x3_2",
+        "lower__L_A13_roll_face1_PA2x3_1",
+        "lower__L_A13_roll_face1_PA2x3_0",
+        "lower__L_A13_roll_face0_PA2x3_3",
+        "lower__L_A13_roll_face0_PA2x3_2",
+        "lower__L_A13_roll_face0_PA2x3_1",
+        "lower__L_A13_roll_face0_PA2x3_0",
+        "lower__L_A13_pitch_output_ring8",
+        "lower__L_A13_pitch_roll_positive_L",
+        "lower__L_A13_pitch_roll_negative_L",
+        "lower__L_pitch_passive_idler_reference",
+        "lower__L_pitch_upper_horn_reference",
+        "lower__L_roll_servo_case_reference"
+      ]
+    },
+    "L_roll_link": {
+      "mass_kg": 0.12721760430228748,
+      "com_link_m": [
+        0.019943911705863307,
+        0.005164995581597186,
+        -0.026800097541986312
+      ],
+      "com_model_m": [
+        -0.005856088294136693,
+        -0.058835004418402816,
+        0.1631999024580137
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00017997922128148525,
+          -5.007812257637848e-07,
+          1.167119655393803e-05
+        ],
+        [
+          -5.007812257637848e-07,
+          0.0001820153046270019,
+          -6.3641708265660414e-06
+        ],
+        [
+          1.167119655393803e-05,
+          -6.3641708265660414e-06,
+          6.468851951365668e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        6.31866887911921e-05,
+        0.0001804679345244768,
+        0.00018302842210647486
+      ],
+      "parts": [
+        "lower__L_A9_hip_M3x4_1_3",
+        "lower__L_A9_hip_M3x4_1_2",
+        "lower__L_A9_hip_M3x4_1_1",
+        "lower__L_A9_hip_M3x4_1_0",
+        "lower__L_A9_hip_M3x4_0_3",
+        "lower__L_A9_hip_M3x4_0_2",
+        "lower__L_A9_hip_M3x4_0_1",
+        "lower__L_A9_hip_M3x4_0_0",
+        "lower__L_A9_BPA2x3_proposal_3",
+        "lower__L_A9_BPA2x3_proposal_2",
+        "lower__L_A9_BPA2x3_proposal_1",
+        "lower__L_A9_BPA2x3_proposal_0",
+        "lower__L_A10_one_piece_direct_upper",
+        "lower__L_C047_knee_case",
+        "lower__L_roll_passive_idler_reference",
+        "lower__L_roll_upper_horn_reference",
+        "ape_body_shell__right_hip_flex_envelope",
+        "ape_body_shell__L_thigh_back",
+        "ape_body_shell__L_thigh_front"
+      ]
+    },
+    "R_shin": {
+      "mass_kg": 0.1609758862963719,
+      "com_link_m": [
+        -0.000992898626348735,
+        0.0007350714403731237,
+        -0.02802321623507134
+      ],
+      "com_model_m": [
+        -0.004992898626348735,
+        0.06073507144037312,
+        0.09497678376492866
+      ],
+      "inertia_kg_m2": [
+        [
+          0.000171437965431616,
+          8.066719842996151e-08,
+          5.7187923935999865e-06
+        ],
+        [
+          8.066719842996151e-08,
+          0.00016374712893867184,
+          3.096786089335466e-06
+        ],
+        [
+          5.7187923935999865e-06,
+          3.096786089335466e-06,
+          5.885355905544028e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        5.847319126671878e-05,
+        0.00016383063024480018,
+        0.00017173483191420914
+      ],
+      "parts": [
+        "lower__R_B13R14_raised_B11_outer_PA2x6_proposal_1",
+        "lower__R_B13R14_raised_B11_outer_cut_spacer_1",
+        "lower__R_B13R14_raised_B11_outer_PA2x6_proposal_0",
+        "lower__R_B13R14_raised_B11_outer_cut_spacer_0",
+        "lower__R_B13R14_raised_B11_inner_PA2x6_proposal_1",
+        "lower__R_B13R14_raised_B11_inner_cut_spacer_1",
+        "lower__R_B13R14_raised_B11_inner_PA2x6_proposal_0",
+        "lower__R_B13R14_raised_B11_inner_cut_spacer_0",
+        "lower__R_B13R14_raised_C047_ankle_pitch_case",
+        "lower__R_B13R14_short_outer_shin_plate",
+        "lower__R_B13R14_short_inner_shin_plate",
+        "lower__R_B_NBK_M3x4_H0p8_rear_1_t2_flat",
+        "lower__R_B_NBK_M3x4_H0p8_rear_0_t2_flat",
+        "lower__R_B_NBK_M3x4_H0p8_front_1_t2_flat",
+        "lower__R_B_NBK_M3x4_H0p8_front_0_t2_flat",
+        "lower__R_C047_knee_rear_idler",
+        "lower__R_C047_knee_main_horn",
+        "ape_body_shell__left_knee_flex_envelope",
+        "ape_body_shell__R_shin_back",
+        "ape_body_shell__R_shin_front",
+        "ape_body_shell__R_knee_cuff",
+        "unrepresented_installation_allowance_R_shin"
+      ]
+    },
+    "R_ankle_pitch": {
+      "mass_kg": 0.013522144146131673,
+      "com_link_m": [
+        -0.008948393816213911,
+        0.00021580694305270431,
+        -0.015875313805204454
+      ],
+      "com_model_m": [
+        -0.012948393816213911,
+        0.06621580694305271,
+        0.045124686194795545
+      ],
+      "inertia_kg_m2": [
+        [
+          6.938259099442846e-06,
+          2.070761159875381e-07,
+          -1.1516676561854156e-06
+        ],
+        [
+          2.070761159875381e-07,
+          4.524995406406983e-06,
+          1.0652857681600145e-06
+        ],
+        [
+          -1.1516676561854156e-06,
+          1.0652857681600145e-06,
+          4.008700824093341e-06
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.8982385369325994e-06,
+        5.227649541832633e-06,
+        7.346067251177934e-06
+      ],
+      "parts": [
+        "lower__R_B16_idler_SECS_M3x4_1",
+        "lower__R_B16_idler_SECS_M3x4_0",
+        "lower__R_B13R14_one_bend_output_link",
+        "lower__R_B13R14_raised_B11_pitch_horn_M3x4_3",
+        "lower__R_B13R14_raised_B11_pitch_horn_M3x4_2",
+        "lower__R_B13R14_raised_B11_pitch_horn_M3x4_1",
+        "lower__R_B13R14_raised_B11_pitch_horn_M3x4_0",
+        "lower__R_B13R14_raised_C047_ankle_pitch_rear_idler",
+        "lower__R_B13R14_raised_C047_ankle_pitch_main_horn",
+        "lower__R_B13_output_NBK_M3x4_H0p8_3",
+        "lower__R_B13_output_NBK_M3x4_H0p8_2",
+        "lower__R_B13_output_NBK_M3x4_H0p8_1",
+        "lower__R_B13_output_NBK_M3x4_H0p8_0",
+        "lower__R_B13_C047_foot_roll_rear_idler",
+        "lower__R_B13_C047_foot_roll_main_horn"
+      ]
+    },
+    "R_foot": {
+      "mass_kg": 0.21298214479966637,
+      "com_link_m": [
+        -0.008688461955974294,
+        -0.009935890114573742,
+        -0.0038265496211497326
+      ],
+      "com_model_m": [
+        0.0048115380440257064,
+        0.06506410988542626,
+        0.015173450378850267
+      ],
+      "inertia_kg_m2": [
+        [
+          9.97379868181384e-05,
+          -1.5663405497701964e-06,
+          1.8981872431286973e-05
+        ],
+        [
+          -1.5663405497701964e-06,
+          0.00013036952211157237,
+          1.8648573370850072e-06
+        ],
+        [
+          1.8981872431286973e-05,
+          1.8648573370850072e-06,
+          0.00014425899042173727
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        9.262518413500418e-05,
+        0.00013041812837241145,
+        0.00015132318684403235
+      ],
+      "parts": [
+        "lower__R_B13R14_rear_sole_M3_nut_1",
+        "lower__R_B13R14_rear_sole_M3x6_button_1",
+        "lower__R_B13R14_rear_sole_M3_nut_0",
+        "lower__R_B13R14_rear_sole_M3x6_button_0",
+        "lower__R_B13R14_front_sole_M3_nut_1",
+        "lower__R_B13R14_front_sole_M3x6_button_1",
+        "lower__R_B13R14_front_sole_M3_nut_0",
+        "lower__R_B13R14_front_sole_M3x6_button_0",
+        "lower__R_B13R14_plain_sole",
+        "lower__R_B13R14_rear_case_L",
+        "lower__R_B13R14_front_case_L",
+        "lower__R_B13_rear_PA2x6_1",
+        "lower__R_B13_rear_cut_spacer_1",
+        "lower__R_B13_rear_PA2x6_0",
+        "lower__R_B13_rear_cut_spacer_0",
+        "lower__R_B13_front_PA2x6_1",
+        "lower__R_B13_front_cut_spacer_1",
+        "lower__R_B13_front_PA2x6_0",
+        "lower__R_B13_front_cut_spacer_0",
+        "lower__R_B13_C047_foot_roll_case",
+        "R_toe_lateral_sensor",
+        "R_toe_lateral_backing",
+        "R_toe_lateral_bond",
+        "R_heel_lateral_sensor",
+        "R_heel_lateral_backing",
+        "R_heel_lateral_bond",
+        "R_mid_medial_sensor",
+        "R_mid_medial_backing",
+        "R_mid_medial_bond",
+        "R_toe_lateral_actuator_v17",
+        "R_heel_lateral_actuator_v17",
+        "R_mid_medial_actuator_v17",
+        "R_sole_pad_bond_v19",
+        "R_sensor_pocket_pad_v19",
+        "ape_body_shell__left_smooth_boot",
+        "ape_body_shell__R_sole",
+        "ape_body_shell__left_ankle_flex_envelope",
+        "ape_body_shell__R_ankle_cuff"
+      ]
+    },
+    "L_shin": {
+      "mass_kg": 0.16097077297728016,
+      "com_link_m": [
+        -0.000992902261876421,
+        -0.0007562133990881639,
+        -0.028022277667780607
+      ],
+      "com_model_m": [
+        -0.004992902261876421,
+        -0.06075621339908816,
+        0.09497772233221939
+      ],
+      "inertia_kg_m2": [
+        [
+          0.00017144023718083376,
+          -1.5534708596366048e-07,
+          5.722374235879144e-06
+        ],
+        [
+          -1.5534708596366048e-07,
+          0.0001637438166014696,
+          -2.9235417798392344e-06
+        ],
+        [
+          5.722374235879144e-06,
+          -2.9235417798392344e-06,
+          5.884817378110632e-05
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        5.8477535674505346e-05,
+        0.00016381276862664114,
+        0.0001717419232622632
+      ],
+      "parts": [
+        "lower__L_B13R14_raised_B11_outer_PA2x6_proposal_1",
+        "lower__L_B13R14_raised_B11_outer_cut_spacer_1",
+        "lower__L_B13R14_raised_B11_outer_PA2x6_proposal_0",
+        "lower__L_B13R14_raised_B11_outer_cut_spacer_0",
+        "lower__L_B13R14_raised_B11_inner_PA2x6_proposal_1",
+        "lower__L_B13R14_raised_B11_inner_cut_spacer_1",
+        "lower__L_B13R14_raised_B11_inner_PA2x6_proposal_0",
+        "lower__L_B13R14_raised_B11_inner_cut_spacer_0",
+        "lower__L_B13R14_raised_C047_ankle_pitch_case",
+        "lower__L_B13R14_short_outer_shin_plate",
+        "lower__L_B13R14_short_inner_shin_plate",
+        "lower__L_B_NBK_M3x4_H0p8_rear_1_t2_flat",
+        "lower__L_B_NBK_M3x4_H0p8_rear_0_t2_flat",
+        "lower__L_B_NBK_M3x4_H0p8_front_1_t2_flat",
+        "lower__L_B_NBK_M3x4_H0p8_front_0_t2_flat",
+        "lower__L_C047_knee_rear_idler",
+        "lower__L_C047_knee_main_horn",
+        "ape_body_shell__right_knee_flex_envelope",
+        "ape_body_shell__L_shin_back",
+        "ape_body_shell__L_shin_front",
+        "ape_body_shell__L_knee_cuff",
+        "unrepresented_installation_allowance_L_shin"
+      ]
+    },
+    "L_ankle_pitch": {
+      "mass_kg": 0.013522144146131851,
+      "com_link_m": [
+        -0.008948393816214316,
+        -0.00021580694305267656,
+        -0.01587531380520562
+      ],
+      "com_model_m": [
+        -0.012948393816214316,
+        -0.06621580694305268,
+        0.04512468619479438
+      ],
+      "inertia_kg_m2": [
+        [
+          6.938259099442907e-06,
+          -2.070761159874863e-07,
+          -1.151667656185475e-06
+        ],
+        [
+          -2.070761159874863e-07,
+          4.524995406407117e-06,
+          -1.0652857681600422e-06
+        ],
+        [
+          -1.151667656185475e-06,
+          -1.0652857681600422e-06,
+          4.008700824093271e-06
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        2.8982385369325664e-06,
+        5.2276495418327e-06,
+        7.346067251178026e-06
+      ],
+      "parts": [
+        "lower__L_B16_idler_SECS_M3x4_1",
+        "lower__L_B16_idler_SECS_M3x4_0",
+        "lower__L_B13R14_one_bend_output_link",
+        "lower__L_B13R14_raised_B11_pitch_horn_M3x4_3",
+        "lower__L_B13R14_raised_B11_pitch_horn_M3x4_2",
+        "lower__L_B13R14_raised_B11_pitch_horn_M3x4_1",
+        "lower__L_B13R14_raised_B11_pitch_horn_M3x4_0",
+        "lower__L_B13R14_raised_C047_ankle_pitch_rear_idler",
+        "lower__L_B13R14_raised_C047_ankle_pitch_main_horn",
+        "lower__L_B13_output_NBK_M3x4_H0p8_3",
+        "lower__L_B13_output_NBK_M3x4_H0p8_2",
+        "lower__L_B13_output_NBK_M3x4_H0p8_1",
+        "lower__L_B13_output_NBK_M3x4_H0p8_0",
+        "lower__L_B13_C047_foot_roll_rear_idler",
+        "lower__L_B13_C047_foot_roll_main_horn"
+      ]
+    },
+    "L_foot": {
+      "mass_kg": 0.21258873071002155,
+      "com_link_m": [
+        -0.014117045884533717,
+        0.010143428590432157,
+        -0.0038309974632511467
+      ],
+      "com_model_m": [
+        0.0048829541154662825,
+        -0.06485657140956784,
+        0.015169002536748853
+      ],
+      "inertia_kg_m2": [
+        [
+          9.945180247374741e-05,
+          1.3915128991043191e-06,
+          1.894756390043214e-05
+        ],
+        [
+          1.3915128991043191e-06,
+          0.0001301357613904456,
+          -1.956983671682018e-06
+        ],
+        [
+          1.894756390043214e-05,
+          -1.956983671682018e-06,
+          0.00014372901801644415
+        ]
+      ],
+      "eigenvalues_kg_m2": [
+        9.234640500174239e-05,
+        0.00013015111762721418,
+        0.0001508190592516807
+      ],
+      "parts": [
+        "lower__L_B13R14_rear_sole_M3_nut_1",
+        "lower__L_B13R14_rear_sole_M3x6_button_1",
+        "lower__L_B13R14_rear_sole_M3_nut_0",
+        "lower__L_B13R14_rear_sole_M3x6_button_0",
+        "lower__L_B13R14_front_sole_M3_nut_1",
+        "lower__L_B13R14_front_sole_M3x6_button_1",
+        "lower__L_B13R14_front_sole_M3_nut_0",
+        "lower__L_B13R14_front_sole_M3x6_button_0",
+        "lower__L_B13R14_plain_sole",
+        "lower__L_B13R14_rear_case_L",
+        "lower__L_B13R14_front_case_L",
+        "lower__L_B13_rear_PA2x6_1",
+        "lower__L_B13_rear_cut_spacer_1",
+        "lower__L_B13_rear_PA2x6_0",
+        "lower__L_B13_rear_cut_spacer_0",
+        "lower__L_B13_front_PA2x6_1",
+        "lower__L_B13_front_cut_spacer_1",
+        "lower__L_B13_front_PA2x6_0",
+        "lower__L_B13_front_cut_spacer_0",
+        "lower__L_B13_C047_foot_roll_case",
+        "L_toe_lateral_sensor",
+        "L_toe_lateral_backing",
+        "L_toe_lateral_bond",
+        "L_heel_lateral_sensor",
+        "L_heel_lateral_backing",
+        "L_heel_lateral_bond",
+        "L_mid_medial_sensor",
+        "L_mid_medial_backing",
+        "L_mid_medial_bond",
+        "L_toe_lateral_actuator_v17",
+        "L_heel_lateral_actuator_v17",
+        "L_mid_medial_actuator_v17",
+        "L_sole_pad_bond_v19",
+        "L_sensor_pocket_pad_v19",
+        "ape_body_shell__right_smooth_boot",
+        "ape_body_shell__L_sole",
+        "ape_body_shell__right_ankle_flex_envelope",
+        "ape_body_shell__L_ankle_cuff"
+      ]
+    }
+  },
+  "unrepresented_installation_allowance": [
+    {
+      "name": "unrepresented_installation_allowance_torso",
+      "owning_link": "torso",
+      "mass_kg": 0.09,
+      "sensitivity_interval_kg": [
+        0.03,
+        0.18
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        0.0,
+        0.0,
+        0.3
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    },
+    {
+      "name": "unrepresented_installation_allowance_head",
+      "owning_link": "head",
+      "mass_kg": 0.02,
+      "sensitivity_interval_kg": [
+        0.006666666666666667,
+        0.04
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        -0.0135,
+        0.005,
+        0.414
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    },
+    {
+      "name": "unrepresented_installation_allowance_R_shin",
+      "owning_link": "R_shin",
+      "mass_kg": 0.01,
+      "sensitivity_interval_kg": [
+        0.0033333333333333335,
+        0.02
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        0.06,
+        0.004,
+        0.123
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    },
+    {
+      "name": "unrepresented_installation_allowance_L_shin",
+      "owning_link": "L_shin",
+      "mass_kg": 0.01,
+      "sensitivity_interval_kg": [
+        0.0033333333333333335,
+        0.02
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        -0.06,
+        0.004,
+        0.123
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    },
+    {
+      "name": "unrepresented_installation_allowance_R_forearm",
+      "owning_link": "R_forearm",
+      "mass_kg": 0.01,
+      "sensitivity_interval_kg": [
+        0.0033333333333333335,
+        0.02
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        0.145,
+        -0.003,
+        0.252
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    },
+    {
+      "name": "unrepresented_installation_allowance_L_forearm",
+      "owning_link": "L_forearm",
+      "mass_kg": 0.01,
+      "sensitivity_interval_kg": [
+        0.0033333333333333335,
+        0.02
+      ],
+      "mass_category": "unrepresented_allowance",
+      "mass_basis": "Unmeasured wiring/connectors/remaining installation allowance, optional sensitivity; no new installed CAD part",
+      "com_CAD_m": [
+        -0.145,
+        -0.003,
+        0.252
+      ],
+      "inertia_per_kg_CAD_m2": [
+        [
+          6.666666666666667e-05,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          6.666666666666667e-05,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          6.666666666666667e-05
+        ]
+      ]
+    }
+  ],
+  "total_mass_kg": 3.830267763756974,
+  "represented_mass_kg": 3.680267763756974,
+  "total_engineering_sensitivity_interval_kg": [
+    2.9532760661677337,
+    4.730259461346215
+  ],
+  "reference_skin_mass_kg": 0.813798497172972,
+  "mass_by_category_kg": {
+    "excluded_reservation": 0.0,
+    "material_estimate": 1.4152406498826282,
+    "source_allocation": 1.626027113874346,
+    "supplier_maximum": 0.6389999999999999,
+    "unrepresented_allowance": 0.15
+  },
+  "interpretation": "Total is a conditional current-geometry simulation estimate incl explicitly assumed skins and150g unfinished-installation allowance, not measured completed robot mass. Native shape moments use uniform material; motor/PCB internals remain approximated."
+}

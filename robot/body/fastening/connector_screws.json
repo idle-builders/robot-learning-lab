@@ -1,0 +1,27 @@
+{
+ "_doc": "Which defined tapped holes each printed connector uses, as data (owner 2026-11-18: builders read hole positions from the standard parts' definitions, robot/actuators/interfaces/standard-parts.json, instead of typed lists). connector: part name without the side prefix; clamped: the parts the screw head presses on (their outer face along the hole axis ends the stack); groups: standard_part = instance (side prefix + name) holding the holes, holes = hole labels of that definition in screw order, name = screw part name in the manifest ({S} = R_ / L_, {i} = index in holes; legacy names stay so part settings and the assembly order keep resolving: the generated thread / length is in the part fields and manifest.roll_flip.screws), owning_link = link the screw rides with, head = standard of the head (data/hardware.json screw_standards).",
+ "connectors": {
+  "hip_pitch_to_roll_roll_flip": {
+   "clamped": ["{S}hip_pitch_to_roll_roll_flip", "{S}hip_pitch_to_roll_roll_flip_steel_sleeves"],
+   "groups": {
+    "A13_pitch_horn": {"standard_part": "{S}hip_pitch_ST3025_output", "holes": ["ST3025.horn+z.1", "ST3025.horn+z.2", "ST3025.horn+z.3", "ST3025.horn+z.4"],
+                       "owning_link": "{S}pitch_link", "name": "{S}A13_pitch_horn_M3x12_{i}", "head": "ISO 7380-1"},
+    "A9_roll_horn": {"standard_part": "{S}roll_upper_horn_reference", "holes": ["STS3250.horn+y.1", "STS3250.horn+y.2", "STS3250.horn+y.3", "STS3250.horn+y.4"],
+                     "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_0_{i}", "head": "ISO 7380-1"},
+    "A9_roll_idler": {"standard_part": "{S}roll_passive_idler_reference", "holes": ["STS3250.idler-y.1", "STS3250.idler-y.2", "STS3250.idler-y.3", "STS3250.idler-y.4"],
+                      "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_1_{i}", "head": "ISO 7380-1"}
+   }
+  },
+  "thigh_roll_flip": {
+   "clamped": ["{S}thigh_roll_flip", "{S}thigh_roll_flip_steel_sleeves"],
+   "groups": {
+    "A13_roll_case_front": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case+y.1", "STS3250.case+y.2", "STS3250.case+y.3", "STS3250.case+y.4"],
+                            "owning_link": "{S}roll_link", "name": "{S}A13_roll_face0_PA2x3_{i}", "head": "ISO 7380-1"},
+    "A13_roll_case_rear": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case-y.1", "STS3250.case-y.2", "STS3250.case-y.3", "STS3250.case-y.4"],
+                           "owning_link": "{S}roll_link", "name": "{S}A13_roll_face1_PA2x3_{i}", "head": "ISO 7380-1"},
+    "knee_case": {"standard_part": "{S}knee_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2", "ST3025.case+z.3", "ST3025.case+z.4", "ST3025.case+z.5"],
+                  "owning_link": "{S}roll_link", "name": "{S}knee_ST3025_PA2x8_{i}", "head": "ISO 7380-1"}
+   }
+  }
+ }
+}

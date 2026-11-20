@@ -1,0 +1,2 @@
+# Local client tooling only; simulator environments remain separate.
+runpod-flash==1.19.0

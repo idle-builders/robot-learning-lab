@@ -1,0 +1,1625 @@
+{
+  "schema": "cove50.forward-heading-correction-learning.v1",
+  "approved_proposal": {
+    "path": "data/forward-heading-correction-20261030/proposal.json",
+    "sha256": "ace8e5abc510db0a7d36dd1caa498c41106c94b319ce809ac616a24da79ae383",
+    "bytes": 17772
+  },
+  "root_method_decision": {
+    "path": "data/forward-heading-correction-release-20261030/root-method-decision.json",
+    "sha256": "e08a4152f8396d80d01bc557dc9c3456dc6ac0e7ef27eee238b7c7d3c752713b",
+    "bytes": 3953
+  },
+  "initial_checkpoint": {
+    "path": "artifacts/runs/cove50-forward-heading-20261030-r1-3bc0a66a4390/evidence/train48/native/candidate.pt",
+    "sha256": "77fbc871e41bac04f3e1e2921f812c2d071bf07b48be57c57081615aadae934c",
+    "bytes": 5106787
+  },
+  "train_seed": 230600,
+  "family_seeds": [],
+  "opened_family_seeds": [
+    230101,
+    230102,
+    230201,
+    230202
+  ],
+  "after_family_seeds": [
+    230101,
+    230102,
+    230201,
+    230202
+  ],
+  "profiles": [
+    "forward30",
+    "forward25",
+    "short-stop",
+    "long-stop",
+    "quiet"
+  ],
+  "train": {
+    "worlds": 32,
+    "episode_s": 6.0,
+    "rounds": 32,
+    "controls_per_round_per_slot": 48,
+    "controls": 49152,
+    "physics": 3932160,
+    "adam_calls": 640,
+    "max_candidates": 1,
+    "common_start": 26928,
+    "common_end": 28464,
+    "completed_rounds_start": 272,
+    "completed_rounds_end": 304,
+    "adam_start": 5440,
+    "adam_end": 6080,
+    "normalizer_start": 85456896,
+    "normalizer_end": 85506048,
+    "cohorts": [
+      {
+        "id": 0,
+        "slots": [
+          0,
+          11
+        ],
+        "vx": 0.25,
+        "switch_control": null
+      },
+      {
+        "id": 1,
+        "slots": [
+          12,
+          23
+        ],
+        "vx": 0.3,
+        "switch_control": null
+      },
+      {
+        "id": 2,
+        "slots": [
+          24,
+          31
+        ],
+        "vx": 0.3,
+        "switch_control": 100
+      }
+    ]
+  },
+  "evaluation": {
+    "new_before_visits": 0,
+    "new_after_visits": 20,
+    "whole_visits": 20,
+    "controls": 6600,
+    "physics": 528000,
+    "optimizer": 0,
+    "baseline_native_index": {
+      "path": "artifacts/runs/cove50-forward-heading-20261030-r1-3bc0a66a4390/closed-native-index.json",
+      "sha256": "4e4ae7a95c8f82c2b5d4ad6f461793c7e73fea04c8965918189515158b5dcb82",
+      "bytes": 145764
+    },
+    "baseline_source_comparison": {
+      "path": "artifacts/runs/cove50-forward-heading-20261030-r1-3bc0a66a4390/records/independent/comparison.json",
+      "sha256": "246994836bcaf1c910756aab2869ebfe3b0a93df2ac020e92e80d5dfae5f67e6",
+      "bytes": 1572635
+    },
+    "baseline_cases": [
+      "after-forward30-230101",
+      "after-forward25-230101",
+      "after-short-stop-230101",
+      "after-long-stop-230101",
+      "after-quiet-230101",
+      "after-forward30-230102",
+      "after-forward25-230102",
+      "after-short-stop-230102",
+      "after-long-stop-230102",
+      "after-quiet-230102",
+      "after-forward30-230201",
+      "after-forward25-230201",
+      "after-short-stop-230201",
+      "after-long-stop-230201",
+      "after-quiet-230201",
+      "after-forward30-230202",
+      "after-forward25-230202",
+      "after-short-stop-230202",
+      "after-long-stop-230202",
+      "after-quiet-230202"
+    ],
+    "baseline_semantics": "Own exact twenty candidate272 baseline slices and constructor hashes before E4 closure under baseline272/. Same-name new afters belong to a different native index/checkpoint. Borrowed6600controls are already counted, not new work or held-out evidence."
+  },
+  "totals": {
+    "controls": 55752,
+    "physics": 4460160,
+    "adam_calls": 640,
+    "PPO_rounds": 32,
+    "new_weight_sets": 1
+  },
+  "preserved": {
+    "raw": 24,
+    "actor": 81,
+    "critic": 96,
+    "adam_states": 17,
+    "original_rewards": 13,
+    "total_rewards": 14,
+    "action_rate_live_weight": -0.2,
+    "normalizer_policy": "Exact272 full warm actor/value/Gaussian/17Adam/normalizers/common26928/LR1e-5; stock normalizer update and adaptive floor. No restart or noise cap.",
+    "first_period": "Counted20ms invalid-sensor home hold",
+    "command_hook": "Original command _update_command followed by reset-local override before native obs compute; initial direct cache clone only",
+    "reset": "Only source physical/time limit resets, restarts local schedule; no resetting at command switch",
+    "reward_rate_units": "All14 are unscaled weighted rates; total control return multiplies by.02s. Thirteen-term baseline and fourteen-term totals are different objectives."
+  },
+  "yaw_cost": {
+    "name": "moving_yaw_rate_l2",
+    "weight": -2.0,
+    "command_name": "twist",
+    "moving_threshold": 0.01,
+    "squared_rate_unit": "(rad/s)^2",
+    "weighted_rate_unit": "reward-rate; coefficient units reward-rate/(rad/s)^2",
+    "moving_gate": "norm(commandXY)+abs(commandYaw)>.01;0whenzero",
+    "target": "issued bodyyaw rate,0rad/s for all selected profiles"
+  },
+  "expected_original_rewards": {
+    "track_linear_velocity": {
+      "function": "schedule.velocity_tracking",
+      "weight": 2.0,
+      "params": {
+        "command_name": "twist",
+        "std_active": 0.2,
+        "std_zero": 0.15
+      }
+    },
+    "track_angular_velocity": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.track_angular_velocity",
+      "weight": 2.0,
+      "params": {
+        "command_name": "twist",
+        "std": 0.7071067811865476
+      }
+    },
+    "upright": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.upright",
+      "weight": 2.0,
+      "params": {
+        "std": 0.22360679774997896,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": [
+            "torso"
+          ],
+          "body_ids": [
+            0
+          ],
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "pose": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.variable_posture",
+      "weight": 1.0,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": [
+            "R_hip_yaw",
+            "R_hip_pitch",
+            "R_hip_roll",
+            "L_hip_yaw",
+            "L_hip_pitch",
+            "L_hip_roll",
+            "R_knee",
+            "R_ankle_pitch",
+            "L_knee",
+            "L_ankle_pitch"
+          ],
+          "joint_ids": [
+            10,
+            11,
+            12,
+            16,
+            17,
+            18,
+            13,
+            14,
+            19,
+            20
+          ],
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": true
+        },
+        "command_name": "twist",
+        "std_standing": {
+          "R_hip_yaw": 0.1,
+          "R_hip_pitch": 0.15,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.1,
+          "L_hip_pitch": 0.15,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.15,
+          "R_ankle_pitch": 0.1,
+          "L_knee": 0.15,
+          "L_ankle_pitch": 0.1
+        },
+        "std_walking": {
+          "R_hip_yaw": 0.3,
+          "R_hip_pitch": 0.4,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.3,
+          "L_hip_pitch": 0.4,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.4,
+          "R_ankle_pitch": 0.25,
+          "L_knee": 0.4,
+          "L_ankle_pitch": 0.25
+        },
+        "std_running": {
+          "R_hip_yaw": 0.3,
+          "R_hip_pitch": 0.4,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.3,
+          "L_hip_pitch": 0.4,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.4,
+          "R_ankle_pitch": 0.25,
+          "L_knee": 0.4,
+          "L_ankle_pitch": 0.25
+        },
+        "walking_threshold": 0.01,
+        "running_threshold": 1.5
+      }
+    },
+    "body_ang_vel": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.body_angular_velocity_penalty",
+      "weight": -0.05,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": [
+            "torso"
+          ],
+          "body_ids": [
+            0
+          ],
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "dof_pos_limits": {
+      "function": "mjlab.envs.mdp.rewards.joint_pos_limits",
+      "weight": -1.0,
+      "params": {}
+    },
+    "action_rate_l2": {
+      "function": "boundary.legacy_action_rate",
+      "weight": -0.2,
+      "params": {}
+    },
+    "air_time": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_air_time",
+      "weight": 3.0,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "threshold_min": 0.125,
+        "threshold_max": 0.3,
+        "command_name": "twist",
+        "command_threshold": 0.01
+      }
+    },
+    "foot_clearance": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_clearance",
+      "weight": -2.0,
+      "params": {
+        "target_height": 0.02,
+        "height_sensor_name": "foot_height_scan",
+        "command_name": "twist",
+        "command_threshold": 0.01,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": [
+            "R_sole_contact_frame",
+            "L_sole_contact_frame"
+          ],
+          "site_ids": [
+            8,
+            12
+          ],
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "foot_swing_height": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_swing_height",
+      "weight": -0.25,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "height_sensor_name": "foot_height_scan",
+        "target_height": 0.02,
+        "command_name": "twist",
+        "command_threshold": 0.01
+      }
+    },
+    "foot_slip": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_slip",
+      "weight": -0.1,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "command_name": "twist",
+        "command_threshold": 0.01,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": [
+            "R_sole_contact_frame",
+            "L_sole_contact_frame"
+          ],
+          "site_ids": [
+            8,
+            12
+          ],
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "joint_torques_l2": {
+      "function": "mjlab_microduck.tasks.mdp.joint_torques_l2",
+      "weight": -0.1,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    }
+  },
+  "exact_inputs": [
+    {
+      "path": "artifacts/ape-cove50-recovery-20261008/ankleonly100-params/agent.yaml",
+      "sha256": "b175a368fcf51046cc35629ca4a749fad36131edb89327943cb9ab9ae6c581c2",
+      "bytes": 1358
+    },
+    {
+      "path": "artifacts/ape-cove50-recovery-20261008/ankleonly100-params/env.yaml",
+      "sha256": "8e1c2782a8d983115749973866975abd26809690f98aa3e10e1853e5386bcafb",
+      "bytes": 50007
+    },
+    {
+      "path": "data/basic-skills-retry-20261029/forward-stop-next-plan/recommendation.json",
+      "sha256": "e30e9330cdaf481b33a1b3fc5eb69fc3ccc6171debf610baf2c7d82ef399537e",
+      "bytes": 12457
+    },
+    {
+      "path": "control/skills/basic-gait/profiles.py",
+      "sha256": "1a1894be48f3b4ea069c2854610b515583a0318d5e370de48088ce0fdab79331",
+      "bytes": 2098
+    },
+    {
+      "path": "control/skills/basic-gait/replay.py",
+      "sha256": "1f55fdfff42999539ef9a5c22683518c55e6ecc8d14cf1592cede5257d63d4e8",
+      "bytes": 12887
+    },
+    {
+      "path": "control/skills/walker/policy/adapter.py",
+      "sha256": "c7dc6429eff4faaa063c906f3b463bd5c02a328ccfc75b57fe4164ab387b63ee",
+      "bytes": 6985
+    },
+    {
+      "path": "control/skills/walker/policy/audit_critic.py",
+      "sha256": "13bf4b3f0f0741de26df827f1dd28b8fb8054cb08a9baa494392d14816819f1c",
+      "bytes": 3548
+    },
+    {
+      "path": "control/skills/walker/policy/audit_semantics.py",
+      "sha256": "ca1610d2c34df02a020e5436d901fe1fa1ee04b500bcc006dc33bc5a28c26f78",
+      "bytes": 4045
+    },
+    {
+      "path": "control/skills/walker/policy/prepare.py",
+      "sha256": "11672f2948c0a7a1779ff7d1fdee48be327eed764c210dadd89aea96cb130424",
+      "bytes": 4801
+    },
+    {
+      "path": "control/common/plant/__init__.py",
+      "sha256": "ae9069e6c6409e0a8d253684505c7246968f0b2673dc5ec8a3aa4c2178885197",
+      "bytes": 341
+    },
+    {
+      "path": "control/common/plant/audit.py",
+      "sha256": "bf407e6a689792a60c0d6fd346e2fe210fff140e8f09942b4d410f153e5fcff6",
+      "bytes": 13646
+    },
+    {
+      "path": "control/common/plant/boundary.py",
+      "sha256": "a7d24c7a0c5cb56e3a41b59bdc3074b5d765672fec208490aa13bc801a8854d8",
+      "bytes": 12749
+    },
+    {
+      "path": "control/common/plant/mjlab_adapter.py",
+      "sha256": "6a3feb3187ccac0e916ff343d4d361ce33760f4ea3c631deb0b795e59cd0f974",
+      "bytes": 5283
+    },
+    {
+      "path": "control/skills/walker/task/assess.py",
+      "sha256": "1f406eba2ceedd86e73941e26c3e6fad65c1a8ea08ba0074b974ce7f819a956b",
+      "bytes": 15820
+    },
+    {
+      "path": "control/skills/walker/task/boundary.py",
+      "sha256": "7fb537c4b95eeba59d1b0a39b74e3a4312904eb81818ef67d8d0c6852cb5b1d5",
+      "bytes": 4731
+    },
+    {
+      "path": "control/skills/walker/task/checkpoint.py",
+      "sha256": "ddf5c67c958c018dc05a6d9bcf1a6e11ca016dfc2355f38bc90a245adeff6184",
+      "bytes": 4348
+    },
+    {
+      "path": "control/skills/walker/task/config.py",
+      "sha256": "122170ee3b4d68337e28e7f172da4c981aead5e6b8cd8141ff7817ce307102f4",
+      "bytes": 8561
+    },
+    {
+      "path": "control/skills/walker/task/record.py",
+      "sha256": "fcbd4da95cbd2dbdc941f8b9d659c6fb0e5d6511c2bf02ae8a25da8ddb718faa",
+      "bytes": 5904
+    },
+    {
+      "path": "control/skills/walker/task/run.py",
+      "sha256": "ebe036d2b37ef8f7fdd6f0a1630f664ed196523ba20673e7fe2ee8afbe9543fa",
+      "bytes": 13300
+    },
+    {
+      "path": "robot/model/current-model.json",
+      "sha256": "90047e5864b434b889606939ccfc0891191ff5684b344bf4bd337c64ac441685",
+      "bytes": 3252
+    },
+    {
+      "path": "control/skills/forward-stop-learning/run.py",
+      "sha256": "9642ea8ce6a16642859f1a123abbe8961eb90454590f6d5e720e9ac2240389a2",
+      "bytes": 10555
+    },
+    {
+      "path": "control/skills/forward-stop-learning/schedule.py",
+      "sha256": "27d5a7df6e319341776047fa105ba21ab94c00ccc991647fe8d1e78f34d2a4fb",
+      "bytes": 5635
+    },
+    {
+      "path": "data/forward-entry-braking-next-20261030/proposal.json",
+      "sha256": "f12a123e6b7d9f308d00077eca1919121939e1e6c548129c2ce4121bcd5fa3fb",
+      "bytes": 14022
+    },
+    {
+      "path": "control/skills/forward-heading/schedule.py",
+      "sha256": "f246d2bac10e4d96172dec28f821d76fd9fce111abc78c9588048d628644f739",
+      "bytes": 3742
+    },
+    {
+      "path": "data/forward-heading-correction-20261030/proposal.json",
+      "sha256": "ace8e5abc510db0a7d36dd1caa498c41106c94b319ce809ac616a24da79ae383",
+      "bytes": 17772
+    },
+    {
+      "path": "data/forward-heading-correction-release-20261030/root-method-decision.json",
+      "sha256": "e08a4152f8396d80d01bc557dc9c3456dc6ac0e7ef27eee238b7c7d3c752713b",
+      "bytes": 3953
+    },
+    {
+      "path": "data/forward-heading-correction-20261030-independent/proposal-review.json",
+      "sha256": "bf66c9a968c5dfe582d33b2a96e385667a4be8f312e6201e2f8e59c2e806aa8c",
+      "bytes": 7986
+    },
+    {
+      "path": "data/forward-heading-correction-release-20261030/reward-timing-clarification.json",
+      "sha256": "5c5f961ddc1edbe9afc5812b14f14dc07388c057d88dc8821f18846be4d538ab",
+      "bytes": 1914
+    }
+  ],
+  "physical_evidence_limit": "Selected nominal R3 simulation and opened development families. Focused cycle-rate credit is a partially observed reward diagnostic, not entry-heading recovery or physical qualification; old defaults and accepted224 stop remain unchanged.",
+  "cycle_cost": {
+    "name": "moving_cycle_yaw_mean_l2",
+    "weight": -4.0,
+    "command_name": "twist",
+    "moving_threshold": 0.01,
+    "window_controls": 33,
+    "reset": "True native reset only, including slice(None) and tensor selection; not command change/PPO boundary/fall without reset.",
+    "state": "Actual-count causal ring; update once after physics before next command. Full cloned before/after ring/count/sum/cursor/mean/error/finite and recomputed-sum discrepancy retained.",
+    "partial_observability": "Filter history is not appended to actor81 or critic96.",
+    "input_timing": "Native reward-time cached body wz (derived quantity before final sim.forward, stale by one .00025s native substep), minus the exact issued commandYaw. Captured reward_body_wz+reward_command3 allow exact subtraction/ring/rate reconstruction. Ordinary post-step bodywz remains a separately timed measurement; no extra forward or physics."
+  },
+  "expected_E4_rewards": {
+    "track_linear_velocity": {
+      "function": "schedule.velocity_tracking",
+      "weight": 2.0,
+      "params": {
+        "command_name": "twist",
+        "std_active": 0.2,
+        "std_zero": 0.15
+      }
+    },
+    "track_angular_velocity": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.track_angular_velocity",
+      "weight": 2.0,
+      "params": {
+        "command_name": "twist",
+        "std": 0.7071067811865476
+      }
+    },
+    "upright": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.upright",
+      "weight": 2.0,
+      "params": {
+        "std": 0.22360679774997896,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": [
+            "torso"
+          ],
+          "body_ids": [
+            0
+          ],
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "pose": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.variable_posture",
+      "weight": 1.0,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": [
+            "R_hip_yaw",
+            "R_hip_pitch",
+            "R_hip_roll",
+            "L_hip_yaw",
+            "L_hip_pitch",
+            "L_hip_roll",
+            "R_knee",
+            "R_ankle_pitch",
+            "L_knee",
+            "L_ankle_pitch"
+          ],
+          "joint_ids": [
+            10,
+            11,
+            12,
+            16,
+            17,
+            18,
+            13,
+            14,
+            19,
+            20
+          ],
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": true
+        },
+        "command_name": "twist",
+        "std_standing": {
+          "R_hip_yaw": 0.1,
+          "R_hip_pitch": 0.15,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.1,
+          "L_hip_pitch": 0.15,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.15,
+          "R_ankle_pitch": 0.1,
+          "L_knee": 0.15,
+          "L_ankle_pitch": 0.1
+        },
+        "std_walking": {
+          "R_hip_yaw": 0.3,
+          "R_hip_pitch": 0.4,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.3,
+          "L_hip_pitch": 0.4,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.4,
+          "R_ankle_pitch": 0.25,
+          "L_knee": 0.4,
+          "L_ankle_pitch": 0.25
+        },
+        "std_running": {
+          "R_hip_yaw": 0.3,
+          "R_hip_pitch": 0.4,
+          "R_hip_roll": 0.05,
+          "L_hip_yaw": 0.3,
+          "L_hip_pitch": 0.4,
+          "L_hip_roll": 0.05,
+          "R_knee": 0.4,
+          "R_ankle_pitch": 0.25,
+          "L_knee": 0.4,
+          "L_ankle_pitch": 0.25
+        },
+        "walking_threshold": 0.01,
+        "running_threshold": 1.5
+      }
+    },
+    "body_ang_vel": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.body_angular_velocity_penalty",
+      "weight": -0.05,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": [
+            "torso"
+          ],
+          "body_ids": [
+            0
+          ],
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "dof_pos_limits": {
+      "function": "mjlab.envs.mdp.rewards.joint_pos_limits",
+      "weight": -1.0,
+      "params": {}
+    },
+    "action_rate_l2": {
+      "function": "boundary.legacy_action_rate",
+      "weight": -0.2,
+      "params": {}
+    },
+    "air_time": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_air_time",
+      "weight": 3.0,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "threshold_min": 0.125,
+        "threshold_max": 0.3,
+        "command_name": "twist",
+        "command_threshold": 0.01
+      }
+    },
+    "foot_clearance": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_clearance",
+      "weight": -2.0,
+      "params": {
+        "target_height": 0.02,
+        "height_sensor_name": "foot_height_scan",
+        "command_name": "twist",
+        "command_threshold": 0.01,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": [
+            "R_sole_contact_frame",
+            "L_sole_contact_frame"
+          ],
+          "site_ids": [
+            8,
+            12
+          ],
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "foot_swing_height": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_swing_height",
+      "weight": -0.25,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "height_sensor_name": "foot_height_scan",
+        "target_height": 0.02,
+        "command_name": "twist",
+        "command_threshold": 0.01
+      }
+    },
+    "foot_slip": {
+      "function": "mjlab.tasks.velocity.mdp.rewards.feet_slip",
+      "weight": -0.1,
+      "params": {
+        "sensor_name": "feet_ground_contact",
+        "command_name": "twist",
+        "command_threshold": 0.01,
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": [
+            "R_sole_contact_frame",
+            "L_sole_contact_frame"
+          ],
+          "site_ids": [
+            8,
+            12
+          ],
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "joint_torques_l2": {
+      "function": "mjlab_microduck.tasks.mdp.joint_torques_l2",
+      "weight": -0.1,
+      "params": {
+        "asset_cfg": {
+          "name": "robot",
+          "joint_names": null,
+          "joint_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "body_names": null,
+          "body_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "geom_names": null,
+          "geom_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "site_names": null,
+          "site_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "actuator_names": null,
+          "actuator_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "tendon_names": null,
+          "tendon_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "camera_names": null,
+          "camera_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "light_names": null,
+          "light_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "material_names": null,
+          "material_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "pair_names": null,
+          "pair_ids": {
+            "slice": [
+              null,
+              null,
+              null
+            ]
+          },
+          "preserve_order": false
+        }
+      }
+    },
+    "moving_yaw_rate_l2": {
+      "function": "schedule.moving_yaw_rate_l2",
+      "weight": -2.0,
+      "params": {
+        "command_name": "twist",
+        "moving_threshold": 0.01
+      }
+    }
+  },
+  "reward_timing_clarification": {
+    "path": "data/forward-heading-correction-release-20261030/reward-timing-clarification.json",
+    "sha256": "5c5f961ddc1edbe9afc5812b14f14dc07388c057d88dc8821f18846be4d538ab",
+    "bytes": 1914
+  }
+}

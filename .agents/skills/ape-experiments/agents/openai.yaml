@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ape Experiments"
+  short_description: "Choose evidence-driven ape experiments and work"
+  default_prompt: "Use $ape-experiments to choose and plan the next useful ape experiment from current evidence and Idle tasks."

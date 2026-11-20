@@ -1,0 +1,38 @@
+{
+  "source": "artifacts/ape-step-20260930/left-step-teacher-v2.npz",
+  "source_sha256": "52752a1462b9b8352ebe6f6a8e726a78062128e22a1dd7d1250920ecafa273fa",
+  "source_frame": 400,
+  "source_time_s": 8.0,
+  "role": "reset_only_no_motor_reference",
+  "root_xyz_roll_pitch": [
+    0.01009460792828133,
+    -0.0026321456958246347,
+    0.1949480370780769,
+    0.4519668367922765,
+    0.06169347502519604
+  ],
+  "joints": {
+    "left_hip_yaw": -0.0005568840085740012,
+    "left_hip_roll": -0.5008577516741641,
+    "left_hip_pitch": -0.24257923025602374,
+    "left_knee": 0.5176837374310106,
+    "left_ankle_pitch": -0.325674184085465,
+    "right_hip_yaw": 0.022590903191029785,
+    "right_hip_roll": -0.4607054432250382,
+    "right_hip_pitch": -0.119416526827536,
+    "right_knee": 0.26030846419010784,
+    "right_ankle_pitch": -0.1922265636602163,
+    "head_yaw": -0.0058038050993111726,
+    "head_pitch": 0.00959906013526629,
+    "left_shoulder_yaw": -0.0016412145463350974,
+    "left_shoulder_roll": 0.4627149538232635,
+    "left_shoulder_pitch": -2.177521721832732,
+    "left_elbow_pitch": -1.0111390419182036,
+    "left_gripper": -0.0012549618008209063,
+    "right_shoulder_yaw": -4.842900783626785e-05,
+    "right_shoulder_roll": -1.574418761954441,
+    "right_shoulder_pitch": -0.03348700540875706,
+    "right_elbow_pitch": -0.5729604980646915,
+    "right_gripper": 0.00820121866534558
+  }
+}

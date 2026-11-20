@@ -1,0 +1,86 @@
+{
+  "schema": "cove50.deep_squat_feedback_config.v1",
+  "selected_body": "r3-urdf-visual-r1-20261026",
+  "hip_flexion_range_deg": [
+    -85.0,
+    45.0
+  ],
+  "residual_limit_rad": 0.03,
+  "start_families": [
+    {
+      "seed": 146001,
+      "label": "nominal",
+      "joint_sigma_rad": 0.0,
+      "rpy_envelope_rad": 0.0,
+      "joint_velocity_sigma_rad_s": 0.0,
+      "push": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "seed": 146002,
+      "label": "small",
+      "joint_sigma_rad": 0.002,
+      "rpy_envelope_rad": 0.004,
+      "joint_velocity_sigma_rad_s": 0.0,
+      "push": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "seed": 146003,
+      "label": "moderate",
+      "joint_sigma_rad": 0.005,
+      "rpy_envelope_rad": 0.01,
+      "joint_velocity_sigma_rad_s": 0.005,
+      "push": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "seed": 146004,
+      "label": "wider_small",
+      "joint_sigma_rad": 0.008,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.01,
+      "push": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "seed": 146003,
+      "label": "moderate_push",
+      "joint_sigma_rad": 0.005,
+      "rpy_envelope_rad": 0.01,
+      "joint_velocity_sigma_rad_s": 0.005,
+      "push": [
+        1.8,
+        1.2,
+        0.0
+      ]
+    }
+  ],
+  "accounting": {
+    "parallel_world_slots": 8,
+    "training_episodes": 96,
+    "training_simulator_controls": 19200,
+    "training_physics_substeps": 1536000,
+    "evaluation_episodes": 20,
+    "evaluation_simulator_controls": 10000,
+    "evaluation_physics_substeps": 800000,
+    "independent_start_families": 4,
+    "disturbance_conditions": 1,
+    "PPO_rounds": 12,
+    "optimizer_updates": 240,
+    "new_weight_sets": 1,
+    "train_elapsed_s": 314.42
+  }
+}

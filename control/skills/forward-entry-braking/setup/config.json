@@ -1,0 +1,261 @@
+{
+  "schema": "cove50.forward-entry-braking-learning.v1",
+  "approved_proposal": {
+    "path": "data/forward-entry-braking-next-20261030/proposal.json",
+    "sha256": "f12a123e6b7d9f308d00077eca1919121939e1e6c548129c2ce4121bcd5fa3fb",
+    "bytes": 14022
+  },
+  "initial_checkpoint": {
+    "path": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026/evidence/fit-through-200/candidate.pt",
+    "sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+    "bytes": 5106787
+  },
+  "train_seed": 230400,
+  "family_seeds": [
+    230201,
+    230202
+  ],
+  "opened_family_seeds": [
+    230101,
+    230102
+  ],
+  "after_family_seeds": [
+    230101,
+    230102,
+    230201,
+    230202
+  ],
+  "profiles": [
+    "forward30",
+    "forward25",
+    "short-stop",
+    "long-stop",
+    "quiet"
+  ],
+  "train": {
+    "worlds": 32,
+    "episode_s": 4.0,
+    "rounds": 24,
+    "controls_per_round_per_slot": 24,
+    "controls": 18432,
+    "physics": 1474560,
+    "adam_calls": 480,
+    "max_candidates": 1,
+    "common_start": 25200,
+    "common_end": 25776,
+    "completed_rounds_start": 200,
+    "completed_rounds_end": 224,
+    "adam_start": 4000,
+    "adam_end": 4480,
+    "cohorts": [
+      {
+        "id": 0,
+        "slots": [
+          0,
+          7
+        ],
+        "vx": 0.25,
+        "switch_control": null
+      },
+      {
+        "id": 1,
+        "slots": [
+          8,
+          15
+        ],
+        "vx": 0.3,
+        "switch_control": null
+      },
+      {
+        "id": 2,
+        "slots": [
+          16,
+          19
+        ],
+        "vx": 0.25,
+        "switch_control": 60
+      },
+      {
+        "id": 3,
+        "slots": [
+          20,
+          23
+        ],
+        "vx": 0.25,
+        "switch_control": 100
+      },
+      {
+        "id": 4,
+        "slots": [
+          24,
+          27
+        ],
+        "vx": 0.3,
+        "switch_control": 60
+      },
+      {
+        "id": 5,
+        "slots": [
+          28,
+          31
+        ],
+        "vx": 0.3,
+        "switch_control": 100
+      }
+    ]
+  },
+  "evaluation": {
+    "new_before_visits": 10,
+    "new_after_visits": 20,
+    "whole_visits": 30,
+    "controls": 9900,
+    "physics": 792000,
+    "optimizer": 0,
+    "opened_baseline_reference": {
+      "path": "artifacts/runs/cove50-forward-stop-20261030-r2-ee908fcf1f1f/closed-native-index.json",
+      "sha256": "61535e2394d54610bf129a9b9d0b7991b2c5b857cf28fcf534509e04273d7ab2",
+      "bytes": 132277
+    },
+    "opened_baseline_semantics": "Reuse exact original walker200 visits for opened230101/230102, not new native work. Fresh230201/230202 baseline+candidate are matched development visits; saved initialization equivalence does not imply forked attained states or saved full RNG equality."
+  },
+  "totals": {
+    "controls": 28332,
+    "physics": 2266560,
+    "adam_calls": 480,
+    "PPO_rounds": 24,
+    "new_weight_sets": 1
+  },
+  "preserved": {
+    "raw": 24,
+    "actor": 81,
+    "critic": 96,
+    "adam_states": 17,
+    "original_rewards": 10,
+    "action_rate_live_weight": -0.2,
+    "normalizer_policy": "Unmodified stock returned-observation updates; actor+critic each add18432. Retain full actor/value/Gaussian/17Adam/common25200 and LR2.25e-5 warm start, adaptive min1e-5.",
+    "first_period": "Counted20ms invalid-sensor home hold",
+    "command_hook": "Original command _update_command followed by reset-local override before native obs compute; initial direct cache clone only",
+    "reset": "Only source physical/time limit resets, restarts local schedule; no resetting at command switch",
+    "source_note": "Inherited native factory description is retained provenance; outer live manager weights/counter are authority",
+    "original_reward_count_note": "Ten terms retain original function/weights; action_rate retains original function with fixed\u2212.2; velocity uses original bounded formula with .20active/.15zero widths. Twelve total terms.",
+    "disabled_curriculum": "Remove only action_rate_weight before manager construction; assert cfg+live manager absence and fixed live weight post-restore, around every update and at closure.",
+    "reward_rate_units": "_step_reward is native raw_value*weight rate. Per-control reward is sum(rate)*.02 s; velocity term remains bounded0..2 weighted rate."
+  },
+  "exact_inputs": [
+    {
+      "path": "artifacts/ape-cove50-recovery-20261008/ankleonly100-params/agent.yaml",
+      "sha256": "b175a368fcf51046cc35629ca4a749fad36131edb89327943cb9ab9ae6c581c2",
+      "bytes": 1358
+    },
+    {
+      "path": "artifacts/ape-cove50-recovery-20261008/ankleonly100-params/env.yaml",
+      "sha256": "8e1c2782a8d983115749973866975abd26809690f98aa3e10e1853e5386bcafb",
+      "bytes": 50007
+    },
+    {
+      "path": "data/basic-skills-retry-20261029/forward-stop-next-plan/recommendation.json",
+      "sha256": "e30e9330cdaf481b33a1b3fc5eb69fc3ccc6171debf610baf2c7d82ef399537e",
+      "bytes": 12457
+    },
+    {
+      "path": "control/skills/basic-gait/profiles.py",
+      "sha256": "1a1894be48f3b4ea069c2854610b515583a0318d5e370de48088ce0fdab79331",
+      "bytes": 2098
+    },
+    {
+      "path": "control/skills/basic-gait/replay.py",
+      "sha256": "1f55fdfff42999539ef9a5c22683518c55e6ecc8d14cf1592cede5257d63d4e8",
+      "bytes": 12887
+    },
+    {
+      "path": "control/skills/walker/policy/adapter.py",
+      "sha256": "c7dc6429eff4faaa063c906f3b463bd5c02a328ccfc75b57fe4164ab387b63ee",
+      "bytes": 6985
+    },
+    {
+      "path": "control/skills/walker/policy/audit_critic.py",
+      "sha256": "13bf4b3f0f0741de26df827f1dd28b8fb8054cb08a9baa494392d14816819f1c",
+      "bytes": 3548
+    },
+    {
+      "path": "control/skills/walker/policy/audit_semantics.py",
+      "sha256": "ca1610d2c34df02a020e5436d901fe1fa1ee04b500bcc006dc33bc5a28c26f78",
+      "bytes": 4045
+    },
+    {
+      "path": "control/skills/walker/policy/prepare.py",
+      "sha256": "11672f2948c0a7a1779ff7d1fdee48be327eed764c210dadd89aea96cb130424",
+      "bytes": 4801
+    },
+    {
+      "path": "control/common/plant/__init__.py",
+      "sha256": "ae9069e6c6409e0a8d253684505c7246968f0b2673dc5ec8a3aa4c2178885197",
+      "bytes": 341
+    },
+    {
+      "path": "control/common/plant/audit.py",
+      "sha256": "bf407e6a689792a60c0d6fd346e2fe210fff140e8f09942b4d410f153e5fcff6",
+      "bytes": 13646
+    },
+    {
+      "path": "control/common/plant/boundary.py",
+      "sha256": "a7d24c7a0c5cb56e3a41b59bdc3074b5d765672fec208490aa13bc801a8854d8",
+      "bytes": 12749
+    },
+    {
+      "path": "control/common/plant/mjlab_adapter.py",
+      "sha256": "6a3feb3187ccac0e916ff343d4d361ce33760f4ea3c631deb0b795e59cd0f974",
+      "bytes": 5283
+    },
+    {
+      "path": "control/skills/walker/task/assess.py",
+      "sha256": "1f406eba2ceedd86e73941e26c3e6fad65c1a8ea08ba0074b974ce7f819a956b",
+      "bytes": 15820
+    },
+    {
+      "path": "control/skills/walker/task/boundary.py",
+      "sha256": "7fb537c4b95eeba59d1b0a39b74e3a4312904eb81818ef67d8d0c6852cb5b1d5",
+      "bytes": 4731
+    },
+    {
+      "path": "control/skills/walker/task/checkpoint.py",
+      "sha256": "ddf5c67c958c018dc05a6d9bcf1a6e11ca016dfc2355f38bc90a245adeff6184",
+      "bytes": 4348
+    },
+    {
+      "path": "control/skills/walker/task/config.py",
+      "sha256": "122170ee3b4d68337e28e7f172da4c981aead5e6b8cd8141ff7817ce307102f4",
+      "bytes": 8561
+    },
+    {
+      "path": "control/skills/walker/task/record.py",
+      "sha256": "fcbd4da95cbd2dbdc941f8b9d659c6fb0e5d6511c2bf02ae8a25da8ddb718faa",
+      "bytes": 5904
+    },
+    {
+      "path": "control/skills/walker/task/run.py",
+      "sha256": "ebe036d2b37ef8f7fdd6f0a1630f664ed196523ba20673e7fe2ee8afbe9543fa",
+      "bytes": 13300
+    },
+    {
+      "path": "robot/model/current-model.json",
+      "sha256": "90047e5864b434b889606939ccfc0891191ff5684b344bf4bd337c64ac441685",
+      "bytes": 3252
+    },
+    {
+      "path": "control/skills/forward-stop-learning/run.py",
+      "sha256": "9642ea8ce6a16642859f1a123abbe8961eb90454590f6d5e720e9ac2240389a2",
+      "bytes": 10555
+    },
+    {
+      "path": "control/skills/forward-stop-learning/schedule.py",
+      "sha256": "27d5a7df6e319341776047fa105ba21ab94c00ccc991647fe8d1e78f34d2a4fb",
+      "bytes": 5635
+    },
+    {
+      "path": "data/forward-entry-braking-next-20261030/proposal.json",
+      "sha256": "f12a123e6b7d9f308d00077eca1919121939e1e6c548129c2ce4121bcd5fa3fb",
+      "bytes": 14022
+    }
+  ]
+}

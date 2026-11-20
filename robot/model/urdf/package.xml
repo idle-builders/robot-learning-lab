@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>cove50_description</name>
+  <version>0.1.0</version>
+  <description>Selected Cove-50 CAD learning description; provisional physical parameters.</description>
+  <maintainer email="maintainer@example.invalid">Robot Learning Lab maintainer</maintainer>
+  <license>SEE SOURCE PROVENANCE</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

@@ -1,0 +1,30 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "T2",
+  "region": "torso_waist",
+  "name": "Two-input differential waist",
+  "architecture": "rotary_differential",
+  "maturity": "source_only",
+  "summary": "ToddlerBot waist differential source pattern.",
+  "source_record_ids": [
+    "TB1-WAIST",
+    "TB2-WAIST"
+  ],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "grammar",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/draft/joint-box.json",
+      "sha256": "fe806f65873cdfd1f18d44556ad17f096fd3dcb959260a2ddff272a8b8ac4d83"
+    }
+  ],
+  "limits": [
+    "No installed geometry, wiring, strength or control case."
+  ]
+}

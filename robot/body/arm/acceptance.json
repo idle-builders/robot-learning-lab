@@ -1,0 +1,179 @@
+{
+  "schema": "robot-learning-lab.design-acceptance.v1",
+  "selected_on": "2026-11-04",
+  "section": "Upper body / arm (FDM connectors)",
+  "robot_sections": [
+    "Shoulder",
+    "Elbow"
+  ],
+  "name": "Complete 4-Stage Shoulder-to-Wrist Blank-State 3D Generative FDM Arm Connector Architecture",
+  "study_id": "cove50-arm-fdm-combined",
+  "result_id": "cove50-arm-fdm-combined-r12",
+  "version": "r12",
+  "task": "T-zw7f7t",
+  "idle_decision": "M-d34p89",
+  "status": "user_selected_fdm_arm_connectors",
+  "user_statement": "Great very convincing connector solution. Lets lock those connectors on for the arm. Please upload & commit everything necessary. the cleanup old results. perform a proper review of the task. And then mar the task as closed.",
+  "scope": "Selected 4-stage bilateral 3D-printed FDM arm connector architecture (Stages 1-4: Shoulder Pitch-to-Roll, Shoulder Roll-to-Yaw, Upper-Arm Yaw-to-Elbow, Forearm Elbow-to-Wrist) with 34 pressed-in 304 SS compression sleeves per arm (68 bilateral), 4 forearm M3x8 captive-nut hard-shell mounts per arm (8 bilateral = 38 bolted connections/arm, 76 bilateral), full 3D asymmetric edge beveling (r_inner > r_outer), overhauled C-channel Stage 1 bridge with flush 3.00 mm pitch horn hub and zero floating shoulder shell screws, and down-first wrap-around Stage 3 upper-arm routing for easy fabric covering. Physical print, bolt preload retention, cyclic fatigue, and learned-control qualification remain separate.",
+  "component_studies": {
+    "complete_4stage_combined": "cove50-arm-fdm-combined-r12",
+    "arm_truss_box": "cove50-arm-fdm-truss-box-r12",
+    "arm_topopt": "cove50-arm-fdm-topopt-r12"
+  },
+  "stage_selection": {
+    "stage1_shoulder_pitch_to_roll": "Family 2 3-Component Tangent-Continuous C-Channel Bridge with flush 3.00 mm pitch horn hub, zero floating shoulder shell mounts, and 8 SS sleeves (9.18 g/arm, u_max=0.3150 mm, 10.03x dry PAHT-CF margin)",
+    "stage2_shoulder_roll_to_yaw": "Family 2 Sculpted 3D Monocoque Roll-to-Yaw Cradle with 8 SS sleeves (6.93 g/arm, u_max=1.9070 mm, 1.65x dry PAHT-CF margin)",
+    "stage3_upper_arm_yaw_to_elbow": "Family 2 Down-First Wrap-Around Upper-Arm Monocoque with 8 SS sleeves (6.09 g/arm, u_max=1.4393 mm, 2.10x dry PAHT-CF margin)",
+    "stage4_forearm_elbow_to_wrist": "Family 2 Organic Dual-Cheek Forearm-to-Wrist Monocoque with 4 captive-M3 forearm hard-shell mounts + 10 SS sleeves (15.17 g/arm, u_max=0.1512 mm, 7.48x dry PAHT-CF margin)"
+  },
+  "represented_connector_and_sleeve_mass_per_arm_g": 37.37,
+  "represented_connector_and_sleeve_mass_bilateral_g": 74.74,
+  "baseline_metal_and_carrier_mass_per_arm_g": 68.02,
+  "baseline_metal_and_carrier_mass_bilateral_g": 136.05,
+  "source": {
+    "mechanical_STEP": {
+      "path": "artifacts/robot/body/arm/combined/connectors-bilateral.step",
+      "sha256": "fcac9a6e28e0a5e4aa4ff23dc0465a4287780792f1330eb9876b656a9bfce466",
+      "bytes": 9586172
+    },
+    "inspection_GLB": {
+      "path": "artifacts/robot/body/arm/combined/assembly-with-full-shell.glb",
+      "sha256": "051e975db35b222c904a698a24842684fcc568134ffdc55d3a54ed7784f6fec9",
+      "bytes": 32026872
+    },
+    "inspection_manifest": {
+      "path": "artifacts/robot/body/arm/combined/assembly-parts.json",
+      "sha256": "36f28a8926037e26644dc429291373dc024e0541923dc68639e00e3ba16e1414",
+      "bytes": 160224
+    },
+    "cad_manifest": {
+      "path": "artifacts/robot/body/arm/combined/manifest.json",
+      "sha256": "9bd07722ea7fd761e0189e700e7e0c4e9de4b51dbbe6a10e87ace61489103671",
+      "bytes": 17472
+    },
+    "baseline_audit": {
+      "path": "artifacts/robot/body/arm/arm-baseline-audit.json",
+      "sha256": "61b2712f6c3e625d927e15a6de6c3349fd8bb7a5a31f296ec9fba1f15dfbedd5",
+      "bytes": 64635
+    },
+    "cad_rule_check": {
+      "path": "artifacts/robot/body/arm/cad-rule-check.json",
+      "sha256": "3adfcc0192ad2bb9c579e62fe80325f4f001e37bd593e2cb0b8a0f11fdfd5bf1",
+      "bytes": 27264
+    },
+    "complete_4stage_fit_and_42ray_mountability_report": {
+      "path": "artifacts/robot/body/arm/fit-check.json",
+      "sha256": "c842715f2552c5410af60bc7c16737705abf4dbd3cef9cc5c7c7ed97cc0e8dd4",
+      "bytes": 29317
+    },
+    "complete_4stage_fem_report": {
+      "path": "artifacts/robot/body/arm/fem-evaluation.json",
+      "sha256": "ce7e00c86106fc67307deb06f6958db627f8e865110c805b749cb2ca1395c0b5",
+      "bytes": 162395
+    },
+    "topopt_report": {
+      "path": "artifacts/robot/body/arm/topopt/arm-topopt-report.json",
+      "sha256": "07fa658b7290103a43d6d27bbd4f7daa1079b367c2e3c830a007320d760fa1ba",
+      "bytes": 68447
+    },
+    "topopt_fields": {
+      "path": "artifacts/robot/body/arm/topopt/arm-topopt-fields.npz",
+      "sha256": "ce463712875ad483f855efded49c4b3f739c3c944b686bdfcc2a4926b40cfb4c",
+      "bytes": 169565
+    },
+    "record": {
+      "path": "artifacts/robot/body/arm/combined/cove50-arm-fdm-combined-r12-record.json",
+      "sha256": "d623433b1c1eda5fe6d16f6b5879566ec0484780eed8a9a7bb3e0b8ab21bd7a9",
+      "bytes": 43949
+    },
+    "publication": {
+      "path": "artifacts/robot/body/arm/combined/cove50-arm-fdm-combined-r12-publication.json",
+      "sha256": "11a73047d8f53cc6a6ec4b05a5dc09344fa23b9911a3c5cab845a8a9ff898518",
+      "bytes": 158
+    }
+  },
+  "native_parts": {
+    "L_forearm_elbow_to_wrist_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_forearm_elbow_to_wrist_combined.step",
+      "sha256": "4b41b5585947fa6c7f01af7d810523a307815feead7164a6dc755200bd6725d3",
+      "bytes": 1830379
+    },
+    "L_forearm_elbow_to_wrist_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_forearm_elbow_to_wrist_sleeves.step",
+      "sha256": "02b812b79e537c8d2feb3dcd28869166d302e88d002985bdf89952f8bdca1841",
+      "bytes": 121149
+    },
+    "L_shoulder_pitch_to_roll_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_shoulder_pitch_to_roll_combined.step",
+      "sha256": "211c10d719e27003e48920c54686140223ec880a92a4ba76116304235d818dca",
+      "bytes": 634405
+    },
+    "L_shoulder_pitch_to_roll_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_shoulder_pitch_to_roll_sleeves.step",
+      "sha256": "dd8319597b3a60cb5ea8d5fdb095a0e0030836d6efc2f6b3378bb48c6fc801e5",
+      "bytes": 97636
+    },
+    "L_shoulder_roll_to_yaw_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_shoulder_roll_to_yaw_combined.step",
+      "sha256": "e147ea1742b152c70aea92c3b9dc4dca329052da966370262906e88cedfd8cdd",
+      "bytes": 894480
+    },
+    "L_shoulder_roll_to_yaw_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_shoulder_roll_to_yaw_sleeves.step",
+      "sha256": "375f9262b401031986b30bd918ae7061e32bd44db6c6e5d0e44e6ed0d80baf03",
+      "bytes": 100792
+    },
+    "L_upper_arm_yaw_to_elbow_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_upper_arm_yaw_to_elbow_combined.step",
+      "sha256": "a76ba77717b28dfc7abe9ffd1a7f528f553ce15ffc852260fcaf24329b2330e5",
+      "bytes": 926368
+    },
+    "L_upper_arm_yaw_to_elbow_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/L_upper_arm_yaw_to_elbow_sleeves.step",
+      "sha256": "80569a9d7ae7173be33245910ba9a6df83a7a2d7ca5c7d753eb2f4d05b2942bc",
+      "bytes": 99731
+    },
+    "R_forearm_elbow_to_wrist_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_forearm_elbow_to_wrist_combined.step",
+      "sha256": "bab2d3f79ea2c773b284c451b423c27b377b9dbdcd7dce368a2620df75dec388",
+      "bytes": 1783324
+    },
+    "R_forearm_elbow_to_wrist_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_forearm_elbow_to_wrist_sleeves.step",
+      "sha256": "49416751e4d812ba5f1f93725d37a4f8a2ee471bf8d9cf2dffd9ce8b906427a9",
+      "bytes": 97865
+    },
+    "R_shoulder_pitch_to_roll_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_shoulder_pitch_to_roll_combined.step",
+      "sha256": "517e2de81e264a294d767e7a39574a80d0d58f280046eb437456998742aab107",
+      "bytes": 632349
+    },
+    "R_shoulder_pitch_to_roll_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_shoulder_pitch_to_roll_sleeves.step",
+      "sha256": "5ae73eedfbebfcd188f2665b291817521850aff3e5e80972e2d07f0412af9c8e",
+      "bytes": 79067
+    },
+    "R_shoulder_roll_to_yaw_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_shoulder_roll_to_yaw_combined.step",
+      "sha256": "8bbeb4bf7eeee838975886f0c287c75bf79c5eab25dfc5985973c3aad04f0d22",
+      "bytes": 882083
+    },
+    "R_shoulder_roll_to_yaw_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_shoulder_roll_to_yaw_sleeves.step",
+      "sha256": "46a4df85f5344ce3a52ad2158fa198d4ea5d752d481c36b826390175c6055f73",
+      "bytes": 82314
+    },
+    "R_upper_arm_yaw_to_elbow_combined": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_upper_arm_yaw_to_elbow_combined.step",
+      "sha256": "b059aeeb6f2825e75f4d9023dad04fe05116fce2ab45ad62926fcd1102e48d95",
+      "bytes": 922886
+    },
+    "R_upper_arm_yaw_to_elbow_sleeves": {
+      "path": "artifacts/robot/body/arm/combined/parts/R_upper_arm_yaw_to_elbow_sleeves.step",
+      "sha256": "66b600783cfbf6fa6826369e59260d3aa58034b7b09caa278466ef88a6084504",
+      "bytes": 81168
+    }
+  },
+  "qualification_limits": "Selected FDM arm connector CAD and linear tetrahedral FEM verification (1.5 kg reach to 4 kg @ 1.5g recovery and 6 kg @ 1g heavy support across PAHT-CF dry/wet and PETG-CF with bonded 304 SS compression sleeves). Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, interlaminar cyclic fatigue, harness routing, and learned-control transfer remain unqualified.",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-arm-fdm-combined-r12"
+}

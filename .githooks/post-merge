@@ -1,0 +1,12 @@
+#!/bin/sh
+# A merge into main can change the dashboard UI or a design study's version, so
+# refresh the remote view's index in the background (see docs/operations/results-hub.md).
+# LAB_WEB_REFRESH=0 skips it.
+[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = main ] || exit 0
+[ "${LAB_WEB_REFRESH:-1}" = 0 ] && exit 0
+root=$(git rev-parse --show-toplevel)
+[ -x "$root/.venv/bin/python" ] && [ -f "$root/data/results.sqlite" ] || exit 0
+mkdir -p "$root/.cache/web-export"
+nohup "$root/.venv/bin/python" "$root/infra/dashboard/web_export.py" --refresh \
+  >> "$root/.cache/web-export/refresh.log" 2>&1 < /dev/null &
+exit 0

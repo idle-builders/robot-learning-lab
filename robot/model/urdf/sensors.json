@@ -1,0 +1,798 @@
+{
+  "schema": "cove50.sensors.v1",
+  "sensors": [
+    {
+      "name": "depth_optical",
+      "owning_link": "head",
+      "origin_CAD_mm": [
+        -20.8499,
+        -24.131119999999996,
+        455.8981
+      ],
+      "origin_link_m": [
+        0.029131119999999996,
+        -0.007349900000000001,
+        0.041898099999999994
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "B0410_supplier_native_v23",
+      "kind": "depth",
+      "placement_basis": "V20 native barrel-axis proxy + exact V22/V23 source translations; accepted R23 retains camera geometry",
+      "calibration_status": "Nominal CAD optics only. Pixel roll, entrance pupil, lens distortion and depth/RGB registration uncalibrated.",
+      "resolution": [
+        240,
+        180
+      ],
+      "nominal_hfov_deg": 62.8,
+      "nominal_vfov_deg": 37.9,
+      "nominal_K": [
+        [
+          196.59155879939786,
+          0,
+          119.5
+        ],
+        [
+          0,
+          262.12184114021795,
+          89.5
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "intrinsic_basis": "Independent manufacturer H/V FoV rectangle; not a calibrated pinhole. RGB simulation640x480 full-aspect nominal view;1080 mode crop/FoV remains unknown. Native camera uses separate fx/fy to retain both source FoVs.",
+      "nominal_rate_Hz": 30,
+      "rate_sensitivity_Hz": [
+        15,
+        30
+      ],
+      "latency_ms": {
+        "capture_transport": [
+          10,
+          70
+        ],
+        "inference": [
+          15,
+          100
+        ],
+        "queue": [
+          0,
+          40
+        ]
+      },
+      "timing_basis": "Engineering assumptions on selected ROCK4D, no installed measurement",
+      "source_refs": [
+        {
+          "path": "artifacts/cove50-sensor-integration/v20/optical-summary.json",
+          "sha256": "3e638d7caaf4ceda9168f514593713fc8996aacebd94f9c58bddcd52d2a3fa1f",
+          "bytes": 1823
+        },
+        {
+          "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/interface.json",
+          "sha256": "34750e140f5811c7eb2e7c6467fa17bb76054488e115f29fd200c801b5a2744d",
+          "bytes": 1678
+        }
+      ],
+      "depth_range_m": [
+        0.2,
+        4.0
+      ],
+      "depth_noise_model": "Uncalibrated sensitivity: sigma=max(0.005m,0.01*range), invalid probability0.02; multipath/ambient IR/motion not calibrated",
+      "shutter": "Four-phase ToF depth; no assumed global simultaneous RGB exposure"
+    },
+    {
+      "name": "rgb_optical",
+      "owning_link": "head",
+      "origin_CAD_mm": [
+        20.7928,
+        -25.308999999999997,
+        456.0
+      ],
+      "origin_link_m": [
+        0.030309,
+        0.0342928,
+        0.04200000000000004
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "B0196_supplier_native_v23",
+      "kind": "rgb",
+      "placement_basis": "V20 native barrel-axis proxy + exact V22/V23 source translations; accepted R23 retains camera geometry",
+      "calibration_status": "Nominal CAD optics only. Pixel roll, entrance pupil, lens distortion and depth/RGB registration uncalibrated.",
+      "resolution": [
+        640,
+        480
+      ],
+      "nominal_hfov_deg": 60.0,
+      "nominal_vfov_deg": 47.0,
+      "nominal_K": [
+        [
+          554.2562584220409,
+          0,
+          319.5
+        ],
+        [
+          0,
+          551.9622113367017,
+          239.5
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "intrinsic_basis": "Independent manufacturer H/V FoV rectangle; not a calibrated pinhole. RGB simulation640x480 full-aspect nominal view;1080 mode crop/FoV remains unknown. Native camera uses separate fx/fy to retain both source FoVs.",
+      "nominal_rate_Hz": 30,
+      "rate_sensitivity_Hz": [
+        15,
+        30
+      ],
+      "latency_ms": {
+        "capture_transport": [
+          10,
+          70
+        ],
+        "inference": [
+          15,
+          100
+        ],
+        "queue": [
+          0,
+          40
+        ]
+      },
+      "timing_basis": "Engineering assumptions on selected ROCK4D, no installed measurement",
+      "source_refs": [
+        {
+          "path": "artifacts/cove50-sensor-integration/v20/optical-summary.json",
+          "sha256": "3e638d7caaf4ceda9168f514593713fc8996aacebd94f9c58bddcd52d2a3fa1f",
+          "bytes": 1823
+        },
+        {
+          "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/interface.json",
+          "sha256": "34750e140f5811c7eb2e7c6467fa17bb76054488e115f29fd200c801b5a2744d",
+          "bytes": 1678
+        }
+      ],
+      "depth_range_m": null,
+      "depth_noise_model": null,
+      "shutter": "Rolling shutter; row readout/exposure duration unknown"
+    },
+    {
+      "name": "imu_board",
+      "owning_link": "torso",
+      "origin_CAD_mm": [
+        -12.0,
+        42.0,
+        304.0
+      ],
+      "origin_link_m": [
+        -0.042,
+        -0.012,
+        0.0040000000000000036
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "body_IMU_4517",
+      "kind": "imu",
+      "die_origin_board_m": null,
+      "die_rotation_board": null,
+      "calibration_status": "Exact board transform from source build; chip lever arm and package/die axes must be registered from PCB or physical calibration. Runtime uses explicitly assumed board-aligned die.",
+      "nominal_rate_Hz": 208,
+      "chosen_range": {
+        "accel_g": 4,
+        "gyro_deg_s": 500
+      },
+      "source_noise": {
+        "accel_density_m_s2_sqrt_Hz": 0.0007354987499999999,
+        "gyro_density_rad_s_sqrt_Hz": 6.632251157578452e-05,
+        "basis": "LSM6DSOX DS12814 high-performance typical density at \u00b14g; actual filter bandwidth/config and board vibration unknown"
+      },
+      "simulation_noise": {
+        "equivalent_bandwidth_Hz": 52,
+        "accel_bias_sensitivity_m_s2": [
+          -0.196133,
+          0.196133
+        ],
+        "gyro_bias_sensitivity_rad_s": [
+          -0.017453292519943295,
+          0.017453292519943295
+        ]
+      },
+      "transport_latency_ms": [
+        1,
+        12
+      ],
+      "measured_latency_ms": null,
+      "magnetometer": "LIS3MDL physically on module; no trusted heading observation near motors without calibration",
+      "source_refs": [
+        {
+          "path": "robot/electronics/sensing/studies/purchasable/build.py",
+          "sha256": "c7d5e28a425cabf5e3a3b1abc62d4e2db103bb473d6212ab90d8e7bb656d286a",
+          "bytes": 15397
+        }
+      ]
+    },
+    {
+      "name": "foot_adc_board",
+      "owning_link": "torso",
+      "origin_CAD_mm": [
+        -12.0,
+        42.0,
+        339.0
+      ],
+      "origin_link_m": [
+        -0.042,
+        -0.012,
+        0.039000000000000035
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "foot_ADC_6494",
+      "kind": "adc",
+      "nominal_rate_Hz": 200,
+      "rate_basis": "200Hz/channel simulation acquisition choice, not demonstrated serial scan timing",
+      "calibration_status": "Raw voltage/counts only; FSR force curve not calibrated"
+    },
+    {
+      "name": "microphone_port",
+      "owning_link": "head",
+      "origin_CAD_mm": [
+        46.7,
+        0.0,
+        464.0
+      ],
+      "origin_link_m": [
+        0.005,
+        0.060200000000000004,
+        0.050000000000000044
+      ],
+      "rotation_link_sensor": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "microphone_6049_v23",
+      "kind": "microphone",
+      "placement_basis": "Source acoustic port[49.5,0,464]mm minusV23X2.8mm; entrance/shell diffraction unmeasured",
+      "nominal_rate_Hz": 48000,
+      "rate_basis": "Simulation audio interface choice; real ALSA/I2S tuple unverified",
+      "audio_buffer_latency_ms": [
+        10,
+        40
+      ],
+      "calibration_status": "No acoustic or motor-noise calibration; one microphone does not establish sound-source direction"
+    },
+    {
+      "name": "R_toe_lateral_contact",
+      "owning_link": "R_foot",
+      "origin_CAD_mm": [
+        80,
+        -38,
+        1.75
+      ],
+      "origin_link_m": [
+        0.0245,
+        0.0050000000000000044,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "R_toe_lateral_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "R_heel_lateral_contact",
+      "owning_link": "R_foot",
+      "origin_CAD_mm": [
+        80,
+        12,
+        1.75
+      ],
+      "origin_link_m": [
+        -0.025500000000000002,
+        0.0050000000000000044,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "R_heel_lateral_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "R_mid_medial_contact",
+      "owning_link": "R_foot",
+      "origin_CAD_mm": [
+        49,
+        -5,
+        1.75
+      ],
+      "origin_link_m": [
+        -0.0085,
+        -0.025999999999999995,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "R_mid_medial_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "L_toe_lateral_contact",
+      "owning_link": "L_foot",
+      "origin_CAD_mm": [
+        -80,
+        -38,
+        1.75
+      ],
+      "origin_link_m": [
+        0.019,
+        -0.0050000000000000044,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "L_toe_lateral_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "L_heel_lateral_contact",
+      "owning_link": "L_foot",
+      "origin_CAD_mm": [
+        -80,
+        12,
+        1.75
+      ],
+      "origin_link_m": [
+        -0.031,
+        -0.0050000000000000044,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "L_heel_lateral_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "L_mid_medial_contact",
+      "owning_link": "L_foot",
+      "origin_CAD_mm": [
+        -49,
+        -5,
+        1.75
+      ],
+      "origin_link_m": [
+        -0.013999999999999999,
+        0.025999999999999995,
+        -0.017249999999999998
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "part_name": "L_mid_medial_sensor",
+      "kind": "FSR",
+      "surface_normal_CAD": [
+        0,
+        0,
+        -1
+      ],
+      "nominal_rate_Hz": 200,
+      "transport_latency_ms": [
+        2,
+        15
+      ],
+      "calibration_status": "Nominal disk centre, no installed load-sharing/force/hysteresis calibration",
+      "signal": "Raw ADC event/voltage; simulated contact normal force is an evaluator oracle, not measured FSR force",
+      "sensitivity": {
+        "catalog_force_N": [
+          0.2,
+          20
+        ],
+        "catalog_hysteresis_fraction": 0.1,
+        "latency_basis": "ADC/middleware assumptions; supplier rise time is not complete signal latency"
+      }
+    },
+    {
+      "name": "R_sole_contact_frame",
+      "owning_link": "R_foot",
+      "origin_CAD_mm": [
+        67.00000166893005,
+        -12.000000104308128,
+        2.0000000949949026
+      ],
+      "origin_link_m": [
+        -0.0014999998956918715,
+        -0.007999998331069944,
+        -0.016999999905005097
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "kind": "contact_frame",
+      "calibration_status": "CAD sole bottom reference; no slip estimator"
+    },
+    {
+      "name": "L_sole_contact_frame",
+      "owning_link": "L_foot",
+      "origin_CAD_mm": [
+        -67.00000166893005,
+        -12.000000104308128,
+        2.0000000949949026
+      ],
+      "origin_link_m": [
+        -0.006999999895691871,
+        0.007999998331069944,
+        -0.016999999905005097
+      ],
+      "rotation_link_sensor": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "T_direction": "p_link = T_link_sensor @ p_sensor",
+      "kind": "contact_frame",
+      "calibration_status": "CAD sole bottom reference; no slip estimator"
+    }
+  ],
+  "calibrated_extrinsics": 0,
+  "source_sensor_modules": 11,
+  "pose_semantics": {
+    "units": "m, kg, s, rad, N, N m",
+    "transform": "p_model = R_model_CAD @ p_CAD_m; all link axes are aligned at neutral",
+    "R_model_CAD": [
+      [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "determinant": 1.0,
+    "base_link": "torso; CAD origin [0,0,300] mm; model x=-CAD Y, y=CAD X, z=CAD Z",
+    "source_side_warning": "CAD calls positive X R and negative X L while toe/camera forward is -Y. A reflection would violate right-handed physics. Retain R/L as source identifiers, not REP anatomical side assertions. Neutral R links therefore lie at positive model y.",
+    "optical": "z forward, x image right, y image down; physical pixel roll uncalibrated",
+    "quaternion": "MuJoCo wxyz; ROS xyzw adapters explicitly convert",
+    "pose_equation": "p_W = T_W_C(t_capture) @ p_C; never use inference completion pose",
+    "global_frames": "map -> odom -> base_footprint -> torso are estimator outputs, not fixed ground-truth URDF joints; odom continuous, map corrections may jump",
+    "selected_CAD": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+      "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399",
+      "bytes": 1555977
+    }
+  },
+  "timing_contract": {
+    "required_fields": [
+      "stream_id",
+      "sequence",
+      "clock_domain",
+      "capture_time_ns",
+      "host_receive_ns",
+      "inference_end_ns",
+      "clock_map_id",
+      "clock_uncertainty_ns",
+      "pose_at_capture",
+      "pose_source",
+      "health",
+      "source_config_hash"
+    ],
+    "interpretation": "Readout time is not conversion time; maintain mapped capture clocks, epoch and interpolation gaps. Missing calibration/pose/clock makes metric coordinates unavailable."
+  },
+  "exclusions": [
+    "No installed lidar",
+    "No selected hand/wrist sensor model",
+    "No RGB/ToF capture on target ROCK4D claimed",
+    "Simulator global pose/segmentation withheld from deployable actor observations"
+  ]
+}

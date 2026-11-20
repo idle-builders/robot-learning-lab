@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "idle-tasks@idle-agent-tools": true,
+    "idle-skills@idle-agent-tools": true
+  }
+}

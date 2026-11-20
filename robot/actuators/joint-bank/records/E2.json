@@ -1,0 +1,82 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "E2",
+  "region": "elbow",
+  "name": "Long-axis motor with mitered elbow output",
+  "architecture": "miter_output",
+  "maturity": "local_trial",
+  "summary": "Connected sixteen-part trial around sourced Pololu motor and gear envelopes.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "selected shell world, mm",
+    "parent": "proposed fixed carrier with unresolved shell attachment",
+    "output": "proposed output web and forearm mate"
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/long-axis-elbow/README.md",
+      "sha256": "5390b1a8e9e5ca35583e7d24df62ea38a94c1b0dd2ba0b4bc925826f135555d6"
+    },
+    {
+      "name": "trial_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/long-axis-elbow/output/trial.step",
+      "sha256": "53e8455ddcd258335eefc03af2fcdfa46d51b7c5c43db043726e6e9658283cb6",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "trial_glb",
+      "role": "cad_glb",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/long-axis-elbow/output/trial.glb",
+      "sha256": "b472fdc02519553379d3ac802e90814ae3828f9faa0041c4376e4f062b0963f8",
+      "units": "m",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "assembly",
+      "role": "report",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/long-axis-elbow/output/assembly-trial.json",
+      "sha256": "b02317a2de5fcdd03283722f1336ce0ed6d26f4a9a60d26b2c46c70bd5c3fea6"
+    },
+    {
+      "name": "pose_contacts",
+      "role": "motion_data",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/long-axis-elbow/output/contact-audit.json",
+      "sha256": "46ea4c594f2e56d5794304819c1f87036f15e1ba215032588e2a660b1f9e3cd3"
+    }
+  ],
+  "limits": [
+    "Five sampled forearm poses retain shell contacts; torque lock, thrust and gear capacity open."
+  ],
+  "motion_interface": {
+    "coordinates": [
+      {
+        "name": "elbow_deg",
+        "unit": "deg"
+      }
+    ],
+    "samples": [
+      [
+        -30
+      ],
+      [
+        -15
+      ],
+      [
+        0
+      ],
+      [
+        15
+      ],
+      [
+        30
+      ]
+    ],
+    "source_asset": "pose_contacts",
+    "meaning": "five sampled forearm/contact states; unchanged shell fails"
+  }
+}

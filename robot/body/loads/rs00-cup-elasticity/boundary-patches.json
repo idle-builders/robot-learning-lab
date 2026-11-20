@@ -1,0 +1,22 @@
+{
+  "bearing_radial": {
+    "triangles": 309,
+    "area_mm2": 1039.12635071549,
+    "nodes": 231
+  },
+  "bearing_axial_shoulder": {
+    "triangles": 150,
+    "area_mm2": 279.71947721754,
+    "nodes": 150
+  },
+  "motor_bolt_tangential": {
+    "triangles": 415,
+    "area_mm2": 302.25368315201035,
+    "nodes": 283
+  },
+  "distal_flange_load": {
+    "triangles": 56,
+    "area_mm2": 124.76065718926074,
+    "nodes": 47
+  }
+}

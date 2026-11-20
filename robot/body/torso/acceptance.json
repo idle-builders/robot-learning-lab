@@ -1,0 +1,156 @@
+{
+  "schema": "robot-learning-lab.design-acceptance.v1",
+  "selected_on": "2026-11-06",
+  "section": "Torso / pelvis / electronics (FDM carrier)",
+  "robot_sections": [
+    "Torso / shell",
+    "Torso",
+    "Pelvis",
+    "Shoulder",
+    "Neck / head",
+    "Electronics"
+  ],
+  "name": "Complete 4-Stage Center-Body Torso, 9-Cell Vertical Honeycomb Battery & Electronics Carrier FDM Architecture",
+  "study_id": "cove50-torso-fdm-combined",
+  "result_id": "cove50-torso-fdm-combined-r1",
+  "version": "r1",
+  "task": "T-zdevbv",
+  "idle_decision": "M-h3aaq6",
+  "status": "user_selected_fdm_torso_carrier",
+  "user_statement": "Looks great alright lets lock that in for the core, commit everything, upload, cleanup. Perform a review and than also mark that task as done.",
+  "scope": "Selected 4-stage 3D-printable FDM center-body torso, pelvis, 9-cell vertical hexagonal honeycomb battery magazine, and electronics carrier architecture (Stage 1 7-Cell Honeycomb Torso Spine & Hip/Shoulder/Neck Tower, Stage 2 2-Cell Pelvis Column & 7-Cell Upper Battery Retention Lid / 6-Bolt Waist U-Clevis, Stage 3 Dual-Deck Front Power Supervisor & Precharge Frame, Stage 4 Dorsal Body-IMU & Foot-ADC Sensor Carrier) with 86 pressed-in 304 SS compression sleeves (39+11+22+14), 9 direct-on-battery 6063-T5 aluminum 4-blade heat-sink fin strips in full-height vertical window slots, smooth 2-piece continuous 12-station NURBS center shell (center_front_shell + center_back_shell + chest_indicator) bolting directly to flat Stage 1 & Stage 2 mounts, asymmetric 3D edge bevels (r_inner > r_outer), 0.0000 mm^3 overlap across all 25 multi-limb flexion poses, and matched 3D tetrahedral Gmsh FEM across PAHT-CF dry/wet and PETG-CF. Replaces 24 legacy sheet-metal/PA12 torso/pelvis/battery/electronics parts and 3 intermediate pelvis shell-connector brackets. Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, battery thermal duty under enclosed shell gait, and learned-control qualification remain separate.",
+  "component_studies": {
+    "complete_4stage_combined": "cove50-torso-fdm-combined-r1",
+    "torso_truss_box": "cove50-torso-fdm-truss-box-r1",
+    "torso_topopt": "cove50-torso-fdm-topopt-r1"
+  },
+  "stage_selection": {
+    "stage1_center_torso_spine_chassis": "Family 1 Blank-Slate 3D Hexagonal Honeycomb & Space-Truss Spine with 7 bottom-loadable vertical 21700 cells, 2 lower-battery top-cap plugs, flat Stage 3/Stage 4/shell mounts, and 39 pressed-in 304 SS sleeves (100.66 g total, stall p99=35.81 MPa, u_max=2.6439 mm, 1.55x dry PAHT-CF SF)",
+    "stage2_lower_pelvis_battery_cradle": "Family 2 3D SIMP Topology-Optimized 2-Cell Lower Pelvis Honeycomb Column with integral 7-cell upper battery-retaining lid, 6-bolt waist U-clevis, flat front/rear pelvis shell mounts, and 11 pressed-in 304 SS sleeves (39.01 g total, stall p99=0.67 MPa, u_max=0.0066 mm, 66.7x dry PAHT-CF SF)",
+    "stage3_front_power_electronics_carrier": "Family 1 Dual-Deck Space-Truss Front Power Supervisor & Main Precharge Carrier with 4 integral rearward standoff brackets and 22 pressed-in 304 SS sleeves (23.93 g total, stall p99=12.69 MPa, u_max=0.8438 mm, 4.24x dry PAHT-CF SF)",
+    "stage4_rear_imu_adc_carrier": "Family 2 3D SIMP Dorsal Body-IMU & Foot-ADC Carrier with 3 vertical dorsal valley standoff rails and 14 pressed-in 304 SS sleeves (14.61 g total, stall p99=2.00 MPa, u_max=0.0179 mm, 26.3x dry PAHT-CF SF)"
+  },
+  "represented_carrier_and_sleeve_mass_g": 178.21,
+  "baseline_metal_and_carrier_mass_g": 251.82,
+  "source": {
+    "mechanical_STEP": {
+      "path": "artifacts/robot/body/torso/combined/carriers-4stage.step",
+      "sha256": "e3c63156056c0e033671f0cdea95b1dbac90a2f279db09432dbbf27aacf473a1",
+      "bytes": 4613739
+    },
+    "inspection_GLB": {
+      "path": "artifacts/robot/body/torso/combined/assembly-with-full-shell.glb",
+      "sha256": "e4262f7dd7ee1377ac1e8a471d8aa4c55ab4f9e40f45c9347aa1b2186e9e7b4f",
+      "bytes": 89961976
+    },
+    "inspection_manifest": {
+      "path": "artifacts/robot/body/torso/combined/assembly-parts.json",
+      "sha256": "7f8bfeedb2a2f1b1e26871f4f0aae35d03e65265d66b32719905bc78e0c3537d",
+      "bytes": 416559
+    },
+    "cad_manifest": {
+      "path": "artifacts/robot/body/torso/combined/manifest.json",
+      "sha256": "56c99f86b707d5a096cf81874f16f3ddcb0ca1d93831c5ee461b4f78ea8fccd2",
+      "bytes": 7500
+    },
+    "baseline_audit": {
+      "path": "artifacts/robot/body/torso/torso-baseline-audit.json",
+      "sha256": "e439a590eb3e06c8aef7801e5a89409f003a5518615321cc8d6e8561ac119645",
+      "bytes": 41169
+    },
+    "cad_rule_check": {
+      "path": "artifacts/robot/body/torso/torso-cad-rules-audit.json",
+      "sha256": "c533e1099f7e9de731d4786a9eb789205b8be1608a3d4787fa22e12ff349ff65",
+      "bytes": 19626
+    },
+    "complete_4stage_fit_and_flexion_report": {
+      "path": "artifacts/robot/body/torso/torso-fit-check.json",
+      "sha256": "4387bf84be48aed67f035bffc2ff1012e083931f6b81bad1ab7c7925236a3895",
+      "bytes": 19453
+    },
+    "complete_4stage_fem_report": {
+      "path": "artifacts/robot/body/torso/torso-fem-results.json",
+      "sha256": "f0b303af17b069ed0c9f238b36d7dd134a52f7f38077d40afec7936c67e683c8",
+      "bytes": 84904
+    },
+    "thermal_report": {
+      "path": "artifacts/robot/body/torso/torso-thermal-results.json",
+      "sha256": "1ae7907452662f631998087f2a02a33ff534338bdf38778e57908c7801905d97",
+      "bytes": 82472
+    },
+    "topopt_report": {
+      "path": "artifacts/robot/body/torso/torso-topopt-report.json",
+      "sha256": "69849de91f616adfade2589c5ee16e57167be95018d6e74fc0434d92a79b527e",
+      "bytes": 18545
+    },
+    "topopt_fields": {
+      "path": "artifacts/robot/body/torso/torso-topopt-fields.npz",
+      "sha256": "bdb58eb1486849c1a5765cbf91704dc52328935f96ea53f82d862e082bdd98d8",
+      "bytes": 50494
+    },
+    "record": {
+      "path": "artifacts/robot/body/torso/combined/cove50-torso-fdm-combined-r1-record.json",
+      "sha256": "6d769438f3874d6e3bfde18032f32d63a4a08ac10966c13b1a2c6f52afb45daf",
+      "bytes": 59889
+    },
+    "publication": {
+      "path": "artifacts/robot/body/torso/combined/cove50-torso-fdm-combined-r1-publication.json",
+      "sha256": "4e01baf439c5b03bbd37d4506e36d5b0301e1257d8d9a7538243af91191e9ecd",
+      "bytes": 200
+    }
+  },
+  "native_parts": {
+    "combined__stage1_center_torso_spine_chassis_step": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage1_center_torso_spine_chassis.step",
+      "sha256": "5008d4d88f413b972b7262b857112c9dec8a4ddcc89ec17897e428cce2afc45d",
+      "bytes": 2109145
+    },
+    "combined__stage1_center_torso_spine_chassis_npz": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage1_center_torso_spine_chassis.npz",
+      "sha256": "2b7fb857f27a5fa19da34dfccb9b359c026a50b82ef7f23dff7f46674f26ac12",
+      "bytes": 200636
+    },
+    "combined__stage2_lower_pelvis_battery_cradle_step": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage2_lower_pelvis_battery_cradle.step",
+      "sha256": "869b69492f3ef0a1a7d81e1e1390f55524c43415ff2cb87331ae9aaa2996478c",
+      "bytes": 1133189
+    },
+    "combined__stage2_lower_pelvis_battery_cradle_npz": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage2_lower_pelvis_battery_cradle.npz",
+      "sha256": "4230cf4be8d2f3010f87571657525d473354cc4885ecdb816e84b900d609e60d",
+      "bytes": 104046
+    },
+    "combined__stage3_front_power_electronics_carrier_step": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage3_front_power_electronics_carrier.step",
+      "sha256": "8c76d3aa32cb53c1f1700e635e0fd38219435da17b6cfeb966f7e9b0385652e4",
+      "bytes": 460421
+    },
+    "combined__stage3_front_power_electronics_carrier_npz": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage3_front_power_electronics_carrier.npz",
+      "sha256": "734633b861f45e695ceb0af625626b64be9382b2fdb325a4c46aa883db26d260",
+      "bytes": 58846
+    },
+    "combined__stage4_rear_imu_adc_carrier_step": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage4_rear_imu_adc_carrier.step",
+      "sha256": "a6d895afe44bc0ad59ae9cdb778a82ecd5d512f1676fe14ba71ce6a390636ffd",
+      "bytes": 138661
+    },
+    "combined__stage4_rear_imu_adc_carrier_npz": {
+      "path": "artifacts/robot/body/torso/parts/combined__stage4_rear_imu_adc_carrier.npz",
+      "sha256": "fccb3882146ca63088a1c39d9fb4500efd232fb42efdde12d6a1c0cceadca61c",
+      "bytes": 43087
+    },
+    "center_front_shell_step": {
+      "path": "artifacts/robot/body/torso/shell_assets/center_front_shell.step",
+      "sha256": "da3d80f36e04b706b7c69c25f7ab8e855c6815fd962e462361b3ebc41af0ebc2",
+      "bytes": 2544613
+    },
+    "center_back_shell_step": {
+      "path": "artifacts/robot/body/torso/shell_assets/center_back_shell.step",
+      "sha256": "201b2516a268b36c66de58bfb4e7cc7b98cb69cf1dfa084964786ed39f2c2950",
+      "bytes": 3322449
+    }
+  },
+  "qualification_limits": "Selected FDM center-body torso, 9-cell vertical honeycomb battery, and electronics carrier CAD and linear P1 tetrahedral FEM verification (1g upright, 3g dynamic gait, 6g fall impact, and multi-limb stall across PAHT-CF dry/wet and PETG-CF with 86 bonded 304 SS compression sleeves) plus lumped 12-node thermal/chimney/fin audit. Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, enclosed-shell battery thermal cycling, and learned-control transfer remain unqualified.",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-torso-fdm-combined-r1"
+}

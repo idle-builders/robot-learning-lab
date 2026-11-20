@@ -1,0 +1,4 @@
+/* Remote read-only dashboard (static.js): hide every control that writes or needs the archive. */
+.web-snapshot :is(.preference-actions, .review-actions, .bom-actions, .bom-add-assembly, .bom-edit,
+  [data-remove-assembly], #archive-mode, #refresh, [data-page="archive"]) { display: none !important; }
+.web-snapshot :is(.design-review, .robot-bom-form, .bom-form) :is(input, select, textarea) { pointer-events: none; }

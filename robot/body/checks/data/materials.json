@@ -1,0 +1,201 @@
+{
+ "_doc": "Material table, manufacturer standard datasheet values (owner decision 2026-11-18: material is a per-part setting; parts may differ). density in g/cm3. nozzle_mm_default = manufacturer recommendation. 'legacy_paht_cf_fast_check' reproduces the old fast_check mass numbers only; it is not a default. 'fem' = elastic constants and reference strengths for the FEM check: orthotropic FDM {E_inplane_MPa, E_layer_MPa, G_MPa, nu, tensile_XY_MPa, tensile_Z_layer_MPa} (the layer-normal axis is a per-part setting) or isotropic {E_MPa, nu, reference_strength_MPa}. Datasheet entries (Bambu ...) are the standard; legacy_* entries reproduce numbers of the old per-study FEM tables and are named so they are never picked by accident. For the Bambu data sheets G and nu are not published: nu 0.35 (as the legacy FDM sets) and G = E_inplane / (2 (1 + nu)) are our assumptions. 'print' = manufacturer printing limits and thermal values from the same data sheets (temperatures in C, overhang angle as the data sheet states it (its angle convention is fixed by the overhang check), bridge length mm, HDT at 0.45 / 1.8 MPa): the printability checks read them, so a material change or a run override (--process material=...) changes every result that depends on it. bambu_studio_filament: the Bambu Studio system filament profile per nozzle for the slicer check.",
+ "Bambu PAHT-CF": {
+  "density_g_cm3": 1.06,
+  "nozzle_mm_default": 0.6,
+  "nozzle_note": "0.6 mm recommended (0.4 / 0.8 possible), hardened nozzle",
+  "source": "Bambu Lab PAHT-CF technical data sheet",
+  "fem": {
+   "E_inplane_MPa": 3860.0,
+   "E_layer_MPa": 2180.0,
+   "G_MPa": 1430,
+   "nu": 0.35,
+   "tensile_XY_MPa": 88.0,
+   "tensile_Z_layer_MPa": 64.0
+  },
+  "fem_source": "Bambu Lab technical data sheet V2.0 (dry): E, tensile X-Y / Z as in docs/research/design-checks.md; G, nu assumed",
+  "print": {
+   "nozzle_temp_C": [
+    260,
+    290
+   ],
+   "bed_temp_C": [
+    80,
+    100
+   ],
+   "chamber_temp_C": [
+    45,
+    60
+   ],
+   "nozzles_mm": [
+    0.4,
+    0.6,
+    0.8
+   ],
+   "max_overhang_deg": 70,
+   "max_bridge_mm": 40,
+   "drying": "80 C, 8-12 h; print and store below 20 % RH",
+   "hdt_C_045_18MPa": [
+    194,
+    170
+   ],
+   "glass_transition_C": 70,
+   "bending_XY_Z_MPa": [
+    140,
+    68
+   ]
+  },
+  "bambu_studio_filament": {
+   "0.4": "Bambu PAHT-CF @BBL X2D 0.4 nozzle",
+   "0.6": "Bambu PAHT-CF @BBL X2D",
+   "0.8": "Bambu PAHT-CF @BBL X2D 0.8 nozzle"
+  }
+ },
+ "Bambu PETG-CF": {
+  "density_g_cm3": 1.25,
+  "nozzle_mm_default": 0.4,
+  "nozzle_note": "0.4 / 0.6 / 0.8 hardened",
+  "source": "Bambu Lab PETG-CF technical data sheet V2.0, as read in docs/research/design-checks.md",
+  "fem": {
+   "E_inplane_MPa": 2460.0,
+   "E_layer_MPa": 1340.0,
+   "G_MPa": 911,
+   "nu": 0.35,
+   "tensile_XY_MPa": 59.0,
+   "tensile_Z_layer_MPa": 38.0
+  },
+  "fem_source": "Bambu Lab technical data sheet V2.0 (dry): E, tensile X-Y / Z as in docs/research/design-checks.md; G, nu assumed",
+  "print": {
+   "nozzle_temp_C": [
+    240,
+    270
+   ],
+   "bed_temp_C": [
+    65,
+    75
+   ],
+   "chamber_temp_C": [
+    35,
+    50
+   ],
+   "nozzles_mm": [
+    0.4,
+    0.6,
+    0.8
+   ],
+   "max_overhang_deg": 70,
+   "max_bridge_mm": 30,
+   "drying": "65 C, 8 h; below 20 % RH",
+   "hdt_C_045_18MPa": [
+    74,
+    68
+   ],
+   "glass_transition_C": 68,
+   "bending_XY_Z_MPa": [
+    83,
+    62
+   ]
+  },
+  "bambu_studio_filament": {
+   "0.4": "Bambu PETG-CF @BBL X2D 0.4 nozzle",
+   "0.6": "Bambu PETG-CF @BBL X2D",
+   "0.8": "Bambu PETG-CF @BBL X2D 0.8 nozzle"
+  }
+ },
+ "legacy_paht_cf_fast_check": {
+  "density_g_cm3": 1.22,
+  "source": "value hard-coded in fast_check.py until 2026-11-18; kept to reproduce its numbers"
+ },
+ "legacy_fdm_PAHT_CF_dry": {
+  "density_g_cm3": 1.22,
+  "fem": {
+   "E_inplane_MPa": 7550.0,
+   "E_layer_MPa": 3290.0,
+   "G_MPa": 1100.0,
+   "nu": 0.35,
+   "tensile_XY_MPa": 92.0,
+   "tensile_Z_layer_MPa": 43.0
+  },
+  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
+ },
+ "legacy_fdm_PAHT_CF_wet": {
+  "density_g_cm3": 1.22,
+  "fem": {
+   "E_inplane_MPa": 6570.0,
+   "E_layer_MPa": 2700.0,
+   "G_MPa": 950.0,
+   "nu": 0.35,
+   "tensile_XY_MPa": 71.0,
+   "tensile_Z_layer_MPa": 37.0
+  },
+  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
+ },
+ "legacy_fdm_PETG_CF": {
+  "density_g_cm3": 1.25,
+  "fem": {
+   "E_inplane_MPa": 5800.0,
+   "E_layer_MPa": 2850.0,
+   "G_MPa": 1000.0,
+   "nu": 0.35,
+   "tensile_XY_MPa": 68.0,
+   "tensile_Z_layer_MPa": 34.0
+  },
+  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
+ },
+ "legacy_torso_PAHT_CF_dry": {
+  "fem": {
+   "E_inplane_MPa": 5200.0,
+   "E_layer_MPa": 2400.0,
+   "G_MPa": 1450.0,
+   "nu": 0.35,
+   "tensile_XY_MPa": 95.0,
+   "tensile_Z_layer_MPa": 32.0
+  },
+  "source": "torso/common.py MATERIALS (sigma_*_allow used as reference strengths); same names, different values than the leg/arm/neck set; which is right is open"
+ },
+ "legacy_torso_PAHT_CF_wet": {
+  "fem": {
+   "E_inplane_MPa": 4300.0,
+   "E_layer_MPa": 2050.0,
+   "G_MPa": 1200.0,
+   "nu": 0.36,
+   "tensile_XY_MPa": 80.0,
+   "tensile_Z_layer_MPa": 27.0
+  },
+  "source": "torso/common.py MATERIALS (sigma_*_allow used as reference strengths); same names, different values than the leg/arm/neck set; which is right is open"
+ },
+ "legacy_torso_PETG_CF": {
+  "fem": {
+   "E_inplane_MPa": 3800.0,
+   "E_layer_MPa": 1900.0,
+   "G_MPa": 1100.0,
+   "nu": 0.35,
+   "tensile_XY_MPa": 65.0,
+   "tensile_Z_layer_MPa": 22.0
+  },
+  "source": "torso/common.py MATERIALS (sigma_*_allow used as reference strengths); same names, different values than the leg/arm/neck set; which is right is open"
+ },
+ "Aluminium 5052-H32": {
+  "density_g_cm3": 2.68,
+  "fem": {
+   "E_MPa": 68300.0,
+   "nu": 0.33,
+   "reference_strength_MPa": 193.0
+  },
+  "source": "handbook values as in leg/common.py (material id 0 of the FEM mesh: metal)"
+ },
+ "Steel 304 sleeve": {
+  "density_g_cm3": 7.85,
+  "fem": {
+   "E_MPa": 200000.0,
+   "nu": 0.29
+  },
+  "source": "as leg/common.py Steel_Sleeve (bonded sleeves, material id 2)"
+ },
+ "legacy_torso_sleeve_zone": {
+  "fem": {
+   "factor_of_part_material": 2.65
+  },
+  "source": "torso/fem_evaluate.py: D_sleeve = 2.65 x D_poly in elements within r_od + 1.2 mm of a support / load bore (named option; the old script also multiplied the stress there by 0.58, not reproduced)"
+ }
+}

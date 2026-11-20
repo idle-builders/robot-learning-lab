@@ -1,0 +1,94 @@
+{
+  "schema": "cove50.local-contact-coupon.v1",
+  "version": "v4",
+  "task": "T-5qbfpw",
+  "status": "Unselected local pad-compression coupon proposal; not an installed whole-foot load or centre-of-pressure measurement",
+  "source_manifest": "artifacts/cove50-engineering-competition/waist-pelvis-20261021/lead/integration-v16/parts.json",
+  "source_manifest_sha256": "14c4df3030c64cab375db559eafab56e8f2ad400cd98d101a9d32f1f22dc41df",
+  "sensor_step": "artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP",
+  "source_identity_limit": "The manufacturer archive filename says30-00016, but its eight components include two SolderTab solids. It is not a verified no-contacts sales SKU. Keep this exact captured geometry as a coupon candidate until the sales/drawing/connection revision is joined.",
+  "right_sites": [
+    {
+      "id": "toe_lateral",
+      "xy_mm": [
+        80,
+        -38
+      ],
+      "rotation_Z_deg": 0
+    },
+    {
+      "id": "heel_lateral",
+      "xy_mm": [
+        80,
+        12
+      ],
+      "rotation_Z_deg": 180
+    },
+    {
+      "id": "mid_medial",
+      "xy_mm": [
+        49,
+        -5
+      ],
+      "rotation_Z_deg": -90
+    }
+  ],
+  "placement": {
+    "source_disk_center_XZ_mm": [
+      0.01536673978,
+      0.02618907588
+    ],
+    "source_rear_adhesive_Y_mm": 0.3522,
+    "rotation_X_deg": 90,
+    "rear_adhesive_world_Z_mm": 1.75
+  },
+  "stack": {
+    "sole_bottom_Z_mm": 2,
+    "bond_layer_Z_mm": [
+      1.95,
+      2
+    ],
+    "backing_disk_Z_mm": [
+      1.75,
+      1.95
+    ],
+    "backing_disk_diameter_mm": 19,
+    "actuator_diameter_mm": 10,
+    "actuator_thickness_mm": 0.6,
+    "head_pocket_diameter_mm": 19.4,
+    "tail_pocket_width_mm": 10,
+    "tail_pocket_length_mm": 22,
+    "tail_pocket_bottom_Z_mm": 0.95,
+    "tail_neck_pocket_width_mm": 14,
+    "tail_neck_pocket_Y_local_mm": [
+      6,
+      12
+    ]
+  },
+  "materials": {
+    "backing": "Produced0.2mm stainless shim disk, flatness/edge finish unmeasured",
+    "bond": "0.05mm adhesive allocation; product/vent-safe process unselected",
+    "actuator": "Produced silicone60ShoreA nominal coupon; exact material and compression curve unselected",
+    "pad": "Existing nominal TPU95A derivative; print orientation, friction, creep and actual stiffness unmeasured"
+  },
+  "load_path": "Local ground pressure deforms the remaining TPU floor into the silicone actuator, then the sensor, shim and aluminium sole. Surrounding TPU continues directly into the sole and bypasses the sensor. Neither total normal force nor whole-foot contact is observable from these three local channels without physical coverage and transfer measurements. Bypass is geometric, not a qualified overload stop.",
+  "retention_and_service": "Existing pad retention remains. Backing disk is bonded to sole. FSR is supported by its existing source adhesive against disk. Tail stays straight in a top-open pad channel; source solder tabs retained. Actual soldered wires, jacket clamp, strain relief, vent exit, sealing and service lead length remain unfinished; do not fill this channel with adhesive or infer vent location from CAD.",
+  "electrical": {
+    "proposed_channels_per_foot": 3,
+    "proposal_total_channels": 6,
+    "installed_quantity": 0,
+    "acquisition": "Raw ADC/resistance channels with scan order, acquisition clock/time, reference voltage, excitation duty, saturation and open/short observations; electronics board and final channel count unselected",
+    "excitation": "For a10mm actuator, manufacturer1mA/cm2 guidance corresponds to0.785mA. A3.3V series resistance of10kohm bounds worst-case short current to0.33mA nominal, before tolerance; this is an interface calculation, not a selected circuit or sensor rating test."
+  },
+  "source_urls": [
+    "https://www.interlinkelectronics.com/downloads/datasheets/fsr-400-series-datasheet.pdf",
+    "https://www.interlinkelectronics.com/downloads/integration-guides/fsr-400-series-integration-guide.pdf",
+    "https://www.interlinkelectronics.com/downloads/cad-models/fsr-402-short-cad.zip"
+  ],
+  "physical_measurements_needed": [
+    "Measured stack and unloaded preload, including foil/bond/print tolerances",
+    "Applied-load ramps and hold/release at each actuator; retained raw curves, hysteresis, drift and saturation",
+    "Distributed and edge/corner ground loads, shear/slip and contamination; missed contacts and cross-talk retained",
+    "Tail/vent routing and repeated pad removal; actual timestamp, acquisition skew and latency measurements"
+  ]
+}

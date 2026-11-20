@@ -1,0 +1,71 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "S2",
+  "region": "shoulder",
+  "name": "Remote belt and supported shoulder spindle",
+  "architecture": "remote_belt_output",
+  "maturity": "local_trial",
+  "summary": "Pololu source motor and proposed supported belt-output geometry at the selected shoulder region.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "selected shell world, mm; Y origin not fixed by bank",
+    "parent": "proposed carrier, not attached to body",
+    "output": "synthetic spindle and arm spar"
+  },
+  "dofs": [
+    {
+      "name": "output",
+      "type": "revolute",
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "origin_mm": [
+        -7,
+        null,
+        340
+      ],
+      "frame": "selected_shell_world_partial"
+    }
+  ],
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/remote-shoulder-spindle/README.md",
+      "sha256": "44d196e7e654e7b9fc361e824bc26f62860e75bca3ec3b83d63831b8bb1a10d6"
+    },
+    {
+      "name": "trial_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/remote-shoulder-spindle/output/assembly.step",
+      "sha256": "8cb8e80c32a22f7bb87980307aa8d97f0d1d782f04834b11ff0ef4246ee4220e",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "trial_glb",
+      "role": "cad_glb",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/remote-shoulder-spindle/output/assembly.glb",
+      "sha256": "fa1fd72bda7881418e705158e1d3e49f400ca715c842ff0de03eb758fbd51e2b",
+      "units": "m",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "mechanics",
+      "role": "report",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/remote-shoulder-spindle/output/mechanics.json",
+      "sha256": "c3cbcb7ddc974781e6a0e166bb0ce4824648c09980cf7b875d5a6495d0a0a6a6"
+    },
+    {
+      "name": "assembly_report",
+      "role": "report",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/remote-shoulder-spindle/output/assembly-report.json",
+      "sha256": "f094458c51ca5329573f0e38f4ea037ffa3d3bd98d010445156d32e41462c98b"
+    }
+  ],
+  "limits": [
+    "Custom pulley and drive interfaces, parent attachment, belt load and continuous motion unresolved."
+  ]
+}

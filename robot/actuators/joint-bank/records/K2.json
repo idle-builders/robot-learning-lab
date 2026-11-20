@@ -1,0 +1,101 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "K2",
+  "region": "knee",
+  "name": "Rolling equal-gear knee carrier",
+  "architecture": "rolling_gear",
+  "maturity": "local_trial",
+  "summary": "Four-pose connected carrier and source-cover contact study.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "selected shell world, mm",
+    "parent": "proposed thigh fixture",
+    "output": "proposed shin fixture"
+  },
+  "dofs": [
+    {
+      "name": "knee_flex",
+      "type": "coupled_rolling",
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "origin_mm": null,
+      "frame": "selected_shell_world"
+    }
+  ],
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/README.md",
+      "sha256": "9475bc76f07fb29b0b791f11133b9ab2fa3a40043ceac2752a92dfc5aa9d86cf"
+    },
+    {
+      "name": "pose0_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/output/carrier-0.step",
+      "sha256": "519b7118332f44df32159cd665f0e72567aff8ec6d9381b83b566fde23cef4af",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "pose45_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/output/carrier-45.step",
+      "sha256": "fec9bf1d253cfef3e58e530f8d34c82db157eaf3e7ed1b18beb36b75d217b13d",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "pose90_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/output/carrier-90.step",
+      "sha256": "fd51167afbdab3fe8bc7f9ebcc00bc11905a3b1c7fc27938e82b60bcb8b9a023",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "pose120_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/output/carrier-120.step",
+      "sha256": "f341a3641b74e834c627323bfcc0c0e1552657bb44a6577b78d6c3539fef47e5",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "pose_report",
+      "role": "motion_data",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/rolling-knee-gear-carrier/retained-support-v2/output/report.json",
+      "sha256": "12eb5d3fd2666b9878eade7a82247c9834c57e3256c53a096deb6042d6e7f087"
+    }
+  ],
+  "limits": [
+    "Original cuff, cover and shin collisions; proxy races and no rated duty."
+  ],
+  "motion_interface": {
+    "coordinates": [
+      {
+        "name": "knee_deg",
+        "unit": "deg"
+      }
+    ],
+    "samples": [
+      [
+        0
+      ],
+      [
+        45
+      ],
+      [
+        90
+      ],
+      [
+        120
+      ]
+    ],
+    "source_asset": "pose_report",
+    "meaning": "four sampled connected-carrier CAD exports with original-shell contacts"
+  }
+}

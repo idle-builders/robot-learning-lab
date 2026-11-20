@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.8)
+project(cove50_description)
+find_package(ament_cmake REQUIRED)
+install(DIRECTORY meshes DESTINATION share/${PROJECT_NAME})
+install(FILES cove50.ros.urdf cove50-shell-hidden.ros.urdf cove50.srdf DESTINATION share/${PROJECT_NAME}/urdf)
+install(FILES actuators.json sensors.json timing.json frames.json link-inertias.json compliance.json compliance-mass-splits.json part-mass-ledger.json source-lock.json DESTINATION share/${PROJECT_NAME}/contracts)
+ament_package()

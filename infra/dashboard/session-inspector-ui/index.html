@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot Learning Lab · Run archive</title>
+  <link rel="stylesheet" href="./style.css?v=archive-1">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.171.0/examples/jsm/"}}</script>
+  <script type="module" src="./app.js?v=archive-1"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html?view=archive" aria-label="Robot Learning Lab archive"><span class="brand-mark" aria-hidden="true">◉</span><span><strong>Robot Learning Lab</strong><small>Evidence inspector</small></span></a>
+    <nav class="site-nav" aria-label="Main views"><a href="http://127.0.0.1:8805/">Skill results</a><span aria-current="page">Run archive</span></nav>
+    <div class="top-actions"><span id="sync" aria-live="polite">Loading evidence…</span><button id="copy-link" type="button">Copy view link</button></div>
+  </header>
+
+  <div id="archive-view" class="archive-app">
+    <aside class="rail" aria-label="Sessions">
+      <div class="rail-title"><span class="eyebrow">RAW EVIDENCE</span><h2>Run archive</h2><p>Browse the retained runs and their original files.</p></div>
+      <div class="search-wrap"><label for="search">Find a session</label><input id="search" type="search" placeholder="Search sessions…" autocomplete="off"></div>
+      <div id="filters" class="filters" aria-label="Filter sessions"><button type="button" data-kind="Featured" aria-pressed="true">Featured</button><button type="button" data-kind="All">All</button><button type="button" data-kind="Learning">Learning</button><button type="button" data-kind="Engineering">Engineering</button><button type="button" data-kind="Reference">Reference</button></div>
+      <div class="list-heading"><span id="list-label">Sessions</span><span id="session-count"></span></div>
+      <div id="session-list" class="session-list" role="listbox" aria-label="Choose a session"></div>
+      <div class="rail-foot"><button id="refresh" type="button">↻ Refresh sessions</button><span>Local evidence · no copies</span></div>
+    </aside>
+    <main class="main">
+      <div id="empty" class="empty">Loading retained sessions…</div>
+      <div id="content" hidden>
+        <section class="intro"><div><div class="meta"><span id="current-marker" class="current-marker" hidden>CURRENT DESIGN</span><span id="kind" class="kind"></span><span id="updated"></span><span id="run-id"></span></div><h1 id="title"></h1><p id="summary"></p></div><div id="asset-counts" class="asset-counts"></div></section>
+        <nav id="tabs" class="tabs" aria-label="Inspect this session"></nav>
+        <section id="panel-overview" class="panel" aria-label="Overview"><div id="image-toolbar" class="panel-toolbar" hidden><label for="image-select">Saved image</label><select id="image-select"></select><a id="image-link" target="_blank" rel="noopener">Open full image</a></div><div class="overview-grid"><div class="hero"><img id="hero-image" alt="Session preview" hidden><div id="hero-placeholder" class="hero-placeholder"><span>◉</span><p>Session evidence</p></div></div><div class="overview-info"><h2>What is here</h2><p id="overview-copy"></p><div id="quick-actions" class="quick-actions"></div><div class="note">This archive presents saved evidence. A video or CAD replay does not by itself prove fresh learned control, mechanical clearance, or hardware performance.</div></div></div></section>
+        <section id="panel-video" class="panel" aria-label="Video" hidden><div class="panel-toolbar"><label for="video-select">Recording</label><select id="video-select"></select></div><video id="video" controls playsinline preload="metadata"></video><p id="video-name" class="file-name"></p></section>
+        <section id="panel-3d" class="panel" aria-label="3D model" hidden><div class="panel-toolbar"><label for="model-select">Model</label><select id="model-select"></select><button id="fit-model" type="button">Fit view</button><span id="mesh-label">Drag to orbit · scroll to zoom · click a part</span></div><div id="model-stage" class="model-stage"><div id="model-message">Select a model to load.</div></div><p class="caption">Standalone GLB files are shown as saved. For articulated poses and synchronized telemetry, use the session’s interactive view.</p></section>
+        <section id="panel-data" class="panel" aria-label="Data" hidden><div class="panel-toolbar"><label for="data-select">Evidence file</label><select id="data-select"></select><a id="data-link" href="#" download>Download file</a></div><pre id="data-text">Choose an evidence file.</pre></section>
+        <section id="panel-interactive" class="panel" aria-label="Interactive view" hidden><div class="panel-toolbar"><span>Original interactive experiment, inside this inspector</span><button id="reload-frame" type="button">Reload view</button></div><iframe id="legacy-frame" title="Interactive session view" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms"></iframe></section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

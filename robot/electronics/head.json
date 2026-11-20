@@ -1,0 +1,55 @@
+{
+  "schema": "cove50.head-design-freeze.v1",
+  "selected_on": "2026-10-26",
+  "status": "user_accepted_current_head_design",
+  "user_statement": "I think this is good enough. No sending emails. Let’s make sure we fix the computer & sensors for now with details, mark the selected variant for the head as the current. Perform a review of the tasks and mark them as done.",
+  "idle_decision": "M-f78pta",
+  "study_id": "cove50-compute-head-local-regulator",
+  "result_id": "cove50-compute-head-local-regulator-r2-20261026",
+  "version": "r2",
+  "source_revision": "R23",
+  "sensor_source_version": "V23",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-compute-head-local-regulator-r2-20261026&group=cove50-compute-head-local-regulator",
+  "scope": "Current head compute/sensor CAD and retained body sensor choices. User accepts this design round; build/operation qualification is deferred. Existing neck mechanism and global robot selection unchanged.",
+  "deferred": [
+    "Complete body-to-head 12 V endpoint, branch protection/connector, moving neck loop and strain relief; selected CAD has explicitly OPEN head input witnesses.",
+    "Final individual solder-joint insulation, retention, exact small-quantity wire/hardware and manufacturing/landed costs. R24 wire/cover experiment is unselected.",
+    "B0410 electrical pin/voltage/clock/sequence and actual CSI phase capture/driver/SDK integration on ROCK4D. No supplier inquiry will be sent.",
+    "Complete RGB/ToF/microphone/IMU/ADC data and power harness, storage seating/service CAD, supervisor/motor interfaces and timestamps/calibration.",
+    "Loaded voltage/boot, thermal/airflow, EMI/RF, continuous neck motion, physical clearances/tolerances, assembly, strength and creep observations.",
+    "Independent IMU register/timing simulator correction proposal T-dya7tk remains deferred outside this accepted CAD round."
+  ],
+  "no_external_contact": true,
+  "purchase_made": false,
+  "physical_trials": 0,
+  "source": {
+    "path": "artifacts/cove50-compute-architecture/head-freeze-20261026/accepted-baseline.json",
+    "sha256": "c3ad2cf33da4a35dd6a498f2a97b80ee939c3988bc071c9fb78b8bc809049483",
+    "bytes": 88854
+  },
+  "review": {
+    "path": "artifacts/cove50-compute-architecture/head-freeze-20261026/review.json",
+    "sha256": "6bf2a4922e05b81d4a585001f0735fa6023e70b82e9c1f6da92334cdba1efa66",
+    "bytes": 892364
+  },
+  "full_head_STEP": {
+    "path": "artifacts/cove50-compute-architecture/r23-powered-head-20261026/head-local-12V-routing.step",
+    "sha256": "37ee72411fa48fdc8c568b1334a0ce1343bc2ca1e4025525370b43e4c3c47498",
+    "bytes": 132302800
+  },
+  "full_head_GLB": {
+    "path": "artifacts/cove50-compute-architecture/r23-powered-head-20261026/head-local-12V-routing.glb",
+    "sha256": "b895f5faed4db8f63c4e23f4f9c715b079c6e84926c1edda718d0850a4b14f76",
+    "bytes": 76836984
+  },
+  "assembly_manifest": {
+    "path": "artifacts/cove50-compute-architecture/r23-powered-head-20261026/assembly-parts.json",
+    "sha256": "a7a3e1a28300cd53d9721441902330eba8066debcb983111828f22ecdb961321",
+    "bytes": 204758
+  },
+  "sensor_handoff": {
+    "path": "artifacts/cove50-sensor-integration/original-shell-layout-20261026/handoff.json",
+    "sha256": "32e25ca348494f7f3955fc8c8e2db291771a477505d1e0fdb3e59741b860e6c0",
+    "bytes": 3563
+  }
+}

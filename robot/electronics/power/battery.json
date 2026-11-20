@@ -1,0 +1,64 @@
+{
+  "schema": "cove50.battery-configuration-selection.v1",
+  "selected_on": "2026-10-26",
+  "status": "user_selected_configuration_and_current_design_round",
+  "task": "T-jckszv",
+  "package_task": "T-86mahc",
+  "layout_task": "T-4m6p9g",
+  "idle_decision": "M-vb8vf4",
+  "user_statement": "Alright please commit and upload all details of the power design and parts. Make sure everything is marked as selected. Cleanup old variants not relevant anymore. Then perform a review of the task and mark it as done.",
+  "configuration": {
+    "series": 3,
+    "parallel": 3,
+    "cell_count": 9
+  },
+  "runtime_intent": {
+    "description": "Aim for roughly one hour per charge; half an hour is too short for the desired experience.",
+    "reference_minutes": 60,
+    "reference_kind": "approximate design intent, not a physical qualification threshold"
+  },
+  "model_basis": {
+    "cell": "Molicel INR-21700-P50B",
+    "cell_selection_scope": "Human-selected current3S3Pdesignround, not a purchased/qualified finished pack.",
+    "capacity_ah": 15,
+    "nominal_energy_wh": 162,
+    "maximum_cell_mass_g": 639,
+    "geometry_scope": "Nine distributedsource cellkits in exactR33native poses; no tight rectangular pack claim.",
+    "electronics_output_reserve_w": {
+      "sustained": 28,
+      "peak": 45
+    },
+    "updated_runtime_minutes": null,
+    "historical_runtime_basis": {
+      "path": "artifacts/cove50-power-integration/selected-round-20261026/historical-selected-battery-before.json",
+      "sha256": "cd5f3e6a1de3711cb17001764acf410afd7591b561441f5278fd29d1cc345d5d"
+    }
+  },
+  "source": {
+    "selection": {
+      "path": "data/power-design-closeout-20261026/selection.json",
+      "sha256": "9888441864a1678f150745f50a4569ffdb08286a7b6d461f6e3234cb68765f33"
+    },
+    "mounting": {
+      "path": "artifacts/cove50-power-integration/internal-r33-20261025/installed-torso-r25/parts.json",
+      "sha256": "71fab60a2d71f41e912cecc228e9203289cdd27bc0eb0b57e6a616c8eb62d2e9"
+    },
+    "cell_datasheet": {
+      "path": "artifacts/cove50-power-integration/internal-r3-20261024/sources/p50b.pdf",
+      "sha256": "867a4873b71a7c5b758be83f8371daf5ca5cb624675ac85b405dc227504df20c"
+    }
+  },
+  "next_work": [
+    "Place and mount the remaining power functions: distribution, clamp boards, converters, bulk capacitors, main/branch fuses, service/charge ports and heat-coupled resistors. Several still have only planning envelopes; do not substitute empty targets for finished hardware.",
+    "Rebuild connected cell/main/sense/NTC wiring around the changed cell poses and mounts, including strain relief, insulation, vent paths, cable exits and service slack. Old conductor geometries were withdrawn explicitly; this scene is not an electrically connected pack.",
+    "Measure printed/metal interfaces and cell/insulator tolerances; finish controlled compliant fit, PA12 rim/arm stiffness and creep, fastener specification/preload, full extraction/motion, mounted thermal behavior and physical trial."
+  ],
+  "limits": [
+    "A static native-CAD candidate, not an assembled battery or fabrication release. Source can kits/PCB components use stated source envelopes; motor family includes invalid source solids.",
+    "No complete moving clearance, manufactured tolerance/preload, handle reach, wire/extraction path, print process, hot/wet creep, vent/impact, thermal or physical qualification.",
+    "639g is nine supplier maximum71gcells alone. The243.98g screen covers only density-assigned sharedcarrier/PA12geometry; it excludes circuits, wiring, most terminals/fasteners and remaining modules. Sharedcarrier is not duplicated structural mass.",
+    "Historical endurance is conditional and unchanged. No new electrical load, full-system thermal or full-to-empty result in this mounting round.",
+    "Remaining modules/hotparts/ports and rerouted connected harness remain uninstalled. Protectedhost5Vendpoint remains unresolved. Full-package goal is carried into the linked follow-up; accepted design-round closure is not package/hardware completion.",
+    "Historical sealed reports retain candidate/unselected wording from their measurement dates. This later human selection supersedes selection state only; it does not change their evidence or qualifications."
+  ]
+}

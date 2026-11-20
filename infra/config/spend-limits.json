@@ -1,0 +1,6 @@
+{
+  "schema": "lab.spend-limits.v1",
+  "note": "Owner, 2026-11-07: no fixed GPU budget; use reasonable GPU hours. weekly_gpu_hours null means no weekly cap. The per-job limit is the longest job the current launchers reserve (8,900 s provider timeout); going beyond it means asking the owner first. Owner, 2026-11-09: infra/storage/spend_guard.py is a reflection, not a gate. Every GPU job is recorded in data/spend-ledger.jsonl with its question, decision, cheaper check, value and notes, and GPU hours are reported with each result.",
+  "weekly_gpu_hours": null,
+  "per_job_gpu_hours": 2.5
+}

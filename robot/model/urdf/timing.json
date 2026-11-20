@@ -1,0 +1,56 @@
+{
+  "schema": "cove50.timing.v1",
+  "compute": "Selected ROCK4D6GB, no separate motion MCU selected",
+  "simulation_control_period_s": 0.02,
+  "control_rate_basis": "50Hz provisional target; no hard real-time Linux evidence",
+  "physics_timestep_s": 0.00025,
+  "flexible_physics_timestep_s": 2e-06,
+  "actuation_delay_ms": {
+    "nominal": 20,
+    "sensitivity": [
+      0,
+      20,
+      40
+    ]
+  },
+  "joint_feedback_delay_ms": {
+    "nominal": 10,
+    "sensitivity": [
+      0,
+      10,
+      30
+    ]
+  },
+  "bus": {
+    "C047_baud": 1000000,
+    "XM335_baud_assumption": 1000000,
+    "command_wire_time_ms": 1.72,
+    "feedback_wire_time_ms": 6.7,
+    "basis": "Representative20Feetech sync-write position/time/speed:8+20*7=148bytes;20*(8byte read+22byte response for16byte register window)=600bytes. TwoRobotis sync-write24bytes plus2*(14byte read+21byte response)=70bytes. Total842bytes,10bits/byte at1Mbps=8.42ms before turnaround/return delays/Linux queues. Read windows, protocol bridges and actual scheduling unverified; arithmetic scenario only."
+  },
+  "timestamps": "monotonic capture/acquisition clock mapped to host; no wall-clock subtraction across unsynchronized devices",
+  "inference_ms": {
+    "vision": [
+      15,
+      100
+    ],
+    "localization": [
+      2,
+      20
+    ],
+    "high_level_planning": [
+      20,
+      200
+    ]
+  },
+  "state": "All host/scheduler/inference/bus estimates exposed; supplier1ms position update is not guaranteed end-to-end1kHz control",
+  "qualification": "No physical timing samples; joint delayed-state and image-age behavior exercised in native synthetic evidence.",
+  "inner_servo_evaluation": {
+    "rate_Hz": 4000,
+    "basis": "Numerical evaluation of the assumed continuous Runtime PD/torque-speed law at each rigid physics step; not measured digital-servo rate.",
+    "previous_rate_Hz": 1000,
+    "unchanged": "Gains, caps, physical inertia/armature, target envelopes,20ms policy period and command delay,10ms feedback delay and nominal sensor rates.",
+    "sensor_resolution": "Accumulated nominal sensor clocks are quantized to physics steps. Actual capture/receive timestamps must be retained; nominal rates alone do not imply identical event times."
+  },
+  "numerical_scope": "Matched slow-reference comparison removed unloaded knee/ankle1ms chatter but did not complete a step. This resolves an observed numerical mode, not general convergence or physical servo calibration."
+}

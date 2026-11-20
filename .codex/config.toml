@@ -1,0 +1,5 @@
+[plugins."idle-tasks@idle-agent-tools"]
+enabled = true
+
+[plugins."idle-skills@idle-agent-tools"]
+enabled = true

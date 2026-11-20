@@ -1,0 +1,54 @@
+{
+  "schema": "cove50.wbc.references.v1",
+  "scope": "First tracking references: published selected-R3 skill episodes that already run on this body (Idle T-ge3q2k). Physically feasible by construction; they test the port, not the bridge to imperfect data.",
+  "references": [
+    {
+      "name": "forward-walk",
+      "skill": "Forward walk v4",
+      "result_id": "cove50-forward-heading-correction-20261030-r1",
+      "clip": "New candidate · after forward30 230101",
+      "trace": "artifacts/runs/cove50-forward-heading-correction-20261030-r1-3ce26458396d/evidence/after-forward30-230101/native/episodes/episode-000001-slot-0000.npz",
+      "sha256": "58d39033c46b36262b3386a2eac4407856b50cbf799c7758ae8caf1ae65736e9"
+    },
+    {
+      "name": "walk-stop",
+      "skill": "Walk to stop & short advance v2",
+      "result_id": "cove50-forward-entry-braking-20261030-r1",
+      "clip": "after long stop 230201",
+      "trace": "artifacts/runs/cove50-forward-entry-braking-20261030-r1-ee67e1637e03/evidence/after-long-stop-230201/native/episodes/episode-000001-slot-0000.npz",
+      "sha256": "371db959080a691498c75334f9988d7424e29b0027a2851ccfbd7d417c4131cb"
+    },
+    {
+      "name": "deep-squat",
+      "skill": "Squat & deep crouch v3",
+      "result_id": "cove50-deep-squat-feedback-20261101-r1",
+      "clip": "After (deep squat 22-DOF IMU feedback + full hip envelope): nominal 146001",
+      "trace": "artifacts/runs/cove50-deep-squat-feedback-20261101-r1-134332507aa6/traces/eval-after-squat_cycle-146001-nominal.npz",
+      "sha256": "c549290ff75298432f19613f56bd413012cdb56cae93d282aa1f36a4c84c3fc2"
+    },
+    {
+      "name": "deep-rise",
+      "skill": "Rise from deep crouch & seated v3",
+      "result_id": "cove50-deep-rise-feedback-20261101-r1",
+      "clip": "After (deep crouch-to-stand 22-DOF IMU feedback): nominal 146001",
+      "trace": "artifacts/runs/cove50-deep-squat-feedback-20261101-r1-134332507aa6/traces/eval-after-squat_rise-146001-nominal.npz",
+      "sha256": "5558ce4c9f77ae8c0a9dfb526ea0cc3a375481ef54c058cd48025c93c32d3769"
+    },
+    {
+      "name": "bilateral-arms",
+      "skill": "Bilateral arm raise & lower v4",
+      "result_id": "cove50-coordinated-arm-feedback-next-20261030-r1",
+      "clip": "Learned trim · No push",
+      "trace": "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/evidence/eval-0-candidate/episodes/episode-000001-slot-0000.npz",
+      "sha256": "2e5b3b32d1a259af8b7ef8250bca09c04c3fcdfa658c8a09720b9af2e91180d9"
+    },
+    {
+      "name": "alternating-arms",
+      "skill": "Independent left/right arm motion v2",
+      "result_id": "cove50-independent-arm-feedback-20261030-r1",
+      "clip": "After (22-DOF feedback): alternating left/right arms + push (140703); includes the push response",
+      "trace": "artifacts/runs/cove50-independent-arm-feedback-20261030-r1-9a5bfef92099/evaluation/eval-04-after-independent-alternating-140703.npz",
+      "sha256": "848e7344d7ccd491039bc0b4c0201782490e9f7a55b535f265cbbd5686edc5e9"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# Optional, isolated inspection of native slicer 3MF output; no printer control.
+trimesh==5.1.0
+numpy==2.5.3
+networkx==3.6.1
+lxml==6.1.3

@@ -1,0 +1,361 @@
+"""geometry: B-rep hygiene of each scoped part's native STEP: solid validity, sliver faces, micro-edges, acute wedges, tangent-continuity
+(G1) kinks, unrounded profile corners, L/R mirror volume difference, sleeve count against the part's expected-hardware setting, STEP-vs-mesh volume difference, inner/outer fillet radii, extents vs the printer build volume, load-path slab areas (per-part setting), part-vs-sleeve overlap.
+One parametrised check for the four per-section check_cad_rules; the face/edge audit is moved from leg/check_cad_rules.py without changing the maths.
+Measurements and counts only; the old all_* / == 0 gates are not reproduced."""
+from __future__ import annotations
+
+import math
+import time
+
+import numpy as np
+
+from checks import bodylib as BL
+from checks.core import R, sha, tick
+from checks.registry import register
+
+# thresholds of the old audit, kept as named measurement definitions (they define what a counted event is, not a verdict);
+# a part's own values come from its `geometry_thresholds` setting (part_settings.json, defaults there); these are the fallback
+DEFAULT_THRESHOLDS = dict(sliver_mm2=0.25, micro_edge_mm=0.30, acute_normal_deg=125.0, g1_kink_deg=8.0)
+
+
+def _face_normal_at(face, pt):
+    from OCP.BRepAdaptor import BRepAdaptor_Surface
+    from OCP.GeomAbs import GeomAbs_Cylinder, GeomAbs_Plane
+    from OCP.TopAbs import TopAbs_REVERSED
+    surf = BRepAdaptor_Surface(face)
+    st = surf.GetType()
+    rev = -1.0 if face.Orientation() == TopAbs_REVERSED else 1.0
+    if st == GeomAbs_Plane:
+        d = surf.Plane().Axis().Direction()
+        return np.array([d.X(), d.Y(), d.Z()], dtype=float) * rev
+    if st == GeomAbs_Cylinder:
+        cyl = surf.Cylinder()
+        ax_p, ax_d = cyl.Location(), cyl.Axis().Direction()
+        a = np.array([ax_d.X(), ax_d.Y(), ax_d.Z()], dtype=float)
+        v = np.array([pt.X() - ax_p.X(), pt.Y() - ax_p.Y(), pt.Z() - ax_p.Z()], dtype=float)
+        rad = v - np.dot(v, a) * a
+        n = np.linalg.norm(rad)
+        if n > 1e-9:
+            return (rad / n) * rev
+    return np.array([0.0, 0.0, 1.0], dtype=float)
+
+
+def brep_audit(sh, thresholds=None):
+    """Face and edge audit of one build123d shape (moved from leg/check_cad_rules.audit_step_part). thresholds: sliver_mm2,
+    micro_edge_mm, acute_normal_deg, g1_kink_deg (what counts as an event); missing keys take DEFAULT_THRESHOLDS."""
+    th = {**DEFAULT_THRESHOLDS, **(thresholds or {})}
+    SLIVER_MM2, MICRO_EDGE_MM, ACUTE_NORMAL_DEG, G1_KINK_DEG = th["sliver_mm2"], th["micro_edge_mm"], th["acute_normal_deg"], th["g1_kink_deg"]
+    from OCP.BRep import BRep_Tool
+    from OCP.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Surface
+    from OCP.BRepGProp import BRepGProp, BRepGProp_Face
+    from OCP.GeomAbs import GeomAbs_Cylinder, GeomAbs_Line, GeomAbs_Plane
+    from OCP.GProp import GProp_GProps
+    from OCP.gp import gp_Pnt, gp_Vec
+    from OCP.TopAbs import TopAbs_EDGE, TopAbs_FACE, TopAbs_REVERSED
+    from OCP.TopExp import TopExp, TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    from OCP.TopTools import TopTools_IndexedDataMapOfShapeListOfShape
+    exp_f = TopExp_Explorer(sh.wrapped, TopAbs_FACE)
+    total_faces = sliver = cyl_faces = plane_faces = curved = 0
+    min_face_area = 1e9
+    worst_sliver = None
+    inner_r, outer_r = [], []
+    while exp_f.More():
+        f = TopoDS.Face_s(exp_f.Current())
+        total_faces += 1
+        g = GProp_GProps(); BRepGProp.SurfaceProperties_s(f, g)
+        area = float(g.Mass())
+        st = BRepAdaptor_Surface(f).GetType()
+        if st == GeomAbs_Plane:
+            plane_faces += 1
+            if area < min_face_area:
+                min_face_area = area
+            if area < SLIVER_MM2:
+                sliver += 1
+                c = GProp_GProps(); BRepGProp.SurfaceProperties_s(f, c)
+                p = c.CentreOfMass()
+                if worst_sliver is None or area < worst_sliver[0]:
+                    worst_sliver = (area, [round(p.X(), 2), round(p.Y(), 2), round(p.Z(), 2)])
+        elif st == GeomAbs_Cylinder:
+            cyl_faces += 1; curved += 1
+            sa = BRepAdaptor_Surface(f, True)
+            r_cyl, u_span = float(sa.Cylinder().Radius()), abs(float(sa.LastUParameter() - sa.FirstUParameter()))
+            if r_cyl <= 5.5 and u_span < 5.5:        # small fillet-like cylinder: concave (inner) or convex (outer)?
+                p_mid, vn = gp_Pnt(), gp_Vec()
+                BRepGProp_Face(f).Normal(0.5 * float(sa.FirstUParameter() + sa.LastUParameter()), 0.5 * float(sa.FirstVParameter() + sa.LastVParameter()), p_mid, vn)
+                ax = sa.Cylinder().Axis(); p0 = ax.Location()
+                d_ax = np.array([ax.Direction().X(), ax.Direction().Y(), ax.Direction().Z()], dtype=float)
+                v_p = np.array([p_mid.X() - p0.X(), p_mid.Y() - p0.Y(), p_mid.Z() - p0.Z()], dtype=float)
+                r_vec = v_p - np.dot(v_p, d_ax) * d_ax
+                (inner_r if float(np.dot(np.array([vn.X(), vn.Y(), vn.Z()]), r_vec)) < 0.0 else outer_r).append(r_cyl)
+        else:
+            curved += 1
+        exp_f.Next()
+    ef = TopTools_IndexedDataMapOfShapeListOfShape()
+    TopExp.MapShapesAndAncestors_s(sh.wrapped, TopAbs_EDGE, TopAbs_FACE, ef)
+    total_edges = zigzag = acute = g1 = hub = unround = 0
+    min_edge, max_normal = 1e9, 0.0
+    worst_zig = worst_acute = None
+    for i in range(1, ef.Extent() + 1):
+        edge = TopoDS.Edge_s(ef.FindKey(i))
+        if BRep_Tool.Degenerated_s(edge):
+            continue
+        g = GProp_GProps(); BRepGProp.LinearProperties_s(edge, g)
+        length = float(g.Mass())
+        if length < 1e-6:
+            continue
+        total_edges += 1
+        faces = ef.FindFromIndex(i)
+        if faces.Extent() != 2:
+            continue
+        f1, f2 = TopoDS.Face_s(faces.First()), TopoDS.Face_s(faces.Last())
+        s1, s2 = BRepAdaptor_Surface(f1), BRepAdaptor_Surface(f2)
+        t1, t2 = s1.GetType(), s2.GetType()
+        c = BRepAdaptor_Curve(edge)
+        u = 0.5 * (c.FirstParameter() + c.LastParameter())
+        pt, vt = gp_Pnt(), gp_Vec()
+        c.D1(u, pt, vt)
+        n1, n2 = _face_normal_at(f1, pt), _face_normal_at(f2, pt)
+        ang = math.degrees(math.acos(np.clip(float(np.dot(n1, n2)), -1.0, 1.0)))
+        where = [round(pt.X(), 2), round(pt.Y(), 2), round(pt.Z(), 2)]
+        if t1 == GeomAbs_Plane and t2 == GeomAbs_Plane:
+            min_edge = min(min_edge, length)
+            if c.GetType() == GeomAbs_Line and length < MICRO_EDGE_MM and ang > 10.0:
+                zigzag += 1
+                if worst_zig is None or length < worst_zig[0]:
+                    worst_zig = (length, where)
+            if length > 0.50:
+                max_normal = max(max_normal, ang)
+                if ang > ACUTE_NORMAL_DEG:
+                    acute += 1
+                    if worst_acute is None or ang > worst_acute[0]:
+                        worst_acute = (ang, where)
+            if c.GetType() == GeomAbs_Line and 1.8 <= length <= 9.5 and ang > 25.0:
+                d = c.Line().Direction()
+                if max(abs(d.X()), abs(d.Y()), abs(d.Z())) > 0.995 and abs(float(np.dot(n1, n2))) > 0.08:
+                    unround += 1
+        elif (t1 == GeomAbs_Cylinder and t2 == GeomAbs_Plane) or (t1 == GeomAbs_Plane and t2 == GeomAbs_Cylinder) \
+                or (t1 == GeomAbs_Cylinder and t2 == GeomAbs_Cylinder):
+            if c.GetType() == GeomAbs_Line and length > 0.8:
+                if ang <= G1_KINK_DEG:
+                    g1 += 1
+                elif (t1 == GeomAbs_Cylinder) != (t2 == GeomAbs_Cylinder):
+                    fc, sc = (f1, s1) if t1 == GeomAbs_Cylinder else (f2, s2)
+                    if fc.Orientation() != TopAbs_REVERSED and sc.Cylinder().Radius() >= 9.5 and ang > 15.0:
+                        hub += 1
+    denom = max(1, g1 + unround + hub)
+    return dict(total_faces=total_faces, planar_faces=plane_faces, cylindrical_faces=cyl_faces, curved_faces=curved, total_edges=total_edges,
+                sliver_faces=sliver, min_face_area_mm2=round(float(min_face_area if min_face_area < 1e8 else 0.0), 4),
+                micro_edges=zigzag, min_edge_length_mm=round(float(min_edge if min_edge < 1e8 else 0.0), 4),
+                acute_wedge_edges=acute, min_interior_dihedral_deg=round(180.0 - float(max_normal), 2),
+                g1_tangent_transitions=g1, non_tangent_hub_steps=hub, unrounded_profile_corners=unround,
+                tangential_continuity_ratio=round(g1 / denom, 4),
+                inner_fillet_faces=len(inner_r), outer_fillet_faces=len(outer_r),
+                mean_inner_fillet_radius_mm=round(float(np.mean(inner_r)), 3) if inner_r else None,
+                mean_outer_fillet_radius_mm=round(float(np.mean(outer_r)), 3) if outer_r else None), dict(sliver=worst_sliver, micro=worst_zig, acute=worst_acute)
+
+
+def _mesh_mf(ctx, name):
+    """Closed manifold of a part's manifest mesh (placement offset applied) or None."""
+    m = ctx.body.mesh(name)
+    mf = kit_mf(m)
+    return mf if mf.status().name == "NoError" and mf.volume() > 0 else None
+
+
+def kit_mf(m):
+    from checks.core import kit
+    return kit.mf(m)
+
+
+def plate_fit(ctx, name, sh):
+    """Extents of the part in its print frame (process.up -> +Z, plate_yaw_deg about it) against the printer's build volume,
+    for the main nozzle and for both nozzles (support from the second): per-axis margin (mm, negative = does not fit), and
+    the margin at the best plate yaw (the yaw that maximises the smallest X / Y margin, 0.5 deg steps over 0-180 deg).
+    Without a print direction: the old screen (sorted STEP extents against sorted build volume, orientation free)."""
+    from checks import process as P
+    _, prns = P.tables()
+    e = P.effective(ctx, name)
+    prn = prns.get(e["printer"] or "", {})
+    vols = {k: prn.get(k) for k in ("build_volume_mm", "build_volume_both_nozzles_mm") if prn.get(k)}
+    out = dict(printer=e["printer"], up=e["up"], up_source=e["source"]["up"], plate_yaw_deg=e["plate_yaw_deg"], build_volume_mm=vols.get("build_volume_mm"))
+    if e["up"] is None:
+        b = sh.bounding_box()
+        ext = sorted([b.size.X, b.size.Y, b.size.Z], reverse=True)
+        out.update(frame="STEP frame, orientation free (no print direction)", extents_mm=[round(float(v), 2) for v in ext])
+        if vols.get("build_volume_mm"):
+            bed = sorted(vols["build_volume_mm"], reverse=True)
+            out["bed_margin_mm"] = [round(bed[i] - ext[i], 2) for i in range(3)]
+            out["min_bed_margin_mm"] = min(out["bed_margin_mm"])
+        return out
+    v = P.print_mesh(ctx, name, e).vertices
+    ext = v.max(0) - v.min(0)
+    hull = v[:, :2]
+    try:
+        from scipy.spatial import ConvexHull
+        hull = hull[ConvexHull(hull).vertices]
+    except Exception:  # noqa: BLE001
+        pass
+    out.update(frame="print frame (up -> +Z)", extents_mm=[round(float(x), 2) for x in ext])
+    for key, bv in vols.items():
+        tag = "" if key == "build_volume_mm" else "_both_nozzles"
+        mg = [round(bv[i] - float(ext[i]), 2) for i in range(3)]
+        best = None
+        for yaw in np.arange(0.0, 180.0, 0.5):     # 0-180: the both-nozzle volume is not square
+            a = np.radians(yaw)
+            xy = hull @ np.array([[np.cos(a), np.sin(a)], [-np.sin(a), np.cos(a)]])
+            w = xy.max(0) - xy.min(0)
+            m = min(bv[0] - w[0], bv[1] - w[1])
+            if best is None or m > best[0]:
+                best = (m, yaw, w)
+        out[f"bed_margin{tag}_mm"] = mg
+        out[f"min_bed_margin{tag}_mm"] = min(mg)
+        out[f"best_yaw{tag}_deg"] = float(best[1])
+        out[f"min_bed_margin_best_yaw{tag}_mm"] = round(min(best[0], bv[2] - float(ext[2])), 2)
+    return out
+
+
+def loadpath_slices(mesh_mf, spec, n_default=12):
+    """Slab areas along spec {axis, range_mm, n_slices}: area of each slab (mm2), parallel branches, branches that do not reach both neighbouring slabs
+    (moved from arm/check_cad_rules.check_loadpath_slice_continuity)."""
+    import manifold3d as md
+    ax = {"x": 0, "y": 1, "z": 2}[spec["axis"]]
+    n = int(spec.get("n_slices", n_default))
+    s_min, s_max = spec["range_mm"]
+    edges = np.linspace(s_min, s_max, n + 1)
+    eps = 0.15
+    lo, hi = np.array(mesh_mf.bounding_box()[:3]) - 10.0, np.array(mesh_mf.bounding_box()[3:]) + 10.0
+    comps_by_slab, areas = [], []
+    for i in range(n):
+        a0, a1 = float(edges[i]) - eps, float(edges[i + 1]) + eps
+        size = list(hi - lo); org = list(lo)
+        size[ax], org[ax] = a1 - a0, a0
+        slab = mesh_mf ^ md.Manifold.cube(size).translate(org)
+        areas.append(round(float(slab.volume()) / max(1e-6, a1 - a0), 2))
+        comps_by_slab.append([c for c in slab.decompose() if float(c.volume()) / max(1e-6, a1 - a0) >= 1.5])
+    severed = 0
+    for i in range(1, n - 1):
+        pu = md.Manifold.batch_boolean(comps_by_slab[i - 1], md.OpType.Add) if comps_by_slab[i - 1] else md.Manifold()
+        nu = md.Manifold.batch_boolean(comps_by_slab[i + 1], md.OpType.Add) if comps_by_slab[i + 1] else md.Manifold()
+        for c in comps_by_slab[i]:
+            vp = float((c ^ pu).volume()) if comps_by_slab[i - 1] else 0.0
+            vn = float((c ^ nu).volume()) if comps_by_slab[i + 1] else 0.0
+            if vp < 1e-3 or vn < 1e-3:
+                severed += 1
+    return dict(axis=spec["axis"], range_mm=[s_min, s_max], slab_areas_mm2=areas, min_slab_area_mm2=round(min(areas), 2),
+                mean_slab_area_mm2=round(float(np.mean(areas)), 2), max_parallel_branches=int(max(len(c) for c in comps_by_slab)),
+                severed_or_deadend_branches=severed)
+
+
+def _step(ctx, name):
+    p = ctx.parts.get(name)
+    if not p or not p.get("native_step"):
+        return None
+    return BL.src(p["native_step"])
+
+
+def _solids(step):
+    from build123d import import_step
+    sh = import_step(str(step))
+    return sh, list(sh.solids())
+
+
+def _mirror_name(n):
+    return ("L_" + n[2:]) if n.startswith("R_") else ("R_" + n[2:]) if n.startswith("L_") else None
+
+
+def audit_part(ctx, name):
+    step = _step(ctx, name)
+    if step is None:
+        return None
+    t0 = time.time()
+    sh, sols = _solids(step)
+    vol = sum(float(s.volume) for s in sols)
+    out = dict(step_sha256=sha(step), solids=len(sols), invalid_solids=sum(1 for s in sols if not s.is_valid), volume_mm3=round(vol, 2))
+    mirror = _mirror_name(name)
+    mstep = _step(ctx, mirror) if mirror else None
+    if mstep is not None:
+        _, msols = _solids(mstep)
+        mv = sum(float(s.volume) for s in msols)
+        out.update(mirror_part=mirror, mirror_volume_mm3=round(mv, 2), mirror_invalid_solids=sum(1 for s in msols if not s.is_valid),
+                   mirror_volume_diff_pct=round(abs(vol - mv) / max(1.0, vol) * 100.0, 4))
+    else:
+        out.update(mirror_part=None, mirror_volume_diff_pct=None)
+    slv = ctx.parts.get(f"{name}_steel_sleeves")
+    slv_step = BL.src(slv["native_step"]) if slv and slv.get("native_step") else None
+    n_slv = len(_solids(slv_step)[1]) if slv_step is not None else 0
+    exp = (ctx.settings(name).get("expected_hardware") or {}).get("steel_sleeves")
+    out.update(sleeves=n_slv, expected_sleeves=exp, sleeves_missing=None if exp is None else exp - n_slv)
+    # STEP vs manifest mesh volume (the mesh is what the other checks measure) and part vs its sleeves
+    pmf = _mesh_mf(ctx, name)
+    out["mesh_volume_mm3"] = None if pmf is None else round(float(pmf.volume()), 2)
+    out["step_vs_mesh_volume_diff_pct"] = None if pmf is None else round(abs(vol - float(pmf.volume())) / max(1.0, vol) * 100.0, 4)
+    smf = _mesh_mf(ctx, f"{name}_steel_sleeves") if slv else None
+    out["sleeve_overlap_mm3"] = None if (pmf is None or smf is None) else round(float((pmf ^ smf).volume()), 5)
+    out.update(plate_fit(ctx, name, sh))
+    spec = ctx.settings(name).get("loadpath_slices")
+    out["loadpath"] = loadpath_slices(pmf, spec) if (spec and pmf is not None) else None
+    th = {**DEFAULT_THRESHOLDS, **(ctx.settings(name).get("geometry_thresholds") or {})}
+    meas, worst = brep_audit(sh, th)
+    out["thresholds"] = th
+    out.update(meas)
+    out["_worst"] = worst
+    out["seconds"] = round(time.time() - t0, 1)
+    return out
+
+
+@register("geometry", lambda ctx: any(ctx.parts[n].get("native_step") for n in ctx.scope))
+def run(ctx):
+    """B-rep hygiene per scoped part (native STEP): invalid solids, sliver faces, micro-edges, acute wedges, G1 kinks, unrounded corners, L/R volume difference, sleeves vs expected."""
+    t0 = time.time()
+    per_part, cases, skipped = {}, [], []
+    tot = dict(invalid_solids=0, sliver_faces=0, micro_edges=0, acute_wedge_edges=0, non_tangent_hub_steps=0, unrounded_profile_corners=0)
+    for n in ctx.scope:
+        r = audit_part(ctx, n)
+        if r is None:
+            skipped.append(n)
+            continue
+        w = r.pop("_worst")
+        per_part[n] = r
+        for k in tot:
+            tot[k] += r[k] if k != "invalid_solids" else r["invalid_solids"] + r.get("mirror_invalid_solids", 0)
+        if w["sliver"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["sliver"][1], value=round(w["sliver"][0], 4), unit="mm2 smallest planar face", what=f"{r['sliver_faces']} sliver faces"))
+        if w["micro"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["micro"][1], value=round(w["micro"][0], 4), unit="mm shortest micro-edge", what=f"{r['micro_edges']} micro-edges"))
+        if w["acute"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["acute"][1], value=round(w["acute"][0], 1), unit="deg sharpest wedge normal angle", what=f"{r['acute_wedge_edges']} acute wedge edges"))
+        if not r["solids"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=float(r.get("total_faces") or 0), unit="faces, no solid",
+                              what="the native STEP holds faces but no solid: every solid-based check falls back to the mesh"))
+        if r["mirror_volume_diff_pct"]:
+            cases.append(dict(part=n, mating_part=r["mirror_part"], pose=None, location_mm=None, value=r["mirror_volume_diff_pct"], unit="% L/R volume difference", what="mirror volume"))
+        if r["sleeves_missing"]:
+            cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=r["sleeves_missing"], unit="sleeves short of expected", what=f"{r['sleeves']} of {r['expected_sleeves']}"))
+    for n, r in per_part.items():
+        if r.get("min_bed_margin_mm") is not None:     # context (listed in the report only) while the part fits; a negative margin is a finding
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["min_bed_margin_mm"], unit="mm smallest margin to build volume", context=r["min_bed_margin_mm"] >= 0,
+                              what=f"extents {r['extents_mm']} ({r['frame']}, up {r['up']}) on {r['printer']}"
+                                   + (f"; both nozzles {r['min_bed_margin_both_nozzles_mm']} mm" if r.get("min_bed_margin_both_nozzles_mm") is not None else "")
+                                   + (f"; best yaw {r['best_yaw_deg']} deg gives {r['min_bed_margin_best_yaw_mm']} mm" if r.get("best_yaw_deg") else "")))
+        if r["sleeve_overlap_mm3"]:
+            cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=r["sleeve_overlap_mm3"], unit="mm3 part/sleeve overlap", what="sleeve overlap"))
+        if r["loadpath"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["loadpath"]["min_slab_area_mm2"], unit="mm2 thinnest load-path slab", what=f"{r['loadpath']['severed_or_deadend_branches']} severed branches"))
+        if r["step_vs_mesh_volume_diff_pct"]:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["step_vs_mesh_volume_diff_pct"], unit="% STEP vs mesh volume", what="STEP/mesh identity",
+                              context=True))   # the summary's header already names parts whose screening solid is over 5 % off
+    tick("geometry", t0)
+    cases.sort(key=lambda c: (bool(c.get("context")), c["unit"] != "faces, no solid", -c["value"] if c["unit"].startswith(("%", "sleeves", "mm3")) else c["value"]))
+    return dict(per_part=per_part, worst_cases=cases[:20],
+                bad_events=dict(parts_audited=len(per_part), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
+                                acute_wedge_edges=tot["acute_wedge_edges"], non_tangent_hub_steps=tot["non_tangent_hub_steps"],
+                                unrounded_profile_corners=tot["unrounded_profile_corners"],
+                                parts_over_build_volume=sum(1 for r in per_part.values() if (r.get("min_bed_margin_mm") or 0) < 0),
+                                parts_over_build_volume_both_nozzles=sum(1 for r in per_part.values() if (r.get("min_bed_margin_both_nozzles_mm") or 0) < 0),
+                                parts_without_print_direction=sum(1 for r in per_part.values() if r.get("up") is None),
+                                parts_with_sleeve_overlap_over_0p05_mm3=sum(1 for r in per_part.values() if (r["sleeve_overlap_mm3"] or 0) > 0.05),
+                                loadpath_severed_branches=sum((r["loadpath"] or {}).get("severed_or_deadend_branches", 0) for r in per_part.values()),
+                                parts_without_native_step=len(skipped),
+                                steps_without_solid=sum(1 for r in per_part.values() if not r["solids"])),
+                evidence=[], notes="OpenCascade B-rep audit of the native STEP; event thresholds per part (setting geometry_thresholds, per_part[...].thresholds; defaults sliver < 0.25 mm2 planar face, micro-edge < 0.30 mm, acute wedge = normal angle > 125 deg on edges > 0.5 mm, "
+                                   "G1 = cylinder/plane transition kink <= 8 deg); fillets = small cylinders (r <= 5.5 mm) split concave/convex; bed = extents in the print frame (process.up, plate_yaw_deg) vs the printer's build volume, main nozzle and both nozzles, plus the best plate yaw; without a print direction sorted STEP extents (orientation free); load-path slabs from the part's `loadpath_slices` setting (null = not set); sleeve overlap = manifest-mesh boolean; sleeves = solids of <part>_steel_sleeves STEP vs part_settings expected_hardware.steel_sleeves (null = not set)")

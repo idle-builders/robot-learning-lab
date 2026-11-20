@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ape Control"
+  short_description: "Train and verify learned ape body policies"
+  default_prompt: "Use $ape-control to replay or improve an ape policy with its exact body, data interface and graded physical outcome evidence."

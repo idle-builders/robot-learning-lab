@@ -1,0 +1,12 @@
+{
+  "_doc": "Robot section -> owning links (a name without L_/R_ means both sides) and extra part-name globs. Source of truth for --section. Edit when a link changes owner.",
+  "Hip": {"links": ["yaw_link", "pitch_link", "roll_link"], "parts": []},
+  "Knee": {"links": ["shin"], "parts": []},
+  "Ankle / foot": {"links": ["ankle_pitch", "foot"], "parts": []},
+  "Shoulder": {"links": ["shoulder_pitch_link", "shoulder_roll_link"], "parts": []},
+  "Elbow": {"links": ["upper_arm", "forearm"], "parts": []},
+  "Hand / wrist": {"links": ["left_finger", "right_finger"], "parts": ["*_palm_*"]},
+  "Neck / head": {"links": ["neck_yaw", "head"], "parts": []},
+  "Torso": {"links": ["torso"], "parts": []},
+  "Waist / pelvis": {"links": [], "parts": ["*[Pp]elvis*"]}
+}

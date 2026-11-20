@@ -1,0 +1,101 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "A2",
+  "region": "ankle_foot",
+  "name": "Paired rods and central two-axis ankle support",
+  "architecture": "paired_link",
+  "maturity": "bench",
+  "summary": "Paired-drive mechanism and finite pitch/roll closure study.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/parametric/paired-drive-ankle/README.md",
+      "sha256": "100b4c4a67d3e6a20d9adac2688bc4a0b88bf69c7d4228fb2739c6bdd3e04086"
+    },
+    {
+      "name": "neutral_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/parametric/paired-drive-ankle/output/mechanism-neutral.step",
+      "sha256": "5372462e77d35dff70662d4f37589eccf363c81bf0264312a229777991cfc928",
+      "units": "mm",
+      "frame": "study-local geometry"
+    },
+    {
+      "name": "mixed_pose_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/parametric/paired-drive-ankle/output/mechanism-plus20-plus10.step",
+      "sha256": "7e09193ff058dd5bf8fed6fe59d3ed79766be0dddebe077038567c3e76e7fe43",
+      "units": "mm",
+      "frame": "study-local geometry"
+    },
+    {
+      "name": "closure",
+      "role": "motion_data",
+      "path": "studies/cove50-morphology/joint-box/parametric/paired-drive-ankle/output/closure.json",
+      "sha256": "9a821fcc8c12effd2fbaf65cb2a915b610656d2008338cf945343b6c1b7c9e15"
+    }
+  ],
+  "limits": [
+    "Central gimbal, installed crank, shell passage and full support unresolved."
+  ],
+  "motion_interface": {
+    "coordinates": [
+      {
+        "name": "pitch_deg",
+        "unit": "deg"
+      },
+      {
+        "name": "roll_deg",
+        "unit": "deg"
+      }
+    ],
+    "samples": [
+      [
+        0,
+        0
+      ],
+      [
+        -20,
+        0
+      ],
+      [
+        20,
+        0
+      ],
+      [
+        0,
+        -10
+      ],
+      [
+        0,
+        10
+      ],
+      [
+        -20,
+        -10
+      ],
+      [
+        -20,
+        10
+      ],
+      [
+        20,
+        -10
+      ],
+      [
+        20,
+        10
+      ]
+    ],
+    "source_asset": "closure",
+    "meaning": "finite paired-drive closure samples, not installed motion"
+  }
+}

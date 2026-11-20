@@ -1,0 +1,31 @@
+{
+ "_doc": "Which manifest links each BOM line of the body manifest covers (base link names; L_ / R_ variants included). Read by the bom check. Lines are matched by their id prefix: printed parts (roles printed_structural_connector / carrier) and steel sleeves on these links are counted against the line's quantity. _parts: parts assigned to a line by name, overriding their link (the neck root cradle sits on the torso link but is a neck / head part). _roles: lines counted by part role instead of links (battery fins).",
+ "lower_body": [
+  "yaw_link",
+  "pitch_link",
+  "roll_link",
+  "shin",
+  "ankle_pitch",
+  "foot"
+ ],
+ "arm": [
+  "shoulder_pitch_link",
+  "shoulder_roll_link",
+  "upper_arm",
+  "forearm"
+ ],
+ "neck_head": [
+  "neck_yaw",
+  "head"
+ ],
+ "torso": [
+  "torso"
+ ],
+ "_parts": {
+  "combined__neck_root_cradle": "neck_head",
+  "combined__neck_root_cradle_steel_sleeves": "neck_head"
+ },
+ "_roles": {
+  "honeycomb_battery_fins": "battery_heatsink_fin"
+ }
+}

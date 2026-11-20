@@ -1,0 +1,43 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "A1",
+  "region": "ankle_foot",
+  "name": "Serial two-axis ankle with belt output",
+  "architecture": "serial_two_axis",
+  "maturity": "local_trial",
+  "summary": "Source-sized serial ankle reservation scene and later integral output interface trial.",
+  "source_record_ids": [],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "study",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/serial-ankle-remote-pitch/README.md",
+      "sha256": "3ca857ff47949d3f37360e039a98e9b893a0334b0bdd60c876daa5657c441249"
+    },
+    {
+      "name": "reservation_step",
+      "role": "cad_step",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/serial-ankle-remote-pitch/scene-output/complete-neutral-reservation-scene.step",
+      "sha256": "1a62670aec69ed8e7832981f651fdd6ac78dee5e3f619e7e63d186e1eea0f647",
+      "units": "mm",
+      "frame": "selected shell world"
+    },
+    {
+      "name": "reservation_glb",
+      "role": "cad_glb",
+      "path": "studies/cove50-morphology/joint-box/real-carriers/serial-ankle-remote-pitch/scene-output/complete-neutral-reservation-scene.glb",
+      "sha256": "0fd9bd4745408658abba8d4ae3461e3d57c6231295d49292cfb783932f6ecceb",
+      "units": "m",
+      "frame": "selected shell world"
+    }
+  ],
+  "limits": [
+    "Purchased pulley clearance was corrected; cover passage and assembly remain blocked."
+  ]
+}

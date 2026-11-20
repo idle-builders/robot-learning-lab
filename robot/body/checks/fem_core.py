@@ -1,0 +1,685 @@
+"""One FEM path for every per-part setup: one mesher (gmsh P1 tets, fem_lib.mesh_compound_steps), one solver
+(unit-wrench basis at the load patch, support patches clamped; maths moved from motor-refit/fem_refit.solve with the
+material table injected from data/materials.json), one material table, patches that follow the part.
+
+A setup is data in data/part_settings.json under part_settings[part]["fem"]:
+
+  mesh_h_mm        2.2
+  bonded           [{"part": "<sleeve part>", "material": "<name in data/materials.json>"}]   companions meshed with the part (bonded);
+                   the first distinct material is mesh id 2, a second distinct one mesh id 0; solve reads these names
+  origin_mm        [x, y, z] | {"joint": J | "joints": [A, B] (midpoint), "offset_mm": [dx, dy, dz]} | "load_centroid"   body point the wrenches are given about (manifest frame);
+                   the joint form follows the joint when the part moves; load_centroid = the load patch's nodal-weight centroid
+                   optional "step_offset_mm" per companion replaces the manifest's native_step_offset_mm (legacy reproduction only)
+  open_difference  text: known difference to the old study (echoed into the fem and fem_setup reports)
+  supports         {"name": PATCH, ...} clamped (all nodes of every support patch fixed)
+  load             PATCH                 the wrench is distributed over it (minimum-weight, 6 components)
+  load_cases       {"name": {"wrench_N_Nmm": [Fx, Fy, Fz, Mx, My, Mz]} | {"stall": {"joint": J, "torque_Nmm": T}} | {"hand_envelope": {...}} (checks/arm_loads.py: many wrenches)
+                              | {"transfer": {"F_N": [..], "M_Nm": [..], "scale": s, "from_mm": [x, y, z], "lever": l}}}   transfer = a force / moment given at from_mm,
+                   scaled, moment at the origin M*s + l * (from - origin) x F*s (neck-head head wrench)
+  materials        [names in data/materials.json]   default: the part's process.material
+  regions          [{"material": name, "where": REGION, "only_polymer": bool}]   elements (by centroid) taking another material, in order, later ones overwrite earlier
+                   (an Al seat with only_polymer keeps the steel collars set before it); distinct materials of bonded + regions: at most two
+                   REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   within r of every bore of the sleeve part, e beyond its ends
+                          | {"contact_band": {"parts": [mating parts], "dist_mm": d}}                  within d of the named mating parts' surfaces (follows them)
+                          | {"capsules": ...} | {"box": ...}                                           legacy hand-typed sites (see point_pred)
+  variants         {"name": {...keys above replaced...}}   e.g. the old hand-typed patches, run with --fem-variant
+
+  PATCH = {"contact": [mating part names], "gap_mm": g}     surface of the part within g of the named parts (follows them)
+        | {"holes": {"mate": [mating part names], "gap_mm": g, "r_max_mm": 5.0, "rim_mm": 2.0}}
+                                                            the part's own bolt holes (cylindrical faces from r_min_mm (default 0) up to r_max) whose axis lies within g of a
+                                                            mating part, with a rim of rim_mm around each; follows the part and the mating parts.
+                                                            "of": <sleeve part> takes the hole faces from that companion instead of the part (the pressed-in sleeves
+                                                            sit exactly at the bolt sites): the part's surface within the sleeve radius + rim, along the sleeve + 0.5 mm.
+                                                            "axis_within_deg": {"axis": [x, y, z], "deg": d} keeps only the holes pointing within d degrees of the axis
+                                                            (sign ignored): separates sleeves of two servos that both lie close to one mating part
+        | {"axis_band": {...}}                              surface within r_mm of a joint axis on one side of a mating part (clamp cheeks)
+        | {"box": {"y": [min|null, max|null], ...}}         axis-aligned half-spaces / slabs (legacy)
+        | {"spheres": {"centres": [[x, y, z]], "radius_mm": r}} | {"cylinder_shells": {"axis": "y", "centres": [[u, w]], "radius_mm": r,
+                                                            "tol_mm": t, "along_mid_mm": m, "along_half_mm": h}}      legacy (pelvis cradle)
+        | {"capsules": {"sites": [[x, y, z]], "normals": [[..]], "proj_mm": [lo, hi], "r_mm": r}}   legacy hand-typed bolt sites (see point_pred)
+        | {"rings": {"axes": [a, b], "sites": [[u, v], ..], "radius_mm": r, "where": {"axis": "y", "max": -8.0}}}
+                                                            legacy hand-typed coordinates (kept only to reproduce old numbers)
+        | [PATCH, PATCH]                                    union
+A material of the table can be {"fem": {"factor_of_part_material": f}}: f times the part's own Hooke matrix (the old torso sleeve-zone stiffness, named option).
+Any PATCH dict can carry "rigid": true. Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
+at the origin, direct solve) and the wrench acts on that reference node: the load patch cannot bend between its sites. Support: the nodes are fixed, which already is a fixed rigid body (the flag changes nothing).
+Run option ctx.fem_rigid_load (run.py --fem-rigid-load) makes the stored load patch rigid for a comparison run. Run option: ctx.fem_mesh_h (run.py --fem-mesh-h) replaces mesh_h_mm of every setup (mesh convergence).
+The layer normal is the part's decided print direction (process.up, the print setup, sign irrelevant for the orthotropic axis), the manifest frame is the frame of all coordinates.
+A part without a print direction falls back to process.layer_normal_axes and says so. process.layer_normal_axes stays in the data as provenance: it is the input of the comparison
+variant --fem-variant studied_axes (the old studied axes, run as several layer-normal variants), which replaces no other key of the setup.
+"""
+from __future__ import annotations
+
+import json
+import os
+import time
+
+import numpy as np
+from scipy.sparse.linalg import spsolve
+from scipy.spatial import cKDTree
+
+from checks import bodylib as BL
+from checks import fem_lib as FL
+from checks.core import CACHE, DATA, ROOT, WORK, R, sha
+from checks.fem_lib import hooke, materials  # noqa: F401
+
+AX = {"x": 0, "y": 1, "z": 2}
+STUDIED = "studied_axes"      # --fem-variant: layer normals = the stored process.layer_normal_axes instead of the decided print direction
+
+
+def LL():
+    """The FEM library (mesher, patch weights, elasticity assembly, quantiles): checks/fem_lib.py."""
+    return FL
+
+
+# ------------------------------------------------------------------------------------------------ setups
+def merged_setup(ctx, part, variant=None):
+    """fem setup of a part (None when it has none); a variant replaces the keys it names."""
+    s = ctx._settings.get(part, {}).get("fem")
+    if not s:
+        return None
+    s = {k: v for k, v in s.items() if k != "variants"}
+    if variant and variant != STUDIED:
+        v = ctx._settings[part]["fem"].get("variants", {}).get(variant)
+        if v is None:
+            return None
+        s.update(v)
+    if getattr(ctx, "fem_mesh_h", None):
+        s["mesh_h_mm"] = float(ctx.fem_mesh_h)
+    if getattr(ctx, "fem_rigid_load", False) and not is_rigid(s["load"]):     # comparison run: the stored load patch made rigid
+        s["load"] = [{**x, "rigid": True} for x in (s["load"] if isinstance(s["load"], list) else [s["load"]])]
+    return s
+
+
+def is_rigid(spec):
+    """True when a PATCH (or any member of a union) carries "rigid": true."""
+    return any(isinstance(x, dict) and x.get("rigid") for x in (spec if isinstance(spec, list) else [spec]))
+
+
+def layer_direction(ctx, part, variant=None):
+    """Layer-normal axes of a part's FEM and where they come from.
+    Decided run: the axis of process.up (print setup, sign dropped); a part without a print direction, or one that is not along an axis,
+    falls back to its stored layer_normal_axes (`fallback` says why). Variant 'studied_axes': the stored axes.
+    Returns dict(axes [0..2], up, up_source, stored [letters], source, fallback, disagrees: print axis not among the stored axes)."""
+    from checks import process as PR
+    eff = PR.effective(ctx, part)
+    stored = list(ctx.settings(part)["process"].get("layer_normal_axes") or [])
+    up, usrc = eff["up"], eff["source"]["up"]
+    v = PR.up_vector(up)
+    axis = None
+    if v is not None:
+        k = int(np.argmax(np.abs(v)))
+        axis = "xyz"[k] if abs(v[k]) > 1 - 1e-6 else None
+    out = dict(up=up, up_source=usrc, seeded=usrc == "seeded", stored=stored, fallback=None, disagrees=bool(axis and stored and axis not in stored),
+               print_axis=axis)
+    if variant == STUDIED:
+        out.update(source="stored layer_normal_axes (comparison variant studied_axes)", axes=[AX[a] for a in stored])
+    elif axis:
+        out.update(source=f"print direction {up} ({usrc})", axes=[AX[axis]])
+    else:
+        out["fallback"] = "no print direction" if up is None else f"print direction {up} is not along an axis"
+        out.update(source="stored layer_normal_axes (fallback: " + out["fallback"] + ")", axes=[AX[a] for a in stored])
+    return out
+
+
+def layer_normals(ctx, part, variant=None):
+    return layer_direction(ctx, part, variant)["axes"]
+
+
+def setup_materials(ctx, part, setup):
+    mats = setup.get("materials") or ([ctx.settings(part)["process"].get("material")] if ctx.settings(part)["process"].get("material") else [])
+    return [m for m in mats if m]
+
+
+# ------------------------------------------------------------------------------------------------ geometry in the manifest frame
+def frame_step(ctx, name, offset_mm=None):
+    """Native STEP of a manifest part in the manifest frame (a STEP offset is applied once and cached);
+    offset_mm replaces the manifest's native_step_offset_mm (used to reproduce an old study that ignored it)."""
+    p = ctx.parts[name]
+    src = BL.src(p["native_step"])
+    off = p.get("native_step_offset_mm") if offset_mm is None else offset_mm
+    if not off or not any(abs(v) > 1e-9 for v in off):
+        return src
+    dst = WORK / "fem-steps" / f"{sha(src)[:16]}-{'_'.join(f'{v:g}' for v in off)}.step"
+    if not dst.exists():
+        from build123d import Compound, Location, export_step, import_step
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        sh = import_step(str(src)).moved(Location(tuple(float(v) for v in off)))
+        export_step(Compound(children=list(sh.solids())), str(dst))
+    return dst
+
+
+def cleaned_step(src):
+    """The STEP with same-domain faces merged (build123d clean), cached by sha256; the fallback when gmsh cannot mesh the original."""
+    dst = WORK / "fem-steps" / f"{sha(src)[:16]}-clean.step"
+    if not dst.exists():
+        from build123d import Compound, export_step, import_step
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        export_step(Compound(children=list(import_step(str(src)).clean().solids())), str(dst))
+    return dst
+
+
+def _label_map(setup):
+    """{material name: mesh label}: the first distinct bonded / region material is mesh id 2 ('steel'), a second one id 0 ('metal')."""
+    labels = {}
+    for m in [b["material"] for b in setup.get("bonded", [])] + [r["material"] for r in setup.get("regions", [])]:
+        if m not in labels:
+            if len(labels) >= 2:
+                raise ValueError("more than two distinct bonded materials")
+            labels[m] = ("steel", "metal")[len(labels)]
+    return labels
+
+
+def bonded_slots(setup):
+    """[(part, mesh label, material name)] of the bonded companions (meshed with the part)."""
+    lm = _label_map(setup)
+    return [(b["part"], lm[b["material"]], b["material"]) for b in setup.get("bonded", [])]
+
+
+def slot_materials(setup):
+    """{mesh label: material name} for solve (bonded companions and regions)."""
+    return {lab: m for m, lab in _label_map(setup).items()}
+
+
+def point_pred(spec):
+    """Predicate over points (n, 3) for the legacy patch kinds capsules / box (also used for material regions).
+    capsules: {"sites": [[x, y, z]..], "normals": [[..]..] (one per site, or one for all), "proj_mm": [lo, hi], "r_mm": r}: points whose projection on
+    the site's normal is within [lo, hi] and whose distance from the site's normal line is at most r (the arm / neck-head bolt-site patches)."""
+    if "box" in spec:
+        bx = spec["box"]
+        def pred(c):
+            c = np.asarray(c); ok = np.ones(len(c), bool)
+            for k, (lo, hi) in bx.items():
+                ok &= (c[:, AX[k]] >= (-1e9 if lo is None else lo)) & (c[:, AX[k]] <= (1e9 if hi is None else hi))
+            return ok
+        return pred
+    cs = spec["capsules"]
+    sites = np.asarray(cs["sites"], float)
+    norms = np.asarray(cs["normals"], float)
+    norms = np.repeat(norms.reshape(-1, 3), len(sites), axis=0) if len(norms.reshape(-1, 3)) == 1 else norms
+    lo, hi = cs["proj_mm"]
+    def pred(c):
+        c = np.asarray(c)
+        ms = []
+        for pt, d in zip(sites, norms):
+            rel = c - pt[None, :]; proj = rel @ d
+            perp = np.linalg.norm(rel - proj[:, None] * d[None, :], axis=1)
+            ms.append((proj >= lo) & (proj <= hi) & (perp <= cs["r_mm"]))
+        return np.logical_or.reduce(ms)
+    return pred
+
+
+def collar_pred(ctx, spec):
+    """Predicate over points: within r_extra_mm of the bores (cylindrical faces, r up to r_max_mm) of the companion part spec["of"] and within
+    end_extra_mm of their ends = a steel collar around every pressed-in sleeve of that part; follows the sleeve part (the stored form of the legacy capsules)."""
+    hs = hole_faces(ctx, spec["of"], float(spec.get("r_max_mm", 5.0)))
+    def pred(c):
+        c = np.asarray(c); ms = []
+        for h in hs:
+            rel = c - h["centre"]; al = rel @ h["axis"]
+            ms.append((np.abs(al) <= h["half_len"] + float(spec["end_extra_mm"])) & (np.linalg.norm(rel - np.outer(al, h["axis"]), axis=1) <= h["r"] + float(spec["r_extra_mm"])))
+        return np.logical_or.reduce(ms)
+    return pred
+
+
+def band_pred(ctx, spec):
+    """Predicate over points: within dist_mm of the surface of any of the named mating parts (the clamped seat against a metal housing; follows the parts)."""
+    trees = [_surface_points(ctx, n) for n in spec["parts"]]
+    return lambda c: np.logical_or.reduce([t.query(np.asarray(c))[0] <= float(spec["dist_mm"]) for t in trees])
+
+
+def apply_regions(ctx, mesh, setup):
+    """mesh copy whose mat_ids carry the setup's material regions (elements by centroid: hand-typed sleeve collars, or bore collars of a sleeve part)."""
+    regs = setup.get("regions")
+    if not regs:
+        return mesh
+    lm = _label_map(setup)
+    code = {"metal": 0, "steel": 2}
+    ids = mesh["mat_ids"].copy()
+    cent = mesh["points"][mesh["tet"]].mean(axis=1)
+    counts = {}
+    for i, r in enumerate(regs):
+        w = r["where"]
+        sel = (collar_pred(ctx, w["bore_collars"]) if "bore_collars" in w else band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
+        n_sel = int(sel.sum())
+        if r.get("only_polymer"):
+            sel &= ids == 1
+        ids[sel] = code[lm[r["material"]]]
+        counts[f"{r['material']} {i}"] = n_sel
+    return mesh | {"mat_ids": ids, "region_elements": counts}
+
+
+def get_mesh(ctx, part, setup):
+    """gmsh tets of the part (+ bonded companions) in the manifest frame, cached by the STEP files' sha256 and h."""
+    steps = [("polymer", frame_step(ctx, part))] + [(lab, frame_step(ctx, b["part"], b.get("step_offset_mm"))) for (_, lab, _), b in zip(bonded_slots(setup), setup.get("bonded", []))]
+    h = float(setup.get("mesh_h_mm", 2.2))
+    key = "-".join(f"{lab}{sha(p)[:12]}" for lab, p in steps) + f"-h{h:g}"
+    f = CACHE / "fem-mesh" / f"{key}.npz"
+    if f.exists():
+        d = np.load(f)
+        return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part}, setup)
+    t0 = time.time()
+    try:
+        mesh = LL().mesh_compound_steps(steps, [], h_max=h)
+    except (ValueError, RuntimeError, Exception) as e:   # noqa: BLE001  gmsh raises plain exceptions
+        # near-coincident faces make the surface mesh intersect (arm roll-to-yaw part: 214 faces); the same part with merged same-domain faces meshes
+        steps[0] = ("polymer", cleaned_step(steps[0][1]))
+        mesh = LL().mesh_compound_steps(steps, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
+    f.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+    return apply_regions(ctx, mesh | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
+
+
+def _sample(mesh, n):
+    """Surface samples, reproducible: the global generator is reseeded (this trimesh has no seed argument)."""
+    np.random.seed(0)
+    return mesh.sample(n)
+
+
+def _surface_points(ctx, name):
+    """Vertices + 20000 surface samples of a part's solid (manifest frame), as KD-tree (cached on the ctx)."""
+    c = ctx.__dict__.setdefault("_fem_trees", {})
+    if name not in c:
+        s = ctx.solid(name)[0]
+        c[name] = cKDTree(np.vstack([s.vertices, _sample(s, 20000)]))
+    return c[name]
+
+
+def hole_faces(ctx, name, r_max=5.0):
+    """Cylindrical faces of the part's STEP up to r_max radius, manifest frame: [dict(r, centre, axis, half_len)], cached on the ctx."""
+    from OCP.BRepAdaptor import BRepAdaptor_Surface
+    from OCP.GeomAbs import GeomAbs_Cylinder
+    from build123d import import_step
+    c = ctx.__dict__.setdefault("_fem_holes", {})
+    key = (name, r_max)
+    if key not in c:
+        out = []
+        for f in import_step(str(frame_step(ctx, name))).faces():
+            a = BRepAdaptor_Surface(f.wrapped)
+            if a.GetType() == GeomAbs_Cylinder and a.Cylinder().Radius() <= r_max:
+                d = a.Cylinder().Axis().Direction(); ax = np.array([d.X(), d.Y(), d.Z()])
+                v = np.array([p.to_tuple() for p in (x.center() for x in f.vertices())])
+                loc = a.Cylinder().Location(); loc = np.array([loc.X(), loc.Y(), loc.Z()])
+                com = np.array(f.center().to_tuple()); cen = loc + ((com - loc) @ ax) * ax      # centre of mass projected onto the axis
+                al = (v - cen) @ ax if len(v) else np.zeros(1)
+                out.append(dict(r=a.Cylinder().Radius(), centre=cen, axis=ax, half_len=float(max(abs(al.max()), abs(al.min()), 0.5))))
+        c[key] = out
+    return c[key]
+
+
+def _axis_filter(hs):
+    a = hs.get("axis_within_deg")
+    if not a:
+        return None
+    u = np.asarray(a["axis"], float)
+    return dict(unit=u / np.linalg.norm(u), cos=float(np.cos(np.radians(a["deg"]))))
+
+
+def holes_near(ctx, name, mates, gap, r_max=5.0, r_min=0.0, axis=None):
+    """The part's hole faces (radius r_min..r_max) with ANY of axis centre / either end within gap of one of the mating parts' surfaces."""
+    trees = [_surface_points(ctx, m) for m in mates]
+    sel = []
+    for h in hole_faces(ctx, name, r_max):
+        if h["r"] < r_min:
+            continue
+        if axis and abs(float(h["axis"] @ axis["unit"])) < axis["cos"]:     # sleeve not pointing along the requested axis (sign ignored)
+            continue
+        pts = np.array([h["centre"] + t * h["half_len"] * h["axis"] for t in (-1.0, 0.0, 1.0)])
+        if min(float(t.query(pts)[0].min()) for t in trees) <= gap:
+            sel.append(h)
+    return sel
+
+
+def origin_of(ctx, setup, mesh=None, w_load=None):
+    """Wrench origin: a point, {"joint": J, "offset_mm": [..]} = the joint's origin plus an offset (follows the joint; "joints": [A, B] = the midpoint of two joints),
+    or "load_centroid" = the load patch's nodal-weight centroid (needs mesh and w_load)."""
+    o = setup["origin_mm"]
+    if o == "load_centroid":
+        return np.average(mesh["points"][w_load > 0], axis=0, weights=w_load[w_load > 0]).tolist()
+    if isinstance(o, dict):
+        names = o["joints"] if "joints" in o else [o["joint"]]
+        base = np.mean([ctx.body.joints[n]["origin_world_mm"] for n in names], axis=0)
+        return (base + np.asarray(o.get("offset_mm", [0, 0, 0]), float)).tolist()
+    return list(o)
+
+
+def setup_notes(setup):
+    return {k: setup[k] for k in ("_doc", "load_cases_doc", "open_difference") if setup.get(k)}
+
+
+def _cent_area(mesh):
+    v = mesh["points"][mesh["tri"]]
+    return v.mean(axis=1), 0.5 * np.linalg.norm(np.cross(v[:, 1] - v[:, 0], v[:, 2] - v[:, 0]), axis=1)
+
+
+def _one_patch(ctx, mesh, spec):
+    """(predicate(c, v) for LL().select_patch_weights, mask over surface triangles, per-mating-part triangle masks)."""
+    cent, _ = _cent_area(mesh)
+    if "contact" in spec:
+        g = float(spec["gap_mm"])
+        dist = {n: _surface_points(ctx, n).query(cent)[0] for n in spec["contact"]}
+        near = {n: d <= g for n, d in dist.items()}
+        mask = np.logical_or.reduce(list(near.values()))
+        trees = [_surface_points(ctx, n) for n in spec["contact"]]
+        pred = lambda c, v: np.logical_or.reduce([t.query(np.asarray(c))[0] <= g for t in trees])  # noqa: E731
+        return pred, mask, near
+    if "holes" in spec:
+        hs = spec["holes"]
+        src = hs.get("of", mesh["part"])
+        per, near = [], {}
+        for m in hs["mate"]:       # per mating part: its own holes (a hole next to two parts counts for both)
+            sel = holes_near(ctx, src, [m], float(hs["gap_mm"]), float(hs.get("r_max_mm", 5.0)), float(hs.get("r_min_mm", 0.0)), _axis_filter(hs))
+            mk = np.zeros(len(cent), bool)
+            for h in sel:
+                d = cent - h["centre"]
+                along = d @ h["axis"]
+                rad = np.linalg.norm(d - np.outer(along, h["axis"]), axis=1)
+                mk |= (rad <= h["r"] + float(hs.get("rim_mm", 2.0))) & (np.abs(along) <= h["half_len"] + 0.5)
+            near[f"{m} ({len(sel)} hole faces)"] = mk
+            per.append(mk)
+        return None, np.logical_or.reduce(per), near
+    if "axis_band" in spec:
+        # follows the joint and the mating part: surface within r_mm of the joint axis, on one side of the mating part's centre along it
+        ab = spec["axis_band"]
+        j = ctx.body.joints[ab["joint"]]
+        ax = np.asarray(j["axis_world_neutral"], float); ax /= np.linalg.norm(ax); o = np.asarray(j["origin_world_mm"], float)
+        d = cent - o
+        along = d @ ax
+        rad = np.linalg.norm(d - np.outer(along, ax), axis=1)
+        mb = ctx.solid(ab["mate"])[0].bounds
+        mid = (((mb[0] + mb[1]) / 2 - o) @ ax)
+        mask = (rad >= ab["r_mm"][0]) & (rad <= ab["r_mm"][1]) & ((along < mid) if ab["side"] == "low" else (along >= mid))
+        return None, mask, {ab["mate"] + f" ({ab['side']} side)": mask}
+    if "box" in spec or "capsules" in spec:
+        pp = point_pred(spec)
+        pred = lambda c, v: pp(c)  # noqa: E731
+        return pred, pred(cent, None), {}
+    if "spheres" in spec:
+        sp = spec["spheres"]
+        pred = lambda c, v: np.logical_or.reduce([np.linalg.norm(np.asarray(c) - np.asarray(p), axis=1) <= sp["radius_mm"] for p in sp["centres"]])  # noqa: E731
+        return pred, pred(cent, None), {}
+    if "cylinder_shells" in spec:
+        cs = spec["cylinder_shells"]
+        ax = AX[cs["axis"]]; o1, o2 = [i for i in range(3) if i != ax]
+        def pred(c, v):
+            c = np.asarray(c)
+            ring = np.logical_or.reduce([np.abs(np.hypot(c[:, o1] - u, c[:, o2] - w) - cs["radius_mm"]) <= cs["tol_mm"] for u, w in cs["centres"]])
+            return ring & (np.abs(c[:, ax] - cs["along_mid_mm"]) <= cs["along_half_mm"])
+        return pred, pred(cent, None), {}
+    r = spec["rings"]
+    a, b = r["axes"]
+    cond = lambda c: np.ones(len(c), bool)  # noqa: E731
+    w = r.get("where")
+    if w:
+        ax = AX[w["axis"]]
+        cond = lambda c: (c[:, ax] >= w.get("min", -1e9)) & (c[:, ax] <= w.get("max", 1e9))  # noqa: E731
+    pred = lambda c, v: np.logical_or.reduce([(c[:, a] - u) ** 2 + (c[:, b] - vv) ** 2 <= r["radius_mm"] ** 2 for u, vv in r["sites"]]) & cond(c)  # noqa: E731
+    return pred, pred(cent, None), {}
+
+
+def _halves(mesh, cent, area, mask):
+    """Patch area on each side of the part's bounding-box centre along the axis the patch is spread over most (one-cheek check)."""
+    if not mask.any():
+        return None
+    ax = int(np.argmax(np.ptp(cent[mask], axis=0)))
+    mid = (mesh["points"][:, ax].min() + mesh["points"][:, ax].max()) / 2
+    lo = mask & (cent[:, ax] < mid)
+    return dict(axis="xyz"[ax], mid_mm=round(float(mid), 1), low_mm2=round(float(area[lo].sum()), 1), high_mm2=round(float(area[mask & ~lo].sum()), 1))
+
+
+def patch(ctx, mesh, spec):
+    """Nodal area weights of a patch and what it selected."""
+    specs = spec if isinstance(spec, list) else [spec]
+    preds, masks, near = [], [], {}
+    for s in specs:
+        p, m, nr = _one_patch(ctx, mesh, s)
+        preds.append(p); masks.append(m); near.update(nr)
+    mask = np.logical_or.reduce(masks)
+    cent, area = _cent_area(mesh)
+    if any(p is None for p in preds):      # mask-defined patches: lumped nodal area weights of the selected triangles
+        w = np.bincount(mesh["tri"][mask].ravel(), weights=np.repeat(area[mask] / 3.0, 3), minlength=len(mesh["points"]))
+    else:
+        pred = lambda c, v: np.logical_or.reduce([p(c, v) for p in preds])  # noqa: E731
+        w = LL().select_patch_weights(mesh["points"], mesh["tri"], pred)
+    info = dict(triangles=int(mask.sum()), nodes=int(np.count_nonzero(w)), area_mm2=round(float(area[mask].sum()), 1),
+                centroid_mm=np.round(np.average(cent[mask], axis=0, weights=area[mask]), 2).tolist() if mask.any() else None,
+                by_half=_halves(mesh, cent, area, mask),
+                follows_part=all(("contact" in s or "axis_band" in s or "holes" in s) for s in specs),
+                by_mating_part={n: dict(area_mm2=round(float(area[m].sum()), 1), triangles=int(m.sum())) for n, m in near.items()})
+    return w, info, mask
+
+
+# ------------------------------------------------------------------------------------------------ solver
+def wrench_of(ctx, case, origin=None):
+    """6-vector at the origin: given directly, a joint stall, or {"transfer": {F_N, M_Nm, scale, from_mm, lever}} = a force / moment given at from_mm,
+    scaled, with the moment at the origin M*scale + lever * (from - origin) x F*scale (neck-head head-wrench stage scales)."""
+    if "wrench_N_Nmm" in case:
+        return np.asarray(case["wrench_N_Nmm"], float)
+    if "transfer" in case:
+        tr = case["transfer"]; s = float(tr.get("scale", 1.0))
+        F = np.asarray(tr["F_N"], float) * s
+        M = np.asarray(tr["M_Nm"], float) * 1000.0 * s + np.cross((np.asarray(tr["from_mm"], float) - np.asarray(origin, float)) * float(tr.get("lever", 1.0)), F)
+        return np.concatenate([F, M])
+    st = case["stall"]
+    j = next(j for j in ctx.body.joints if j["name"] == st["joint"]) if not isinstance(ctx.body.joints, dict) else ctx.body.joints[st["joint"]]
+    ax = np.asarray(j["axis_world_neutral"], float)
+    w = np.zeros(6)
+    w[3:] = float(st["torque_Nmm"]) * ax / np.linalg.norm(ax)
+    return w
+
+
+def rigid_modes(points):
+    """The 6 rigid-body modes (3 translations, 3 rotations) of the node set, (3 N, 6): the near-nullspace for AMG on elasticity."""
+    n = len(points); B = np.zeros((3 * n, 6))
+    for i in range(3):
+        B[i::3, i] = 1.0
+    x, y, z = points[:, 0], points[:, 1], points[:, 2]
+    B[1::3, 3], B[2::3, 3] = -z, y
+    B[0::3, 4], B[2::3, 4] = z, -x
+    B[0::3, 5], B[1::3, 5] = -y, x
+    return B
+
+
+CG_RTOL = 1e-8
+SOLVE_LOG = []   # one entry per CG solve: iterations per load basis (6 unit wrenches), true relative residual ||Ax-b||/||b|| (max over them)
+
+
+def spd_solve(A, rhs, method, B=None):
+    """Solve A x = rhs for a symmetric positive-definite A (free-DOF stiffness). "spsolve" = SuperLU direct (the old path; CHECKS_FEM_SOLVER=spsolve); default "amg": R_thigh_roll_flip gives identical rounded numbers, peak 2.6 vs 3.8 GB;
+    "amg" = conjugate gradients (relative residual CG_RTOL) preconditioned by pyamg smoothed aggregation, B = near-nullspace."""
+    if method == "spsolve":
+        SOLVE_LOG.append(dict(solver="spsolve"))
+        return spsolve(A.tocsc(), rhs)
+    import pyamg
+    from scipy.sparse.linalg import cg
+    A = A.tocsr()
+    M = pyamg.smoothed_aggregation_solver(A, B=B, max_coarse=500).aspreconditioner(cycle="V")
+    out, its, res = [], [], []
+    for i in range(rhs.shape[1]):
+        n = [0]
+        def tick(_x, n=n):
+            n[0] += 1
+        x, info = cg(A, rhs[:, i], rtol=CG_RTOL, maxiter=2000, M=M, callback=tick)
+        if info != 0:
+            raise RuntimeError(f"CG did not converge (info {info})")
+        out.append(x); its.append(n[0]); res.append(float(np.linalg.norm(A @ x - rhs[:, i]) / max(np.linalg.norm(rhs[:, i]), 1e-300)))
+    SOLVE_LOG.append(dict(solver="amg-cg", rhs=len(its), cg_iterations=its, true_relative_residual_max=max(res), rtol=CG_RTOL))
+    return np.column_stack(out)
+
+
+def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=None, field_path=None, field_case=None, solver=None, rigid_load=False, envelopes=None):
+    """Static solve: moved from motor-refit/fem_refit.solve (same maths, same outputs) with the material table from
+    data/materials.json: mesh material ids 0 / 2 = the setup's bonded materials (bonded = slot_materials(setup)), 1 = the polymer.
+    envelopes = {case: (W (n, 6), labels, summary)}: a load case that stands for many wrenches (arm_loads.envelope); its row is the standard row of the
+    wrench with the highest p99 plus "envelope" = distributions over all n wrenches (envelope_row)."""
+    ll = LL()
+    points, tet, mat_ids = mesh["points"], mesh["tet"], mesh["mat_ids"]
+    origin = np.asarray(origin, float)
+    fixed_nodes = np.unique(np.concatenate([np.flatnonzero(w > 0) for w in w_supports]))
+    fixed = (3 * fixed_nodes[:, None] + np.arange(3)[None, :]).ravel()
+    bonded = bonded or {}
+    used = set(np.unique(mat_ids).tolist())
+    if (0 in used and "metal" not in bonded) or (2 in used and "steel" not in bonded):
+        raise ValueError("mesh has bonded companions whose material the setup does not name")
+    Ds = [hooke(bonded.get("metal", material), ln_axis, material), hooke(material, ln_axis), hooke(bonded.get("steel", material), ln_axis, material)]
+    K, vol, B, _ = ll.assemble_chunked(points, tet, Ds, mat_ids)
+    nd = 3 * len(points)
+    u_basis = np.zeros((nd, 6))
+    method = solver or os.environ.get("CHECKS_FEM_SOLVER", "amg")
+    if not rigid_load:
+        unit = []
+        for i in range(6):
+            t = np.zeros(6); t[i] = 1.0
+            f, _ = ll.ELAST.minimum_weight_wrench(points, w_load, t, origin); unit.append(f.ravel())
+        unit = np.column_stack(unit)
+        free = np.setdiff1d(np.arange(nd), fixed)
+        u_basis[free] = spd_solve(K[free][:, free], unit[free], method, B=rigid_modes(points)[free])
+    else:
+        # master-slave: u_i = u0 + theta x (x_i - origin) on every free load node, 6 reference DOFs (u0, theta) carry the unit wrenches
+        from scipy.sparse import coo_matrix
+        ln = np.setdiff1d(np.flatnonzero(w_load > 0), fixed_nodes)
+        ldofs = (3 * ln[:, None] + np.arange(3)[None, :]).ravel()
+        other = np.setdiff1d(np.arange(nd), np.concatenate([fixed, ldofs]))
+        no = len(other)
+        r = points[ln] - origin
+        # theta x r = -skew(r) theta with skew(r) = [[0,-rz,ry],[rz,0,-rx],[-ry,rx,0]]
+        sk = np.zeros((len(ln), 3, 3)); sk[:, 0, 1], sk[:, 0, 2] = -r[:, 2], r[:, 1]; sk[:, 1, 0], sk[:, 1, 2] = r[:, 2], -r[:, 0]; sk[:, 2, 0], sk[:, 2, 1] = -r[:, 1], r[:, 0]
+        R = -sk
+        if method == "spsolve":     # the old path: one direct solve of the 6-DOF-augmented system
+            rows = [other]; cols = [np.arange(no)]; vals = [np.ones(no)]
+            for a_ in range(3):
+                rows.append(3 * ln + a_); cols.append(np.full(len(ln), no + a_)); vals.append(np.ones(len(ln)))
+                for b_ in range(3):
+                    rows.append(3 * ln + a_); cols.append(np.full(len(ln), no + 3 + b_)); vals.append(R[:, a_, b_])
+            T = coo_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))), shape=(nd, no + 6)).tocsr()
+            Kr = (T.T @ K @ T).tocsr()
+            rhs = np.zeros((no + 6, 6)); rhs[no:, :] = np.eye(6)
+            u_basis = T @ spd_solve(Kr, rhs, "spsolve")
+        else:
+            # Schur complement on the 6 reference DOFs (the dense reference rows defeat AMG on the augmented system): Koo X = Kor (6 AMG-CG solves),
+            # S = Krr - Kor^T X, reference motion u_r = S^-1 e_i, other nodes u_o = -X u_r; identical to the direct solve of the augmented system
+            Tl = np.zeros((len(ldofs), 6))
+            for a_ in range(3):
+                Tl[a_::3, a_] = 1.0
+                Tl[a_::3, 3:] = R[:, a_, :]
+            Kc = K.tocsr()
+            Kor = np.asarray(Kc[other][:, ldofs] @ Tl)
+            Krr = Tl.T @ (Kc[ldofs][:, ldofs] @ Tl)
+            X = spd_solve(Kc[other][:, other], Kor, method, B=rigid_modes(points)[other])
+            Ur = np.linalg.inv(Krr - Kor.T @ X)
+            u_basis[other] = -X @ Ur
+            u_basis[ldofs] = Tl @ Ur
+    # equilibrium: the clamped nodes' reaction (K u at the fixed DOFs, moment about the origin) must equal minus the applied wrench
+    Rf = np.asarray(K.tocsr()[fixed] @ u_basis).reshape(len(fixed_nodes), 3, 6)
+    react = np.vstack([Rf.sum(axis=0), np.cross((points[fixed_nodes] - origin)[:, :, None], Rf, axis=1).sum(axis=0)])    # (6, 6): reaction per unit-wrench basis
+    D_el = np.array(Ds)[mat_ids]
+    st_basis = np.empty((6, len(tet), 6))
+    for i in range(6):
+        ue = u_basis[:, i].reshape(-1, 3)[tet].reshape(-1, 12)
+        st_basis[i] = np.einsum("eab,eb->ea", D_el, np.einsum("eij,ej->ei", B, ue))
+    pm = mat_ids == 1
+    info = materials()[material]["fem"]
+    ref = info.get("reference_strength_MPa", info.get("tensile_XY_MPa")); ref_z = info.get("tensile_Z_layer_MPa", ref)   # None: no strength in the table, ratios null
+    centers = points[tet].mean(axis=1)
+    rows = {}
+    for case, co in wrenches.items():
+        dev = react @ co + co      # reaction + wrench, should be 0
+        nf, nm, df, dm = np.linalg.norm(co[:3]), np.linalg.norm(co[3:]), np.linalg.norm(dev[:3]), np.linalg.norm(dev[3:])
+        chk_ = dict(force_pct=round(100 * float(df / nf), 4) if nf > 1e-9 else None, moment_pct=round(100 * float(dm / nm), 4) if nm > 1e-9 else None,
+                    force_abs_N=round(float(df), 6), moment_abs_Nmm=round(float(dm), 6))     # pct relative to the wrench part; None when that part is zero (stall: force 0)
+        SOLVE_LOG[-1]["reaction_plus_wrench_pct_max"] = max([x for x in (chk_["force_pct"], chk_["moment_pct"], SOLVE_LOG[-1].get("reaction_plus_wrench_pct_max", 0.0)) if x is not None])
+        u = (u_basis @ co).reshape(-1, 3); stress = np.einsum("i,iec->ec", co, st_basis); vm = ll.VON_MISES(stress)
+        q = ll.volume_quantiles(vm[pm], vol[pm]); qz = ll.volume_quantiles(np.maximum(stress[pm, ln_axis], 0.0), vol[pm])
+        if field_path is not None and case == field_case:
+            np.savez_compressed(field_path, points_mm=points, tet=tet, mat_ids=mat_ids, von_mises_MPa=vm, displacement_mm=u)
+        imax = np.flatnonzero(pm)[int(np.argmax(vm[pm]))]
+        rows[case] = dict(p99_vm_MPa=round(q["p99"], 3), peak_vm_MPa=round(float(vm[pm].max()), 2), p99_layer_tension_MPa=round(qz["p99"], 3),
+                          p99_strength_ratio=round(ref / max(q["p99"], 1e-6), 2) if ref else None, p99_layer_ratio=round(ref_z / max(qz["p99"], 1e-6), 2) if ref_z else None,
+                          max_displacement_mm=round(float(np.linalg.norm(u, axis=1).max()), 4), reaction_plus_wrench_pct=chk_,
+                          peak_vm_location_mm=np.round(centers[imax], 1).tolist())
+    for case, (W, labels, summary) in (envelopes or {}).items():
+        env = envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, ref_z, centers, ll.VON_MISES)
+        k = env.pop("_worst_index")
+        sub = solve_rows_from_basis(dict(worst=np.asarray(W[k], float)), react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh, field_path, field_case if field_case != case else "worst")
+        rows[case] = dict(sub["worst"], worst_wrench_N_Nmm=np.round(W[k], 2).tolist(), worst_label=labels[k], envelope=env)
+    return rows
+
+
+def solve_rows_from_basis(wrenches, react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh, field_path=None, field_case=None):
+    """The standard per-case row (as in solve) for wrenches evaluated on an existing unit-wrench basis."""
+    rows = {}
+    for case, co in wrenches.items():
+        dev = react @ co + co
+        nf, nm, df, dm = np.linalg.norm(co[:3]), np.linalg.norm(co[3:]), np.linalg.norm(dev[:3]), np.linalg.norm(dev[3:])
+        chk_ = dict(force_pct=round(100 * float(df / nf), 4) if nf > 1e-9 else None, moment_pct=round(100 * float(dm / nm), 4) if nm > 1e-9 else None,
+                    force_abs_N=round(float(df), 6), moment_abs_Nmm=round(float(dm), 6))
+        u = (u_basis @ co).reshape(-1, 3); stress = np.einsum("i,iec->ec", co, st_basis); vm = ll.VON_MISES(stress)
+        q = ll.volume_quantiles(vm[pm], vol[pm]); qz = ll.volume_quantiles(np.maximum(stress[pm, ln_axis], 0.0), vol[pm])
+        if field_path is not None and case == field_case:
+            np.savez_compressed(field_path, points_mm=mesh["points"], tet=mesh["tet"], mat_ids=mesh["mat_ids"], von_mises_MPa=vm, displacement_mm=u)
+        imax = np.flatnonzero(pm)[int(np.argmax(vm[pm]))]
+        rows[case] = dict(p99_vm_MPa=round(q["p99"], 3), peak_vm_MPa=round(float(vm[pm].max()), 2), p99_layer_tension_MPa=round(qz["p99"], 3),
+                          p99_strength_ratio=round(ref / max(q["p99"], 1e-6), 2) if ref else None, p99_layer_ratio=round(ref_z / max(qz["p99"], 1e-6), 2) if ref_z else None,
+                          max_displacement_mm=round(float(np.linalg.norm(u, axis=1).max()), 4), reaction_plus_wrench_pct=chk_,
+                          peak_vm_location_mm=np.round(centers[imax], 1).tolist())
+    return rows
+
+
+def _vm_batch(st):
+    sx, sy, sz, txy, tyz, txz = (st[..., i] for i in range(6))
+    return np.sqrt(0.5 * ((sx - sy) ** 2 + (sy - sz) ** 2 + (sz - sx) ** 2) + 3.0 * (txy * txy + tyz * tyz + txz * txz))
+
+
+def _wq_batch(vals, v, q):
+    """Volume-weighted quantile q of every row of vals (n, E) with element volumes v (E,), linear between sorted elements as volume_quantiles."""
+    order = np.argsort(vals, axis=1)
+    sv = np.take_along_axis(vals, order, axis=1)
+    cum = np.cumsum(v[order], axis=1); cum /= cum[:, -1:]
+    k = np.clip((cum < q).sum(axis=1), 1, vals.shape[1] - 1)
+    r = np.arange(len(vals))
+    c0, c1 = cum[r, k - 1], cum[r, k]
+    t = np.clip((q - c0) / np.maximum(c1 - c0, 1e-12), 0.0, 1.0)
+    return sv[r, k - 1] + t * (sv[r, k] - sv[r, k - 1])
+
+
+def _qs(x, ks=(("min", 0.0), ("p10", 0.1), ("p50", 0.5), ("p90", 0.9), ("p99", 0.99), ("max", 1.0))):
+    return {k: round(float(np.quantile(x, v)), 3) for k, v in ks}
+
+
+def envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, ref_z, centers, von_mises, chunk=128, keep=8):
+    """Distributions over an envelope of wrenches W (n, 6) on the unit-wrench basis (linear, exact per wrench): p99 von Mises, p99 layer tension,
+    peak, max displacement, strength ratios; the worst wrenches with their pose / direction labels; and the envelope field = per element the
+    highest von Mises over all wrenches (its p99 and peak location show where the part needs material)."""
+    v = vol[pm].astype(np.float64)
+    S = np.ascontiguousarray(st_basis[:, pm, :], dtype=np.float32)
+    U = u_basis.reshape(-1, 3, 6)
+    n = len(W)
+    p99, pz, peak, disp = (np.empty(n) for _ in range(4))
+    env = np.zeros(S.shape[1], np.float32)
+    for a in range(0, n, chunk):
+        w = np.asarray(W[a:a + chunk], np.float32)
+        st = np.einsum("ni,iec->nec", w, S)
+        vm = _vm_batch(st)
+        env = np.maximum(env, vm.max(axis=0))
+        peak[a:a + len(w)] = vm.max(axis=1)
+        p99[a:a + len(w)] = _wq_batch(vm, v, 0.99)
+        pz[a:a + len(w)] = _wq_batch(np.maximum(st[..., ln_axis], 0.0), v, 0.99)
+        disp[a:a + len(w)] = np.linalg.norm(np.einsum("ni,dci->ndc", w.astype(np.float64), U), axis=2).max(axis=1)
+    worst = np.argsort(-p99)[:keep]
+    ie = int(np.argmax(env))
+    env_q = volume_quantiles_np(env.astype(np.float64), v)
+    ratio = (ref / np.maximum(p99, 1e-6)) if ref else None
+    lratio = (ref_z / np.maximum(pz, 1e-6)) if ref_z else None
+    return dict(_worst_index=int(worst[0]), loads=summary, wrenches=n,
+                p99_vm_MPa=_qs(p99), p99_layer_tension_MPa=_qs(pz), peak_vm_MPa=_qs(peak), max_displacement_mm=_qs(disp),
+                p99_strength_ratio=_qs(ratio) if ratio is not None else None, p99_layer_ratio=_qs(lratio) if lratio is not None else None,
+                wrenches_with_p99_strength_ratio_below_1=int((ratio < 1.0).sum()) if ratio is not None else None,
+                wrenches_with_p99_layer_ratio_below_1=int((lratio < 1.0).sum()) if lratio is not None else None,
+                worst=[dict(p99_vm_MPa=round(float(p99[i]), 2), p99_layer_tension_MPa=round(float(pz[i]), 2), max_displacement_mm=round(float(disp[i]), 3),
+                            wrench_N_Nmm=np.round(W[i], 1).tolist(), **labels[i]) for i in worst],
+                envelope_field=dict(what="per element the highest von Mises over all wrenches", p99_MPa=round(env_q["p99"], 2), p95_MPa=round(env_q["p95"], 2),
+                                    peak_MPa=round(float(env[ie]), 2), peak_location_mm=np.round(centers[np.flatnonzero(pm)[ie]], 1).tolist()))
+
+
+def volume_quantiles_np(vals, vols):
+    return LL().volume_quantiles(vals, vols)

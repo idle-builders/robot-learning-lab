@@ -1,0 +1,1992 @@
+{
+  "schema": "robot-learning-lab.design-acceptance.v1",
+  "selected_on": "2026-11-09",
+  "section": "Complete body (FDM integration)",
+  "robot_sections": [
+    "Whole body",
+    "Torso / shell",
+    "Torso",
+    "Pelvis",
+    "Hip",
+    "Knee",
+    "Ankle / foot",
+    "Shoulder",
+    "Elbow",
+    "Hand / wrist",
+    "Neck",
+    "Head",
+    "Electronics"
+  ],
+  "name": "Complete Cove-50 3D-Printable FDM Ape Body Assembly",
+  "study_id": "cove50-complete-fdm-body",
+  "result_id": "cove50-complete-fdm-body-r1",
+  "version": "r1",
+  "task": "T-g6ns9t",
+  "idle_decision": "M-qzbpak",
+  "status": "user_selected_complete_fdm_body",
+  "user_statement": "Alright please commit, upload, cleanup everything. And then do a review of the task and mark the task as done.",
+  "scope": "Selected complete 3D-printable FDM structural integration of the 50 cm Cove-50 ape robot (cove50-complete-fdm-body-r1), uniting all four completed FDM structural subsystems: (1) Bilateral 6-Stage Lower Body (cove50-complete-leg-hip-fdm-combined-r10, M-y8acff, 12 printed parts + 128 sleeves, 187.64 g vs 332.78 g baseline, -43.61%, min SF 2.86x), (2) Bilateral 4-Stage Upper Body / Arms & Geared Hands (cove50-arm-fdm-combined-r12, M-d34p89, 8 primary arm parts + 8 printed geared-hand parts + 68 sleeves, 74.74 g primary arm structure vs 136.05 g baseline, -45.06%, min SF 1.65x), (3) 4-Stage Neck & Head (cove50-neck-head-fdm-combined-r1, M-8jkx67, 4 printed parts + 34 sleeves, 28.56 g vs 52.67 g baseline, -45.78%, min SF 2.34x), and (4) 4-Stage Center-Body Torso, Pelvis, 9-Cell Honeycomb Battery & Electronics Carrier (cove50-torso-fdm-combined-r1, M-h3aaq6, 4 printed parts + 76 whole-body sleeves / 86 standalone sleeves, 178.21 g vs 251.82 g baseline, -29.23%, min SF 1.55x). Includes 36 printed FDM parts total (28 primary structural parts + 8 geared-hand parts), 306 pressed-in 304 SS compression sleeves in the whole-body audit (316 in standalone subsystem rollup), 9 vertical 21700 battery cells + 9 direct-on-battery 6063-T5 Al heat-sink fins, 22 actuators (with black anodized hip C047 motors), 26 kinematic joints driven by 24 interactive DOF controls, and smooth closed round exterior shells (center_front_shell, center_back_shell, R/L_shoulder_hard_cover, R/L_upper_arm_hard_cover, R/L_fore_front/back_hard_cover, R/L_thigh_front/back_hard_cover, R/L_shin_front/back_hard_cover) with 0.0000 mm^3 overlap across all 8 whole-body poses, 32 arm poses, and 22 hip/leg/electronics/shell poses. Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, enclosed-shell battery thermal cycling, and learned-control transfer remain separate.",
+  "subsystem_studies": {
+    "lower_body": "cove50-complete-leg-hip-fdm-combined-r10",
+    "upper_body_arms": "cove50-arm-fdm-combined-r12",
+    "neck_head": "cove50-neck-head-fdm-combined-r1",
+    "center_torso_pelvis_electronics": "cove50-torso-fdm-combined-r1"
+  },
+  "represented_primary_structure_and_sleeve_mass_g": 469.15,
+  "baseline_metal_and_carrier_mass_g": 773.32,
+  "total_printed_fdm_parts_count": 36,
+  "total_pressed_in_ss304_sleeves_count": 306,
+  "total_kinematic_joints_count": 26,
+  "total_interactive_dof_controls_count": 24,
+  "source": {
+    "mechanical_STEP": {
+      "path": "artifacts/robot/body/assembly/complete-fdm-structural-skeleton.step",
+      "sha256": "bd2eeb0f34335c04d7ac1e7967c955c3289b72b48c6f2dfa35e5960132960d81",
+      "bytes": 47322895
+    },
+    "inspection_GLB": {
+      "path": "artifacts/robot/body/assembly/assembly-with-full-shell.glb",
+      "sha256": "03cb81da47f945f55306d5500b713607d155763cacf7f0eff92ae18fd5338ead",
+      "bytes": 344397988
+    },
+    "inspection_manifest": {
+      "path": "artifacts/robot/body/assembly/assembly-parts.json",
+      "sha256": "a7a7e309076823e918c0eeb4d86f51e5c14acaf10f8ede931395f7ebcd8ce103",
+      "bytes": 949507
+    },
+    "cad_manifest": {
+      "path": "artifacts/robot/body/assembly/manifest.json",
+      "sha256": "e020b15aeba81333f1206774df9754c9afb82b02c97f1733e60b7eef75dd5047",
+      "bytes": 38636
+    },
+    "bom": {
+      "path": "artifacts/robot/body/assembly/bom.json",
+      "sha256": "6b2ad92cec1888b46bc56140887f8b88b8dc0a0ac8a71e48b97c8f94dc9f1b36",
+      "bytes": 6484
+    },
+    "whole_body_verification_report": {
+      "path": "artifacts/robot/body/assembly/whole-body-verification-report.json",
+      "sha256": "c1c3c05bec8e3c8591fb431fbfff599ce7e449c7a512bfd803e48e92b69ce071",
+      "bytes": 43213
+    },
+    "print_bed_nesting_audit": {
+      "path": "artifacts/robot/body/assembly/print-bed-nesting-audit.json",
+      "sha256": "99a4da736b30d94cb506f6205f6b244bf6328a35c215f4f25c138a23134753a7",
+      "bytes": 22744
+    },
+    "record": {
+      "path": "artifacts/robot/body/assembly/cove50-complete-fdm-body-r1-record.json",
+      "sha256": "86f9e5eb60aa272c7d74bac15e56a4517c4ca458bb135252be4746c6cc81f0b9",
+      "bytes": 147280
+    },
+    "publication": {
+      "path": "artifacts/robot/body/assembly/cove50-complete-fdm-body-r1-publication.json",
+      "sha256": "44c65c08518cbe9d0b948f2dce4d7f4153f9816a820a1cdcaaebdfc44d7a997b",
+      "bytes": 412
+    }
+  },
+  "native_parts": {
+    "L_Shin_carrier_shell_shin_back_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_1_M3x8.npz",
+      "sha256": "b893876df0ba6c27aec9b50bf695de9d5b787e1002bb7e224217e0c97b6a28f6",
+      "bytes": 7284
+    },
+    "L_Shin_carrier_shell_shin_back_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_1_M3x8.step",
+      "sha256": "973689fd07bef127b7c80c8977c63e132d70d71638c179f4af3689275111c392",
+      "bytes": 13318
+    },
+    "L_Shin_carrier_shell_shin_back_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_1_nut.npz",
+      "sha256": "1b424834420931c12358c2a37fc083fca0d3d9c63d4070f1e97ed9572a318aee",
+      "bytes": 3760
+    },
+    "L_Shin_carrier_shell_shin_back_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_1_nut.step",
+      "sha256": "f224f6b5199a85d742d8be7a4d07f040b66c3f60063fb71d08b842f87853c54a",
+      "bytes": 29730
+    },
+    "L_Shin_carrier_shell_shin_back_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_2_M3x8.npz",
+      "sha256": "9596f49e96a9537ce3cbd27d988c27e0b117d5f973a2fc04739b294633807e5f",
+      "bytes": 7256
+    },
+    "L_Shin_carrier_shell_shin_back_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_2_M3x8.step",
+      "sha256": "e953b44a856c8cec49cc83e4bbc571a0da2faa98bbb0a192860e19af97067e51",
+      "bytes": 13318
+    },
+    "L_Shin_carrier_shell_shin_back_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_2_nut.npz",
+      "sha256": "b0c38c0425e9faf5a1486a9e6ae7ccf175dcaa6b582eb3004169de22a469740f",
+      "bytes": 3766
+    },
+    "L_Shin_carrier_shell_shin_back_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_back_2_nut.step",
+      "sha256": "4829b0c8dc1669ec5e5b50e096d8933a3d898d5701af274f1b8d5642a5a7722b",
+      "bytes": 29796
+    },
+    "L_Shin_carrier_shell_shin_front_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_1_M3x8.npz",
+      "sha256": "c736dfa62f1ca307debd9e86ba532a17880d6742b6a3d5a5dabc8a113bd391b8",
+      "bytes": 7228
+    },
+    "L_Shin_carrier_shell_shin_front_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_1_M3x8.step",
+      "sha256": "3fa28f52cdabcba600106d3392047d7a7128e5fead62b00ece2039c9aedeb421",
+      "bytes": 13331
+    },
+    "L_Shin_carrier_shell_shin_front_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_1_nut.npz",
+      "sha256": "a7d83b5456eca6015dcf31146cc6d93a692f284e2da622fdc06f8e338a8a895d",
+      "bytes": 3797
+    },
+    "L_Shin_carrier_shell_shin_front_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_1_nut.step",
+      "sha256": "39a04baa06b4ce457809883d4e45188e459ca4b8bdaa91e5eaf86b8f81e8cac7",
+      "bytes": 29774
+    },
+    "L_Shin_carrier_shell_shin_front_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_2_M3x8.npz",
+      "sha256": "0e7fd24a3eb674c93b57af7b33ecf3d5efab8856f7f6f9aa77f9ec1967efe5aa",
+      "bytes": 7197
+    },
+    "L_Shin_carrier_shell_shin_front_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_2_M3x8.step",
+      "sha256": "77b1f8e0c2b05ccf925a29272a304bf0e55608f8c5aaa9ae404031bf079baf83",
+      "bytes": 13331
+    },
+    "L_Shin_carrier_shell_shin_front_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_2_nut.npz",
+      "sha256": "85cbc8e981fe6568eb553405f97c46df57f12f4ec54fb3b76f07a6b10d964503",
+      "bytes": 3804
+    },
+    "L_Shin_carrier_shell_shin_front_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Shin_carrier_shell_shin_front_2_nut.step",
+      "sha256": "8766c672dee4f24ab4415489802b943a9e328ae6c830203f5a27d264f7b8e541",
+      "bytes": 29840
+    },
+    "L_Thigh_carrier_shell_thigh_front_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_1_M3x8.npz",
+      "sha256": "98863360b05771b35e577a9d7ec1505553c267131e31030bfb4c8f00fdc54bb0",
+      "bytes": 7309
+    },
+    "L_Thigh_carrier_shell_thigh_front_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_1_M3x8.step",
+      "sha256": "0ffc06a6fc9b456ea43a236357f3291beb63572c6ed6f53aaff43c1fffe543ab",
+      "bytes": 13333
+    },
+    "L_Thigh_carrier_shell_thigh_front_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_1_nut.npz",
+      "sha256": "a0ac2602d15567d56e852c864df41de1d526ed6c903450ecd11188fc118f5a48",
+      "bytes": 3788
+    },
+    "L_Thigh_carrier_shell_thigh_front_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_1_nut.step",
+      "sha256": "ab0ec63ae038523a226a15d4de5fc8e2b92c93ba17e6e636cb3c0533a399bdb2",
+      "bytes": 29782
+    },
+    "L_Thigh_carrier_shell_thigh_front_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_2_M3x8.npz",
+      "sha256": "edc1a0d0db507ed73289852e0e2ae9837c644ed6668a5a4133dd398e6168deba",
+      "bytes": 7270
+    },
+    "L_Thigh_carrier_shell_thigh_front_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_2_M3x8.step",
+      "sha256": "8e0c868de5b31d1a841dd1b5d70e9579287b8e10c5fb1cfb83a243dfa9768783",
+      "bytes": 13333
+    },
+    "L_Thigh_carrier_shell_thigh_front_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_2_nut.npz",
+      "sha256": "3e8cefa91e650db52a8779928da81ec3c7d68f93adea01a5e0e09b6121a56a4c",
+      "bytes": 3759
+    },
+    "L_Thigh_carrier_shell_thigh_front_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_carrier_shell_thigh_front_2_nut.step",
+      "sha256": "d1797bec22527402b05c3017b09e5bdb89d3b5e019b0a66d007e10b0c0fc7f7f",
+      "bytes": 29712
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_1_M3x8.npz",
+      "sha256": "538022301f78c591de2e2d77633d07d977cc1344594630225804200de5f6726c",
+      "bytes": 7313
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_1_M3x8.step",
+      "sha256": "6f14a5a21558c0b129f531ee09faf55762c2d3935f60ceaeb01ea155c33ebe86",
+      "bytes": 13312
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_1_nut.npz",
+      "sha256": "f88dee685c19c2daac1fd9b7c4d5a407f36f64e956c2a8849b3ad90bcc4f8e9d",
+      "bytes": 3788
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_1_nut.step",
+      "sha256": "fa94261870ae1a48c9d9045e5cdb08363970121524725f1f34ed258c3c0065fd",
+      "bytes": 29742
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_2_M3x8.npz",
+      "sha256": "3334101a36f8f9a5c24a635bd680f84abb1ed7078e7c1dacfeccb80b02e1b82b",
+      "bytes": 7218
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_2_M3x8.step",
+      "sha256": "aa11f573e512509ba1fcb62d4889951bf83570edf1542000cc5e8ff2f75fc72f",
+      "bytes": 13312
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_2_nut.npz",
+      "sha256": "48edfaccb59d2e11e2e3f9ddb5d42df9e752fe3b9e0630de6919e8af4adc0aed",
+      "bytes": 3762
+    },
+    "L_Thigh_rear_carrier_shell_thigh_back_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_Thigh_rear_carrier_shell_thigh_back_2_nut.step",
+      "sha256": "e9a415e9902e4fe805166c1be32b4c5243d1d38a4455f8f626556883bf04b320",
+      "bytes": 29672
+    },
+    "L_fore_back_178_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_178_M3_nut.npz",
+      "sha256": "c8a3675a203d89197c104dc6c81037a5fada50e16d2dff5321ee21f71c24d4e3",
+      "bytes": 3836
+    },
+    "L_fore_back_187_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_187_M3_nut.npz",
+      "sha256": "10cb939ac1323ca7e9a172d4d06ea80b015aa574f978181389331f140bc3b2ba",
+      "bytes": 3871
+    },
+    "L_fore_back_M3x8_178_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_M3x8_178.npz",
+      "sha256": "046f040ae8807b257fb01babcc9cefe4a275797610a5756b34168ce60fbac426",
+      "bytes": 6943
+    },
+    "L_fore_back_M3x8_187_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_M3x8_187.npz",
+      "sha256": "dfc40e518a0917b183ee2a00709d443c432e3de152f1c2d05350047405176a67",
+      "bytes": 6936
+    },
+    "L_fore_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_hard_cover.npz",
+      "sha256": "65e73e358485c3870bb07dccd3b9217a0e247aed006d9145880d68330ed2156f",
+      "bytes": 195228
+    },
+    "L_fore_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_back_hard_cover.step",
+      "sha256": "fdb298c05a2df26ae50f5a4ef13550b3fd3a782fa1c467b0f6d2d842177ffb17",
+      "bytes": 846906
+    },
+    "L_fore_front_178_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_178_M3_nut.npz",
+      "sha256": "bd28b9289986a609ec13a0e0300062243776b5d76a43b931538b0be2cfa41645",
+      "bytes": 3842
+    },
+    "L_fore_front_187_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_187_M3_nut.npz",
+      "sha256": "ed44f9c5ac8e97521f8aa2edb2dfd19ef7a8bcd77443fb54b2f058a68e201d12",
+      "bytes": 3840
+    },
+    "L_fore_front_M3x8_178_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_M3x8_178.npz",
+      "sha256": "e220eb97ac8c663bbad779759267a63bb715c35ea447bff733907b546e82c689",
+      "bytes": 6842
+    },
+    "L_fore_front_M3x8_187_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_M3x8_187.npz",
+      "sha256": "419c778dcea5fe187619a3ce443bd75ea2229c76513cef26bd78d6b6cca9c840",
+      "bytes": 6785
+    },
+    "L_fore_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_hard_cover.npz",
+      "sha256": "cd765903601015d2e2b9eff65fb78e03a160abce33be704d911e5e1f6c8c0dfe",
+      "bytes": 199879
+    },
+    "L_fore_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_fore_front_hard_cover.step",
+      "sha256": "b421820069b418126615135cb171370e3de9a25283798e375e3acafc7aa3aee3",
+      "bytes": 760899
+    },
+    "L_forearm_elbow_to_wrist_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_forearm_elbow_to_wrist_combined.npz",
+      "sha256": "9a62709496d35029911da8f95d20c66b1896ea2e126169ff2246d49b951edbef",
+      "bytes": 201178
+    },
+    "L_forearm_elbow_to_wrist_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_forearm_elbow_to_wrist_combined.step",
+      "sha256": "aecef4749f39e51ae016575185fb0833090a3bab64f9f7d8071035287afb57e8",
+      "bytes": 1273333
+    },
+    "L_forearm_elbow_to_wrist_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_forearm_elbow_to_wrist_combined_steel_sleeves.npz",
+      "sha256": "5841f60dfb92119733a5757349cd1834e9a95048123f20a9c5fcb5d51878c5a2",
+      "bytes": 58901
+    },
+    "L_forearm_elbow_to_wrist_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_forearm_elbow_to_wrist_combined_steel_sleeves.step",
+      "sha256": "f713f2ab721036d49b6a52155ba54c087a4702f7d397ee5ac5aa514572da5f2e",
+      "bytes": 121183
+    },
+    "L_left_finger_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_left_finger.npz",
+      "sha256": "8bfdc07f96c4b73ccdae02fa64d6efe4f9e120f054f9f12fe4655d6c78cfa83e",
+      "bytes": 449798
+    },
+    "L_left_finger_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_left_finger.step",
+      "sha256": "0b4252037f633ee21ca436bec8a6d2f5f9900645ec3ac05a7c30f2dad305f83b",
+      "bytes": 1456387
+    },
+    "L_palm_lower_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_palm_lower.npz",
+      "sha256": "fab1ea58828678fcc2d69339f428258778bdf3647265bec4e6832c2eb48fe448",
+      "bytes": 317075
+    },
+    "L_palm_lower_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_palm_lower.step",
+      "sha256": "11171b96b275192ffaaff22b8550c55ec42d72586c0289bf68ec926445fc38da",
+      "bytes": 1823656
+    },
+    "L_palm_upper_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_palm_upper.npz",
+      "sha256": "7301dc7dfdf5e8b36ba20d0fa238530dfa918dbc004d391b93a091431cfce02d",
+      "bytes": 115836
+    },
+    "L_palm_upper_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_palm_upper.step",
+      "sha256": "1a752189acb55460d1e0988d0ee4824a34f4a137d6789c44d2f5877eea494935",
+      "bytes": 887285
+    },
+    "L_right_finger_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_right_finger.npz",
+      "sha256": "0724b7022e46371cf33ecfe7307e8b3b92e61e5caa2b05083df255a1e9d703ec",
+      "bytes": 528392
+    },
+    "L_right_finger_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_right_finger.step",
+      "sha256": "6b83f371f6b617eab33eb471294ef3303dcbf721ca6634b37ea48b9a8230348d",
+      "bytes": 1630116
+    },
+    "L_shin_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_back_hard_cover.npz",
+      "sha256": "9663303ab64756855629be84cf241b1039931b626a2edaa47a6d1fc6c587fdd3",
+      "bytes": 128531
+    },
+    "L_shin_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_back_hard_cover.step",
+      "sha256": "b376cc3176815c00a9e0939e6556a33fca949da4282186df7c176966c8aeadd5",
+      "bytes": 519239
+    },
+    "L_shin_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_combined.npz",
+      "sha256": "1d848d867dcb6bed2142ee99135f9485c2fc4404763fa8f72513bd21d8330ecc",
+      "bytes": 1654124
+    },
+    "L_shin_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_combined.step",
+      "sha256": "3fde5f9825dab9c621bf872741cbecbbaf9541877c9e78df5218e92c8dd0ec3e",
+      "bytes": 2502479
+    },
+    "L_shin_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_front_hard_cover.npz",
+      "sha256": "b425fed24b6d89dcc9d5971bccd740b95aa59425de3a0eeb0abbfc77e784461b",
+      "bytes": 186544
+    },
+    "L_shin_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shin_front_hard_cover.step",
+      "sha256": "9506bcd224a30f3a8d303d4d69555c91decd087f1efa708bda4d8a98dda44dcc",
+      "bytes": 929884
+    },
+    "L_shoulder_pitch_to_roll_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_pitch_to_roll_combined.npz",
+      "sha256": "4d3377c95de72d7a033b530983d5606c631b598cb7e9f123ea9aed049842f607",
+      "bytes": 323066
+    },
+    "L_shoulder_pitch_to_roll_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_pitch_to_roll_combined.step",
+      "sha256": "53f94ba6ac9a5fc40309f9706e6ddf8db0c0d332eea5d70978b59eb7fb8a7cbe",
+      "bytes": 607648
+    },
+    "L_shoulder_pitch_to_roll_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_pitch_to_roll_combined_steel_sleeves.npz",
+      "sha256": "97008ef6113ca600392a55270e510f809e025d7fbac928ce2c156df599486d01",
+      "bytes": 54176
+    },
+    "L_shoulder_pitch_to_roll_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_pitch_to_roll_combined_steel_sleeves.step",
+      "sha256": "85398948edd9f46fda42dd6173c44baf082f8d5a8acbfbb75b841bf328ed682f",
+      "bytes": 97855
+    },
+    "L_shoulder_roll_to_yaw_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_roll_to_yaw_combined.npz",
+      "sha256": "56ed213ff24cec17cd7728c7c58a7d38ea001249c69d2d193c643cd3b8514dfa",
+      "bytes": 394901
+    },
+    "L_shoulder_roll_to_yaw_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_roll_to_yaw_combined.step",
+      "sha256": "cf316ae585febe44218523175d9945eec75e404d01dd15a8ef49b01d74d8f263",
+      "bytes": 1109711
+    },
+    "L_shoulder_roll_to_yaw_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_roll_to_yaw_combined_steel_sleeves.npz",
+      "sha256": "e3c3654541ff4815515792ddf3367a41ad2cf1d69c01066ed95e2d22d47ebb07",
+      "bytes": 56479
+    },
+    "L_shoulder_roll_to_yaw_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_shoulder_roll_to_yaw_combined_steel_sleeves.step",
+      "sha256": "4f4565a9a78d346d110324efbe226f25d463abe3fe0085e6916b85909768a9b8",
+      "bytes": 100853
+    },
+    "L_thigh_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_back_hard_cover.npz",
+      "sha256": "c31041c3e52105c1c31261ba36d66c70eaf194a9039cbb8c59a83d7aed5638b5",
+      "bytes": 111485
+    },
+    "L_thigh_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_back_hard_cover.step",
+      "sha256": "d2aabfee3de9143aad2bb87eb3ce5a1601a4a0a41da87e45af4af91de02c3d93",
+      "bytes": 692843
+    },
+    "L_thigh_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_combined.npz",
+      "sha256": "b54a0a34dbf56aeeb3ebe872bacb4bbdb9428bb3d42be490e5c065c132adefe2",
+      "bytes": 1164408
+    },
+    "L_thigh_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_combined.step",
+      "sha256": "80dd1c5aee01bc3f91e90cb6904e2bba43c3207ff704e71dd8264a023edb1bfc",
+      "bytes": 1253298
+    },
+    "L_thigh_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_front_hard_cover.npz",
+      "sha256": "481c20899278618ef332a9a3bd6d93b2eedbc94c2645cd872c9bb52143603274",
+      "bytes": 180127
+    },
+    "L_thigh_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_thigh_front_hard_cover.step",
+      "sha256": "873aa159e17365c0e56ddaedb4309f349fefe05d2376c808ee5907c8d0a098c4",
+      "bytes": 961283
+    },
+    "L_upper_arm_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_hard_cover.npz",
+      "sha256": "828e31f65b832ace4b0391d8adebb3f062cd75ba63a70f5673f81e80edfd4ade",
+      "bytes": 355931
+    },
+    "L_upper_arm_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_hard_cover.step",
+      "sha256": "b3e114047fc92f4688186f92859caab0f49f2c24a76ddfaef454420476ef646b",
+      "bytes": 1076583
+    },
+    "L_upper_arm_shell_front_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_front_M3_nut.npz",
+      "sha256": "dd1b0bbd92b3e9f71244c4feefc6fee53452d81f914f1294bde75ee723ba1dbd",
+      "bytes": 3755
+    },
+    "L_upper_arm_shell_front_M3_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_front_M3_nut.step",
+      "sha256": "4478da84d4e90fcbaa55b2b3d99d547dc8951852bf3a2794184ed838a81bdb07",
+      "bytes": 29806
+    },
+    "L_upper_arm_shell_front_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_front_M3x8.npz",
+      "sha256": "1dc4304cd76f218ceaaee8d003a8592c30fb57bec23f20f45801f2784a6cdaa2",
+      "bytes": 7265
+    },
+    "L_upper_arm_shell_front_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_front_M3x8.step",
+      "sha256": "200838bfd245d25b4c2f638a0344c8eed1274574d8e7187a66509d24def3c1f1",
+      "bytes": 13369
+    },
+    "L_upper_arm_shell_rear_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_rear_M3_nut.npz",
+      "sha256": "0fb44cdfa75ee6ffe600c092763cdbd84faac9431ec38ffa58c0cc579edd5395",
+      "bytes": 3752
+    },
+    "L_upper_arm_shell_rear_M3_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_rear_M3_nut.step",
+      "sha256": "db03085db2537a49d40694ba7068ba6caef9a7f0ea5586d5c8a76692ed537817",
+      "bytes": 29831
+    },
+    "L_upper_arm_shell_rear_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_rear_M3x8.npz",
+      "sha256": "20d2ccadaa83a7ccf65237c4b87702cc17e02cc27ceb9eca9f0b14a2638384a3",
+      "bytes": 7115
+    },
+    "L_upper_arm_shell_rear_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_shell_rear_M3x8.step",
+      "sha256": "54a3a16bb1c1f11930069649375bc0dbb073e7a9a3347e516e814df12bebdb5d",
+      "bytes": 13351
+    },
+    "L_upper_arm_yaw_to_elbow_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_yaw_to_elbow_combined.npz",
+      "sha256": "56f973ac7df6d5522c0e857d324a007ea9e5ee613d7b10b559a0f7a1ae2248a6",
+      "bytes": 297314
+    },
+    "L_upper_arm_yaw_to_elbow_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_yaw_to_elbow_combined.step",
+      "sha256": "fbb7a0a1bafebe0be5637e9f7c62ce93759571e121b0316a11cbcfbc28c2c043",
+      "bytes": 763876
+    },
+    "L_upper_arm_yaw_to_elbow_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_yaw_to_elbow_combined_steel_sleeves.npz",
+      "sha256": "a7f38abdd8f84ecff1220b3172fb7bc29fcc05b831fbe99f0734dd435be9bce9",
+      "bytes": 57726
+    },
+    "L_upper_arm_yaw_to_elbow_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/L_upper_arm_yaw_to_elbow_combined_steel_sleeves.step",
+      "sha256": "1bf8fcaef3c114dd556e3237397df88ace1ad4921f276e377a08bcdb69cb47f2",
+      "bytes": 99713
+    },
+    "L_yaw_single_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_yaw_single_hard_cover.npz",
+      "sha256": "cbcefdff39a93ec90d3ea98238f52ac16a443a84a2d0f79fa2981536fa0282e7",
+      "bytes": 357588
+    },
+    "L_yawcase_PA2x9p2_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_yawcase_PA2x9p2_1.npz",
+      "sha256": "de1c6f4eed8d89dc9ebc6b3db5c98f801c1adb419b73db0487c9292a3a633a33",
+      "bytes": 6707
+    },
+    "L_yawcase_PA2x9p2_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/L_yawcase_PA2x9p2_2.npz",
+      "sha256": "7e6741c3a5f0fa9c4cce64f28467eedd4a82c866c8a5a1cf49a0386d542b6365",
+      "bytes": 6577
+    },
+    "R_Shin_carrier_shell_shin_back_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_1_M3x8.npz",
+      "sha256": "2ee65a638a7955d9620f733c96dcbcd288b094001a45a005037197c42ae3faf1",
+      "bytes": 7125
+    },
+    "R_Shin_carrier_shell_shin_back_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_1_M3x8.step",
+      "sha256": "7164342db128bf1576206cc83469ef1ad9eeba0e85305b2a11fb6a12c77c565a",
+      "bytes": 11008
+    },
+    "R_Shin_carrier_shell_shin_back_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_1_nut.npz",
+      "sha256": "4fef448f0c93526277fc97d901c91ff4b7d9a7522329678ecf54ece5e5702cd7",
+      "bytes": 3832
+    },
+    "R_Shin_carrier_shell_shin_back_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_1_nut.step",
+      "sha256": "8d18adb0a9482101f3804573e4d092f6685b64680f8b7f4e54bc60370e438e43",
+      "bytes": 28520
+    },
+    "R_Shin_carrier_shell_shin_back_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_2_M3x8.npz",
+      "sha256": "ba6dcafe55a3260999cc3259280ebb2f55b502602fd4b4e1a5c2c5ce31203ba8",
+      "bytes": 7128
+    },
+    "R_Shin_carrier_shell_shin_back_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_2_M3x8.step",
+      "sha256": "84f03394d72f7d87c8dfd6976f9ca608d5d412d39c63b8ac902d6e2ee3d9e1da",
+      "bytes": 11008
+    },
+    "R_Shin_carrier_shell_shin_back_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_2_nut.npz",
+      "sha256": "8132e2ba0b84b2ceeb5f26c065d71b6871a80678fe673a85034f520e7dd02eb7",
+      "bytes": 3837
+    },
+    "R_Shin_carrier_shell_shin_back_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_back_2_nut.step",
+      "sha256": "22c65fbf1b6e8e126036473b0c50177ea2a464b3e8a14e9bb64b8a9f74bba8df",
+      "bytes": 28552
+    },
+    "R_Shin_carrier_shell_shin_front_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_1_M3x8.npz",
+      "sha256": "8c2e91ec11815c54942406f22d6cc19bb8942b3d75a439dced5d54e257d73940",
+      "bytes": 7070
+    },
+    "R_Shin_carrier_shell_shin_front_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_1_M3x8.step",
+      "sha256": "0a4a0b766c45fe8a5265a6601fc908c959c3e11cc30ad8751eef83729cc4cf01",
+      "bytes": 11035
+    },
+    "R_Shin_carrier_shell_shin_front_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_1_nut.npz",
+      "sha256": "ad640f971d9f581883bfea283c677fddd44e86e45cd49417f62e6e3eaf9b0fe4",
+      "bytes": 3875
+    },
+    "R_Shin_carrier_shell_shin_front_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_1_nut.step",
+      "sha256": "570063b332ef87d9ce60426151a44041298ef96544eb5477cebd1e95b563942e",
+      "bytes": 28582
+    },
+    "R_Shin_carrier_shell_shin_front_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_2_M3x8.npz",
+      "sha256": "e02e01196f0d244c58d0ca8d06d252760380ec7cf4e5d44ab78c67d98f5ba280",
+      "bytes": 7068
+    },
+    "R_Shin_carrier_shell_shin_front_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_2_M3x8.step",
+      "sha256": "2b3027f71aba48a5ce49242f1351f0253600f4c5f9c4d4caa77af9aac21f0b52",
+      "bytes": 11035
+    },
+    "R_Shin_carrier_shell_shin_front_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_2_nut.npz",
+      "sha256": "02ecc1abdb7100bd8767aa47cfb3c0adda987de09773bc4f68b4ca6d377eaedd",
+      "bytes": 3882
+    },
+    "R_Shin_carrier_shell_shin_front_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Shin_carrier_shell_shin_front_2_nut.step",
+      "sha256": "d7a05454b98cc594ec8f846ddaa3333be707de8cc5929f8c92b3bbb156a922bf",
+      "bytes": 28614
+    },
+    "R_Thigh_carrier_shell_thigh_front_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_1_M3x8.npz",
+      "sha256": "b97c5cce804cd6e5f6cc818711183838fc7223ee15967e09400277880aea52e8",
+      "bytes": 7178
+    },
+    "R_Thigh_carrier_shell_thigh_front_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_1_M3x8.step",
+      "sha256": "23a3779155af635c74729a1217242517976477b362480a9f3a9efc5036ac624f",
+      "bytes": 11037
+    },
+    "R_Thigh_carrier_shell_thigh_front_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_1_nut.npz",
+      "sha256": "f9ed671084d53381fa5a74f3dcd84af810e5f04a8cc627a6de37226258574aac",
+      "bytes": 3858
+    },
+    "R_Thigh_carrier_shell_thigh_front_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_1_nut.step",
+      "sha256": "f2ad586f53d3a32fdf6274692d8c993977972f08a50564d5bb84ea080581dc5b",
+      "bytes": 28524
+    },
+    "R_Thigh_carrier_shell_thigh_front_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_2_M3x8.npz",
+      "sha256": "1ed0c07c4c0121d2a84c2f6a5981e3c5da9694a935836c2c9e2692b7410211c1",
+      "bytes": 7141
+    },
+    "R_Thigh_carrier_shell_thigh_front_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_2_M3x8.step",
+      "sha256": "ae8be24c47012e88e2b6a630471ed82b6df5570175fe5ee1037e6d92c19ec743",
+      "bytes": 11037
+    },
+    "R_Thigh_carrier_shell_thigh_front_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_2_nut.npz",
+      "sha256": "c7f2fbc0561d71b39f471a4fec5d378e29d3eee8df385bf77e0044e0d908539a",
+      "bytes": 3832
+    },
+    "R_Thigh_carrier_shell_thigh_front_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_carrier_shell_thigh_front_2_nut.step",
+      "sha256": "812e7ded4247078457afd9bc095c8548ba1bca9d9ead36139d1e0d93c8e8441c",
+      "bytes": 28490
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_1_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_1_M3x8.npz",
+      "sha256": "08903317b9c8dac0a0719937ac361f4a120be61ba6ad419fadbb13e41dad11f5",
+      "bytes": 7181
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_1_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_1_M3x8.step",
+      "sha256": "e2344ea4098bf6a9bc7616fe6fad6b902641ee76a11b48c06a07acdc735d81bc",
+      "bytes": 11002
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_1_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_1_nut.npz",
+      "sha256": "088919758d8684db75257d995c1364631980c324f20cd993c7b4439500f4c6eb",
+      "bytes": 3860
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_1_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_1_nut.step",
+      "sha256": "aaa61f99aa726613304ccc957c27d509de11d8a1c15aa270a827e81c92806435",
+      "bytes": 28456
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_2_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_2_M3x8.npz",
+      "sha256": "fa57f750699619df9db589e9e61e1a3bda9d702eb004d9433a3b71c9dc4e7466",
+      "bytes": 7087
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_2_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_2_M3x8.step",
+      "sha256": "9dab581fec5f0d32e734640421e2ecfd22f8ed07b92fd03e3ee67f0a6bae79b0",
+      "bytes": 11002
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_2_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_2_nut.npz",
+      "sha256": "4c723cb8570f364023831bf1c373e8eccedbf0119aa42eea3480eacef9c03054",
+      "bytes": 3835
+    },
+    "R_Thigh_rear_carrier_shell_thigh_back_2_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_Thigh_rear_carrier_shell_thigh_back_2_nut.step",
+      "sha256": "b1377eb22f79263e88c486add79a6747683e20062c0769f438228230e706c696",
+      "bytes": 28422
+    },
+    "R_fore_back_178_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_178_M3_nut.npz",
+      "sha256": "59ed8527d462848f310116222b2c1451e56500659d878af1ac542b87f14907a6",
+      "bytes": 3773
+    },
+    "R_fore_back_187_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_187_M3_nut.npz",
+      "sha256": "54ffdb21662d959a6ba46308766f0cc946fb906f23fe28da059d47160d4a215f",
+      "bytes": 3809
+    },
+    "R_fore_back_M3x8_178_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_M3x8_178.npz",
+      "sha256": "2b43766ec3d6e9f0ad0af6bdef75b80e5e5e12f4bf5d853886946fa776fca3d1",
+      "bytes": 6951
+    },
+    "R_fore_back_M3x8_187_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_M3x8_187.npz",
+      "sha256": "501113ab92ddc65c203c8cea95b146368f4115c0f83c3ec3f1a0be6ed629403d",
+      "bytes": 6945
+    },
+    "R_fore_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_hard_cover.npz",
+      "sha256": "58f2c03b16cdf495705bb33888e91ca3494827b6c249ba0eda023c385be883ce",
+      "bytes": 194448
+    },
+    "R_fore_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_back_hard_cover.step",
+      "sha256": "810c4a8faeb7409e24c4e877949ec78edd3734995ae38d2b4e7b6c8fa551ec2b",
+      "bytes": 842818
+    },
+    "R_fore_front_178_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_178_M3_nut.npz",
+      "sha256": "fc8eda295da5daf20d4e7e73cf458598cf0907e0f5c6c4f358e3705973b337c3",
+      "bytes": 3776
+    },
+    "R_fore_front_187_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_187_M3_nut.npz",
+      "sha256": "c6eb14818e7da892cdeb06eb622020c29261d51629f663035cf447d9279bc48a",
+      "bytes": 3778
+    },
+    "R_fore_front_M3x8_178_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_M3x8_178.npz",
+      "sha256": "c627421f4f53f194ee41399e530e0a6f2b32ef1d221e14de221c08b888353b75",
+      "bytes": 6845
+    },
+    "R_fore_front_M3x8_187_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_M3x8_187.npz",
+      "sha256": "36b0e86c81de0e8cae0a9735decb54f864b9232bb763785fcda8e7fd8d4087f2",
+      "bytes": 6787
+    },
+    "R_fore_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_hard_cover.npz",
+      "sha256": "6d5cf183b95e1de882c2be2f8a160c7cfa3885136ff50a33b3de9c0e9307c974",
+      "bytes": 199806
+    },
+    "R_fore_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_fore_front_hard_cover.step",
+      "sha256": "0b1d44b1929dbd8989722a2d528f27c69c2ede8bf5ea021dc6773fb2f5aec70a",
+      "bytes": 757829
+    },
+    "R_forearm_elbow_to_wrist_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_forearm_elbow_to_wrist_combined.npz",
+      "sha256": "99cc93f65559737d6e07a1d68640fd8e0685e44998796b79c8bcfba46ed3244b",
+      "bytes": 201569
+    },
+    "R_forearm_elbow_to_wrist_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_forearm_elbow_to_wrist_combined.step",
+      "sha256": "ac74eef17f4d84cb677f33f61c37def2f188aff396a0cd599ddc13c3b7859ca5",
+      "bytes": 1226798
+    },
+    "R_forearm_elbow_to_wrist_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_forearm_elbow_to_wrist_combined_steel_sleeves.npz",
+      "sha256": "6270e3ff85378fa57bf1b29a9d16579e7a513b27aab45a6aeb497d0a326722f4",
+      "bytes": 58713
+    },
+    "R_forearm_elbow_to_wrist_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_forearm_elbow_to_wrist_combined_steel_sleeves.step",
+      "sha256": "992fca63f74f8f2adf1c1a529655abf9edacb6d5a889cfa5686b900464d8bda0",
+      "bytes": 97835
+    },
+    "R_left_finger_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_left_finger.npz",
+      "sha256": "2786d142b07e7f99eceb243b4a681019e58f91076240ba742d57627908bfcbed",
+      "bytes": 449260
+    },
+    "R_left_finger_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_left_finger.step",
+      "sha256": "7090d43bd8102358cae7cf66b6d71bb51729ab9c4dc615fb340106d0590c5ff8",
+      "bytes": 1397717
+    },
+    "R_palm_lower_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_palm_lower.npz",
+      "sha256": "03e4e181f372d5498dbfa75f324de134ae59e25a7f1d783c8dc74d93bcbdf619",
+      "bytes": 318165
+    },
+    "R_palm_lower_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_palm_lower.step",
+      "sha256": "b6db821ba50d99eec06e290ba142a6e285f99c3c0e6b6a10116624d855918800",
+      "bytes": 1799860
+    },
+    "R_palm_upper_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_palm_upper.npz",
+      "sha256": "8ce875ecfb6d04e896722b8ebac3cf305b57624185cf7bc98d08569dffc29eee",
+      "bytes": 116277
+    },
+    "R_palm_upper_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_palm_upper.step",
+      "sha256": "50022ee11d599a4bbbf3282db451f9297487204b6e2e7bdba83a7ccdc9744632",
+      "bytes": 876533
+    },
+    "R_right_finger_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_right_finger.npz",
+      "sha256": "c30db219f8878ad81a644029e9a31d48593762ec4559d52fbcc378bcd309eb08",
+      "bytes": 529225
+    },
+    "R_right_finger_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_right_finger.step",
+      "sha256": "e820a3e360de70d83f3780ad7a1ca636c7af293bd9333b9b96356fa43b1dfaab",
+      "bytes": 1552616
+    },
+    "R_shin_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_back_hard_cover.npz",
+      "sha256": "1a937dd0df5d0ee5557c614c23d0a22b6aa23ef80963a8a252fd23ad52683924",
+      "bytes": 127873
+    },
+    "R_shin_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_back_hard_cover.step",
+      "sha256": "847352387971561b70133f97277c49c1f423694ff5a0ba1b3d6f09a9328eac27",
+      "bytes": 514023
+    },
+    "R_shin_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_combined.npz",
+      "sha256": "208bd913b9307746046a165873f1f7cc1b20b36fe8df6d0d610f418f939f66a0",
+      "bytes": 1661603
+    },
+    "R_shin_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_combined.step",
+      "sha256": "dd5a954fe74f118a5fcfa8566b9f775af44a7ae58be3834faf11c5017b863a1c",
+      "bytes": 2409386
+    },
+    "R_shin_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_front_hard_cover.npz",
+      "sha256": "44cd7fef1672bedaf07aa4d416b7bc74cfbe9de9f9ba1ffd3a7f58a94dc95269",
+      "bytes": 186163
+    },
+    "R_shin_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shin_front_hard_cover.step",
+      "sha256": "0ac479859525f63ae1358e93e1163aecb368ed09f46459d22f529ba35e25ba09",
+      "bytes": 928528
+    },
+    "R_shoulder_pitch_to_roll_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_pitch_to_roll_combined.npz",
+      "sha256": "939d32806944b0e9ad7700bd7a6510afca01024eca9ace7fae68fa47e5519669",
+      "bytes": 322041
+    },
+    "R_shoulder_pitch_to_roll_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_pitch_to_roll_combined.step",
+      "sha256": "65c055e3b0cdd362f16b976a6c4447a4ad7dfa72852e06f5099d28b77389272f",
+      "bytes": 514710
+    },
+    "R_shoulder_pitch_to_roll_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_pitch_to_roll_combined_steel_sleeves.npz",
+      "sha256": "5a9a7efcc53436caf871e0a25007c9481e44077b0fe6d8b4ee713926116b14c4",
+      "bytes": 54136
+    },
+    "R_shoulder_pitch_to_roll_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_pitch_to_roll_combined_steel_sleeves.step",
+      "sha256": "20ec52657d556184059edf0c8dc33b096214c74f42f12c1d8883aac4f9a5f3bc",
+      "bytes": 79107
+    },
+    "R_shoulder_roll_to_yaw_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_roll_to_yaw_combined.npz",
+      "sha256": "a089b8db155cf233e273fc063f3d6a5d730dbe7c4a3f091a957d4f96120ad767",
+      "bytes": 396180
+    },
+    "R_shoulder_roll_to_yaw_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_roll_to_yaw_combined.step",
+      "sha256": "68c763703588393625598b9ff74e939f2f1c2ab44b89ae7a191d0362eaa1eea5",
+      "bytes": 1097042
+    },
+    "R_shoulder_roll_to_yaw_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_roll_to_yaw_combined_steel_sleeves.npz",
+      "sha256": "d392291ebacf02c441b275a3b681f16ccb0900e96295dd7bcb41b9dfd8e928a8",
+      "bytes": 56380
+    },
+    "R_shoulder_roll_to_yaw_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_shoulder_roll_to_yaw_combined_steel_sleeves.step",
+      "sha256": "a5a960e2ecc681f97d8895b6bb3549b5ce8a0bdaae08dfba509ad6be2a797c40",
+      "bytes": 82483
+    },
+    "R_thigh_back_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_back_hard_cover.npz",
+      "sha256": "af06eaba43f8baf34131f8ccfc51ed9435bf1f9b7796a95193a29561773c8245",
+      "bytes": 110681
+    },
+    "R_thigh_back_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_back_hard_cover.step",
+      "sha256": "48a8e725c2476f6a562c56cf9ad9997c2720cc11f9962d3871c3df82eebfa572",
+      "bytes": 687573
+    },
+    "R_thigh_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_combined.npz",
+      "sha256": "53ffe0ef1f8673079eeee035a359bf668e8eac72ae461ae99d2a0a1c7a572971",
+      "bytes": 1165140
+    },
+    "R_thigh_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_combined.step",
+      "sha256": "043948142f13bce56a3c44d635ba0eb3029a43b4172e73f3334d012b8c250893",
+      "bytes": 1237613
+    },
+    "R_thigh_front_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_front_hard_cover.npz",
+      "sha256": "270c13cef93685fb85ef4e0a32ec7c1af31e87aeb5856f53e785a75c75e54ba2",
+      "bytes": 180057
+    },
+    "R_thigh_front_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_thigh_front_hard_cover.step",
+      "sha256": "438101430af0da7f02615a7152308660e17ee8ee77bffdd451372424da14c275",
+      "bytes": 958135
+    },
+    "R_upper_arm_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_hard_cover.npz",
+      "sha256": "df8f0809a1446bebbc245ed69218987b0c8e89dc28867adf41a245c75671454c",
+      "bytes": 355911
+    },
+    "R_upper_arm_hard_cover_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_hard_cover.step",
+      "sha256": "ba2e7d99d5994a8347e1a9648ea079f709de42f29b9d161da18171c88783e611",
+      "bytes": 1070170
+    },
+    "R_upper_arm_shell_front_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_front_M3_nut.npz",
+      "sha256": "e5ea38d6d320901d7aae5e2465aba7cc6966339e408acdec9d5220215c2010d7",
+      "bytes": 3827
+    },
+    "R_upper_arm_shell_front_M3_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_front_M3_nut.step",
+      "sha256": "f486e61af07a3a017f86f16df4fe9e8303e072edadac178c0a224eba6a497bb8",
+      "bytes": 28616
+    },
+    "R_upper_arm_shell_front_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_front_M3x8.npz",
+      "sha256": "3ab8b98d3bcb598bb8113d828b841a887eb60b5bf04387729577bba3b53be87e",
+      "bytes": 7116
+    },
+    "R_upper_arm_shell_front_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_front_M3x8.step",
+      "sha256": "25606cc7b640aef2f8435bc97e0a5a153928f2cc07991a295e48d11f5bd59c6c",
+      "bytes": 11073
+    },
+    "R_upper_arm_shell_rear_M3_nut_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_rear_M3_nut.npz",
+      "sha256": "611c93f879d37fa503fa8615ac2f296daa9846abe69c01eef913bb8998b54c00",
+      "bytes": 3823
+    },
+    "R_upper_arm_shell_rear_M3_nut_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_rear_M3_nut.step",
+      "sha256": "5ae9444d67be870aca8da1c3ff2b75bb5a47901b8ad70d981a50002bd2f69711",
+      "bytes": 28589
+    },
+    "R_upper_arm_shell_rear_M3x8_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_rear_M3x8.npz",
+      "sha256": "4d9a53881870c23af6e04fddc5aadd6b79ea8ce0127824ca3bc059e9a0b0508d",
+      "bytes": 6969
+    },
+    "R_upper_arm_shell_rear_M3x8_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_shell_rear_M3x8.step",
+      "sha256": "b76e2bdb4330e70c3746d01632a08dcfc2826ae02a407edd49996ae37fc9fe32",
+      "bytes": 11041
+    },
+    "R_upper_arm_yaw_to_elbow_combined_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_yaw_to_elbow_combined.npz",
+      "sha256": "6defd0edf2384659c23b577af3fad60d010e1ee8b3fe64931ff7d75590af7f19",
+      "bytes": 297099
+    },
+    "R_upper_arm_yaw_to_elbow_combined_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_yaw_to_elbow_combined.step",
+      "sha256": "9a70a8205e40944bd5d9049c205c1d09663fc5421d55c7d0a007d4ca1cfed80b",
+      "bytes": 725816
+    },
+    "R_upper_arm_yaw_to_elbow_combined_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_yaw_to_elbow_combined_steel_sleeves.npz",
+      "sha256": "937cd5a9f5ce60c769010335043dba02fabc52e894cd13cadbaebfc62b795b48",
+      "bytes": 57575
+    },
+    "R_upper_arm_yaw_to_elbow_combined_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/R_upper_arm_yaw_to_elbow_combined_steel_sleeves.step",
+      "sha256": "cafde2954d5210b2ae919dc7cc7a69ac628339fbcce1189ef62002bd435fa2f4",
+      "bytes": 81288
+    },
+    "R_yaw_single_hard_cover_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_yaw_single_hard_cover.npz",
+      "sha256": "a49b66159364cc4c44c3900137ab7f123106d8c05383fb9c67a4ed19753c1ba7",
+      "bytes": 358051
+    },
+    "R_yawcase_PA2x9p2_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_yawcase_PA2x9p2_3.npz",
+      "sha256": "3f29ed5260eceb534a04aa3253a8190434fd46d701ac647d0db2cb9998babe89",
+      "bytes": 6618
+    },
+    "R_yawcase_PA2x9p2_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/R_yawcase_PA2x9p2_4.npz",
+      "sha256": "70a078d3ade56eba0479563db2b0c7b8170c684c968ce857d92b8db74a712485",
+      "bytes": 6489
+    },
+    "center_back_shell_npz": {
+      "path": "artifacts/robot/body/assembly/parts/center_back_shell.npz",
+      "sha256": "38b8911c3afc7617b37c1a50955ebac6f19113f8ec9cf8618f40756b1f8f486b",
+      "bytes": 521975
+    },
+    "center_back_shell_step": {
+      "path": "artifacts/robot/body/assembly/parts/center_back_shell.step",
+      "sha256": "6fba06a2d9fbcc685830da94c39104cddfd510200675780dfb2293fccc014847",
+      "bytes": 4502246
+    },
+    "center_front_shell_npz": {
+      "path": "artifacts/robot/body/assembly/parts/center_front_shell.npz",
+      "sha256": "9e15aff0775308ecee15dca13317c497ac1a8f0d39fe9455c83208878628aa88",
+      "bytes": 510594
+    },
+    "center_front_shell_step": {
+      "path": "artifacts/robot/body/assembly/parts/center_front_shell.step",
+      "sha256": "745c9ad605a78950cc5776b05fb64f4e36644c1da88285e9fd0571847ecf0274",
+      "bytes": 4421316
+    },
+    "combined__stage1_center_torso_spine_chassis_npz": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage1_center_torso_spine_chassis.npz",
+      "sha256": "88556d34b8183d3ef198a716e272f4d21dca301e9a7f92beda1a5de1f9baf5fc",
+      "bytes": 280608
+    },
+    "combined__stage1_center_torso_spine_chassis_step": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage1_center_torso_spine_chassis.step",
+      "sha256": "29ab410ce609e1dc99eab792e61219a09fb531fa7a040cc634555f7540515270",
+      "bytes": 2382386
+    },
+    "combined__stage1_center_torso_spine_chassis_steel_sleeves_npz": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage1_center_torso_spine_chassis_steel_sleeves.npz",
+      "sha256": "ffa61001cc68a0afbcabc8694fe64286afe20d10d0753d0f138e9acc0858a006",
+      "bytes": 234902
+    },
+    "combined__stage1_center_torso_spine_chassis_steel_sleeves_step": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage1_center_torso_spine_chassis_steel_sleeves.step",
+      "sha256": "b54e27dab7d56e635cee5e186f7ead58e6b488c753ebae35a4e94c2fa5cb0fab",
+      "bytes": 408762
+    },
+    "combined__stage2_lower_pelvis_battery_cradle_npz": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage2_lower_pelvis_battery_cradle.npz",
+      "sha256": "0a8647780e0786a248f5a9eb00254ab1f6728440b04f3d2132736595ccb38262",
+      "bytes": 147383
+    },
+    "combined__stage2_lower_pelvis_battery_cradle_step": {
+      "path": "artifacts/robot/body/assembly/parts/combined__stage2_lower_pelvis_battery_cradle.step",
+      "sha256": "54611adb04094daed5dca019324ef48d76cd5ce5e3c9da5eabd2f3b10d05d6a9",
+      "bytes": 1213481
+    },
+    "head_neck_collar_npz": {
+      "path": "artifacts/robot/body/assembly/parts/head_neck_collar.npz",
+      "sha256": "c2d23b544836b45349da99172fbec87e115971a305a065e519424f3fb4d44673",
+      "bytes": 41406
+    },
+    "original_profile_head_skin_v23_npz": {
+      "path": "artifacts/robot/body/assembly/parts/original_profile_head_skin_v23.npz",
+      "sha256": "2bdbf6ffee11ad535d82747a8436fda42e1cb88550d036636e15d86a5fd90ef0",
+      "bytes": 1816375
+    },
+    "upper__A_L_clocked_pitch_PA2x10_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_PA2x10_0.npz",
+      "sha256": "d1062b11f1253f0c124f793cc76496b03a0966b0431d59c5ea70ab2749428ea2",
+      "bytes": 15378
+    },
+    "upper__A_L_clocked_pitch_PA2x10_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_PA2x10_1.npz",
+      "sha256": "c31dcdb77cf9c73e87214a39500da1d4b326b1ce4ebeb80e9d62cf1a2b4a2f2e",
+      "bytes": 15368
+    },
+    "upper__A_L_clocked_pitch_PA2x10_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_PA2x10_2.npz",
+      "sha256": "bc73f560949b676821b294569c43b7c3dd7093830cd032e8388f03a631fc5db9",
+      "bytes": 15213
+    },
+    "upper__A_L_clocked_pitch_PA2x10_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_PA2x10_3.npz",
+      "sha256": "a69b2a94a52a923f6f23c78ff603279eb3257f290bd28f3fcc0f13febd552ee3",
+      "bytes": 15205
+    },
+    "upper__A_L_clocked_pitch_spacer_3mm_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_spacer_3mm_0.npz",
+      "sha256": "a7153dc7fb68a9df9a60095f746768e4d2127e0ff30cbb9f61025205491684ac",
+      "bytes": 15367
+    },
+    "upper__A_L_clocked_pitch_spacer_3mm_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_spacer_3mm_1.npz",
+      "sha256": "74f3fe136ea280e78f21862a779aebda3a6b1154c0c610300f3b387f14db31dc",
+      "bytes": 15393
+    },
+    "upper__A_L_clocked_pitch_spacer_3mm_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_spacer_3mm_2.npz",
+      "sha256": "68d481d53dc69d99e920bd0dd3507e486b5d566b8b1eebfad7158a714742ba05",
+      "bytes": 15263
+    },
+    "upper__A_L_clocked_pitch_spacer_3mm_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_spacer_3mm_3.npz",
+      "sha256": "454fde1c67422783912682cb8f42532faee96e13e31962f6edad8a65e10d10ec",
+      "bytes": 15267
+    },
+    "upper__A_L_clocked_pitch_washer_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_washer_0.npz",
+      "sha256": "b155ac2bdc15b52e573ac0490db5ff2050ba5d181db523b08aa877df61b9560c",
+      "bytes": 15394
+    },
+    "upper__A_L_clocked_pitch_washer_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_washer_1.npz",
+      "sha256": "bcc2bcc4068cddf7e0c2b0ae3c3d4e5ac4ce3cac09dc7fa25fb2f018de1beea9",
+      "bytes": 15385
+    },
+    "upper__A_L_clocked_pitch_washer_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_washer_2.npz",
+      "sha256": "21266fb1ba9e8c77ac234ec93357776ced52eb04ac212f65dd22080c9e3d98c5",
+      "bytes": 15279
+    },
+    "upper__A_L_clocked_pitch_washer_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_L_clocked_pitch_washer_3.npz",
+      "sha256": "b96be9243ae84254d24d80feb2c6f2eb45a7358c5c65c91d2976e90ab8753ca7",
+      "bytes": 15270
+    },
+    "upper__A_R_clocked_pitch_PA2x10_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_PA2x10_0.npz",
+      "sha256": "c841b68affeee397c1fdace1c63766e8313b990e38fac20e077309d6e5e40100",
+      "bytes": 15369
+    },
+    "upper__A_R_clocked_pitch_PA2x10_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_PA2x10_1.npz",
+      "sha256": "92ce8ac4eac8ac90a30831412a85040af073d3fd641e42031e8b66a8d2ec6d6c",
+      "bytes": 15378
+    },
+    "upper__A_R_clocked_pitch_PA2x10_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_PA2x10_2.npz",
+      "sha256": "2c28f988760bdf382f3a0b90a350b72aac00b1250e183148d03b5d0a6e168fab",
+      "bytes": 15210
+    },
+    "upper__A_R_clocked_pitch_PA2x10_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_PA2x10_3.npz",
+      "sha256": "89ef74bf93c54bee60a1925e858b6dd9990ded1cb854620e2dce645618105fe8",
+      "bytes": 15211
+    },
+    "upper__A_R_clocked_pitch_spacer_3mm_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_spacer_3mm_0.npz",
+      "sha256": "9bf7ee4edfe65c3ff393d3c00b3215edc6a01ebdcda25fbb184365625d5bb60e",
+      "bytes": 15403
+    },
+    "upper__A_R_clocked_pitch_spacer_3mm_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_spacer_3mm_1.npz",
+      "sha256": "f1697b0b044e08d5ea29a342bd48b6bf1290eccca81138e8129dc1f37caf1f50",
+      "bytes": 15397
+    },
+    "upper__A_R_clocked_pitch_spacer_3mm_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_spacer_3mm_2.npz",
+      "sha256": "04aee254c3c0f7248a5aebcd5c61da9f81a6b2a7ceadbb25c32fbfb3b3571a81",
+      "bytes": 15279
+    },
+    "upper__A_R_clocked_pitch_spacer_3mm_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_spacer_3mm_3.npz",
+      "sha256": "da0534f470c6ef2f576c604209aeef48e2b20849e6dcde54a96cb6711b9ced16",
+      "bytes": 15265
+    },
+    "upper__A_R_clocked_pitch_washer_0_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_washer_0.npz",
+      "sha256": "0c0a9a0e74f8681b9ae9e5ac9b457982bafd67fcbb67e173be96c9803c8e2b9a",
+      "bytes": 15392
+    },
+    "upper__A_R_clocked_pitch_washer_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_washer_1.npz",
+      "sha256": "a4e6dda9d67ba35d330205f997aaa0b10672706274f4337618b003891ccd3d05",
+      "bytes": 15390
+    },
+    "upper__A_R_clocked_pitch_washer_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_washer_2.npz",
+      "sha256": "7d6f2c0734352ed16cb161cbbe0d1113babd0fa28d5ec2887f26931e49655105",
+      "bytes": 15277
+    },
+    "upper__A_R_clocked_pitch_washer_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__A_R_clocked_pitch_washer_3.npz",
+      "sha256": "25fd5bf17c78d31321933d8c674464e17da18b6c610d77b98108cf742d54d2b6",
+      "bytes": 15273
+    },
+    "upper__L_elbow_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_C047_case.npz",
+      "sha256": "e237e299b13c4e0ce97d9760b24580a27240314a2edef5038ac27431e71f9ec8",
+      "bytes": 1408413
+    },
+    "upper__L_elbow_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_C047_main_horn.npz",
+      "sha256": "d74a8c2cd9e907224c26854e0940b179c08a96c72672926a08ac30b23ea0ca20",
+      "bytes": 45883
+    },
+    "upper__L_elbow_case_PA2x7_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_PA2x7_1.npz",
+      "sha256": "3367558aaf8b64effc4996427071ea9888dd3c1ceb76b11a31601eb39654a22f",
+      "bytes": 7036
+    },
+    "upper__L_elbow_case_PA2x7_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_PA2x7_2.npz",
+      "sha256": "a1083f57f788676c15f3a0e7eed1e9bbb482049c3275b65ecc2075a5e5a5e52b",
+      "bytes": 7039
+    },
+    "upper__L_elbow_case_PA2x7_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_PA2x7_3.npz",
+      "sha256": "a7799f5d3eb39a6e8ef3e7b745e6d37bca12e1f4590ea1629f4390f130b65ca2",
+      "bytes": 7062
+    },
+    "upper__L_elbow_case_PA2x7_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_PA2x7_4.npz",
+      "sha256": "d744d74738999b2ebc5b0ac3f5b1a1837491c5a688f90eb672730f236d259077",
+      "bytes": 7064
+    },
+    "upper__L_elbow_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_spacer1.npz",
+      "sha256": "8a166cfe16915f0544501891da42b910f5ed72f1896aaee93d12f5f49c076321",
+      "bytes": 6933
+    },
+    "upper__L_elbow_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_spacer2.npz",
+      "sha256": "95a93f68bef9c213f8c171f9a711c9f4976a83eb197396411bcc97cf1f1cf2ed",
+      "bytes": 6938
+    },
+    "upper__L_elbow_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_spacer3.npz",
+      "sha256": "4d90ee86ccf43492ca41af331b6d32f035a619f46f451ae5756c43a07bf618eb",
+      "bytes": 6960
+    },
+    "upper__L_elbow_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_spacer4.npz",
+      "sha256": "a3423b6b1dac3eae2d60c28ef170106e74642ff0f649beeca77c62533c0f3995",
+      "bytes": 6966
+    },
+    "upper__L_elbow_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_washer1.npz",
+      "sha256": "8371ef33b0870eb29711b8b6c4ad83b2834ec12d9626f80c1dcd49a1f8c81a55",
+      "bytes": 6971
+    },
+    "upper__L_elbow_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_washer2.npz",
+      "sha256": "c3315ac5e01470cd27e1cc4ad522665b093c6610f6d121e0bcedfb0a2c5b88f1",
+      "bytes": 6973
+    },
+    "upper__L_elbow_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_washer3.npz",
+      "sha256": "17b13028f468b0e24a3916672da80f65ffb09fdd0f8f52c583bbe9121f97af74",
+      "bytes": 6963
+    },
+    "upper__L_elbow_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_case_washer4.npz",
+      "sha256": "bb382cde37ea204f215864cea92b7fb8b93f690919f2550d5a76d6fb1f467ab9",
+      "bytes": 6968
+    },
+    "upper__L_elbow_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_central_rocker_M3x6.npz",
+      "sha256": "60a39bf0e595260a60e91ecfbf179c8d2007d12c8f135e25ef7240ebd56b40eb",
+      "bytes": 7163
+    },
+    "upper__L_elbow_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_M3x6_1.npz",
+      "sha256": "5e24abbb7b889b2a1044aa8c9528745f41f25500d4d0b581d86c39a6d455b4d3",
+      "bytes": 7077
+    },
+    "upper__L_elbow_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_M3x6_2.npz",
+      "sha256": "1eddd8afa03e9a441d8c7b8c561ddd281208c3208939d502a67a65c60ca76b06",
+      "bytes": 7160
+    },
+    "upper__L_elbow_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_M3x6_3.npz",
+      "sha256": "c24edff7340519b454fc68d08d8ae9eac49f70bf77685d46af27256a5dc6902a",
+      "bytes": 7169
+    },
+    "upper__L_elbow_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_M3x6_4.npz",
+      "sha256": "01f8da48e65d155e072f2483a082e8626da768bc2106d0045a5da65ca54d920a",
+      "bytes": 7159
+    },
+    "upper__L_elbow_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_washer1.npz",
+      "sha256": "0f3827ce81f3ed4c0ebd9ebdbe3a3dff34a4fd04fc59ca1362bce6ea0ba16503",
+      "bytes": 7210
+    },
+    "upper__L_elbow_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_washer2.npz",
+      "sha256": "d00df596f026e0e4a333b63efd6905007bc3db619df64869675815f659f25b08",
+      "bytes": 7284
+    },
+    "upper__L_elbow_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_washer3.npz",
+      "sha256": "8b378549fa4abb83786d6bf0cd43447d392f404f7556b1a22ec66f2ac8e10a76",
+      "bytes": 7310
+    },
+    "upper__L_elbow_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_elbow_horn_washer4.npz",
+      "sha256": "feb0b8b39d534f64f5355d83dba2bb5d560211e3c3c557ae9397a0f76c769d43",
+      "bytes": 7275
+    },
+    "upper__L_pitch_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_C047_case.npz",
+      "sha256": "e8b2b064b3adb38460c24fb9d342be331d69eb847253bf5f6f8588c69faa5a76",
+      "bytes": 1619589
+    },
+    "upper__L_pitch_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_C047_main_horn.npz",
+      "sha256": "4c5f444bac6f8e0e9d62ecc0b04212646f42b356a7fbf0fb8f99398f39dd06bb",
+      "bytes": 45657
+    },
+    "upper__L_pitch_C047_rear_idler_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_C047_rear_idler.npz",
+      "sha256": "5075780b5d46c5dee4be8865a7593d90012cb6720d47e5f9ba4f583088b13568",
+      "bytes": 33935
+    },
+    "upper__L_pitch_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_central_rocker_M3x6.npz",
+      "sha256": "b0c22f1c384ed65c32fc74d8cd83650c968e2421a43e37eb064a264d333c4217",
+      "bytes": 7066
+    },
+    "upper__L_pitch_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_M3x6_1.npz",
+      "sha256": "7b4a36b21f81877c90d93ee3306e78de50635df85785dbc9145553b2a385aaf2",
+      "bytes": 7149
+    },
+    "upper__L_pitch_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_M3x6_2.npz",
+      "sha256": "5ca8f404b6831485e0e5fc5d8d9479d590920312e85b10e872577c8e4ee23b9a",
+      "bytes": 7069
+    },
+    "upper__L_pitch_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_M3x6_3.npz",
+      "sha256": "c53d1f894c7ba2c0277863310e7ec73eb7986e61166f7ca457e8d6c92ba71305",
+      "bytes": 7056
+    },
+    "upper__L_pitch_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_M3x6_4.npz",
+      "sha256": "f920f38592301a9d1c732f9ae434e68701596aaa2a2c277486d4497fbacab04e",
+      "bytes": 7070
+    },
+    "upper__L_pitch_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_washer1.npz",
+      "sha256": "8f60813a714982439419ee52504a2cf8b7c3558a1d963a01f99d04b8f6d0281a",
+      "bytes": 7314
+    },
+    "upper__L_pitch_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_washer2.npz",
+      "sha256": "6784f88f565f11f5e4f807a9d742a055ebb39ecbd6718f6f5d2cc154d0dd7f6e",
+      "bytes": 7205
+    },
+    "upper__L_pitch_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_washer3.npz",
+      "sha256": "e704334a5d199c2d662a92cb6cb0389bf0ec52a8250324eefb17257cb324010c",
+      "bytes": 7198
+    },
+    "upper__L_pitch_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_pitch_horn_washer4.npz",
+      "sha256": "cc6378abe575f1e5c48d7bd5bfa4ad50d8eff249bf4d26c81c8780996088b4d0",
+      "bytes": 7207
+    },
+    "upper__L_roll_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_C047_case.npz",
+      "sha256": "4b8b319490567a5488b7588110a741f595a15afec0cd0ac49f5d390f383e0d96",
+      "bytes": 1432985
+    },
+    "upper__L_roll_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_C047_main_horn.npz",
+      "sha256": "eda45f3aa1285e42432190f7855627013eff527d49ebc2cc9759988a7dcdbbb0",
+      "bytes": 48190
+    },
+    "upper__L_roll_case_PA2x7_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_PA2x7_1.npz",
+      "sha256": "9f0a69478038f4a1cfa3f1ba029caa7545cd30f2b189598142fd4c599accd240",
+      "bytes": 10024
+    },
+    "upper__L_roll_case_PA2x7_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_PA2x7_2.npz",
+      "sha256": "32a7d75222912d2cc34b645ef57586d0e0830f4e18559bc369f3d9c329a91df6",
+      "bytes": 10044
+    },
+    "upper__L_roll_case_PA2x7_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_PA2x7_3.npz",
+      "sha256": "abbbcb6495a37bfdda0efec2d8374ac3e1d201f50d58de0a797eb2524c285480",
+      "bytes": 10014
+    },
+    "upper__L_roll_case_PA2x7_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_PA2x7_4.npz",
+      "sha256": "c5c01d8c71cd1b4fd3a07b1d5c635533727126fd20486b386d2d607914df8df4",
+      "bytes": 7644
+    },
+    "upper__L_roll_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_spacer1.npz",
+      "sha256": "d065af5b150bdca4226b71ddfc8772e43f1cabbf8b33383b5ba6ce8c4901a80a",
+      "bytes": 7350
+    },
+    "upper__L_roll_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_spacer2.npz",
+      "sha256": "6343b4a879f5244628695a55a492c4203408a3a7d74a22e6af73fe38ce7a625a",
+      "bytes": 7354
+    },
+    "upper__L_roll_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_spacer3.npz",
+      "sha256": "f9aa48436ef45da20fab762bf7d472987d4996fa580f1a788790737e90d77651",
+      "bytes": 7347
+    },
+    "upper__L_roll_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_spacer4.npz",
+      "sha256": "9048037476f96b413d592b9a1908c4cb3feb7e4ffc787e30e971dc36d805ca2c",
+      "bytes": 7349
+    },
+    "upper__L_roll_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_washer1.npz",
+      "sha256": "f04214df84ba9b2054b97d906a2609d1ba60561ced24921b7b0fc25ca8921f4b",
+      "bytes": 7483
+    },
+    "upper__L_roll_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_washer2.npz",
+      "sha256": "09288080d9fd5c755b92f38572cb18069f0c6d1e540be6b74951019c8538c93c",
+      "bytes": 7488
+    },
+    "upper__L_roll_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_washer3.npz",
+      "sha256": "fe1c8b65ca0bfd0fe0cd1df488045501f1cc0747ff26cba2d86c778e242af648",
+      "bytes": 7490
+    },
+    "upper__L_roll_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_case_washer4.npz",
+      "sha256": "2e4d7fb1d379715a7573d77fc2a7a4b257bc41c8ada989e68847c100c5704373",
+      "bytes": 7486
+    },
+    "upper__L_roll_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_central_rocker_M3x6.npz",
+      "sha256": "d4b12100a0f64f41663cbbdd7e24e45d8d1f3ae110e38f940f1939c097b689c4",
+      "bytes": 7372
+    },
+    "upper__L_roll_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_M3x6_1.npz",
+      "sha256": "0c404562e090ce27c7cefe04805fd9eee148120ceb42a9bf4c19f6daff5f7df4",
+      "bytes": 7373
+    },
+    "upper__L_roll_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_M3x6_2.npz",
+      "sha256": "3f99a390d14028074d2d6eed5ed87e53300d84f188f190d8b107a9c359b7121f",
+      "bytes": 7382
+    },
+    "upper__L_roll_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_M3x6_3.npz",
+      "sha256": "8fc504135a65de75523db74bd4225edb26e978f8365ab9b5572d6498f76ff748",
+      "bytes": 7371
+    },
+    "upper__L_roll_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_M3x6_4.npz",
+      "sha256": "ea2b95ecaf684a9d9e6b86cf16144954b8637132435c31e4109d51b4b0849a95",
+      "bytes": 7378
+    },
+    "upper__L_roll_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_washer1.npz",
+      "sha256": "f1809235095bdc438d430dfc8e1cf162464f55f1d7b460bc2e9394a042237408",
+      "bytes": 7378
+    },
+    "upper__L_roll_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_washer2.npz",
+      "sha256": "cdda6c5eba66f65b06f0cb1553750449aab9cf7ed39c5ea1328e66088e5c1ef4",
+      "bytes": 7384
+    },
+    "upper__L_roll_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_washer3.npz",
+      "sha256": "bfb7268dc6de7a5d42a67fc4b40d2386984a9d70fbb6a528ee0cd24b94722e3c",
+      "bytes": 7391
+    },
+    "upper__L_roll_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_roll_horn_washer4.npz",
+      "sha256": "9371ce8511fe12b6cccb08fbb13d39db54f0fc8d757b364bf8a8aa735800a93a",
+      "bytes": 7386
+    },
+    "upper__L_yaw_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_C047_case.npz",
+      "sha256": "db3820b1e8783ec8a8f7e97c445ca3d6345b7d3053be1e71ee711682ad37f24c",
+      "bytes": 1615131
+    },
+    "upper__L_yaw_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_C047_main_horn.npz",
+      "sha256": "ab14f1f536598196d1c4f3e5ca7fa6aaf060719e63c63bc6347a977f11ba7fad",
+      "bytes": 59359
+    },
+    "upper__L_yaw_case_PA2x7_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_PA2x7_3.npz",
+      "sha256": "ea591f9d737b87f27d47e7ba963ca1c16423ef457eef64fdba7b9ca887a7cf8f",
+      "bytes": 9137
+    },
+    "upper__L_yaw_case_PA2x7_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_PA2x7_4.npz",
+      "sha256": "443c73869d0864629a88c773eb64d3c9c983a9cf84146994988803b75b37b040",
+      "bytes": 9054
+    },
+    "upper__L_yaw_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_spacer1.npz",
+      "sha256": "d40d80b69753874680251ee2bc90bebd5d5a377d437a80cff931c5392a0a60c9",
+      "bytes": 9131
+    },
+    "upper__L_yaw_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_spacer2.npz",
+      "sha256": "65776bcaabbd805c7b6dee76752730e82c4bd396cd86b748053718e8f8094d05",
+      "bytes": 9068
+    },
+    "upper__L_yaw_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_spacer3.npz",
+      "sha256": "6bdd67ceb07e4464560723426b9b7a2f57c635e4cb66b577212dbe15f22e879d",
+      "bytes": 9124
+    },
+    "upper__L_yaw_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_spacer4.npz",
+      "sha256": "359d899e886b5abb726f7cf2a92b19d00f638f9b3f22857946ae34cc2570738b",
+      "bytes": 9077
+    },
+    "upper__L_yaw_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_washer1.npz",
+      "sha256": "8392e80aa0509cd988b98e0aa887f187d0b260272924714d595002613ba21e6d",
+      "bytes": 9108
+    },
+    "upper__L_yaw_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_washer2.npz",
+      "sha256": "c496a4ecc3c0cc7add18a8a23c55b3829d51a566748824e093ef424f22665853",
+      "bytes": 9022
+    },
+    "upper__L_yaw_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_washer3.npz",
+      "sha256": "c572a80677fbb2e9f929fab6b6f1c8b66ec68c0033db5ddcd1f049031e3d55a7",
+      "bytes": 9108
+    },
+    "upper__L_yaw_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_case_washer4.npz",
+      "sha256": "b4d84f751337be4b7153044458b72f7d73c398e2adf32061a14d542e0fdb1ed3",
+      "bytes": 9041
+    },
+    "upper__L_yaw_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_central_rocker_M3x6.npz",
+      "sha256": "6fdc4b03810f575cdc6a4b690c807de246508f20005ea6c1b95d43004b23b30b",
+      "bytes": 9049
+    },
+    "upper__L_yaw_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_M3x6_1.npz",
+      "sha256": "561e26dc53380b136fd3e3f661de65416fd834a9c4c0b5115db93a71b8a834cb",
+      "bytes": 9041
+    },
+    "upper__L_yaw_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_M3x6_2.npz",
+      "sha256": "ebbd4f6f2147ebb8a39406d748d3eb41429397df1bc8483ec8388d849d1859ef",
+      "bytes": 9055
+    },
+    "upper__L_yaw_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_M3x6_3.npz",
+      "sha256": "aa87ac61a455f41ea2bd7f1d653dca55a87c0b7b97318cf263edc6f90c2e2032",
+      "bytes": 9039
+    },
+    "upper__L_yaw_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_M3x6_4.npz",
+      "sha256": "e6a5cdab1c4ef5f1370cbe718955a63706cb5a36999f192beb567f52e47f3cf7",
+      "bytes": 9007
+    },
+    "upper__L_yaw_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_washer1.npz",
+      "sha256": "15221e0ef0fe4c3b72787a2d5422e5b86e9ffb748973092d861cd107d09c6680",
+      "bytes": 9105
+    },
+    "upper__L_yaw_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_washer2.npz",
+      "sha256": "dbcbb0fd459bb69322e927ecf418a57a5c36d8fb37e2cdf8cd95e311945a1474",
+      "bytes": 9141
+    },
+    "upper__L_yaw_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_washer3.npz",
+      "sha256": "709ecd2c57b1439d44b10bafeee9366301b417c704cb98f229f0134b15d03afe",
+      "bytes": 9111
+    },
+    "upper__L_yaw_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__L_yaw_horn_washer4.npz",
+      "sha256": "9649bf98dfe01c6d691274c2c85649bc799b90375dd057cc9d04e025ab59be32",
+      "bytes": 9094
+    },
+    "upper__R_elbow_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_C047_case.npz",
+      "sha256": "aa7b3a246d2e2c490941f7c387ce80bf60768805d947978abd5d28373008c7c1",
+      "bytes": 1409010
+    },
+    "upper__R_elbow_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_C047_main_horn.npz",
+      "sha256": "7441fee2c319c49e43f6168479dd0831dc53a31629ab28f02af788d751bc9434",
+      "bytes": 44943
+    },
+    "upper__R_elbow_case_PA2x7_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_PA2x7_1.npz",
+      "sha256": "bd906afbc80261e9a513346283a34ae7b70e795a6c3ed00d84fbb9461e879cc3",
+      "bytes": 7051
+    },
+    "upper__R_elbow_case_PA2x7_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_PA2x7_2.npz",
+      "sha256": "e8e4a539fe1383a2e51f44ab2dc7b4dba0809a0fde816dcd43150658bd06f311",
+      "bytes": 7058
+    },
+    "upper__R_elbow_case_PA2x7_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_PA2x7_3.npz",
+      "sha256": "0cbb97c52ad8d5188c4b6144f8ce04de557e1276b109f72400fc65ca3beaccc4",
+      "bytes": 7036
+    },
+    "upper__R_elbow_case_PA2x7_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_PA2x7_4.npz",
+      "sha256": "39a089742102eba2fb8f6f40619f71f8ecf5e13e562f04fe207de6e16061dbc5",
+      "bytes": 7034
+    },
+    "upper__R_elbow_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_spacer1.npz",
+      "sha256": "c0ce2c7530030bfc8eab2af3879810543f748a373a0938dc0ab8f9677f236db3",
+      "bytes": 6906
+    },
+    "upper__R_elbow_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_spacer2.npz",
+      "sha256": "e0db43895855594cb92cf4a1a3f16b43862c977fff791021a7ddf4f229006982",
+      "bytes": 6914
+    },
+    "upper__R_elbow_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_spacer3.npz",
+      "sha256": "bee1c1756d70da12a5ed7b25ae8b611c85091b3ff557cc0c9b75ccce25b9a969",
+      "bytes": 6902
+    },
+    "upper__R_elbow_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_spacer4.npz",
+      "sha256": "9d001c1c8cf802ca693687e31ccf11a0d9d7d8082af8f77173c14f34c3f29a3b",
+      "bytes": 6904
+    },
+    "upper__R_elbow_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_washer1.npz",
+      "sha256": "427265743e710b3051dcb7bd545a4b58e37a06a2b888cf509eabe2e2bf12d23e",
+      "bytes": 6900
+    },
+    "upper__R_elbow_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_washer2.npz",
+      "sha256": "0f249a156003150170e364f0c6e94a6b21c950b797663fc7dd843d32dd7882f5",
+      "bytes": 6902
+    },
+    "upper__R_elbow_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_washer3.npz",
+      "sha256": "0e6bcd2ad0f2f0fdb69c166862efd7deccb1f2632f23baf93eec0b98b5d8ed7e",
+      "bytes": 6897
+    },
+    "upper__R_elbow_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_case_washer4.npz",
+      "sha256": "1235fd52f7b95988a5ba0a86787628e3304e34402d07e5f90cfe69d94c36469b",
+      "bytes": 6897
+    },
+    "upper__R_elbow_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_central_rocker_M3x6.npz",
+      "sha256": "9e3e819592789df2aba70495b283601b2f271efa21c97b4fe1a31bab6a1fa83e",
+      "bytes": 7150
+    },
+    "upper__R_elbow_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_M3x6_1.npz",
+      "sha256": "4688ce9eb3d265194ec335425fcdd91b5999609ae6658822d81b648b219fde87",
+      "bytes": 7150
+    },
+    "upper__R_elbow_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_M3x6_2.npz",
+      "sha256": "7fc25cad8b17d70b5f4507920fb670fba8c93870aa2d0eeb31401d888781e9f1",
+      "bytes": 7147
+    },
+    "upper__R_elbow_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_M3x6_3.npz",
+      "sha256": "7004a67c573368286cd532dfb94d6a22ec8633e6de88e50510b740141d65e7a0",
+      "bytes": 7073
+    },
+    "upper__R_elbow_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_M3x6_4.npz",
+      "sha256": "af67080689f08246ae4d7850b19c79f5bb6fbbbf21378583e243b0695b024fb8",
+      "bytes": 7152
+    },
+    "upper__R_elbow_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_washer1.npz",
+      "sha256": "21cae21b7c3509fc40d033d2f70d59dc6934187319043bb6d52023a51a8b75ce",
+      "bytes": 7245
+    },
+    "upper__R_elbow_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_washer2.npz",
+      "sha256": "6169be88e397a221994534994c789a7cf4cb3c47cef3398cb3a24d94a6af99b4",
+      "bytes": 7212
+    },
+    "upper__R_elbow_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_washer3.npz",
+      "sha256": "80f4dd9aa4365417aa6a4a655a3ea395b9bc9dcec53d982f29d2ee73ae007b0c",
+      "bytes": 7140
+    },
+    "upper__R_elbow_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_elbow_horn_washer4.npz",
+      "sha256": "f3a9f929f7eb0a84b42845d8e8c1a0e62d5abd779b319bc95cd88773af646bc5",
+      "bytes": 7208
+    },
+    "upper__R_pitch_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_C047_case.npz",
+      "sha256": "85adb01a9402e2078edb69a23d4e1c545baba64f5719bdcf6303e3eb11359de2",
+      "bytes": 1618599
+    },
+    "upper__R_pitch_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_C047_main_horn.npz",
+      "sha256": "c465f98c07dcd7e3f1a404bd64a6f84d55ccf78f1a6307bf2c61ad20dc05c93e",
+      "bytes": 45346
+    },
+    "upper__R_pitch_C047_rear_idler_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_C047_rear_idler.npz",
+      "sha256": "64e4e8731c8b4aae3d107bb4fcde0ae2c2677bdda8e912014bb2897c6c5890ae",
+      "bytes": 33622
+    },
+    "upper__R_pitch_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_central_rocker_M3x6.npz",
+      "sha256": "d62028796643d13a2e40c4eb46e3ac7284453beecfb41da403afef7fd2a546b2",
+      "bytes": 7084
+    },
+    "upper__R_pitch_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_M3x6_1.npz",
+      "sha256": "4c68dde43caf0f5d56e4afc070372bda28238c08b05f0ec67c0c708b3aecb27f",
+      "bytes": 7068
+    },
+    "upper__R_pitch_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_M3x6_2.npz",
+      "sha256": "a5710cd2e41a4cc540c73d47f9bc5fc84f806aab0fc38d1f551c2377f5355c9a",
+      "bytes": 7086
+    },
+    "upper__R_pitch_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_M3x6_3.npz",
+      "sha256": "d447ec5a156244422ec34894be4896cdace4b47c7f45aa6b5835f374397b853d",
+      "bytes": 7162
+    },
+    "upper__R_pitch_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_M3x6_4.npz",
+      "sha256": "3cb11c557e999dcd31cf96f7f6e460292eee1bb68c63c0d1beb231afe051780e",
+      "bytes": 7086
+    },
+    "upper__R_pitch_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_washer1.npz",
+      "sha256": "74021e7d8672108a82d33cb62791709dba1be533131cf0d39c8e4a70d9608590",
+      "bytes": 7134
+    },
+    "upper__R_pitch_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_washer2.npz",
+      "sha256": "97616d330b65cfda04b3120e93c07c3b8b33d6648ea7a1ba318175879ccfc426",
+      "bytes": 7144
+    },
+    "upper__R_pitch_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_washer3.npz",
+      "sha256": "e2b4e1823299ab1385c59baf1036a6c73529b204f64b572650ac339d084e6928",
+      "bytes": 7248
+    },
+    "upper__R_pitch_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_pitch_horn_washer4.npz",
+      "sha256": "3573ce33160de6c251ed1243986c413fde3544664aa92a4db5db1ea768912b21",
+      "bytes": 7143
+    },
+    "upper__R_roll_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_C047_case.npz",
+      "sha256": "56ea6553d8ec39ac8521a67c86ba0e8f7ae4a16c50b32302c662f5bba0e79af7",
+      "bytes": 1432261
+    },
+    "upper__R_roll_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_C047_main_horn.npz",
+      "sha256": "19af60f567f788f6308da84b574254ee09c7354b5e7bde8338b0246c0cfc1c88",
+      "bytes": 48242
+    },
+    "upper__R_roll_case_PA2x7_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_PA2x7_1.npz",
+      "sha256": "9e3410b2253fbf1de5763f7fe8714faef9f06a687d342337926f050954880ccc",
+      "bytes": 10006
+    },
+    "upper__R_roll_case_PA2x7_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_PA2x7_2.npz",
+      "sha256": "4e0bf138290ad3712bf46ec58771fcfd0b12066301078f2ba6871efe48a0ba3f",
+      "bytes": 7642
+    },
+    "upper__R_roll_case_PA2x7_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_PA2x7_3.npz",
+      "sha256": "a41ddb88efba9572259f56f6094ad755e8396926d485527b3066be476017d8fa",
+      "bytes": 10012
+    },
+    "upper__R_roll_case_PA2x7_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_PA2x7_4.npz",
+      "sha256": "437fbca4fc4d48a5446a54cf2eb65f83b8e055b41360934ad9697d917b736a88",
+      "bytes": 10035
+    },
+    "upper__R_roll_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_spacer1.npz",
+      "sha256": "623c34f37e0c72d07a09117b02b5d24f35b254e250626a28ca3e747b645065ce",
+      "bytes": 7331
+    },
+    "upper__R_roll_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_spacer2.npz",
+      "sha256": "6b5c1d84b4bbc1e06a6c5a3d9e4199f88b0598dc93a4c9ba65174d228ffbdee3",
+      "bytes": 7328
+    },
+    "upper__R_roll_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_spacer3.npz",
+      "sha256": "b4c7850fbfdf5a8f3b3c09766e8ecfa16159d7728e729cabc60c7a619b3f5454",
+      "bytes": 7332
+    },
+    "upper__R_roll_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_spacer4.npz",
+      "sha256": "236e349d6cd8ec3d0c40876be2340118eaeb1c0df2e04a0954e3ac6632da9e15",
+      "bytes": 7330
+    },
+    "upper__R_roll_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_washer1.npz",
+      "sha256": "a2ce43aa3bf3f3dae9a7daffb2cef3fba78e32c2b9811672e4a74d8157787ab4",
+      "bytes": 7473
+    },
+    "upper__R_roll_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_washer2.npz",
+      "sha256": "af5ada87a9864e5653a7bef5f0e4725c4d8c42df694432b2c4516dec592050f4",
+      "bytes": 7459
+    },
+    "upper__R_roll_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_washer3.npz",
+      "sha256": "057e823a589e78179c37c8fde02740de5c582f308014fedb570d812e899add0b",
+      "bytes": 7464
+    },
+    "upper__R_roll_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_case_washer4.npz",
+      "sha256": "5fef70f1ae08f77bf3f095cdbcf65d693b49275230689071d143ac7119143e1c",
+      "bytes": 7461
+    },
+    "upper__R_roll_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_central_rocker_M3x6.npz",
+      "sha256": "bc4a5e82ae666a03d85f21fda315121d2c59c44acb4e6a803d5ccf8f7da900ff",
+      "bytes": 7357
+    },
+    "upper__R_roll_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_M3x6_1.npz",
+      "sha256": "ce8e09e9dc793b2d33f4ece3ad717a80a01870ee8dbf7f008993738c4c5b4a98",
+      "bytes": 7351
+    },
+    "upper__R_roll_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_M3x6_2.npz",
+      "sha256": "f569af0df81604c8292176692d07e8e51465c9a24bba22c8af8c2df98c3abc1f",
+      "bytes": 7358
+    },
+    "upper__R_roll_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_M3x6_3.npz",
+      "sha256": "11d9087d0a763d023fca3603a06c6cf17ce5dd4f7115d5941885797ce9403ddc",
+      "bytes": 7351
+    },
+    "upper__R_roll_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_M3x6_4.npz",
+      "sha256": "f8186d581d2e0e1fddc186c19bd7d968944a67e641ab306a2da0bbe983605ed5",
+      "bytes": 7366
+    },
+    "upper__R_roll_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_washer1.npz",
+      "sha256": "b634bc7f2605befdd2546689a92dc249c554a0d1fe3835410bb0c268c947ddd8",
+      "bytes": 7368
+    },
+    "upper__R_roll_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_washer2.npz",
+      "sha256": "cd3c1da1794b7a57a154afa74f7d23dd0bd1899257d2516040768dc06b09a4be",
+      "bytes": 7371
+    },
+    "upper__R_roll_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_washer3.npz",
+      "sha256": "8a0512302e2b75bc687476985a1a776771068a851df561a5a815c5835bc874df",
+      "bytes": 7360
+    },
+    "upper__R_roll_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_roll_horn_washer4.npz",
+      "sha256": "e616ef63ebf9a29883554f7f620875b6d0666248b7a615ad755e12bca47ac71e",
+      "bytes": 7371
+    },
+    "upper__R_yaw_C047_case_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_C047_case.npz",
+      "sha256": "29380ae6409c674101de639cfa42fc65255fe05431bc42365e959e14d6f01c1c",
+      "bytes": 1615397
+    },
+    "upper__R_yaw_C047_main_horn_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_C047_main_horn.npz",
+      "sha256": "f663659a518a8819f964db9331edab9696e9c80eec15c6903f30da9981539290",
+      "bytes": 58941
+    },
+    "upper__R_yaw_case_PA2x7_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_PA2x7_1.npz",
+      "sha256": "dcc9e2044affc4556a0ae330ba80042c3fdf2a41ad5bde8053f020eb7b09b6b2",
+      "bytes": 9084
+    },
+    "upper__R_yaw_case_PA2x7_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_PA2x7_2.npz",
+      "sha256": "b3c47f2666dbee35d72f1417b3433c53daef46a7c5e3896359ed122cd871c712",
+      "bytes": 8968
+    },
+    "upper__R_yaw_case_spacer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_spacer1.npz",
+      "sha256": "a865ce16e20ab0238e6b265d1e641201878ed3aac25d22f66187c4d3bd7d473f",
+      "bytes": 9055
+    },
+    "upper__R_yaw_case_spacer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_spacer2.npz",
+      "sha256": "f1321ad01cf3b01fd996084a460dd49791ea3db213245f9053ec2278aefe6972",
+      "bytes": 8963
+    },
+    "upper__R_yaw_case_spacer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_spacer3.npz",
+      "sha256": "55b6f8b1af94c731c7e76bc1b9deb9bf842af1912e58d9c8c31ffa964208dbe8",
+      "bytes": 9043
+    },
+    "upper__R_yaw_case_spacer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_spacer4.npz",
+      "sha256": "c69218a1b3ecc3f46f9fc5873884b856f3ecc991ad89c604e79e9a5912e3582d",
+      "bytes": 8959
+    },
+    "upper__R_yaw_case_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_washer1.npz",
+      "sha256": "4494be1b30cec901f468e0a6764db39c8af654f3c81052567144bd43719c6199",
+      "bytes": 9037
+    },
+    "upper__R_yaw_case_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_washer2.npz",
+      "sha256": "327ed4a5471663934f842b22fbac4c17f29d05d3185f923aa9cddd411c0b3ab0",
+      "bytes": 8942
+    },
+    "upper__R_yaw_case_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_washer3.npz",
+      "sha256": "214e383cba6729adbca351aa5cae6d2e1289bc99077118d78058b39398434473",
+      "bytes": 9013
+    },
+    "upper__R_yaw_case_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_case_washer4.npz",
+      "sha256": "8bac5c484e1b3ccaa510c500ca9746be84c3ef020c742fb7ad5f14d374769107",
+      "bytes": 8912
+    },
+    "upper__R_yaw_central_rocker_M3x6_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_central_rocker_M3x6.npz",
+      "sha256": "3018480daa451a20a3bd1c1f675ffdcdf0a34535340f08585e7c081f08b68b44",
+      "bytes": 8978
+    },
+    "upper__R_yaw_horn_M3x6_1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_M3x6_1.npz",
+      "sha256": "fa523d98655a332ed56c7bbaf2154f449e8e6828082f9bf48acd8406b2f39505",
+      "bytes": 8993
+    },
+    "upper__R_yaw_horn_M3x6_2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_M3x6_2.npz",
+      "sha256": "7e5de12179558681141792cd3eae0274dffaaaa0ab75c46d27f0c6f22a1b850b",
+      "bytes": 8978
+    },
+    "upper__R_yaw_horn_M3x6_3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_M3x6_3.npz",
+      "sha256": "2822c3ef259484a060f3dac25d290624ab265fad709b9bc1f7032f26453d7786",
+      "bytes": 8984
+    },
+    "upper__R_yaw_horn_M3x6_4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_M3x6_4.npz",
+      "sha256": "923cd10503ee2754bf729b52afa173695f58922ea63dbb4f8f53ce168ba9c968",
+      "bytes": 8934
+    },
+    "upper__R_yaw_horn_washer1_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_washer1.npz",
+      "sha256": "d8223c54e4a557db47a0e8f58bb04ab222da2da6f07f97ac7fa71a1644f8cd9e",
+      "bytes": 9030
+    },
+    "upper__R_yaw_horn_washer2_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_washer2.npz",
+      "sha256": "2d0c0728c8cc373aba5f5df2fed28b3d8d3a9b20586e202f0b2454293c98e4e2",
+      "bytes": 9089
+    },
+    "upper__R_yaw_horn_washer3_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_washer3.npz",
+      "sha256": "3a0bb4f46699adcd8316261c2e5c92b9b089ca9878759b1aa6672667c8a59b64",
+      "bytes": 9047
+    },
+    "upper__R_yaw_horn_washer4_npz": {
+      "path": "artifacts/robot/body/assembly/parts/upper__R_yaw_horn_washer4.npz",
+      "sha256": "64e9a07b3dd5d332fbf5062b5ca6ffe6fed1fac6e43bcd27b2a2471eed0788b7",
+      "bytes": 9036
+    }
+  },
+  "qualification_limits": "Selected Complete Cove-50 3D-printable FDM Ape Body CAD integration, 8-pose whole-body exact BRep collision audit (0.0000 mm^3 overlap), 32-pose arm collision audit (0.00 mm^3), 22-pose hip/leg/electronics/shell collision audit (0.00 mm^3), and print-bed nesting audit (100% single-piece fit on 256x256 mm bed across 4 plates or 350x350 mm bed across 2 plates), backed by subsystem linear P1 tetrahedral FEM solves (min SF 1.55x-2.86x across PAHT-CF dry). Physical print tolerances, press-fit sleeve retention, bolt preload relaxation, harness service loops, enclosed-shell battery thermal cycling, and closed-loop learned-control transfer remain unqualified.",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-complete-fdm-body-r1"
+}

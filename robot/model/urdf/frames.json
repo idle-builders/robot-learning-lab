@@ -1,0 +1,33 @@
+{
+  "units": "m, kg, s, rad, N, N m",
+  "transform": "p_model = R_model_CAD @ p_CAD_m; all link axes are aligned at neutral",
+  "R_model_CAD": [
+    [
+      0.0,
+      -1.0,
+      0.0
+    ],
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "determinant": 1.0,
+  "base_link": "torso; CAD origin [0,0,300] mm; model x=-CAD Y, y=CAD X, z=CAD Z",
+  "source_side_warning": "CAD calls positive X R and negative X L while toe/camera forward is -Y. A reflection would violate right-handed physics. Retain R/L as source identifiers, not REP anatomical side assertions. Neutral R links therefore lie at positive model y.",
+  "optical": "z forward, x image right, y image down; physical pixel roll uncalibrated",
+  "quaternion": "MuJoCo wxyz; ROS xyzw adapters explicitly convert",
+  "pose_equation": "p_W = T_W_C(t_capture) @ p_C; never use inference completion pose",
+  "global_frames": "map -> odom -> base_footprint -> torso are estimator outputs, not fixed ground-truth URDF joints; odom continuous, map corrections may jump",
+  "selected_CAD": {
+    "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+    "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399",
+    "bytes": 1555977
+  }
+}

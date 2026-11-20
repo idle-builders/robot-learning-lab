@@ -1,0 +1,57 @@
+{
+ "_doc": "Printers (mm), source docs/research/design-checks.md. A part's process.printer in part_settings names the entry. build_volume_mm: main nozzle; build_volume_both_nozzles_mm: both nozzles used (support from the second nozzle). nozzles_mm: nozzle sizes offered. by_nozzle: printer process defaults per nozzle (layer height, line width) used when a part sets none; they are Bambu Studio's 'Standard' system process values per nozzle (layer = half the nozzle, line = nozzle + 0.02 mm), confirmed against the installed Bambu Studio 2.8.2 X2D 'Standard' process profiles (0.4: 0.20 / 0.42 mm, 0.6: 0.30 / 0.62 mm). hole_offset_mm: printed hole diameter minus CAD diameter for vertical holes (negative = holes print small), measured on a test coupon; null = not measured yet (the hole check then reports CAD sizes only). bambu_studio: the slicer the slicer check runs headless (binary, system profile folder, the system profile names per nozzle, bed type, overrides applied to the process profile; support on so its amount is measured).",
+ "Bambu X2D": {
+  "build_volume_mm": [
+   256.0,
+   256.0,
+   260.0
+  ],
+  "note": "main (left, direct-drive) nozzle 256 x 256 x 260; with the second nozzle 235.5 x 256 x 256",
+  "build_volume_both_nozzles_mm": [
+   235.5,
+   256.0,
+   256.0
+  ],
+  "nozzles_mm": [
+   0.2,
+   0.4,
+   0.6,
+   0.8
+  ],
+  "by_nozzle": {
+   "0.2": {
+    "layer_height_mm": 0.1,
+    "line_width_mm": 0.22
+   },
+   "0.4": {
+    "layer_height_mm": 0.2,
+    "line_width_mm": 0.42
+   },
+   "0.6": {
+    "layer_height_mm": 0.3,
+    "line_width_mm": 0.62
+   },
+   "0.8": {
+    "layer_height_mm": 0.4,
+    "line_width_mm": 0.82
+   }
+  },
+  "hole_offset_mm": null,
+  "bambu_studio": {
+   "binary": ".tools/bambu-studio-2.8.2.61/BambuStudio.app/Contents/MacOS/BambuStudio",
+   "profiles": ".tools/bambu-studio-2.8.2.61/BambuStudio.app/Contents/Resources/profiles/BBL",
+   "version": "02.08.02.61 (pinned installer, restore with infra/storage/restore_native_tool.py bambu)",
+   "machine": "Bambu Lab X2D {nozzle} nozzle",
+   "process": {
+    "0.2": "0.10mm Standard @BBL X2D 0.2 nozzle",
+    "0.4": "0.20mm Standard @BBL X2D",
+    "0.6": "0.30mm Standard @BBL X2D 0.6 nozzle",
+    "0.8": "0.40mm Standard @BBL X2D 0.8 nozzle"
+   },
+   "bed_type": "Textured PEI Plate",
+   "overrides": {
+    "enable_support": "1"
+   }
+  }
+ }
+}

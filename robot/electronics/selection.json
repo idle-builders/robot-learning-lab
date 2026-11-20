@@ -1,0 +1,55 @@
+{
+  "schema": "robot-learning-lab.section-selection.v1",
+  "section": "Electronics",
+  "name": "Integrated electronics",
+  "study_id": "cove50-electronics-integrated",
+  "result_id": "cove50-electronics-integrated-r1-20261026",
+  "version": "r1-20261026",
+  "selected_on": "2026-10-26",
+  "status": "user_selected_design_round",
+  "idle_decision": "M-s77afy",
+  "scope": "One CAD composition of all three current selected electronics sessions; complete-scene geometry with partial installation/BOM and explicit physical limits.",
+  "subsystems": {
+    "sensors": {
+      "result_id": "cove50-installed-sensing-v24",
+      "version": "v24"
+    },
+    "compute": {
+      "result_id": "cove50-compute-head-local-regulator-r2-20261026",
+      "version": "r2",
+      "source_revision": "R23"
+    },
+    "power": {
+      "result_id": "cove50-internal-power-space-r33",
+      "version": "r33"
+    }
+  },
+  "source": {
+    "manifest": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+      "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399"
+    },
+    "source_lock": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/source-lock.json",
+      "sha256": "3e765e141ba4110162d4543a8c05378dd1fba4805f701cab7f000d1042193d41"
+    },
+    "ownership": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/ownership-ledger.json",
+      "sha256": "4c5a373c5af456d1a39fdf036c6b234540fb3d1ef09ad57b219d55b86d7c80b6"
+    },
+    "interfaces": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/interfaces-and-open-work.json",
+      "sha256": "c6c5d7164c2261c816eceb77557b5a5789260b54ab6022cef477ded8a85ff4bd"
+    },
+    "full_scene": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly.glb",
+      "sha256": "d39771ac6c605bce3ed94ca4e989290880683a4ece1455d37003bebcc2837343"
+    }
+  },
+  "qualification_limits": "Static source composition; source component evidence remains scoped. Complete power/data harness, remaining power functions and physical qualification open. Complete mass/inertia/dynamics/latency follows in registered learning-model task.",
+  "follow_up_tasks": [
+    "T-42fga9",
+    "T-3753b7"
+  ],
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-electronics-integrated-r1-20261026"
+}

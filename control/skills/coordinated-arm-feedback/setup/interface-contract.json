@@ -1,0 +1,198 @@
+{
+  "schema": "cove50.coordinated-arm-feedback-interface.v1",
+  "stage": "source-only; curriculum and native execution unselected",
+  "task": "T-q5cqyb",
+  "actor": {
+    "width": 120,
+    "blocks": [
+      {
+        "name": "delayed_q22_rad",
+        "width": 22,
+        "start": 0,
+        "stop": 22
+      },
+      {
+        "name": "delayed_qd22_rad_s",
+        "width": 22,
+        "start": 22,
+        "stop": 44
+      },
+      {
+        "name": "delayed_gyro3_rad_s",
+        "width": 3,
+        "start": 44,
+        "stop": 47
+      },
+      {
+        "name": "estimated_gravity3",
+        "width": 3,
+        "start": 47,
+        "stop": 50
+      },
+      {
+        "name": "beta_and_beta_dot",
+        "width": 2,
+        "start": 50,
+        "stop": 52
+      },
+      {
+        "name": "motor_reference22_rad",
+        "width": 22,
+        "start": 52,
+        "stop": 74
+      },
+      {
+        "name": "pose_goal22_rad",
+        "width": 22,
+        "start": 74,
+        "stop": 96
+      },
+      {
+        "name": "own_previous_raw_residual22",
+        "width": 22,
+        "start": 96,
+        "stop": 118
+      },
+      {
+        "name": "sensor_valid_and_age_s",
+        "width": 2,
+        "start": 118,
+        "stop": 120
+      }
+    ],
+    "mean_architecture": [
+      120,
+      64,
+      64,
+      22
+    ],
+    "hidden_activation": "Tanh",
+    "output": "Linear with fresh zero weights+bias; deterministic mean only is zero residual",
+    "privileged_features": [],
+    "normalizer": "Fresh count0/mean0/variance1; no old81/86 tensors. Exact train-update and evaluation freeze policy pending training source.",
+    "history": "Own previous raw residual22, updated once on issue including sensor-invalid bootstrap; never previous motor22 or legacy raw24."
+  },
+  "decoder": {
+    "residual_bound_rad": 0.03,
+    "formula": "valid ? donor22(beta)+.03*tanh(raw22) : actual_reset_q22",
+    "zero_branch": "Explicit delta==0 returns exact donor float32 values before identical physical guard/delay; invalid returns same actual reset-q bootstrap.",
+    "downstream": "Existing named22 R3 hard limits/guard/20ms command delay/80 substeps/PD/saturation unchanged; no EMA or walker scale/source-home offsets."
+  },
+  "causality": {
+    "prepare": "Compute reference/goal once per explicit reset-generation/runtime-tick/local-control, before actor observations enter returned nextobs/normalizer. Same cache used by issue. Do not prepare future commands before current reward; hook placement remains to be implemented in runner.",
+    "reset": "Actual reset event after real q/clamps captures startup q and clears previous raw/cache; explicit generation catches real first-control0\u21920 reset; command switches do not reset.",
+    "packets": "runtime.last_values50 only: delayed joint q/qd, gyro, estimated gravity; explicit valid and actual tick*physics_dt minus capture_time. Invalid age is0 and packet remains runtime packet (no native fallback). IMU capture time separately recorded, not substituted.",
+    "input_recording": "Snapshot actor120/cache/raw-before-issue plus validity/capture times before issue; training terminal pre-reset rows retain issued input. POST command fields are not globally next-state commands.",
+    "zero_equivalence": "By source construction only, not a native measurement. Same donor module/checkpoint/float32 beta, real reset, packet validity, guard/queue. Stochastic sampled exploration is NOT zero-mean baseline equivalence."
+  },
+  "fresh_state": {
+    "actor": "New64x64 model only; frozen donor eval/no_grad.",
+    "critic": "Fresh, privileged schema pending teacher review; no inherited value tensors.",
+    "optimizer": "Fresh Adam, no inherited moments/step counters.",
+    "normalizers": "Fresh actor+critic; no inherited counts",
+    "learning": "No trainer or fit budget selected by this interface task"
+  },
+  "telemetry_required": [
+    "actor120",
+    "input_beta",
+    "input_beta_dot",
+    "motor_reference22_rad",
+    "q_pose_goal22_rad",
+    "own_previous_raw_residual22",
+    "raw_residual22",
+    "physical_delta22_rad",
+    "requested_motor22_rad",
+    "accepted_target22_rad",
+    "applied_target22_rad",
+    "sensor_valid",
+    "sensor_capture_s",
+    "imu_capture_s",
+    "sensor_age_s",
+    "reset_generation",
+    "runtime_tick",
+    "local_control",
+    "physical_delta_rate22_rad_s",
+    "total_request_rate22_rad_s"
+  ],
+  "unresolved": [
+    "teacher current-entry feasibility and actual rise/hold/return evidence",
+    "reward term definitions/weights/scales",
+    "training/reset exposure and timing variation",
+    "impulse amplitude/duration/direction",
+    "exploration distribution/std",
+    "critic schema and normalizer update policy",
+    "native fit budget and source runner integration"
+  ],
+  "joint_order": [
+    "R_shoulder_pitch",
+    "R_shoulder_roll",
+    "R_shoulder_yaw",
+    "R_elbow",
+    "L_shoulder_pitch",
+    "L_shoulder_roll",
+    "L_shoulder_yaw",
+    "L_elbow",
+    "neck_yaw",
+    "neck_pitch",
+    "R_hip_yaw",
+    "R_hip_pitch",
+    "R_hip_roll",
+    "L_hip_yaw",
+    "L_hip_pitch",
+    "L_hip_roll",
+    "R_knee",
+    "R_ankle_pitch",
+    "R_ankle_roll",
+    "L_knee",
+    "L_ankle_pitch",
+    "L_ankle_roll"
+  ],
+  "checkpoint": {
+    "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+    "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+    "bytes": 39825
+  },
+  "dependencies": [
+    {
+      "path": "data/arm-support-method-20261030/proposal.json",
+      "sha256": "1d2e774e6b3adbb1b9b220354a694bba191f1025ebb51422deda99f2902f04d7",
+      "bytes": 40812
+    },
+    {
+      "path": "data/coordinated-arm-reference-20261030/source-seal.json",
+      "sha256": "d36b94b2f08013be52acffc6eaa9988924267aeaf7a9528956911e8ac16701fc",
+      "bytes": 3808
+    },
+    {
+      "path": "control/skills/coordinated-arm-reference/reference.py",
+      "sha256": "8689922971988fecb0cdd3c0e53b75e28640668553e4ee8b99fcd5033da5fc70",
+      "bytes": 2279
+    },
+    {
+      "path": "data/coordinated-arm-reference-20261030/goal-table.json",
+      "sha256": "07c5990e14474f6284e50cae5d94b7acb325be225e1fbf4b14bc2620af2d97a2",
+      "bytes": 3434
+    },
+    {
+      "path": "control/common/plant/boundary.py",
+      "sha256": "a7d24c7a0c5cb56e3a41b59bdc3074b5d765672fec208490aa13bc801a8854d8",
+      "bytes": 12749
+    },
+    {
+      "path": "control/common/plant/mjlab_adapter.py",
+      "sha256": "6a3feb3187ccac0e916ff343d4d361ce33760f4ea3c631deb0b795e59cd0f974",
+      "bytes": 5283
+    },
+    {
+      "path": "robot/model/current-model.json",
+      "sha256": "90047e5864b434b889606939ccfc0891191ff5684b344bf4bd337c64ac441685",
+      "bytes": 3252
+    }
+  ],
+  "source": {
+    "path": "control/skills/coordinated-arm-feedback/interface.py",
+    "sha256": "be8c201c348503c7d38b706fedd97bf8764939667d09b750812df1c16a1df580",
+    "bytes": 7341
+  },
+  "verification": "stdlib AST/import and width inspection only; no actor construction/PT deserialize/NN/native model/physics/provider; no sealed teacher source modified"
+}

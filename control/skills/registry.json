@@ -1,0 +1,25 @@
+{
+  "schema": "robot-learning-lab.policy-registry.v1",
+  "part": "control/skills",
+  "scope": "Per-skill policies on the R3 body (cove50_description r3, without r4 dynamics), kept until the whole-body controller supersedes them. A run is the commit plus the configuration in each skill's setup/; its outputs are in artifacts/runs/<run_id>/ and the private bucket. Promoting a policy is a commit to this file.",
+  "body": "r3-urdf-visual-r1-20261026",
+  "profiles": "control/skills/profiles.json",
+  "policies": [
+    {"skill": "Forward walk", "policy": "r3-supported-sustained-forward", "run_id": "cove50-forward-heading-correction-20261030-r1-3ce26458396d", "checkpoint": "evidence/train32/native/candidate.pt", "setup": "control/skills/forward-heading-correction/"},
+    {"skill": "Walk to stop and short advance", "policy": "r3-two-second-forward-stop", "run_id": "cove50-forward-entry-braking-20261030-r1-ee67e1637e03", "checkpoint": "evidence/train24/native/candidate.pt", "setup": "control/skills/forward-entry-braking/"},
+    {"skill": "Standing balance and quiet stance", "policy": "r3-walker200", "run_id": "cove50-walk-resume/runpod-fit-r2-20261026", "run_folder": "artifacts/cove50-walk-resume/runpod-fit-r2-20261026", "checkpoint": "evidence/fit-through-200/candidate.pt", "setup": "control/skills/walker/", "note": "The walker at zero command; also the base of the forward-walk lines."},
+    {"skill": "Squat, deep crouch and rise", "policy": "r3-deep-squat-rise", "run_id": "cove50-deep-squat-feedback-20261101-r1-134332507aa6", "checkpoint": "train/candidate.pt", "setup": "control/skills/deep-squat-feedback/"},
+    {"skill": "Bilateral arm raise and lower", "policy": "r3-coordinated-hold-settle-trim", "run_id": "cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01", "checkpoint": "evidence/train/candidate.pt", "setup": "control/skills/coordinated-arm-feedback-next/", "note": "The zero-weight coordinated-arm reference (control/skills/coordinated-arm-reference/) stays available as the comparison."},
+    {"skill": "Independent left and right arm motion", "policy": "r3-coordinated-independent-arm-feedback", "run_id": "cove50-independent-arm-feedback-20261030-r1-9a5bfef92099", "checkpoint": "train/candidate.pt", "setup": "control/skills/independent-arm-feedback/"},
+    {"skill": "Supported stance, posture and arm transitions", "policy": "r3-supported-skill-transitions", "run_id": "cove50-supported-skill-transitions-20261030-r1-8ed7eace15e2", "checkpoint": "train/candidate.pt", "setup": "control/skills/supported-skill-transitions/"},
+    {"skill": "Curve and turn", "policy": "r3-turn-fit50", "run_id": "cove50-basic-skills-retry/turn-20261027/shared-fit-r1", "run_folder": "artifacts/cove50-basic-skills-retry/turn-20261027/shared-fit-r1", "checkpoint": "evidence/fit50/candidate.pt", "setup": "control/skills/basic-gait/"}
+  ],
+  "components": [
+    {"name": "squat command student", "run_folder": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student", "checkpoint": "candidate.pt", "setup": "control/skills/basic-skills/"},
+    {"name": "arm command GRU", "run_folder": "artifacts/cove50-basic-skills-retry/arms-20261027/command-gru2000", "checkpoint": "candidate.pt", "setup": "control/skills/basic-skills/"}
+  ],
+  "no_current_body_policy": [
+    "One-foot hold and weight shift", "Foot lift and short step", "Backward walk and stop",
+    "Signed side travel and stop", "Reach and floor-object touch", "Acquire, lift and place"
+  ]
+}

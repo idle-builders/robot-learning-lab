@@ -1,0 +1,1300 @@
+{
+  "schema": "cove50.coordinated-arm-feedback-next.method.v1",
+  "task": "T-6aqav8",
+  "status": "source staging; no native release",
+  "problem": "Give unchanged delayed-sensor residual policy repeated genuinely unannounced support disturbances, long enough for several delayed feedback actions, while retaining no-force episodes and full shallow rise/hold/return.",
+  "observed_scales": {
+    "reference_feet_median_N": 37.56,
+    "hold_joint_abs_error_q95_rad": [
+      0.0071,
+      0.00744
+    ],
+    "hold_root_tilt_max_rad": [
+      0.02282,
+      0.02454
+    ],
+    "initial_quiet_root_tilt_max_rad": [
+      0.08988,
+      0.10047
+    ],
+    "initialization_clips": "Knees and elbows clamp; source review notes entry pose error up to~.121rad and one-axis16.25% brief substep clipping. Do not hide or repair this entry."
+  },
+  "inputs": [
+    {
+      "path": "data/coordinated-arm-feedback-20261030/config.json",
+      "sha256": "8cc4f7e740f90ac10bb9dea7b0782dca70b0b3ea02f69b13fe09e284c3a544ed",
+      "bytes": 19019
+    },
+    {
+      "path": "data/coordinated-arm-feedback-20261030/source-seal.json",
+      "sha256": "082c6fa93e9750b0167242c14f6dc2aee96e9489c9f4c09758c66db0ac499238",
+      "bytes": 1628
+    },
+    {
+      "path": "artifacts/runs/cove50-coordinated-arm-feedback-20261030-r1-1c01dc03a102/evidence/train/candidate.pt",
+      "sha256": "07f53acedd61888196aa0fa7026517ca193d672f742f32554c8be499d6ade4e4",
+      "bytes": 368115
+    },
+    {
+      "path": "artifacts/runs/cove50-coordinated-arm-feedback-20261030-r1-1c01dc03a102/closed-native-index.json",
+      "sha256": "7104fe21b94bb4ba5a45273c8b3479bd1d92c752063e1c259287909e5bad18da",
+      "bytes": 46008
+    },
+    {
+      "path": "artifacts/runs/cove50-coordinated-arm-feedback-20261030-r1-1c01dc03a102/records/independent/summary-used.json",
+      "sha256": "11bf3e4e453a6d218b4a420d8dcd37df9961fb44a639ae6fb47f82fb8ba5eece",
+      "bytes": 2620931
+    },
+    {
+      "path": "artifacts/runs/cove50-coordinated-arm-feedback-saved-state-20261030-r2-8efe1f2c806c/records/saved-candidate-state.json",
+      "sha256": "b25e6348dc137d0f991bf55cf7635b0eefd4d1db2a280579cc7ff0685f761924",
+      "bytes": 6548
+    },
+    {
+      "path": "data/coordinated-arm-feedback-next-20261030/proposal.json",
+      "sha256": "fc70077885fdd8c9cdef0c55c0ce2da76ad5f1435467afb0aa6b2dcb2bdee9bc",
+      "bytes": 12453
+    },
+    {
+      "path": "data/coordinated-arm-feedback-next-20261030/root-method-decision.json",
+      "sha256": "db61dfdf04b0005b2d0fc18bac87ea2c349d86cf537a84bec67fc18dfe08a87c",
+      "bytes": 2143
+    }
+  ],
+  "checkpoint": {
+    "path": "artifacts/cove50-basic-skills-retry/squat-20261027/command-student/candidate.pt",
+    "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+    "bytes": 39825
+  },
+  "goal_table": {
+    "path": "data/coordinated-arm-reference-20261030/goal-table.json",
+    "sha256": "07c5990e14474f6284e50cae5d94b7acb325be225e1fbf4b14bc2620af2d97a2",
+    "bytes": 3434
+  },
+  "actor120": "Same120/64Tanh/64Tanh/22Linear interface and full learned07state; no mean/std reinitialization.",
+  "critic174": "Same174/64Tanh/64Tanh/1 independent critic restored with all normalization buffers.",
+  "state": "Full07actor/critic/norm8000/all13Adam80 restored, source common2000 and next learning iteration4; new8world physical episodes/storage. Norms update once per actual nextrow to56000 if complete; deterministic eval frozen. Scenario metadata is excluded from actor120/critic174.",
+  "fit": {
+    "worlds": 8,
+    "rounds": 12,
+    "steps_per_round": 500,
+    "controls": 48000,
+    "physics_substeps": 3840000,
+    "Adam_calls": 240
+  },
+  "training_cases": [
+    {
+      "name": "nominal",
+      "root_rpy_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242101"
+    },
+    {
+      "name": "mild-positive-roll",
+      "root_rpy_rad": [
+        0.004,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.002,
+        0.0,
+        0.0,
+        0.002,
+        0.0,
+        0.0,
+        -0.002,
+        0.0,
+        0.0,
+        -0.002
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242102"
+    },
+    {
+      "name": "mild-negative-roll",
+      "root_rpy_rad": [
+        -0.004,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.002,
+        -0.0,
+        -0.0,
+        -0.002,
+        -0.0,
+        -0.0,
+        0.002,
+        -0.0,
+        -0.0,
+        0.002
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242103"
+    },
+    {
+      "name": "wider-documented-range",
+      "root_rpy_rad": [
+        0.015,
+        -0.006,
+        0.004
+      ],
+      "joint_offsets22_rad": [
+        -0.0017504167472188834,
+        0.006004876687363655,
+        -0.0019130938296986512,
+        -0.001913060762812259,
+        0.0006046296294865139,
+        -0.006771961984083219,
+        0.006761836341042578,
+        -0.0028524808246926147,
+        0.006001245884800228,
+        0.004832340787752165,
+        0.006116088234803214,
+        -0.003412818872625705,
+        -0.0011015589330532621,
+        -0.006113060806900356,
+        -0.007337542633625739,
+        0.002790116160884249,
+        -0.004450964930066527,
+        0.0014692538286766518,
+        0.005003836453834823,
+        -0.007234253343405925,
+        0.006380020235729592,
+        0.0077976092228776335
+      ],
+      "joint_velocities22_rad_s": [
+        0.00444583310335799,
+        0.0005559607965653288,
+        0.0007811683270873334,
+        0.008757349080483012,
+        0.0017055541336365027,
+        -0.006035340663311309,
+        -0.006249940708673505,
+        -0.004328245794874354,
+        0.005358237219348997,
+        -0.00678262164339891,
+        -0.004301591733738128,
+        0.009301631444799533,
+        0.005479065236436667,
+        -0.002863469187051941,
+        -0.0025298427914574022,
+        -0.00411889890051941,
+        0.009315350420985894,
+        -0.0071260807660968985,
+        0.00823494723685624,
+        0.009997879010042664,
+        0.006509186274117925,
+        0.003118588185616677
+      ],
+      "condition_label": "242104"
+    },
+    {
+      "name": "nominal",
+      "root_rpy_rad": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242101"
+    },
+    {
+      "name": "mild-positive-roll",
+      "root_rpy_rad": [
+        0.004,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.002,
+        0.0,
+        0.0,
+        0.002,
+        0.0,
+        0.0,
+        -0.002,
+        0.0,
+        0.0,
+        -0.002
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242102"
+    },
+    {
+      "name": "mild-negative-roll",
+      "root_rpy_rad": [
+        -0.004,
+        0.0,
+        0.0
+      ],
+      "joint_offsets22_rad": [
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.002,
+        -0.0,
+        -0.0,
+        -0.002,
+        -0.0,
+        -0.0,
+        0.002,
+        -0.0,
+        -0.0,
+        0.002
+      ],
+      "joint_velocities22_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "condition_label": "242103"
+    },
+    {
+      "name": "wider-documented-range",
+      "root_rpy_rad": [
+        0.015,
+        -0.006,
+        0.004
+      ],
+      "joint_offsets22_rad": [
+        -0.0017504167472188834,
+        0.006004876687363655,
+        -0.0019130938296986512,
+        -0.001913060762812259,
+        0.0006046296294865139,
+        -0.006771961984083219,
+        0.006761836341042578,
+        -0.0028524808246926147,
+        0.006001245884800228,
+        0.004832340787752165,
+        0.006116088234803214,
+        -0.003412818872625705,
+        -0.0011015589330532621,
+        -0.006113060806900356,
+        -0.007337542633625739,
+        0.002790116160884249,
+        -0.004450964930066527,
+        0.0014692538286766518,
+        0.005003836453834823,
+        -0.007234253343405925,
+        0.006380020235729592,
+        0.0077976092228776335
+      ],
+      "joint_velocities22_rad_s": [
+        0.00444583310335799,
+        0.0005559607965653288,
+        0.0007811683270873334,
+        0.008757349080483012,
+        0.0017055541336365027,
+        -0.006035340663311309,
+        -0.006249940708673505,
+        -0.004328245794874354,
+        0.005358237219348997,
+        -0.00678262164339891,
+        -0.004301591733738128,
+        0.009301631444799533,
+        0.005479065236436667,
+        -0.002863469187051941,
+        -0.0025298427914574022,
+        -0.00411889890051941,
+        0.009315350420985894,
+        -0.0071260807660968985,
+        0.00823494723685624,
+        0.009997879010042664,
+        0.006509186274117925,
+        0.003118588185616677
+      ],
+      "condition_label": "242104"
+    }
+  ],
+  "reward_rates": {
+    "pose_tracking": {
+      "weight": 2.0,
+      "scale_rad": 0.03,
+      "formula": "exp(-mean22(((q-poseGoal)/.03)^2))"
+    },
+    "upright": {
+      "weight": 1.0,
+      "scale_rad": 0.05,
+      "formula": "exp(-sum(estimatedGravityXY^2)/.05^2)"
+    },
+    "gyro": {
+      "weight": -0.05,
+      "scale_rad_s": 0.5,
+      "formula": "mean3((delayedGyro/.5)^2)"
+    },
+    "residual": {
+      "weight": -0.02,
+      "scale_rad": 0.03,
+      "formula": "mean22((physicalDelta/.03)^2)"
+    },
+    "residual_rate": {
+      "weight": -0.005,
+      "scale_rad_s": 1.5,
+      "formula": "mean22((physicalDeltaRate/1.5)^2)"
+    },
+    "nonfoot": {
+      "weight": -0.5,
+      "scale_N": 37.56,
+      "formula": "(sumBodyNorm(nonfootContactForce)/37.56)^2"
+    },
+    "foot_load_imbalance": {
+      "weight": -0.1,
+      "scale_N": 37.56,
+      "formula": "((rightFootFz-leftFootFz)/37.56)^2"
+    }
+  },
+  "reward_scaling": "RewardManager multiplies weighted rates by actual .02s. Live term definitions/weights retained before+after; no curriculum/legacy terms. Posegoal excludes gravity motor offsets. Regularize physical residual and its actual rate, retain total request rate separately.",
+  "perturbation": {
+    "reference_support_load_N": 37.56,
+    "force_fraction_reference_load": [
+      0.05324813631522896,
+      0.10649627263045792
+    ],
+    "dose_N_s": [
+      0.4,
+      0.8
+    ],
+    "dose_vs_R1": [
+      4.0,
+      8.0
+    ],
+    "first_force_s": 2.4,
+    "last_force_end_s": 7.2,
+    "minimum_remaining_full_tail_s": 2.8
+  },
+  "perturbation_justification": "2/4N worldYtorso for.2s is5.32/10.65% of37.56N feetload and.4/.8Ns,4/8x previous.1Ns. Hidden per-real-reset25%none; onset120..350inclusive, signs and magnitude balanced in probability. Full10s tails retained.",
+  "comparisons": {
+    "policies": [
+      "zero-residual frozen donor through same interface/bootstrap",
+      "reloaded candidate deterministic mean"
+    ],
+    "visits": 16,
+    "controls_per_visit": 500,
+    "controls": 8000,
+    "physics_substeps": 640000,
+    "optimizer": 0,
+    "matching": "Same exact fresh case entry/noise seed and hidden force schedule for paired zero/candidate; verify captured initialization fields. Prefix states can diverge before force; retain attained prefix, no fork claim.",
+    "zero_equivalence": "Deterministic zero residual matches direct teacher by reviewedsource/CPUtensorfixture; no duplicate nominal rollout solely to claim identity. Zero baseline comparisons here add new starts/perturbations and full motion.",
+    "cases": [
+      {
+        "name": "nominal-none",
+        "root_rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253101
+      },
+      {
+        "name": "wider-none",
+        "root_rpy_rad": [
+          0.015,
+          -0.006,
+          0.004
+        ],
+        "joint_offsets22_rad": [
+          -0.0017504167472188834,
+          0.006004876687363655,
+          -0.0019130938296986512,
+          -0.001913060762812259,
+          0.0006046296294865139,
+          -0.006771961984083219,
+          0.006761836341042578,
+          -0.0028524808246926147,
+          0.006001245884800228,
+          0.004832340787752165,
+          0.006116088234803214,
+          -0.003412818872625705,
+          -0.0011015589330532621,
+          -0.006113060806900356,
+          -0.007337542633625739,
+          0.002790116160884249,
+          -0.004450964930066527,
+          0.0014692538286766518,
+          0.005003836453834823,
+          -0.007234253343405925,
+          0.006380020235729592,
+          0.0077976092228776335
+        ],
+        "joint_velocities22_rad_s": [
+          0.00444583310335799,
+          0.0005559607965653288,
+          0.0007811683270873334,
+          0.008757349080483012,
+          0.0017055541336365027,
+          -0.006035340663311309,
+          -0.006249940708673505,
+          -0.004328245794874354,
+          0.005358237219348997,
+          -0.00678262164339891,
+          -0.004301591733738128,
+          0.009301631444799533,
+          0.005479065236436667,
+          -0.002863469187051941,
+          -0.0025298427914574022,
+          -0.00411889890051941,
+          0.009315350420985894,
+          -0.0071260807660968985,
+          0.00823494723685624,
+          0.009997879010042664,
+          0.006509186274117925,
+          0.003118588185616677
+        ],
+        "seed": 253102
+      },
+      {
+        "name": "mild-plus-rise",
+        "root_rpy_rad": [
+          0.004,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.002,
+          0.0,
+          0.0,
+          0.002,
+          0.0,
+          0.0,
+          -0.002,
+          0.0,
+          0.0,
+          -0.002
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253103
+      },
+      {
+        "name": "mild-minus-early-hold",
+        "root_rpy_rad": [
+          -0.004,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.002,
+          -0.0,
+          -0.0,
+          -0.002,
+          -0.0,
+          -0.0,
+          0.002,
+          -0.0,
+          -0.0,
+          0.002
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253104
+      },
+      {
+        "name": "nominal-plus-late-hold",
+        "root_rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253105
+      },
+      {
+        "name": "wider-minus-return",
+        "root_rpy_rad": [
+          0.015,
+          -0.006,
+          0.004
+        ],
+        "joint_offsets22_rad": [
+          -0.0017504167472188834,
+          0.006004876687363655,
+          -0.0019130938296986512,
+          -0.001913060762812259,
+          0.0006046296294865139,
+          -0.006771961984083219,
+          0.006761836341042578,
+          -0.0028524808246926147,
+          0.006001245884800228,
+          0.004832340787752165,
+          0.006116088234803214,
+          -0.003412818872625705,
+          -0.0011015589330532621,
+          -0.006113060806900356,
+          -0.007337542633625739,
+          0.002790116160884249,
+          -0.004450964930066527,
+          0.0014692538286766518,
+          0.005003836453834823,
+          -0.007234253343405925,
+          0.006380020235729592,
+          0.0077976092228776335
+        ],
+        "joint_velocities22_rad_s": [
+          0.00444583310335799,
+          0.0005559607965653288,
+          0.0007811683270873334,
+          0.008757349080483012,
+          0.0017055541336365027,
+          -0.006035340663311309,
+          -0.006249940708673505,
+          -0.004328245794874354,
+          0.005358237219348997,
+          -0.00678262164339891,
+          -0.004301591733738128,
+          0.009301631444799533,
+          0.005479065236436667,
+          -0.002863469187051941,
+          -0.0025298427914574022,
+          -0.00411889890051941,
+          0.009315350420985894,
+          -0.0071260807660968985,
+          0.00823494723685624,
+          0.009997879010042664,
+          0.006509186274117925,
+          0.003118588185616677
+        ],
+        "seed": 253106
+      },
+      {
+        "name": "mild-plus-late-return",
+        "root_rpy_rad": [
+          0.004,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.002,
+          0.0,
+          0.0,
+          0.002,
+          0.0,
+          0.0,
+          -0.002,
+          0.0,
+          0.0,
+          -0.002
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253107
+      },
+      {
+        "name": "mild-minus-late-rise",
+        "root_rpy_rad": [
+          -0.004,
+          0.0,
+          0.0
+        ],
+        "joint_offsets22_rad": [
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.002,
+          -0.0,
+          -0.0,
+          -0.002,
+          -0.0,
+          -0.0,
+          0.002,
+          -0.0,
+          -0.0,
+          0.002
+        ],
+        "joint_velocities22_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "seed": 253108
+      }
+    ],
+    "force_scenarios": [
+      {
+        "name": "nominal-none",
+        "template": 0,
+        "onset_control": 160,
+        "force_world_Y_N": 0.0,
+        "duration_controls": 10,
+        "seed": 253101,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": 0.0
+      },
+      {
+        "name": "wider-none",
+        "template": 3,
+        "onset_control": 290,
+        "force_world_Y_N": 0.0,
+        "duration_controls": 10,
+        "seed": 253102,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": 0.0
+      },
+      {
+        "name": "mild-plus-rise",
+        "template": 1,
+        "onset_control": 160,
+        "force_world_Y_N": 2.0,
+        "duration_controls": 10,
+        "seed": 253103,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": 0.4
+      },
+      {
+        "name": "mild-minus-early-hold",
+        "template": 2,
+        "onset_control": 221,
+        "force_world_Y_N": -4.0,
+        "duration_controls": 10,
+        "seed": 253104,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": -0.8
+      },
+      {
+        "name": "nominal-plus-late-hold",
+        "template": 0,
+        "onset_control": 268,
+        "force_world_Y_N": 4.0,
+        "duration_controls": 10,
+        "seed": 253105,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": 0.8
+      },
+      {
+        "name": "wider-minus-return",
+        "template": 3,
+        "onset_control": 327,
+        "force_world_Y_N": -2.0,
+        "duration_controls": 10,
+        "seed": 253106,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": -0.4
+      },
+      {
+        "name": "mild-plus-late-return",
+        "template": 1,
+        "onset_control": 350,
+        "force_world_Y_N": 4.0,
+        "duration_controls": 10,
+        "seed": 253107,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": 0.8
+      },
+      {
+        "name": "mild-minus-late-rise",
+        "template": 2,
+        "onset_control": 187,
+        "force_world_Y_N": -4.0,
+        "duration_controls": 10,
+        "seed": 253108,
+        "duration_s": 0.2,
+        "impulse_world_Y_N_s": -0.8
+      }
+    ]
+  },
+  "accounting": {
+    "total_planned_controls": 56000,
+    "total_planned_physics": 4480000,
+    "optimizer_calls": 240,
+    "new_candidates": 1,
+    "training_worldslots": 8,
+    "scheduled_horizon_training_episodes": 96,
+    "evaluation_oneworld_visits": 16
+  },
+  "remaining_before_release": [
+    "CPU component fixture",
+    "independent source and worker review",
+    "finite root release and later E4terminal+restored startmarker"
+  ],
+  "operational": "New worker uses method.operational_json for explicit known structural softlimit Infinity only; original teacher JSON preserved. All other nonfinite values remain errors. Continue durable stage capture even if metadata closure fails.",
+  "source": [
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/interface.py",
+      "sha256": "4e6345ebb40cb8b31c298d687a1be36a6973410eaf551ec171a0627b38493a21",
+      "bytes": 285
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/method.py",
+      "sha256": "1eb2981a7bcc2799066cdcba13560e99c416b6d1eba74919c78710bacbc1478b",
+      "bytes": 2113
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/prove_components.py",
+      "sha256": "d68dd7f477ffeff044fd620eb7a1e838abed4bdbf96dac45bdfd738e72c8286b",
+      "bytes": 8185
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/record.py",
+      "sha256": "a220cbcd1f2221d0183477fb527daebf139646d3548fd90da862e2801587ec23",
+      "bytes": 1559
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/run.py",
+      "sha256": "ef2c1d16162cd2e718b16ae5d8412e4553dd3ff4b627caa32b9287954272ed21",
+      "bytes": 4492
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/scenario.py",
+      "sha256": "a318e675a9a2d2895ca8f5d9fee157f65c262c2bbb52923ac650ce0b97ef1926",
+      "bytes": 4424
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback-next/task.py",
+      "sha256": "83152207abbb4291846917a0b26c1e936e470a78f90d4f64115c90c529a390ff",
+      "bytes": 1430
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/interface.py",
+      "sha256": "be8c201c348503c7d38b706fedd97bf8764939667d09b750812df1c16a1df580",
+      "bytes": 7341
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/method.py",
+      "sha256": "f72bf5dda17c7c552b5df9dc198a10114763cc60bd1187a678bc6cf368a87dad",
+      "bytes": 5447
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/prove_interface.py",
+      "sha256": "d829e9842d9cbaac20ce4bf517f23a49df0ca089bf4ba34720f0458f327ab063",
+      "bytes": 7695
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/prove_method.py",
+      "sha256": "39358a08bc515ee981e1076775d3effb9f3d75bddbd7c65a271a0062b1e34be8",
+      "bytes": 8351
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/record.py",
+      "sha256": "fd105e9437174f5e74ec295324b956bc743cdf83cef5f5d5336744c3db561a87",
+      "bytes": 6578
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/run.py",
+      "sha256": "aebd47b48c9126bc36083ed063155dc8dd91dcba163328751a4452e24c434c34",
+      "bytes": 12146
+    },
+    {
+      "path": "control/skills/coordinated-arm-feedback/task.py",
+      "sha256": "99b6a11f43acd5041cb5368d16208495862e84f198d3687860374cccd2ca30e1",
+      "bytes": 6436
+    }
+  ],
+  "interpretation": "Usefulness comparison against accepted zero residual. Warm exposure/length/time/dose change together, no component causal claim. Random time/sign/none is unannounced but command phase/history can still reveal hazard. .03rad is upstream requested residual bound, not measured motion. Pose/symmetry rewards may oppose useful support lean. Full quiet/rise/hold/return/settle and actual impulse response own judgment, not total reward.",
+  "actual_training_batch_seed": 252100,
+  "planned": {
+    "simulator_controls": 56000,
+    "physics_substeps": 4480000,
+    "PPO_rounds": 12,
+    "optimizer_updates": 240,
+    "new_weight_sets": 1
+  },
+  "warm_start": {
+    "candidate": {
+      "path": "artifacts/runs/cove50-coordinated-arm-feedback-20261030-r1-1c01dc03a102/evidence/train/candidate.pt",
+      "sha256": "07f53acedd61888196aa0fa7026517ca193d672f742f32554c8be499d6ade4e4",
+      "bytes": 368115
+    },
+    "restore": "Exact actor+critic including all normalizer buffers, all13Adam parameter states/groups/80steps, learned rawstd and common2000. Fresh physical episodes and fresh rollout storage; no attained-state replay. Set current learning iteration from original completed4; do not zero mean/reset optimizer.",
+    "normalizers_before": 8000,
+    "Adam_before": 80,
+    "PPO_rounds_before": 4,
+    "common_before": 2000,
+    "method": {
+      "path": "data/coordinated-arm-feedback-20261030/config.json",
+      "sha256": "8cc4f7e740f90ac10bb9dea7b0782dca70b0b3ea02f69b13fe09e284c3a544ed",
+      "bytes": 19019
+    }
+  },
+  "training_scenarios": {
+    "seeds": [
+      252201,
+      252202,
+      252203,
+      252204,
+      252205,
+      252206,
+      252207,
+      252208
+    ],
+    "fixed": null,
+    "draw": {
+      "none_probability": 0.25,
+      "conditional_signed_Y": "equal +/\u2212",
+      "conditional_force_magnitude_N": [
+        2.0,
+        4.0
+      ],
+      "conditional_magnitude_probabilities": [
+        0.5,
+        0.5
+      ],
+      "onset_control_uniform_inclusive": [
+        120,
+        350
+      ],
+      "duration_controls": 10,
+      "duration_s": 0.2,
+      "force_body": "torso",
+      "force_frame": "world",
+      "repeat_per_substep": true
+    }
+  }
+}

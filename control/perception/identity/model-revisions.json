@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "repo": "IDEA-Research/grounding-dino-tiny",
+    "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
+    "local_dir": ".cache/ape-high-level/models/grounding-dino-tiny"
+  },
+  "retriever": {
+    "repo": "facebook/dinov2-small",
+    "revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+    "local_dir": ".cache/ape-high-level/models/dinov2-small"
+  },
+  "click_segmenter": {
+    "repo": "facebook/sam2-hiera-tiny",
+    "revision": "7c218beaf0bb87874785f32b582f640134fc1c09",
+    "local_dir": ".cache/ape-high-level/models/sam2-hiera-tiny"
+  }
+}

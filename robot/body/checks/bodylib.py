@@ -1,0 +1,146 @@
+"""Body model helpers shared by the checks and the body builders: manifest meshes with placement, forward kinematics from
+joints[] (Body.link_T), part preparation for overlap / distance (Prepped, measure), fastener detection, per-joint pose sets.
+Moved from motor-refit/fit_check.py without changing the maths; that module re-exports from here."""
+from __future__ import annotations
+
+import math
+import re
+import sys
+from pathlib import Path
+
+import numpy as np
+import trimesh
+from scipy.spatial import cKDTree
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
+from infra.storage.blob_store import ensure  # noqa: E402
+
+
+def src(path) -> Path:
+    """An input file, restored from the bucket by its recorded (or pre-restructure) path when not on disk."""
+    return ensure(ROOT / path)
+
+
+FASTENER_ROLES = {"fastener", "standard_fastener_reference", "nominal_fastener", "fastener_proxy", "standard_nominal",
+                  "nominal_hardware", "compression_limit_sleeves", "spacer", "case_mount_spacer"}
+FASTENER_NAME = re.compile(r"(screw|bolt|nut|sleeve|M[23]p?\d*x|washer|spacer|PA2x)", re.I)
+
+
+def load_mesh(path: str) -> trimesh.Trimesh:
+    if str(path).endswith(".npz"):
+        z = np.load(src(path))
+        return trimesh.Trimesh(np.asarray(z["vertices"], float), np.asarray(z["faces"]), process=True)
+    return trimesh.load(src(path), force="mesh", process=True)
+
+
+def rot_about(origin, axis, deg) -> np.ndarray:
+    T = trimesh.transformations.rotation_matrix(math.radians(deg), np.asarray(axis, float), np.asarray(origin, float))
+    return T
+
+
+class Body:
+    def __init__(self, manifest: dict):
+        self.parts = {p["name"]: p for p in manifest["parts"] if p.get("mesh")}
+        self.joints = {j["name"]: j for j in manifest["joints"]}
+        self.child_joint = {j["child"]: j for j in manifest["joints"]}
+        self.root = manifest.get("root_link", "torso")
+        self._mesh = {}
+
+    def mesh(self, name):
+        if name not in self._mesh:
+            m = load_mesh(self.parts[name]["mesh"])
+            off = self.parts[name].get("placement_offset_mm")
+            if off:
+                m.apply_translation(off)
+            self._mesh[name] = m
+        return self._mesh[name]
+
+    def link_T(self, link, q: dict) -> np.ndarray:
+        T = np.eye(4)
+        chain = []
+        while link in self.child_joint:
+            j = self.child_joint[link]
+            chain.append(j)
+            link = j["parent"]
+        for j in reversed(chain):
+            T = T @ rot_about(j["origin_world_mm"], j["axis_world_neutral"], q.get(j["name"], 0.0))
+        return T
+
+
+def to_mf(m: trimesh.Trimesh):
+    import manifold3d as mf
+    M = mf.Manifold(mf.Mesh(vert_properties=np.asarray(m.vertices, np.float32), tri_verts=np.asarray(m.faces, np.uint32)))
+    return M if M.status() == mf.Error.NoError else None
+
+
+def samples(m: trimesh.Trimesh, spacing: float, cap: int = 60000) -> np.ndarray:
+    n = int(min(cap, max(1500, m.area / spacing ** 2)))
+    return np.vstack([trimesh.sample.sample_surface(m, n, seed=1)[0], m.vertices[:: max(1, len(m.vertices) // 5000)]])
+
+
+class Prepped:
+    """A part in its neutral world frame (= its link frame at q = 0): manifold, surface tree, bounds."""
+    def __init__(self, m: trimesh.Trimesh):
+        self.mesh = m
+        self.mf = to_mf(m)
+        self.tree = cKDTree(samples(m, 0.7))
+        self.bounds = m.bounds
+
+
+def apply(T, pts):
+    return pts @ T[:3, :3].T + T[:3, 3]
+
+
+def is_fastener(name, p):
+    return p.get("role") in FASTENER_ROLES or bool(FASTENER_NAME.search(name))
+
+
+def measure(new_mf, new_pts, new_bounds, T_rel, part: Prepped, margin):
+    """Overlap volume (mm^3) and minimum surface distance (mm) of the moved new body against a fixed part."""
+    c = np.array([[new_bounds[i][0], new_bounds[j][1], new_bounds[k][2]] for i in (0, 1) for j in (0, 1) for k in (0, 1)])
+    cb = apply(T_rel, c)
+    if np.any(cb.min(0) > part.bounds[1] + margin) or np.any(cb.max(0) < part.bounds[0] - margin):
+        return None
+    pts = apply(T_rel, new_pts)
+    clear = float(part.tree.query(pts, k=1)[0].min())
+    vol, method = 0.0, "manifold"
+    if clear < 1.5:
+        if part.mf is not None and new_mf is not None:
+            vol = float((new_mf.transform(T_rel[:3, :4]) ^ part.mf).volume())
+        else:
+            method = "points-in-closed-mesh"
+            try:
+                inside = part.mesh.contains(pts[:: max(1, len(pts) // 3000)]) if part.mesh.is_watertight else np.zeros(1, bool)
+                vol = float("nan") if inside.any() else 0.0
+            except Exception:
+                vol = float("nan")
+    if vol > 0.01 or (vol != vol):
+        clear = 0.0
+    return vol, clear, method
+
+
+def pose_set(body, jname, step):
+    j = body.joints[jname]
+    parent, child = j["parent"], j["child"]
+    rng = j.get("range_deg") or [-30, 30]
+    own = list(np.arange(rng[0], rng[1] + 1e-6, step))
+    if rng[1] not in own:
+        own.append(rng[1])
+    poses = [{jname: float(a)} for a in own]
+    adj = [jj for jj in body.joints.values() if jj.get("active") is not False and jj["name"] != jname and
+           (jj["child"] in (parent, child) or jj["parent"] in (parent, child))]
+    for jj in adj:
+        r2 = jj.get("range_deg") or [-30, 30]
+        for a2 in list(np.arange(r2[0], r2[1] + 1e-6, step * 2)) + [r2[1]]:
+            for a1 in (rng[0], 0.5 * (rng[0] + rng[1]), rng[1]):
+                poses.append({jname: float(a1), jj["name"]: float(a2)})
+    # pairwise extremes of adjacent joints together (flexion corners)
+    for x in range(len(adj)):
+        for y in range(x + 1, len(adj)):
+            ra, rb = adj[x].get("range_deg") or [-30, 30], adj[y].get("range_deg") or [-30, 30]
+            for a in ra:
+                for b in rb:
+                    for a1 in (rng[0], rng[1]):
+                        poses.append({jname: float(a1), adj[x]["name"]: float(a), adj[y]["name"]: float(b)})
+    return poses, adj

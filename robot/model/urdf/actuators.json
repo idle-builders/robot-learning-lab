@@ -1,0 +1,1059 @@
+{
+  "schema": "cove50.actuators.v1",
+  "models": {
+    "c047": {
+      "model": "FEETECH ST-3215-C047",
+      "quantity": 20,
+      "nominal_voltage_V": 12.0,
+      "voltage_range_V": [
+        4.0,
+        14.0
+      ],
+      "gear_ratio": 345.0,
+      "mass_kg": 0.055,
+      "mass_tolerance_kg": 0.001,
+      "stall_torque_Nm": 2.941995,
+      "rated_torque_Nm": 0.980665,
+      "no_load_speed_rad_s": 4.71710608647116,
+      "no_load_current_A": 0.18,
+      "idle_current_A": 0.03,
+      "stall_current_A": 2.7,
+      "rated_current_A": 0.9,
+      "backlash_upper_bound_rad": 0.008726646259971648,
+      "encoder_counts": 4096,
+      "minimum_position_update_period_s": 0.001,
+      "supplier_terminal_resistance_ohm": 1.0,
+      "supplier_Kt_Nm_A": 1.0787315,
+      "torque_speed_curve": {
+        "torque_Nm": [
+          0.0,
+          0.2941995,
+          0.588399,
+          0.8825985000000001,
+          1.176798,
+          1.4709975,
+          1.7651970000000001,
+          2.0593965,
+          2.353596,
+          2.6477955,
+          2.941995
+        ],
+        "speed_rad_s": [
+          4.71238898038469,
+          4.241150082346221,
+          3.7699111843077517,
+          3.2986722862692828,
+          2.827433388230814,
+          2.356194490192345,
+          1.8849555921538759,
+          1.4137166941154071,
+          0.9424777960769377,
+          0.47123889803846886,
+          0.0
+        ],
+        "basis": "Approximate supplier page6 plotted straight line through45rpm/0 and0rpm/30kgcm; \u00b110% catalog tolerance, not identified sample dynamics"
+      },
+      "source_refs": [
+        {
+          "path": "artifacts/robot/model/build/sources/c047-datasheet.pdf",
+          "sha256": "ddef0f5d8e72a06e3a2e46f84c0d5b314ef09388f6f97c0f1bd708c376d53808",
+          "bytes": 681228
+        }
+      ],
+      "unknown": [
+        "Closed-loop PID gains/bandwidth and firmware response",
+        "Rotor/gear reflected inertia and efficiency",
+        "Coulomb/viscous friction and load-dependent backlash",
+        "Installed continuous thermal duty and shutdown recovery",
+        "Actual bus/power path and current measurement calibration"
+      ],
+      "interpretation": "Gear ratio already inside output torque/speed; never multiply output effort by345 again. Terminal resistance and listed output Kt have ambiguous measurement planes; do not combine into a fictitious bus-winding circuit. Rated point is conditional catalog data, not an installed sustained rating."
+    },
+    "xm335": {
+      "model": "ROBOTIS XM335-T323-T",
+      "quantity": 2,
+      "nominal_voltage_V": 12.0,
+      "recommended_voltage_V": 11.1,
+      "voltage_range_V": [
+        6.5,
+        12.0
+      ],
+      "gear_ratio": 323.04,
+      "mass_kg": 0.027,
+      "supplier_inertia_reference_mass_kg": 0.03,
+      "stall_torque_Nm": 1.12,
+      "rated_torque_Nm": null,
+      "no_load_speed_rad_s": 5.969026041820607,
+      "stall_current_A": 0.88,
+      "idle_current_A": 0.017,
+      "encoder_counts": 4096,
+      "voltage_points": [
+        {
+          "V": 9.0,
+          "stall_Nm": 0.85,
+          "stall_A": 0.61,
+          "rpm": 43
+        },
+        {
+          "V": 11.1,
+          "stall_Nm": 1.03,
+          "stall_A": 0.8,
+          "rpm": 53
+        },
+        {
+          "V": 12.0,
+          "stall_Nm": 1.12,
+          "stall_A": 0.88,
+          "rpm": 57
+        }
+      ],
+      "performance_curve": {
+        "torque_Nm": [
+          0.05,
+          0.08,
+          0.16,
+          0.24,
+          0.32,
+          0.4,
+          0.48,
+          0.56,
+          0.64,
+          0.71
+        ],
+        "speed_rad_s": [
+          6.126105674500097,
+          5.916666164260777,
+          5.393067388662478,
+          4.817108735504349,
+          4.1887902047863905,
+          3.5604716740684323,
+          2.879793265790644,
+          2.146754979953025,
+          1.2566370614359172,
+          0.47123889803846897
+        ],
+        "current_A": [
+          0.065,
+          0.085,
+          0.13,
+          0.18,
+          0.235,
+          0.295,
+          0.365,
+          0.445,
+          0.545,
+          0.69
+        ],
+        "basis": "Hand-read points from official performance image; approx\u00b11.5rpm,\u00b10.015Nm,\u00b10.025A, graph voltage not explicitly printed. Retain image; do not extrapolate endpoint to stall1.12Nm."
+      },
+      "source_refs": [
+        {
+          "path": "artifacts/robot/model/build/sources/xm335-manual.html",
+          "sha256": "47cdfda12bf149171e62bb4336bae4bef7ba8a73f2daf15ed0e28edae20a0bb3",
+          "bytes": 359032
+        },
+        {
+          "path": "artifacts/robot/model/build/sources/xm335-performance.jpg",
+          "sha256": "9784cb58289e2926cc1ef0584b5cb9fe50450551aa80f105cbc7a5cb5eff9ee8",
+          "bytes": 45924
+        },
+        {
+          "path": "artifacts/robot/model/build/sources/xm335-inertia.pdf",
+          "sha256": "55a4be2909a4879fb66bafa0689063a4800cc8454db952ab4f720221b29c0f55",
+          "bytes": 119098
+        }
+      ],
+      "inertia_reference": {
+        "mass_kg": 0.03,
+        "COM_m": [
+          -0.0005813271199999999,
+          -0.008952185,
+          -0.011436848
+        ],
+        "tensor_kg_m2": [
+          [
+            1.0230473000000001e-05,
+            -2.7785249e-07,
+            -2.3939013e-07
+          ],
+          [
+            -2.7785249e-07,
+            5.748806400000001e-06,
+            -3.3400323e-06
+          ],
+          [
+            -2.3939013e-07,
+            -3.3400323e-06,
+            5.9612787e-06
+          ]
+        ],
+        "application": "Retained reference only:30g reference conflicts with27g e-manual/selected27g case+horn split; inertia reference point and selected native coordinate registration require reconciliation. Do not silently replace case-only native inertia with a whole assembly tensor."
+      },
+      "unknown": [
+        "Continuous torque and installed thermal response",
+        "Selected firmware/gains/control-profile/bus timing",
+        "Backlash/friction/rotor inertia",
+        "Supplier inertia reference point and delivered accessory mass split"
+      ],
+      "interpretation": "Source yaw case25.5g plus horn1.5g represents27g assembly; supplier30g reference kept as explicit discrepancy. 3S full12.6V exceeds documented12V input: model regulated/capped neck rail12V, track actual supply in power follow-up."
+    }
+  },
+  "actuators": [
+    {
+      "index": 0,
+      "joint": "R_shoulder_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_shoulder_pitch",
+        "parent": "torso",
+        "child": "R_shoulder_pitch_link",
+        "origin_world_mm": [
+          52.0,
+          9.0,
+          352.0
+        ],
+        "axis_world_neutral": [
+          -1,
+          0,
+          0
+        ],
+        "range_deg": [
+          -60,
+          150
+        ],
+        "motor_command_sign": 1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": 1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 1,
+      "joint": "R_shoulder_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_shoulder_roll",
+        "parent": "R_shoulder_pitch_link",
+        "child": "R_shoulder_roll_link",
+        "origin_world_mm": [
+          112.0,
+          3.0,
+          360.0
+        ],
+        "axis_world_neutral": [
+          0,
+          -1,
+          0
+        ],
+        "range_deg": [
+          -15,
+          100
+        ],
+        "motor_command_sign": -1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 2,
+      "joint": "R_shoulder_yaw",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_shoulder_yaw",
+        "parent": "R_shoulder_roll_link",
+        "child": "R_upper_arm",
+        "origin_world_mm": [
+          134.0,
+          -10.0,
+          306.0
+        ],
+        "axis_world_neutral": [
+          -0.1643989873053573,
+          0.0,
+          0.9863939238321437
+        ],
+        "range_deg": [
+          -60,
+          60
+        ],
+        "motor_command_sign": 1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -0.1643989873053573,
+        0.9863939238321437
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": 1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 3,
+      "joint": "R_elbow",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_elbow",
+        "parent": "R_upper_arm",
+        "child": "R_forearm",
+        "origin_world_mm": [
+          145,
+          -3,
+          252
+        ],
+        "axis_world_neutral": [
+          -1,
+          0,
+          0
+        ],
+        "range_deg": [
+          0,
+          135
+        ],
+        "motor_command_sign": -1,
+        "motor_allocation": "case drives around fixed mainhorn; rearidler retained withcase, noexternalopposedsupport assumed"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 4,
+      "joint": "L_shoulder_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_shoulder_pitch",
+        "parent": "torso",
+        "child": "L_shoulder_pitch_link",
+        "origin_world_mm": [
+          -52.0,
+          9.0,
+          352.0
+        ],
+        "axis_world_neutral": [
+          -1,
+          0,
+          0
+        ],
+        "range_deg": [
+          -60,
+          150
+        ],
+        "motor_command_sign": -1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 5,
+      "joint": "L_shoulder_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_shoulder_roll",
+        "parent": "L_shoulder_pitch_link",
+        "child": "L_shoulder_roll_link",
+        "origin_world_mm": [
+          -112.0,
+          3.0,
+          360.0
+        ],
+        "axis_world_neutral": [
+          0,
+          1,
+          0
+        ],
+        "range_deg": [
+          -15,
+          100
+        ],
+        "motor_command_sign": 1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": 1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 6,
+      "joint": "L_shoulder_yaw",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_shoulder_yaw",
+        "parent": "L_shoulder_roll_link",
+        "child": "L_upper_arm",
+        "origin_world_mm": [
+          -134.0,
+          -10.0,
+          306.0
+        ],
+        "axis_world_neutral": [
+          -0.1643989873053573,
+          0.0,
+          -0.9863939238321437
+        ],
+        "range_deg": [
+          -60,
+          60
+        ],
+        "motor_command_sign": -1,
+        "motor_allocation": "fixedcase/outputhorn"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -0.1643989873053573,
+        -0.9863939238321437
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 7,
+      "joint": "L_elbow",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_elbow",
+        "parent": "L_upper_arm",
+        "child": "L_forearm",
+        "origin_world_mm": [
+          -145,
+          -3,
+          252
+        ],
+        "axis_world_neutral": [
+          -1,
+          0,
+          0
+        ],
+        "range_deg": [
+          0,
+          135
+        ],
+        "motor_command_sign": 1,
+        "motor_allocation": "case drives around fixed mainhorn; rearidler retained withcase, noexternalopposedsupport assumed"
+      },
+      "simulation_axis_model": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": 1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 8,
+      "joint": "neck_yaw",
+      "model": "xm335",
+      "source_axis": {
+        "name": "neck_yaw",
+        "parent": "torso",
+        "child": "neck_yaw",
+        "origin_world_mm": [
+          0,
+          5,
+          365
+        ],
+        "axis_world_neutral": [
+          0,
+          0,
+          1
+        ],
+        "range_deg": [
+          -60,
+          60
+        ]
+      },
+      "simulation_axis_model": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 2.0,
+      "simulation_kd_Nm_s_rad": 0.05,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 9,
+      "joint": "neck_pitch",
+      "model": "xm335",
+      "source_axis": {
+        "name": "neck_pitch",
+        "parent": "neck_yaw",
+        "child": "head",
+        "origin_world_mm": [
+          -13.5,
+          5,
+          414
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": [
+          -30,
+          35
+        ]
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 2.0,
+      "simulation_kd_Nm_s_rad": 0.05,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 10,
+      "joint": "R_hip_yaw",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_hip_yaw",
+        "parent": "torso",
+        "child": "R_yaw_link",
+        "origin_world_mm": [
+          59.0,
+          2.0,
+          274.75
+        ],
+        "axis_world_neutral": [
+          0,
+          0,
+          1
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 11,
+      "joint": "R_hip_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_hip_pitch",
+        "parent": "R_yaw_link",
+        "child": "R_pitch_link",
+        "origin_world_mm": [
+          59,
+          2,
+          219
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 12,
+      "joint": "R_hip_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_hip_roll",
+        "parent": "R_pitch_link",
+        "child": "R_roll_link",
+        "origin_world_mm": [
+          64.0,
+          -12.0,
+          190.0
+        ],
+        "axis_world_neutral": [
+          0,
+          1,
+          0
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 13,
+      "joint": "L_hip_yaw",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_hip_yaw",
+        "parent": "torso",
+        "child": "L_yaw_link",
+        "origin_world_mm": [
+          -59.0,
+          2.0,
+          274.75
+        ],
+        "axis_world_neutral": [
+          0,
+          0,
+          -1
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 14,
+      "joint": "L_hip_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_hip_pitch",
+        "parent": "L_yaw_link",
+        "child": "L_pitch_link",
+        "origin_world_mm": [
+          -59,
+          2,
+          219
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 15,
+      "joint": "L_hip_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_hip_roll",
+        "parent": "L_pitch_link",
+        "child": "L_roll_link",
+        "origin_world_mm": [
+          -64.0,
+          25.8,
+          190.0
+        ],
+        "axis_world_neutral": [
+          0,
+          -1,
+          0
+        ],
+        "range_deg": null,
+        "active": true,
+        "range_basis": "Source range remains null; representative source commands are separate evidence, not limits"
+      },
+      "simulation_axis_model": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 16,
+      "joint": "R_knee",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_knee",
+        "parent": "R_roll_link",
+        "child": "R_shin",
+        "origin_world_mm": [
+          60,
+          4,
+          123
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": [
+          0,
+          125
+        ],
+        "motor_command_sign": 1,
+        "axis_basis": "Functional flexion convention; actual motor polarity follows proper stock registration."
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": 1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 17,
+      "joint": "R_ankle_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_ankle_pitch",
+        "parent": "R_shin",
+        "child": "R_ankle_pitch",
+        "origin_world_mm": [
+          66,
+          4,
+          61.0
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": [
+          -35,
+          35
+        ],
+        "reason": "Raise upper pitch14 mm, Z47\u219261, to clear transverse C047 footrollcase while retaining footrollline/grounddatum, sourceaxes/ranges and simple flatshin/sheetoutputlink.",
+        "previous_origin_world_mm": [
+          66,
+          4,
+          47.0
+        ]
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 18,
+      "joint": "R_ankle_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "R_ankle_roll",
+        "parent": "R_ankle_pitch",
+        "child": "R_foot",
+        "origin_world_mm": [
+          75,
+          -13.5,
+          19
+        ],
+        "axis_world_neutral": [
+          0,
+          1,
+          0
+        ],
+        "range_deg": [
+          -25,
+          25
+        ],
+        "motor_command_sign": null,
+        "source_motor_raw_mapping": "NewproperC047orientation; benchpolarity/zero/currentcalibrationunknown; functionalaxisunchanged",
+        "geometric_output_relative_case_sign": -1,
+        "electrical_calibration": "Unknown after replacing XM335 with properly clocked C047; functional origin/axis/range preserved.",
+        "reason": "New C047 actuator case is on foot and horn on pitch parent. Preserve exact functional axis, origin line and range; replace old XM335 raw-polarity annotation with explicit uncalibrated mapping."
+      },
+      "simulation_axis_model": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 19,
+      "joint": "L_knee",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_knee",
+        "parent": "L_roll_link",
+        "child": "L_shin",
+        "origin_world_mm": [
+          -60,
+          4,
+          123
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": [
+          0,
+          125
+        ],
+        "motor_command_sign": -1,
+        "axis_basis": "Functional flexion convention; actual motor polarity follows proper stock registration."
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 20,
+      "joint": "L_ankle_pitch",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_ankle_pitch",
+        "parent": "L_shin",
+        "child": "L_ankle_pitch",
+        "origin_world_mm": [
+          -66,
+          4,
+          61
+        ],
+        "axis_world_neutral": [
+          1,
+          0,
+          0
+        ],
+        "range_deg": [
+          -35,
+          35
+        ],
+        "motor_command_sign": -1,
+        "axis_basis": "Functional flexion convention; actual motor polarity follows proper stock registration.",
+        "reason": "Raise upper pitch14 mm, Z47\u219261, to clear transverse C047 footrollcase while retaining footrollline/grounddatum, sourceaxes/ranges and simple flatshin/sheetoutputlink.",
+        "previous_origin_world_mm": [
+          -66,
+          4,
+          47
+        ]
+      },
+      "simulation_axis_model": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": -1,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    },
+    {
+      "index": 21,
+      "joint": "L_ankle_roll",
+      "model": "c047",
+      "source_axis": {
+        "name": "L_ankle_roll",
+        "parent": "L_ankle_pitch",
+        "child": "L_foot",
+        "origin_world_mm": [
+          -75,
+          -19,
+          19
+        ],
+        "axis_world_neutral": [
+          0,
+          -1,
+          0
+        ],
+        "range_deg": [
+          -25,
+          25
+        ],
+        "motor_command_sign": null,
+        "axis_basis": "Functional flexion convention; actual motor polarity follows proper stock registration.",
+        "source_motor_raw_mapping": "NewproperC047orientation; benchpolarity/zero/currentcalibrationunknown; functionalaxisunchanged",
+        "geometric_output_relative_case_sign": 1,
+        "electrical_calibration": "Unknown after replacing XM335 with properly clocked C047; functional origin/axis/range preserved.",
+        "reason": "New C047 actuator case is on foot and horn on pitch parent. Preserve exact functional axis, origin line and range; replace old XM335 raw-polarity annotation with explicit uncalibrated mapping."
+      },
+      "simulation_axis_model": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "command_units": "Output joint radians relative exact neutral CAD",
+      "hardware_motor_sign": null,
+      "hardware_zero_counts": null,
+      "hardware_mapping": "Uncalibrated electrical zero/direction. Source motor sign annotation is retained evidence, not a deployable calibration.",
+      "external_ratio": 1.0,
+      "simulation_kp_Nm_rad": 8.0,
+      "simulation_kd_Nm_s_rad": 0.16,
+      "servo_gain_basis": "Unidentified impedance assumption for bounded simulation; not copied from supplier digital PID register units"
+    }
+  ],
+  "native_actuator": "MJCF motors accept Nm; use runtime.py for delayed bounded position-target control and catalog speed/current sensitivity",
+  "default_torque_limit": "C047 catalog rated0.980665Nm at12V; neck0.20Nm explicit assumption because no continuous rating. Peak curve mode is a separate sensitivity.",
+  "hardware_transfer": "No installed actuator identification. Curves are supplier evidence; all estimated gains/damping/delay remain exposed."
+}

@@ -1,0 +1,264 @@
+{
+  "schema": "cove50.independent-arm-feedback.config.v1",
+  "task": "T-c3ysnj",
+  "selected_pointer": {
+    "path": "robot/model/current-model.json",
+    "sha256": "90047e5864b434b889606939ccfc0891191ff5684b344bf4bd337c64ac441685",
+    "bytes": 3252
+  },
+  "selected_model": {
+    "schema": "cove50.current-learning-model.v1",
+    "version": "r3-urdf-visual-r1-20261026",
+    "status": "provisional_continuous_servo_resolution_corrected_model",
+    "source_study": "cove50-electronics-integrated",
+    "source_result": "cove50-electronics-integrated-r1-20261026",
+    "source_manifest": {
+      "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+      "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399",
+      "bytes": 1555977
+    },
+    "rigid_URDF": {
+      "path": "artifacts/robot/model/urdf/cove50.urdf",
+      "bytes": 334333,
+      "sha256": "6b8652df2f07c34d7aec84c0bd3d45b3b74cc34d0430729cb9804106c99170c2"
+    },
+    "rigid_MJCF": {
+      "path": "artifacts/robot/model/timestep/cove50-rigid.xml",
+      "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+      "bytes": 393229
+    },
+    "compliant_MJCF": {
+      "path": "artifacts/robot/model/timestep/cove50-compliant.xml",
+      "sha256": "6c03d5f007772f3f8e75958880cdc9d4c25fbd26c6c4569ec2022f8cddf76148",
+      "bytes": 467084
+    },
+    "actuators": {
+      "path": "artifacts/robot/model/timestep/actuators.json",
+      "sha256": "c6a85db7a16162da058c39a297469930d54f3f1809eb528535456de61aeb6e0a",
+      "bytes": 34031
+    },
+    "sensors": {
+      "path": "artifacts/robot/model/timestep/sensors.json",
+      "sha256": "3bb2ecd3bc0f227cfc03c4536b5c1f607a7167a009d6563deaa48f934bef4724",
+      "bytes": 20457
+    },
+    "report": {
+      "path": "artifacts/robot/model/timestep/native-revision-validation.json",
+      "sha256": "b1c39b42bea42c0717e00971877882ca32b8e6d57f081a24ce41478d77f9200f",
+      "bytes": 6263
+    },
+    "mass_estimate_kg": 3.830267763756974,
+    "actuated_axes": 22,
+    "scope": "Selected R3 physics with restored full CAD motor-case URDF visuals and an optional shell-free URDF. No new mechanical selection, policy or physical calibration.",
+    "parent_model": {
+      "path": "artifacts/robot/model/timestep/current-model.json",
+      "bytes": 2536,
+      "sha256": "3c85d03d8142d443700c9fe71a7ae757792e74475fe8d30d7f9b14d1b80ad4e8"
+    },
+    "evidence_seal": {
+      "path": "data/urdf-inspection-r1-20261026/evidence-seal.json",
+      "bytes": 308573,
+      "sha256": "5e5e54bbfa22bee7307170f38b06ab25adeb9e1508a922d678716df2d3a90050"
+    },
+    "timing": {
+      "path": "artifacts/robot/model/timestep/timing.json",
+      "sha256": "b224cac89dc6514940295ff2e1509f71598d65bf5fc090f109ab501ba5f82efc",
+      "bytes": 2456
+    },
+    "shell_hidden_URDF": {
+      "path": "artifacts/robot/model/urdf/cove50-shell-hidden.urdf",
+      "bytes": 323243,
+      "sha256": "09f760c4b8cfec39be0299110297aa40c852ced1321080b8e4c668acfdc2e168"
+    },
+    "visual_revision": {
+      "report": {
+        "path": "data/urdf-inspection-r1-20261026/verification.json",
+        "bytes": 12705,
+        "sha256": "826236210374768514790b40c1d097335a216282db54f521cc6595943f23cf90"
+      },
+      "motor_cases_restored": 22,
+      "shell_visuals_hidden": 45,
+      "physical_model": "Unchanged R3 rigid/compliant MJCF, collisions, mass/inertia, joints, motor/sensor/timing contracts",
+      "independent_review_directory": "data/urdf-inspection-r1-20261026/independent-review"
+    }
+  },
+  "materialized_rigid_mjcf": {
+    "path": ".cache/work/cove50-forward-stop-20261030-r1-774a216e07ed/display-source-v2/artifacts/cove50-model-transfer/r3-20261026/cove50-rigid.xml",
+    "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+    "bytes": 393229
+  },
+  "warm_feedback_checkpoint": {
+    "path": "artifacts/runs/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/evidence/train/candidate.pt",
+    "sha256": "5633e975ce75c0ab9d36a529a84262c1727945d6473bddffded5d082d411575f",
+    "bytes": 369267
+  },
+  "recurrent_arm_checkpoint": {
+    "path": "data/basic-skills-retry-20261027/arm-body-learning-harness/input-snapshot/objects/23760523ead3e54bc0a804d7b2f357902eb61c8526fd54fa2c529cdeb81a350c",
+    "sha256": "23760523ead3e54bc0a804d7b2f357902eb61c8526fd54fa2c529cdeb81a350c",
+    "bytes": 25617
+  },
+  "posture_donor_checkpoint": {
+    "path": ".cache/work/cove50-coordinated-arm-feedback-next-20261030-r1-b35ee2f11a01/preparation/input-objects/d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+    "sha256": "d2f5f40efd5e91a5ca2fbd837ac5286e7b515bacf66492509757e317c86a7e16",
+    "bytes": 39825
+  },
+  "training": {
+    "ppo_rounds": 12,
+    "episodes_per_round": 8,
+    "controls_per_episode": 200,
+    "adam_updates_per_round": 20,
+    "total_adam_updates": 240,
+    "total_training_controls": 19200,
+    "total_training_physics_substeps": 1536000,
+    "learning_rate": 0.0003,
+    "clip_param": 0.2,
+    "residual_scale_rad": 0.03,
+    "seed": 250100
+  },
+  "evaluation_cases": [
+    {
+      "case_index": 0,
+      "seed": 140701,
+      "label": "nominal-left-push",
+      "schedule": "independent-left",
+      "joint_sigma_rad": 0.0,
+      "rpy_envelope_rad": 0.0,
+      "joint_velocity_sigma_rad_s": 0.0,
+      "push_force": [
+        3.5,
+        -2.5,
+        0.0
+      ],
+      "push_window": [
+        180,
+        185
+      ]
+    },
+    {
+      "case_index": 1,
+      "seed": 140701,
+      "label": "nominal-right-push",
+      "schedule": "independent-right",
+      "joint_sigma_rad": 0.0,
+      "rpy_envelope_rad": 0.0,
+      "joint_velocity_sigma_rad_s": 0.0,
+      "push_force": [
+        3.5,
+        2.5,
+        0.0
+      ],
+      "push_window": [
+        180,
+        185
+      ]
+    },
+    {
+      "case_index": 2,
+      "seed": 140702,
+      "label": "varied-140702-left-push",
+      "schedule": "independent-left",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        4.0,
+        -3.0,
+        0.0
+      ],
+      "push_window": [
+        180,
+        185
+      ]
+    },
+    {
+      "case_index": 3,
+      "seed": 140702,
+      "label": "varied-140702-right-push",
+      "schedule": "independent-right",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        4.0,
+        3.0,
+        0.0
+      ],
+      "push_window": [
+        180,
+        185
+      ]
+    },
+    {
+      "case_index": 4,
+      "seed": 140703,
+      "label": "varied-140703-alternating-push",
+      "schedule": "independent-alternating",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        3.5,
+        -2.5,
+        0.0
+      ],
+      "push_window": [
+        150,
+        155
+      ]
+    },
+    {
+      "case_index": 5,
+      "seed": 140704,
+      "label": "varied-140704-alternating-push",
+      "schedule": "independent-alternating",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        -3.0,
+        2.5,
+        0.0
+      ],
+      "push_window": [
+        310,
+        315
+      ]
+    },
+    {
+      "case_index": 6,
+      "seed": 140703,
+      "label": "varied-140703-left-unpushed",
+      "schedule": "independent-left",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "push_window": [
+        0,
+        0
+      ]
+    },
+    {
+      "case_index": 7,
+      "seed": 140704,
+      "label": "varied-140704-right-unpushed",
+      "schedule": "independent-right",
+      "joint_sigma_rad": 0.015,
+      "rpy_envelope_rad": 0.015,
+      "joint_velocity_sigma_rad_s": 0.03,
+      "push_force": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "push_window": [
+        0,
+        0
+      ]
+    }
+  ]
+}

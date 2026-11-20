@@ -1,0 +1,27 @@
+{
+  "schema": "cove50.power.selected-design.v1",
+  "selected": true,
+  "status": "user_selected_design_round",
+  "selected_on": "2026-10-26",
+  "result_id": "cove50-internal-power-space-r33",
+  "version": "r33",
+  "selection": {
+    "path": "data/power-design-closeout-20261026/selection.json",
+    "sha256": "9888441864a1678f150745f50a4569ffdb08286a7b6d461f6e3234cb68765f33"
+  },
+  "selected_mounting_parts": 200,
+  "selected_function_directions": 30,
+  "selected_circuit_catalogs": {
+    "path": "artifacts/cove50-power-integration/selected-round-20261026/selected-circuit-catalogs.json",
+    "sha256": "a98c81b5d7c8cd3e946b9f0157f97b8d2bb6b9fc36ac34420bafc489aaf930ed"
+  },
+  "configuration": {
+    "series": 3,
+    "parallel": 3,
+    "cells": 9,
+    "cell": "Molicel INR-21700-P50B"
+  },
+  "physical_qualification": "Unmeasured; native source/model/fit/heat/service limits retained",
+  "unfinished_full_installation": "T-42fga9",
+  "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-internal-power-space-r33"
+}

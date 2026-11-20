@@ -1,0 +1,130 @@
+{
+  "schema": "cove50.current-learning-model.v1",
+  "version": "r3-urdf-visual-r1-20261026",
+  "status": "provisional_continuous_servo_resolution_corrected_model",
+  "source_study": "cove50-electronics-integrated",
+  "source_result": "cove50-electronics-integrated-r1-20261026",
+  "source_manifest": {
+    "path": "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json",
+    "sha256": "55fc6a363de6cf8c902a1f6bacf8560eb72928d942baa15e39a191c569d24399",
+    "bytes": 1555977
+  },
+  "rigid_URDF": {
+    "path": "artifacts/robot/model/urdf/cove50.urdf",
+    "bytes": 334333,
+    "sha256": "6b8652df2f07c34d7aec84c0bd3d45b3b74cc34d0430729cb9804106c99170c2"
+  },
+  "rigid_MJCF": {
+    "path": "artifacts/robot/model/timestep/cove50-rigid.xml",
+    "sha256": "35c745765d0cc5925d96a5f1b0a94e31bacd08d7066fabbb5f87050147643ebf",
+    "bytes": 393229
+  },
+  "compliant_MJCF": {
+    "path": "artifacts/robot/model/timestep/cove50-compliant.xml",
+    "sha256": "6c03d5f007772f3f8e75958880cdc9d4c25fbd26c6c4569ec2022f8cddf76148",
+    "bytes": 467084
+  },
+  "actuators": {
+    "path": "artifacts/robot/model/timestep/actuators.json",
+    "sha256": "c6a85db7a16162da058c39a297469930d54f3f1809eb528535456de61aeb6e0a",
+    "bytes": 34031
+  },
+  "sensors": {
+    "path": "artifacts/robot/model/timestep/sensors.json",
+    "sha256": "3bb2ecd3bc0f227cfc03c4536b5c1f607a7167a009d6563deaa48f934bef4724",
+    "bytes": 20457
+  },
+  "report": {
+    "path": "artifacts/robot/model/timestep/native-revision-validation.json",
+    "sha256": "b1c39b42bea42c0717e00971877882ca32b8e6d57f081a24ce41478d77f9200f",
+    "bytes": 6263
+  },
+  "mass_estimate_kg": 3.830267763756974,
+  "actuated_axes": 22,
+  "scope": "Selected R3 physics with restored full CAD motor-case URDF visuals and an optional shell-free URDF. No new mechanical selection, policy or physical calibration.",
+  "parent_model": {
+    "path": "artifacts/robot/model/timestep/current-model.json",
+    "bytes": 2536,
+    "sha256": "3c85d03d8142d443700c9fe71a7ae757792e74475fe8d30d7f9b14d1b80ad4e8"
+  },
+  "evidence_seal": {
+    "path": "data/urdf-inspection-r1-20261026/evidence-seal.json",
+    "bytes": 308573,
+    "sha256": "5e5e54bbfa22bee7307170f38b06ab25adeb9e1508a922d678716df2d3a90050"
+  },
+  "timing": {
+    "path": "artifacts/robot/model/timestep/timing.json",
+    "sha256": "b224cac89dc6514940295ff2e1509f71598d65bf5fc090f109ab501ba5f82efc",
+    "bytes": 2456
+  },
+  "shell_hidden_URDF": {
+    "path": "artifacts/robot/model/urdf/cove50-shell-hidden.urdf",
+    "bytes": 323243,
+    "sha256": "09f760c4b8cfec39be0299110297aa40c852ced1321080b8e4c668acfdc2e168"
+  },
+  "visual_revision": {
+    "report": {
+      "path": "data/urdf-inspection-r1-20261026/verification.json",
+      "bytes": 12705,
+      "sha256": "826236210374768514790b40c1d097335a216282db54f521cc6595943f23cf90"
+    },
+    "motor_cases_restored": 22,
+    "shell_visuals_hidden": 45,
+    "physical_model": "Unchanged R3 rigid/compliant MJCF, collisions, mass/inertia, joints, motor/sensor/timing contracts",
+    "independent_review_directory": "data/urdf-inspection-r1-20261026/independent-review"
+  },
+  "actuator_dynamics": {
+    "version": "r4-dynamics-20261105",
+    "status": "best estimates pending bench identification; the r3 fields above are unchanged and remain the R3 plant",
+    "sidecar": {
+      "path": "robot/model/dynamics/actuator-dynamics.json",
+      "sha256": "f7bd0745750b94978ee37514264ef360ce17a9dfce5e14ac21e9650b027b92b0",
+      "bytes": 8990
+    },
+    "rigid_MJCF_with_dynamics": {
+      "path": "artifacts/robot/model/dynamics/cove50-rigid.xml",
+      "sha256": "8b3124a8d884fe3e064272f5b7c9ea907d82a61cafef6b7efea1c0974f5e911c",
+      "bytes": 379224
+    },
+    "rigid_URDF_with_dynamics": {
+      "path": "artifacts/robot/model/dynamics/cove50.urdf",
+      "sha256": "8a029700dbf986ccfcd5892892f08790de0a1b7d5a6397dd77e120d1bedfbfcf",
+      "bytes": 397404
+    },
+    "export_report": {
+      "path": "artifacts/robot/model/dynamics/report.json",
+      "sha256": "5cfd65fbde9a9fb66b8e78d2c1a6824980c8b2b8872518503cb27f4d5c9dcf13",
+      "bytes": 3606
+    },
+    "runtime": "control/common/plant: robot_cfg(dynamics=dynamics.resolve(servo), peak=True) applies rotor inertia, Coulomb friction, the Feetech firmware duty loop, its target rate limit and backlash, the 11.1 V pack rail and best-estimate hip ranges in place of the +-0.35 rad diagnostic hip envelope; robot_cfg() without dynamics is the R3 plant",
+    "candidates": [
+      "c047",
+      "sts3250",
+      "st3025"
+    ],
+    "readme": "robot/model/dynamics/README.md",
+    "revision": 2
+  },
+  "motor_assignment": {
+    "version": "r5-tier3-20261108",
+    "status": "locked by the owner 2026-11-08; parts not yet bought or bench-identified",
+    "motor_map": {
+      "path": "robot/model/motor-map/motor-map.json",
+      "sha256": "b8f857ec8dfe74df97c9499b34d59fb1bbb082376ef8009bedf3593bd5f30da3"
+    },
+    "build": "robot/model/motor-map/build.py",
+    "rigid_MJCF_with_motor_map": {
+      "path": "artifacts/robot/model/motor-map/cove50-rigid.xml",
+      "sha256": "f25e6ccfc28987cb9ed10f4edb3ae7abf87fd9efd6aadab09c2a60a74358a77c",
+      "bytes": 379224
+    },
+    "rigid_URDF_with_motor_map": {
+      "path": "artifacts/robot/model/motor-map/cove50.urdf",
+      "sha256": "8f59fb5f920a6bf9af710f8ba0eb83657c30aa3517ff4652db440a02a98550ad",
+      "bytes": 398786
+    },
+    "mass_kg": 4.4953,
+    "training_allocation": "walk_resume dynamics.ALLOCATIONS['tier3-st3025-sts3250-c047'] (20 body joints; the neck keeps the XM335 law in training)",
+    "readme": "robot/model/motor-map/README.md"
+  }
+}

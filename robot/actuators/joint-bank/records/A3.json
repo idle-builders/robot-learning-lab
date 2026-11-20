@@ -1,0 +1,30 @@
+{
+  "schema": "cove50.joint-bank.entry.v1",
+  "id": "A3",
+  "region": "ankle_foot",
+  "name": "Direct or remote compact rotary ankle",
+  "architecture": "direct_or_remote",
+  "maturity": "source_only",
+  "summary": "Berkeley Lite direct and DLR TORO remote ankle source patterns.",
+  "source_record_ids": [
+    "BHL25-ANKLE-DIRECT",
+    "DLR-TORO-14-ANKLE-PITCH"
+  ],
+  "interfaces": {
+    "frame": "unregistered",
+    "parent": null,
+    "output": null
+  },
+  "dofs": null,
+  "assets": [
+    {
+      "name": "grammar",
+      "role": "documentation",
+      "path": "studies/cove50-morphology/joint-box/draft/joint-box.json",
+      "sha256": "fe806f65873cdfd1f18d44556ad17f096fd3dcb959260a2ddff272a8b8ac4d83"
+    }
+  ],
+  "limits": [
+    "No installed foot support or contact qualification."
+  ]
+}

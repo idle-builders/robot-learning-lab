@@ -1,0 +1,105 @@
+{
+  "schema": "cove50.motor-map.v1",
+  "version": "r5-tier3-20261108",
+  "status": "locked by the owner on 2026-11-08 (three-tier brick set); parts not yet bought or bench-identified",
+  "parent": "robot/model/dynamics (servo models in actuator-dynamics.json) on the R3 body",
+  "source": "robot/actuators/tier-pick/README.md",
+  "tiers": {
+    "fast-leg": {
+      "sidecar_model": "st3025",
+      "part": "Waveshare ST3025 (Feetech ST-3025-C002), 12 V brushless serial-bus servo, 40 kg.cm",
+      "sku": "Waveshare 24702",
+      "case_mm": [
+        40.0,
+        20.0,
+        40.0
+      ],
+      "mass_kg": 0.124,
+      "stall_torque_Nm_12V": 3.9227,
+      "no_load_speed_rad_s_12V": 8.901,
+      "rated_torque_Nm": 1.324,
+      "rotor_inertia_kg_m2": 0.0046,
+      "rotor_inertia_source": "identified (BAM)",
+      "bus": "Feetech TTL half-duplex, 12-bit magnetic encoder",
+      "price_usd": 74.95,
+      "price_basis": "Waveshare store, 4+ tier, checked in the browser 2026-11-08"
+    },
+    "strong": {
+      "sidecar_model": "sts3250",
+      "part": "Feetech STS3250 (ST-3250-C001; sellers also list C002), 12 V, 50 kg.cm, 1:345",
+      "case_mm": [
+        45.22,
+        24.72,
+        35.0
+      ],
+      "mass_kg": 0.0745,
+      "stall_torque_Nm_12V": 4.9,
+      "no_load_speed_rad_s_12V": 7.873,
+      "rated_torque_Nm": 1.6333,
+      "rotor_inertia_kg_m2": 0.024,
+      "rotor_inertia_source": "assumed equal to the STS3215 (same 1:345 gear and case; not identified)",
+      "bus": "Feetech TTL half-duplex, 12-bit magnetic encoder",
+      "price_usd": 64.18,
+      "price_basis": "AliExpress qty-20 listing (search price); one checked listing at $45.67 is limited to 1 per buyer; OpenELAB $73.99"
+    },
+    "light": {
+      "sidecar_model": "c047",
+      "part": "Feetech ST-3215-C047 / Waveshare ST3215 12 V (SKU 22414), 12 V, 30 kg.cm, 1:345",
+      "case_mm": [
+        45.2,
+        24.7,
+        35.0
+      ],
+      "mass_kg": 0.055,
+      "stall_torque_Nm_12V": 2.941995,
+      "no_load_speed_rad_s_12V": 4.717,
+      "rated_torque_Nm": 0.980665,
+      "rotor_inertia_kg_m2": 0.024,
+      "rotor_inertia_source": "identified (BAM STS3215)",
+      "bus": "Feetech TTL half-duplex, 12-bit magnetic encoder",
+      "price_usd": 20.63,
+      "price_basis": "Waveshare store, 12+ tier"
+    }
+  },
+  "joints": {
+    "R_hip_pitch": "fast-leg",
+    "L_hip_pitch": "fast-leg",
+    "R_knee": "fast-leg",
+    "L_knee": "fast-leg",
+    "R_ankle_pitch": "fast-leg",
+    "L_ankle_pitch": "fast-leg",
+    "R_hip_roll": "strong",
+    "L_hip_roll": "strong",
+    "R_shoulder_pitch": "strong",
+    "L_shoulder_pitch": "strong",
+    "R_shoulder_roll": "strong",
+    "L_shoulder_roll": "strong",
+    "R_shoulder_yaw": "strong",
+    "L_shoulder_yaw": "strong",
+    "R_elbow": "strong",
+    "L_elbow": "strong",
+    "R_hip_yaw": "light",
+    "L_hip_yaw": "light",
+    "R_ankle_roll": "light",
+    "L_ankle_roll": "light",
+    "neck_yaw": "light",
+    "neck_pitch": "light"
+  },
+  "counts": {
+    "fast-leg": 6,
+    "strong": 10,
+    "light": 6
+  },
+  "cost_usd_22": {
+    "at_listed_prices": 1215,
+    "with_openelab_sts3250": 1313,
+    "with_checked_single_sts3250": 1030
+  },
+  "case_change_vs_r3_cad": {
+    "fast-leg": "C047 case (45.2 x 24.7 x 35) to the 40 x 20 x 40 case at hip pitch, knee and ankle pitch: 5 mm shorter, 5 mm thinner, 5 mm taller; 69 g heavier each",
+    "strong": "same case as the C047; 19.5 g heavier each",
+    "light": "the R3 CAD servo itself at hip yaw and ankle roll; at the neck it replaces the XM335 (35 x 19 x 22 mm, 27 g), so the neck pockets grow",
+    "note": "The long-arm ape body (upper arm x1.6, forearm x1.27, 30 mm fist, feet x1.3) used for the target is a separate geometry change, applied at training time (tracking.scale_arms, scale_feet, add_fists)."
+  },
+  "training_plant": "walk_resume dynamics.ALLOCATIONS['tier3-st3025-sts3250-c047'] covers the 20 body joints; the neck keeps the shared boundary's XM335 law in training (the head is light), which is a known difference from this map"
+}

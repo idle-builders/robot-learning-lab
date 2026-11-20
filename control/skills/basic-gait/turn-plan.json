@@ -1,0 +1,24 @@
+{
+  "schema": "cove50.basic-gait.turn-plan.v1",
+  "status": "prepared only; native execution awaits sequential skill assignment",
+  "checkpoint_sha256": "467b12a17a71f06d951294b3d9185503ea78c6edda431ae7e7870aa648fc02bd",
+  "proposed_start_seeds": [141001, 141002],
+  "conditions": ["moving-left", "moving-right", "pure-left", "pure-right", "forward-to-left", "forward-to-right"],
+  "command_units": ["m/s", "m/s", "rad/s"],
+  "control_dt_s": 0.02,
+  "physics_dt_s": 0.00025,
+  "native_substeps_per_control": 80,
+  "proposed_counts": {"episodes": 12, "independent_start_families": 2, "world_slots_per_visit": 1, "policies": 1, "simulator_controls": 2200, "native_physics_steps": 176000, "optimizer_updates": 0},
+  "start_contract": "Exact original selected-R3 MJLab reset variation and mapped source home; same seed reused across conditions as proposed pairing. Compare actual initial_qpos/qvel before claiming matched starts.",
+  "switch_contract": "Only command buffers and standing/world/heading flags change. Preserve full raw24 action history, sensor state, queues, motor state, actual attained qpos/qvel and native clock.",
+  "bootstrap": "Original native boundary samples/stores raw24 at control0 and holds mapped home while delayed sensor_valid=False. Standing episode bootstrap is not substituted.",
+  "retention": "Import original Episodes recorder: pre-action actor81/value96, raw24, requested/accepted/applied22, qpos/qvel, source termination flags and contact/motor measurements for every control. Continue fallen/resting tails through requested horizon as original replay does.",
+  "measurements": [
+    "Unwrapped signed yaw change/rate and yaw command-error distributions/accuracy curves by curved, pure and attained-state handoff condition; requested-horizon coverage alongside active-time errors.",
+    "Forward/lateral displacement and body velocity, distance from start, turn translation leakage, post-switch yaw and drift, torso tilt/root height and first observed physical event with full tail retained.",
+    "Foot contact/load, alternation, contact/slip evidence and nonfoot contact, requested/accepted/applied target gaps and per-axis motor effort/current/saturation; native recorder has instantaneous control captures, not complete 4kHz torque-duty integration.",
+    "Initial_qpos/qvel and runtime source hashes by seed; continuous prefix at .9s command change, command3 equals actor81 slots69:72 and value96 command slots72:75 before action.",
+    "Count world slots, full episodes, independent families, simulator controls, physics steps and zero optimizer updates separately. Qualitative representative/severe whole-motion review, no binary result score."
+  ],
+  "compute": "Local CPU MJLab/MJWarp is supported by retained two-control smoke; a complete3–4s replay has not been timed for this harness. CUDA optional. Any later GPU choice uses existing bounded Runpod IaC, provider expiry and foreground preflight/checks assigned by lead; no provider preparation here."
+}

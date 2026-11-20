@@ -1,0 +1,59 @@
+{
+  "checkout_metadata": [
+    {
+      "bytes": 179,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/PKG-INFO",
+      "sha256": "07d79ad98f83e8b7cb62ea9e3be173d7b0989dc3c56d698ac923d6d835da18ec"
+    },
+    {
+      "bytes": 912,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/SOURCES.txt",
+      "sha256": "dd543efe1c5d284f0038896d7af91ac764912e80debfca360d154d4851f5245e"
+    },
+    {
+      "bytes": 1,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/dependency_links.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "bytes": 39,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/entry_points.txt",
+      "sha256": "17c0f5dad42fed24898db90dbebda325990427b7c42ea4492645441aae93c60d"
+    },
+    {
+      "bytes": 42,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/requires.txt",
+      "sha256": "6bd5e0af37739178061fcbf2a659dd31f8aafd67ec71a8578e6810e59b9f281a"
+    },
+    {
+      "bytes": 9,
+      "path": "control/common/mjlab_ape/src/mjlab_ape_walk_poc.egg-info/top_level.txt",
+      "sha256": "d98afbfdc46cd6898c63a528ea52a2fc10fe724cfa441e748a9af80165c0f78e"
+    }
+  ],
+  "isolated_venv": ".venv-worker",
+  "meaning": "Generated ape egg-info describes a full development project which is not installed as a distribution here. Move its exact six files outside sys.path, retain their bytes/identities, and use the unchanged source checkout via pth. Do not generate replacement distribution metadata or suppress any pip check diagnostic. Pinned installed runtime closure plus exact guarded application source is the execution contract, not the optional full Microduck/BAM development environment.",
+  "metadata_retention": "evidence/bootstrap/source-checkout-metadata",
+  "not_installed_local_distributions": [
+    "mjlab-ape-walk-poc",
+    "mjlab-microduck"
+  ],
+  "python": [
+    3,
+    12
+  ],
+  "requirements": {
+    "bytes": 2190,
+    "path": "control/common/compute/requirements-worker.txt",
+    "sha256": "6132ca5352829b1ba195475b1b8dcbca8e6ccd503f064d6fbb935599b5da7a1e"
+  },
+  "schema": "cove50.full-routine-r2.environment.v1",
+  "source_paths": [
+    "vendor",
+    "vendor/microduck_rl/src",
+    "control/common/mjlab_ape/src"
+  ],
+  "torch": "2.9.1",
+  "torch_wheel_index": "https://download.pytorch.org/whl/cu128",
+  "torchvision": "0.24.1"
+}
