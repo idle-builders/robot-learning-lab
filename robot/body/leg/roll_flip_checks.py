@@ -186,7 +186,10 @@ def build_manifest():
     sys.path.insert(0, str(ROOT / "robot/body/torso"))
     import torso_screws as TS               # T-nh6ytf: stage 3 carrier rebuilt, stale torso_mate hardware dropped (warns when not built)
     parts = TS.swap_parts(parts)
-    srows, plans = hip_screws(parts, man)
+    import foot_screws as FS                # run its `build` first (T-rptay5): edited foot monocoque + sleeves
+    parts = FS.swap_parts(parts)
+    with FS.left_labels():
+        srows, plans = hip_screws(parts, man)
     parts += srows
     log += [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
     man["parts"] = parts
