@@ -186,6 +186,9 @@ def build_manifest():
                               mass_basis=f"native STEP volume x {r['polymer_density_g_cm3']} g/cm3 ({r['polymer_material']}, "
                                          "part setting material, checks/data/materials.json)" if role != "compression_limit_sleeves"
                               else "304 SS sleeves, native STEP volume", roll_flip="new part (build_upper_hip_connectors.py --roll-flip)"))
+    sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
+    import ankle_coupler_screws as ACS      # run its `build` first (T-9wpegg): edited ankle coupler + sleeves
+    parts = ACS.swap_parts(parts)
     srows, plans = hip_screws(parts, man)
     parts += srows
     log += [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
