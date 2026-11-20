@@ -28,6 +28,7 @@ import numpy as np
 
 from checks import bodylib as BL
 from checks.core import ROOT, tick
+from checks import screwlib as SL
 from checks.registry import register
 
 RING_RADII_MM = (0.3, 0.8, 1.5, 2.5)   # beyond the shank radius: 0.8 alone falls into the gap of a pressed steel sleeve
@@ -84,24 +85,8 @@ def screw_from_bounds(p, nominal):
 
 
 def solid(ctx, n):
-    """(probe mesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid().
-    The probe mesh is what the screw points are tested against: the screening mesh when it is watertight, else the
-    manifold's own mesh (a decimated closed CAD mesh can leave the decimation open: trimesh's ray-parity contains()
-    then answers differently on repeated calls, measured on microphone_6049_v23 and foot_ADC_6494, 2026-11-20)."""
-    from checks.core import kit, screen_solid
-    c = ctx.__dict__.setdefault("_conn_solids", {})
-    if n not in c:
-        t0 = time.time()
-        m, how = screen_solid(ctx.body, n, set())
-        f = kit.mf(m)
-        if not m.is_watertight:
-            if not f.is_empty():
-                m, how = kit.tm(f), how + ", probed as its manifold"
-            else:
-                how += ", not watertight (screw probe approximate)"
-        c[n] = (m, how, f)
-        tick("connectivity solids", t0)
-    return c[n]
+    """(probe mesh, how, manifold) of part n: the coarse screening solid shared with the screw checks (screwlib.screen)."""
+    return SL.screen(ctx, n)
 
 
 def build_graph(ctx):

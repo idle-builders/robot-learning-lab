@@ -10,6 +10,7 @@ standard parts and which screws use them. The driver / insertion rays of mount_c
 from __future__ import annotations
 
 import re
+import sys
 import time
 import types
 
@@ -46,6 +47,34 @@ def screw_summary(r, touched):
                 findings=[f for f in r.get("findings", []) if not f["kind"].endswith("path_blocked_pct")])
 
 
+CHUNK = 30    # screws per mount_check process, as mount_check.run does for the whole manifest
+
+
+def run_mount_check(MC, manifest, only, n, out):
+    """mount_check.run_screws on the selected screws; above CHUNK screws in chunks of CHUNK, each in its own process.
+    One process for all of them holds the full mesh of every part within driver reach of any screw (the whole body, the
+    587k-face power board and the shells among them) plus two embree scenes over them: an unscoped run (about 250 screws)
+    passed 6 GB within 50 s and did not finish in 1800 s (T-c4sy9d, 2026-11-20). Embree also leaks per scene."""
+    import json
+    import subprocess
+    mp = MC.Path(manifest).resolve()
+    if n <= CHUNK:
+        return MC.run_screws(mp, only, out, None)
+    rows, secs = [], 0.0
+    for a in range(0, n, CHUNK):
+        po = out.parent / f"scoped-part-{a}.json"
+        subprocess.run([sys.executable, "-B", str(MC.__file__), "--manifest", str(mp), "--only", only, "--part", f"{a}:{a + CHUNK}",
+                        "--out", str(po)], check=True)
+        r = json.loads(po.read_text()); po.unlink()
+        rows += r["rows"]; secs += r.get("seconds", 0.0)
+        print(f"  mount_check {min(a + CHUNK, n)}/{n} screws", flush=True)
+    body = MC.F.Body(json.loads(mp.read_text()))
+    rep = dict(manifest=str(mp.relative_to(MC.ROOT)), screws=len(rows), seconds=round(secs, 1), chunks=-(-n // CHUNK),
+               rows=rows, by_connector=MC.by_connector(rows, body))
+    out.write_text(json.dumps(rep, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o)))
+    return rep
+
+
 @register("screws", lambda ctx: bool(ctx.body.parts))
 def run(ctx):
     """Screw connections of the scoped parts via mount_check: engagement vs the standard part's reference, hole offset, clamp gaps, sleeve under the head, reverse view (unused sleeves / mount holes) in scope."""
@@ -58,7 +87,7 @@ def run(ctx):
     only = "^(?:" + "|".join(re.escape(k) for k in sorted(found)) + ")$"
     out = WORK / "screws" / "scoped-report.json"
     t1 = time.time()
-    rep = MC.run_screws(MC.Path(ctx.manifest).resolve(), only, out, None)
+    rep = run_mount_check(MC, ctx.manifest, only, len(found), out)
     tick("mount_check.run_screws", t1)
     rows = {r["name"]: r for r in rep["rows"]}
     per, cat = {n: dict(screws={}) for n in ctx.scope}, {k: [] for k in ("engagement", "offset", "gap", "bearing", "other")}

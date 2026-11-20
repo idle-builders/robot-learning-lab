@@ -23,6 +23,30 @@ def mount_check():
     return MC
 
 
+def screen(ctx, n):
+    """(probe mesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid().
+    Selections and graphs over the whole manifest use this, never ctx.solid(): a scoped part gets the fine 0.03 mm STEP
+    tessellation there, and an unscoped run scopes every part (supplier STEPs up to 78 MB; T-c4sy9d).
+    The probe mesh is what the screw points are tested against: the screening mesh when it is watertight, else the
+    manifold's own mesh (a decimated closed CAD mesh can leave the decimation open: trimesh's ray-parity contains()
+    then answers differently on repeated calls, measured on microphone_6049_v23 and foot_ADC_6494, 2026-11-20)."""
+    import time
+    from checks.core import screen_solid, tick
+    c = ctx.__dict__.setdefault("_conn_solids", {})
+    if n not in c:
+        t0 = time.time()
+        m, how = screen_solid(ctx.body, n, set())
+        f = kit.mf(m)
+        if not m.is_watertight:
+            if not f.is_empty():
+                m, how = kit.tm(f), how + ", probed as its manifold"
+            else:
+                how += ", not watertight (screw probe approximate)"
+        c[n] = (m, how, f)
+        tick("coarse solids", t0)
+    return c[n]
+
+
 def solid_nodes(ctx):
     """Non-hardware parts plus the steel sleeves (they are parts of the printed part they sit in)."""
     kind = mount_check().kind
@@ -93,7 +117,7 @@ def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
                 continue
             Tn = T[parts[t]["owning_link"]]
             try:
-                inside = ctx.solid(t)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])
+                inside = screen(ctx, t)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])
             except Exception:  # noqa: BLE001
                 continue
             if inside.sum() >= 2 and owner not in touched:
