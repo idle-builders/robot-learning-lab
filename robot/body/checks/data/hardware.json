@@ -187,8 +187,8 @@
     "note": "machine screw into the tapped hole of an aluminium standard part"
    },
    "plastic": {
-    "family": "PA",
-    "note": "assumption: thread-forming screw into a printed pilot; head and lengths as the M family of the same head type"
+    "family": "M",
+    "note": "machine screw: every defined hole of a standard part is a tapped thread (e.g. ROBOTIS XM335 'M2 TAP', the ST3215 case's M2), whatever the case material; thread-forming PA screws go only into printed pilot holes, which are not standard-part holes"
    }
   }
  }
