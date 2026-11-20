@@ -25,6 +25,8 @@ STEP_Z = (250.0, 262.0)     # hip-yaw-link fasteners below STEP_Z[0] belong to t
 MOVED_LINKS = ("pitch_link", "roll_link", "shin", "ankle_pitch", "foot")
 MOVED_JOINTS = ("hip_pitch", "hip_roll", "knee", "ankle_pitch", "ankle_roll")
 CLEARANCE = 1.5
+CRADLE_TOOL_FACES = 2500   # swept hip parts are decimated to this many faces before the cradle cut (the selected build's value)
+CRADLE_BATCH = 150         # swept copies per subtraction; each batch is evaluated before the next (see cut_cradle)
 
 
 _SLEEVES = {}
@@ -96,45 +98,7 @@ def apply(new, h):
     body = F.Body(new)
     cradle = P["combined__stage2_lower_pelvis_battery_cradle"]
     cm = F.load_mesh(cradle["mesh"])
-    import manifold3d as mf
-    def to_mf(m):
-        return mf.Manifold(mf.Mesh(vert_properties=np.asarray(m.vertices, np.float32), tri_verts=np.asarray(m.faces, np.uint32)))
-    res = to_mf(cm); batch = []; ntools = 0
-    def flush():
-        nonlocal res, batch
-        if batch:
-            res = res - mf.Manifold.batch_boolean(batch, mf.OpType.Add); batch = []
-    cb = cm.bounds
-    for s in "RL":
-        sweeps = [(f"{s}_yaw_link", [(y, 0.0) for y in np.arange(-45.0, 45.1, 2.5)])]
-        for lk in (f"{s}_pitch_link", f"{s}_roll_link"):
-            sweeps.append((lk, list(itertools.product(np.arange(-45.0, 45.1, 7.5), np.arange(-65.0, 45.1, 5.0)))))
-        for lk, grid in sweeps:
-            names = [n for n, p in body.parts.items() if p["owning_link"] == lk and not F.is_fastener(n, p)
-                     and p.get("role") not in ("cut_material", "adhesive_allocation")]
-            base = []
-            for n in names:
-                m = body.mesh(n)
-                if len(m.faces) > 1500:
-                    m = m.simplify_quadric_decimation(face_count=1500)
-                c = m.centroid; e = np.ptp(m.vertices, axis=0); k = 1.0 + 2.0 * CLEARANCE / max(e.min(), 4.0)
-                m = m.copy(); m.vertices = c + (m.vertices - c) * k  # about CLEARANCE mm bigger on its thinnest side
-                t = to_mf(m)
-                if t.status() == mf.Error.NoError and t.volume() > 0:
-                    base.append((t, m.bounds))
-            for yaw, pitch in grid:  # streamed: each swept copy goes straight into a batch, batches subtract at once
-                T = body.link_T(lk, {f"{s}_hip_yaw": yaw, f"{s}_hip_pitch": pitch})
-                for t, bnd in base:
-                    w = trimesh.transform_points(bnd, T)
-                    if np.any(w.min(0) > cb[1]) or np.any(w.max(0) < cb[0]):
-                        continue
-                    batch.append(t.transform(T[:3, :4])); ntools += 1
-                    if len(batch) >= 75:
-                        flush()
-    flush()
-    out = res.to_mesh(); cm2 = trimesh.Trimesh(np.asarray(out.vert_properties)[:, :3], np.asarray(out.tri_verts), process=True)
-    parts = cm2.split(only_watertight=False)
-    keep = max(parts, key=lambda q: q.volume if q.is_watertight else q.area)
+    keep, parts = cut_cradle(body, F, cm)
     v0, v1 = cm.volume, keep.volume
     cradle.update(h["save_mesh"](cradle["name"], keep))
     cradle["native_step_unmodified"] = cradle.pop("native_step", None); cradle.pop("native_step_sha256", None)
@@ -146,3 +110,65 @@ def apply(new, h):
     new["hips"] = dict(leg_in_mm=LEG_IN, foot_in_mm=FOOT_IN, splay_deg=SPLAY_DEG, owner="Idle T-xdcjn9, 2026-11-13/14",
                        note="the standing pose splays the legs; joint zeros stay straight")
     return [f"cradle volume {v0:.0f} -> {v1:.0f} mm3 ({len(parts)} pieces)"]
+
+
+def cut_cradle(body, F, cm, faces=CRADLE_TOOL_FACES, batch_n=CRADLE_BATCH, stats=None):
+    """The cradle mesh cm minus the hip parts swept over hip yaw x pitch, each enlarged about CLEARANCE mm.
+
+    manifold3d records booleans lazily: without num_tri() after each batch, the whole tree of ~3,500 swept copies is
+    evaluated in the final to_mesh(), one C++ call that never returns to Python (Idle T-be4dt7: 2026-11-20 chain rerun
+    past 3600 s, no progress line, out of reach of the gmsh faulthandler limit). Evaluating each batch keeps memory and
+    time bounded (on the selected body: 3,538 copies in 24 batches, 185 s, 4.9 GB) and prints progress.
+    Returns (largest piece, all pieces)."""
+    import time
+    import manifold3d as mf
+
+    def to_mf(m):
+        return mf.Manifold(mf.Mesh(vert_properties=np.asarray(m.vertices, np.float32), tri_verts=np.asarray(m.faces, np.uint32)))
+    res = to_mf(cm); batch = []; ntools = 0; t0 = time.time(); st = stats if stats is not None else {}
+    st.setdefault("batches", [])
+
+    def flush():
+        nonlocal res, batch
+        if batch:
+            tb = time.time()
+            res = res - mf.Manifold.batch_boolean(batch, mf.OpType.Add)
+            st["batches"].append(dict(tools=len(batch), tri=res.num_tri(), s=round(time.time() - tb, 2)))  # evaluates now
+            print(f"cradle cut: batch {len(st['batches'])}, {ntools} swept copies, {st['batches'][-1]['tri']} triangles, "
+                  f"{time.time() - t0:.0f} s", flush=True)
+            batch = []
+    cb = cm.bounds
+    for s in "RL":
+        sweeps = [(f"{s}_yaw_link", [(y, 0.0) for y in np.arange(-45.0, 45.1, 2.5)])]
+        for lk in (f"{s}_pitch_link", f"{s}_roll_link"):
+            sweeps.append((lk, list(itertools.product(np.arange(-45.0, 45.1, 7.5), np.arange(-65.0, 45.1, 5.0)))))
+        for lk, grid in sweeps:
+            names = [n for n, p in body.parts.items() if p["owning_link"] == lk and not F.is_fastener(n, p)
+                     and p.get("role") not in ("cut_material", "adhesive_allocation")]
+            base = []
+            for n in names:
+                m = body.mesh(n)
+                if len(m.faces) > faces:
+                    m = m.simplify_quadric_decimation(face_count=faces)
+                c = m.centroid; e = np.ptp(m.vertices, axis=0); k = 1.0 + 2.0 * CLEARANCE / max(e.min(), 4.0)
+                m = m.copy(); m.vertices = c + (m.vertices - c) * k  # about CLEARANCE mm bigger on its thinnest side
+                t = to_mf(m)
+                if t.status() == mf.Error.NoError and t.volume() > 0:
+                    base.append((t, m.bounds))
+            for yaw, pitch in grid:  # each swept copy that reaches the cradle's box goes into a batch
+                T = body.link_T(lk, {f"{s}_hip_yaw": yaw, f"{s}_hip_pitch": pitch})
+                for t, bnd in base:
+                    w = trimesh.transform_points(bnd, T)
+                    if np.any(w.min(0) > cb[1]) or np.any(w.max(0) < cb[0]):
+                        continue
+                    batch.append(t.transform(T[:3, :4])); ntools += 1
+                    if len(batch) >= batch_n:
+                        flush()
+    flush()
+    st["tools"] = ntools; st["build_s"] = round(time.time() - t0, 2)
+    tm = time.time()
+    out = res.to_mesh(); cm2 = trimesh.Trimesh(np.asarray(out.vert_properties)[:, :3], np.asarray(out.tri_verts), process=True)
+    st["to_mesh_s"] = round(time.time() - tm, 2)
+    parts = cm2.split(only_watertight=False)
+    keep = max(parts, key=lambda q: q.volume if q.is_watertight else q.area)
+    return keep, parts

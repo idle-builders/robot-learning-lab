@@ -75,6 +75,7 @@ def trim(body, F):
             batch.append(_mf(cm).transform(T[:3, :4])); ntools += 1
             if len(batch) >= 100:
                 res = res - mf.Manifold.batch_boolean(batch, mf.OpType.Add); batch = []
+                res.num_tri()  # evaluate now: manifold3d is lazy, the whole tree would otherwise run in one call at the end (hips.cut_cradle)
     if batch:
         res = res - mf.Manifold.batch_boolean(batch, mf.OpType.Add)
     out = _tm(res)
