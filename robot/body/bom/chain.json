@@ -63,7 +63,8 @@
    ],
    "manifest_out": "artifacts/robot/body/assembly/assembly-parts.json",
    "in_place_edits": [],
-   "notes": "Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json). Compiles robot/electronics/power/cad/zbuffer_renderer.cpp for its renders. Every data output (assembly-parts.json, parts/, bom.json, verification report, manifest.json) is written before the final render phase; on 2026-11-20 the render phase went past 6 GB (peak 6.24) and memguard stopped it after the data was complete."
+   "notes": "Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json). Compiles robot/electronics/power/cad/zbuffer_renderer.cpp for its renders. Every data output (assembly-parts.json, parts/, bom.json, verification report, manifest.json) is written before the final render phase; on 2026-11-20 the render phase went past 6 GB (peak 6.24) and memguard stopped it after the data was complete. 8 GB cap for that render phase (peak 6.24 GB), so a chain run does not stop at step 1.",
+   "limit_gb": 8
   },
   {
    "id": "motor-refit",
@@ -103,9 +104,9 @@
    ],
    "manifest_out": "artifacts/robot/body/ape-proportions/assembly-parts.json",
    "in_place_edits": [],
-   "notes": "Env APE_OUT / APE_UPPER / APE_FOREARM / APE_SHELL_PASS only for variants; defaults are the selected build. robot/body/ape-proportions/ (build.py, hips.py, elbow_flip.py, cap_trim.py, shells.py) is not in Git (untracked, no history) on 2026-11-20, and build.py / hips.py / elbow_flip.py / cap_trim.py were modified 05:35-06:22 on 2026-11-15, after the selected assembly-parts.json (05:07). 2026-11-20 rerun: memguard 6 GB stopped it at 6.02 GB after 191 s, during the in-process gmsh surface meshes (surface_mesh.step_to_closed_mesh) of the hip pitch-to-roll sleeves STEP, before assembly-parts.json was written. 12 GB cap: at 6 GB memguard stopped build.py while gmsh meshed the hip pitch-to-roll sleeves STEP (2026-11-20); shells.py documents 12 GB. Approved by the owner 2026-11-20.",
-   "limit_gb": 12,
-   "timeout_s": 3600
+   "notes": "Env APE_OUT / APE_UPPER / APE_FOREARM / APE_SHELL_PASS only for variants; defaults are the selected build. In Git since 2026-11-20 (Idle T-be4dt7; until then untracked). Code vs the selected outputs: the edits made after the selected assembly-parts.json (2026-11-15 05:07 CET) are the reviewer fixes of T-xdcjn9 / T-gqwdrn (elbow motor sign negated once by elbow_flip.flip_motor_sign, as the selected shell-pass manifest already carries; hip pitch-to-roll volume scaled by the mesh ratio, those parts are replaced by the roll-flip connectors later), and the cradle-cut tool size, now back at the selected 2500 faces / 150 per batch. Stall of 2026-11-20 (past 3600 s, no output after the hip sleeve gmsh line): hips.py's pelvis-cradle cut built one lazy manifold3d CSG tree of 3,538 swept copies and evaluated it in a single to_mesh() call (stack dumps; the gmsh sleeve meshes take under 1 s). Fixed by evaluating per batch (hips.cut_cradle): build.py 264 s, peak 4.3 GB; output equal to the selected step-3 manifest except the cradle mesh triangulation (same surface within 2e-5 mm) and the two reviewer fixes.",
+   "limit_gb": 8,
+   "timeout_s": 900
   },
   {
    "id": "shell-pass",
