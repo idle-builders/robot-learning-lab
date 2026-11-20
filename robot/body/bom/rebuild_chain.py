@@ -10,7 +10,7 @@ The ordered builder steps are data: robot/body/bom/chain.json. This script
              __file__, so every output lands inside the copy.
   --dry-run  lists the steps and checks that every declared input resolves (on disk, through infra/storage/path-moves.json,
              or as a file an earlier step writes) without running anything.
-  --step ID  runs one step in the copy under infra/tools/memguard.py (waits until no other memguard job runs first).
+  --step ID  runs one step in the copy under infra/tools/memguard.py (waits while the heavy-job budget is full: 4 jobs or 24 GB of caps).
   run        runs every step from --from ID (default the first) in order and stops at the first failure.
   compare    compares the copy's manifests with the main checkout's (the final one against the snapshot of the selected
              manifest taken at setup): part names added / removed, native STEP and mesh sha256 (raw and content: STEP
@@ -142,16 +142,26 @@ def dry_run():
     return bad
 
 
+MAX_JOBS, MAX_SUM_GB = 4, 24.0     # docs/operations/working-rules.md (owner 2026-11-20): at most 4 heavy jobs, caps summing to 24 GB
+
+
 def other_jobs():
+    """[(command, limit GB)] of the running memguard jobs: a python process whose first argument is memguard.py
+    (waiting shells only mention it inside their -c string, so they do not count)."""
     out = subprocess.run(["ps", "-Ao", "pid=,command="], capture_output=True, text=True).stdout
     jobs = []
     for line in out.splitlines():
         pid, _, cmd = line.strip().partition(" ")
         argv = cmd.split()
-        # a real memguard process: python running memguard.py (waiting shells only mention it in their -c string)
-        if len(argv) > 1 and re.search(r"python[0-9.]*$", argv[0]) and argv[1].endswith("memguard.py") and int(pid) != os.getpid():
-            jobs.append(line.strip()[:160])
+        if len(argv) > 1 and re.search(r"python[0-9.]*$", argv[0], re.I) and argv[1].endswith("memguard.py") and int(pid) != os.getpid():
+            m = re.search(r"--limit-gb\s+([0-9.]+)", cmd)
+            jobs.append((line.strip()[:160], float(m.group(1)) if m else 6.0))
     return jobs
+
+
+def budget_full(limit_gb):
+    jobs = other_jobs()
+    return len(jobs) >= MAX_JOBS or sum(g for _, g in jobs) + limit_gb > MAX_SUM_GB
 
 
 def load_runs():
@@ -161,7 +171,7 @@ def load_runs():
 def run_step(sid: str) -> int:
     s = next(x for x in CHAIN["steps"] if x["id"] == sid)
     t_wait = time.time()
-    while other_jobs():
+    while budget_full(float(s.get("limit_gb", CHAIN["memguard"]["limit_gb"]))):
         time.sleep(15)
     waited = time.time() - t_wait
     mg = CHAIN["memguard"]
