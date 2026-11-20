@@ -4,6 +4,7 @@ shows up (owner 2026-11-19: no part unconnected; every part linked through the a
 Nodes: every non-hardware part. Edges:
   screw     a screw holds both parts: the part encircles the shank (rings at several radii beyond the shank, so a
             hole with a pressed steel sleeve counts too) or the head bears on it
+            (a threaded spacer / standoff that two screws enter joins the parts of both screws)
   sleeve    <part>_steel_sleeves is pressed into <part>
   joint     for each joint, the servo case / motor parts and the horn / output parts of its two links within 5 mm
   contact   the two parts are within CONTACT_MM at standing (touching, bonded, seated, or just resting)
@@ -135,8 +136,16 @@ def build_graph(ctx):
     t0 = time.time()
     # checks.bodylib.Body keeps only rows with a mesh: screw rows without one (L/R_wrist_M3x8_1..4) come from the raw manifest
     raw = {p["name"]: p for p in json_manifest(ctx).get("parts", []) if p.get("name") not in parts and p.get("owning_link") in T}
+    # threaded standoffs / spacers are hardware, not nodes: a spacer that two screws enter joins the parts of both
+    # (B0196 / B0410 camera: camera screw into an M2 F-F standoff, plate screw into its other end)
+    spacers = [n for n, p in parts.items() if kind(p) == "spacer"]
+    for n in spacers:
+        WB[n] = world_bounds(n)
+    via_spacer = {}
     for k, p in list(parts.items()) + list(raw.items()):
-        if kind(p) != "screw":
+        # a screw named without its length (fan_M3_11_430) is "other_hardware" to mount_check.kind: a thread in the name
+        # and a screw-shaped mesh make it a screw here
+        if kind(p) != "screw" and not (kind(p) == "other_hardware" and nominal(k).get("thread")):
             continue
         try:
             g = screw_geometry(BL.load_mesh(p["mesh"]))
@@ -151,7 +160,7 @@ def build_graph(ctx):
         pw = pts @ Ts[:3, :3].T + Ts[:3, 3]
         lo, hi = pw.min(0), pw.max(0)
         hit = []
-        for n in nodes:
+        for n in nodes + spacers:
             if not _near(WB[n], np.array([lo, hi]), 0.5):
                 continue
             Tn = T[parts[n]["owning_link"]]
@@ -165,9 +174,21 @@ def build_graph(ctx):
             head = inside[shank_n:].reshape(-1, 8).sum(1)
             if rings.max(initial=0) >= ENCIRCLE or head.max(initial=0) >= HEAD_BEAR:
                 hit.append(n)
+        for sp in [n for n in hit if n in spacers]:
+            via_spacer.setdefault(sp, []).append((k, [n for n in hit if n not in spacers]))
+        hit = [n for n in hit if n not in spacers]
         for i, a in enumerate(hit):
             for b in hit[i + 1:]:
                 add(a, b, "screw", k)
+    for sp, sc in via_spacer.items():
+        if len(sc) < 2:
+            continue
+        for i, (ka, ha) in enumerate(sc):
+            for kb, hb in sc[i + 1:]:
+                for a in ha:
+                    for b in hb:
+                        add(a, b, "screw", f"{ka} + {sp} + {kb}")
+    ctx.__dict__["_conn_spacer_joins"] = {sp: [k for k, _ in sc] for sp, sc in via_spacer.items() if len(sc) >= 2}
     tick("connectivity screws", t0)
     # joints: case / horn parts of the two links of each joint
     joints = [(jj.get("parent"), jj.get("child"), jj.get("name")) for jj in json_joints(ctx)]
@@ -291,7 +312,7 @@ def run(ctx):
     hows = {}
     for n, (_, h, _) in ctx.__dict__.get("_conn_solids", {}).items():
         hows.setdefault(h, []).append(n)
-    return dict(screws_probed_from_bounds=ctx.__dict__.get("_conn_screws_from_bounds", []), screws_not_probed=ctx.__dict__.get("_conn_screws_unprobed", []),
+    return dict(spacers_joining_screws=ctx.__dict__.get("_conn_spacer_joins", {}), screws_probed_from_bounds=ctx.__dict__.get("_conn_screws_from_bounds", []), screws_not_probed=ctx.__dict__.get("_conn_screws_unprobed", []),
                 solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h or "approximate" in h},
                 per_part=per, core=core, worst_cases=cases, bad_events=dict(parts=len(nodes), isolated_parts=len(isolated), groups_not_reaching_core=len(groups),
                 parts_not_reaching_core=len(unreached), parts_reaching_core_by_contact_only=len(contact_only), contact_only_break_points=len(breaks), **{f"edges_{k}": v for k, v in kinds.items()},
