@@ -87,16 +87,19 @@ def stack_along_axis(meshes: list, opening: np.ndarray, axis_out: np.ndarray, ra
 
 
 def choose_length(stack: float, depth: float, ref: float, lengths: list[float], point: float) -> dict:
-    """Smallest standard length with ref <= engagement and tip inside the hole; else the nearest by violation."""
+    """Smallest standard length with ref <= engagement and tip inside the hole; else the nearest by violation. A blind hole
+    shallower than the reference cannot give it: the length is chosen against min(ref, depth), the shortfall stays against ref."""
     rows = []
+    want = min(ref, depth)
     for L in lengths:
         eng = L - point - stack
         margin = (stack + depth) - (L - point)
         short = max(0.0, ref - eng)
         over = max(0.0, -margin)
+        pick_short = max(0.0, want - eng)
         rows.append(dict(length_mm=float(L), engagement_mm=round(eng, 3), tip_margin_mm=round(margin, 3),
-                         shortfall_mm=round(short, 3), overrun_mm=round(over, 3), violation_mm=short + over,
-                         stack_window_mm=[round(L - point - depth, 3), round(L - point - ref, 3)]))
+                         shortfall_mm=round(short, 3), overrun_mm=round(over, 3), violation_mm=pick_short + over,
+                         stack_window_mm=[round(L - point - depth, 3), round(L - point - want, 3)]))
     best = min(rows, key=lambda r: (round(r["violation_mm"], 6), r["length_mm"]))
     # stack change that puts the nearest length inside its window (negative = thinner stack)
     lo, hi = best["stack_window_mm"]

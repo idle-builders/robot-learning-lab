@@ -45,10 +45,10 @@ CONNECTOR = "foot_monocoque_combined"
 PART, SLEEVES = "foot_monocoque_combined", "foot_monocoque_combined_steel_sleeves"
 CASE = "B13_C047_foot_roll_case"
 OLD_SCREWS = ("B13_front_PA2x6_", "B13_rear_PA2x6_")
-POCKET_R = 2.6                  # pocket radius around each head: head dk 4.0 / 2 + 0.6 (the wall left beside the foot's thin edges)
+POCKET_R = 8.0 / 2 + 0.05      # pocket radius around each head: the heated press tip (checks/press_lib.py TIP_D / 2) + clearance, so the tip reaches the sleeve
 EAR_R = 10.0 / 2 + 0.1          # printed ear from the case face to the part's back: the flat counter face the anvil annulus rests on
 EAR_H = 0.5                     # ear height above the case face (the case face stands 0.2 mm off the hole opening); ends inside the part
-POCKET_H = 4.0                  # pocket cut height above the head seat
+POCKET_H = 16.0                 # pocket cut height above the head seat: the heated tip length (press_lib TIP_L 15) + 1
 
 
 def bbox(s):
@@ -158,16 +158,14 @@ def left_labels():
 
 @contextlib.contextmanager
 def only_connector():
-    """screw_plan.connectors() restricted to this connector; choose_length reads the reference capped at the modelled hole depth
-    (a blind hole cannot give more than it is deep: the 4.0 mm reference stays reported by mount_check)."""
+    """screw_plan.connectors() restricted to this connector (roll_flip_checks.hip_screws walks all of them)."""
     import screw_plan as SP
-    full, full_pick = SP.connectors, SP.choose_length
+    full = SP.connectors
     SP.connectors = lambda: {CONNECTOR: full()[CONNECTOR]}
-    SP.choose_length = lambda stack, depth, ref, lengths, point: full_pick(stack, depth, min(ref, depth), lengths, point)
     try:
         yield
     finally:
-        SP.connectors, SP.choose_length = full, full_pick
+        SP.connectors = full
 
 
 def patch_parts(parts, man):
