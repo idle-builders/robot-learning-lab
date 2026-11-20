@@ -324,10 +324,35 @@ reach the core by contact only, the largest contact-only break points the pelvis
 the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s;
 the cause and the reclassified findings are under Connectivity below (unscoped run now 42-49 s).
 
-The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 10 steps) and `rebuild_chain.py` reruns
-it in an isolated copy: steps 1-2 reproduce main exactly (747 / 707 parts, meshes byte-identical, STEPs identical up to
-the header, bounds 0.0 mm); step 3 (`ape-proportions/build.py`, untracked) did not finish at 6 GB nor at 12 GB / 3600 s
-(Idle T-be4dt7).
+The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 15 steps, ending at the shoulder-U body
+of `robot/design.json`) and `rebuild_chain.py` reruns it in an isolated copy (Idle T-be4dt7, 2026-11-20). Run times (s /
+peak GB): assembly 323 / 8.2 (data complete, render phase over its then 8 GB cap, now 10), motor-refit 583 / 3.5,
+ape-proportions 264 / 4.4, shell-pass 334 / 3.6, foot-screws 46 / 1.5, hip-yaw-screws 11 / 0.7, torso-screws 5 / 0.6,
+roll-flip-cad 220 / 1.1, roll-flip bootstrap 13, ankle-coupler-screws 17, roll-flip manifest 13, thigh-shell 46 / 2.6,
+shin-cover 32 / 3.0, shoulder-clevis cad 9, manifest 2: about 32 minutes. The rebuilt shoulder-U manifest against the
+selected one: 651 / 651 parts, none added or removed, no link or role change, bounds within 0.001 mm; 2 STEPs (ankle
+couplers) and 13 meshes differ: surface distance <= 0.033 mm on the ankle couplers and thigh shells (tessellation), up to
+0.68 mm (p99 0.26) on the boot and torso shells (the voxel sweep sampled surfaces unseeded; seeded now), 0.58 mm / +0.47 %
+volume on the head neck collar (not traced), triangulation only on the pelvis cradle and head skin.
+
+What had blocked it, with evidence:
+- Step 3 never finished (past 3600 s at 6.5 GB). Stack dumps every 30 s all sat in `hips.py` at `res.to_mesh()` of the
+  pelvis-cradle cut: manifold3d records booleans lazily, so the "batched" subtraction of 3,538 swept hip-part copies was
+  one CSG tree evaluated in a single C++ call. The gmsh sleeve mesh logged just before takes 0.5-0.9 s; the gmsh
+  faulthandler limit was already cancelled (and was checked to stop gmsh inside `mesh.generate`). Evaluating after every
+  batch (`hips.cut_cradle`, `num_tri()`): 185 s, 4.9 GB alone, cradle volume 22348.7 mm3 as selected.
+- `ape-proportions/` was untracked; the edits after the selected step-3 manifest were reviewer fixes (elbow motor sign,
+  hip pitch-to-roll volume), which the selected downstream manifest already carries, and a cradle tool size change made
+  for the lazy tree's memory (reverted to the selected 2500 faces / 150 per batch).
+- `roll-flip-cad` stopped at 997 s with no output: the Mac slept 18:06-18:21 (pmset log) and memguard's timeout is wall
+  time. Steps now run under `caffeinate -i -s`; awake it takes 220 s.
+- The roll-flip manifest's hooks read and wrote section folders through links into the main checkout (neck screws
+  rewritten in main, byte-identical; torso records read from main; foot and hip-yaw builds missing, so the unedited foot
+  stayed). Their builds are chain steps now and their folders belong to the copy.
+- `compare` reported "raw_equal" for a file compared with itself through links, and compared against a setup snapshot
+  the selection had moved past. It now says `same_file`, counts reference files that no longer match their recorded
+  sha256, and compares against the live manifests. The older intermediates in main (assembly ... shell-pass) carry 12-32
+  such stale references (neck connectors rebuilt today, leg section meshes), so they differ by up to 1.99 mm there.
 
 ## Slicer pass (2026-11-19)
 
