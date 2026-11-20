@@ -297,15 +297,36 @@ bores (0.08 mm clearance in CAD: they press only if the printed holes come out t
 with the seeded up +x, 12 of the roll-flip thigh's hardware holes run across the layers. Review fixes: a sleeve bore's boss wall is measured over the sleeve's length only (a chassis bore that opens into a slot past its sleeve read 0.021 mm, now 1.33 mm where the sleeve sits), and bores wrapping 180-300 deg with hardware in them are kept as partial bores that break out of the part (6 on the chassis). Screws whose CAD position does not
 reach the hole (the shin's PA2x6 proposals end 0.6 mm short of their sleeve bores) are left to `mount_check`.
 
-## BOM against the CAD (2026-11-19)
+## BOM against the CAD (2026-11-19, rebuilt 2026-11-20)
 
-The manifest's BOM is a subsystem rollup (printed parts and sleeves per subsystem, battery fins) with no screw, nut or washer
-lines. `bom` maps lines to links (`data/bom_groups.json`, the neck root cradle by name: it sits on the torso link) and
-counts sleeves as solids of each sleeve STEP (the meshes merge touching tubes: head carrier 14 tubes vs 19 solids).
-Selected body: printed parts match except the arm line (CAD 12 with the four palms, BOM 8); sleeves CAD 262 vs BOM 316
-(lower body 100 vs 128, torso 74 vs 86, neck / head 20 vs 34, arm 68 vs 68; review fix: only solids up to 5 mm outer diameter and at least 1.8 mm long count as sleeves, the 19 rings of 6-7 x 1.5 mm in the head carrier's sleeve STEP are listed apart); 271 screws in 19 kinds (thread x length; the body loader omits 8 of them and the 8 hand bushings, so `bom` reads the raw manifest list), 44 nuts
-(M2, M3 and 20 whose thread the name does not give; 4 more filed as shells are counted as nuts), the battery-fin line compared by role (9 / 9) and 105 washers have no BOM line; four fingers and 25 shells are not in the BOM; 39 sleeve sizes, among them rings
-of 6.7 x 5.65 x 1.5 mm in the head carrier's sleeve STEP that are not compression sleeves.
+Until 2026-11-19 the manifest carried a hand-written subsystem rollup (9 lines: printed parts and sleeves per subsystem,
+battery fins) and `bom` mapped it to links through `data/bom_groups.json`: printed parts matched except the arm (CAD 12 with
+the palms, BOM 8), sleeves CAD 262 vs BOM 316, and no screw, nut or washer had a line. On 2026-11-20 (owner, Idle T-4jjry4)
+the rollup and `bom_groups.json` were retired and the BOM is generated: `robot/body/bom/build.py` joins the selected
+manifest with the hand-maintained `lines.json`; every part lands on a line. On the selected body (691 parts, manifest
+4554f506): 180 lines (78 make, 101 buy, 1 included with the servos), 0 lines whose quantity differs from the CAD, 101 buy
+lines still without supplier or part number; 40 hardware kinds (27 screw kinds by thread x length x head standard, 3 nut,
+6 washer, 4 spacer), 258 sleeves in 32 sizes (the head carrier's sleeve STEP not counted). `bom` runs in about 5 s.
+
+`robot/body/bom/hardware.py` measures each of the 470 screws, nuts, washers and spacers on its old mesh (axis, head,
+outer / inner diameter, thickness; nut and spacer axis by a through-hole ray), snaps it to the standard sizes and writes a
+STEP / STL at the same placement. Most fit the old mesh to a volume ratio of about 1.0 and bounds within 0.004 mm; 88
+differ more (old M2 washers 0.5 mm thick vs ISO 7089 0.3 mm, low-head M2x4 plate screws modelled as button heads, the
+round old standoffs vs hex), and 8 wrist screws have no mesh and get a spec only.
+
+Per-part audit (`robot/body/bom/inventory.py`): 411 parts are written by a script in the tree; about 338 start in old
+study folders whose code is only in the private history or nowhere; 47 file references resolve nowhere, 20 parts have no
+geometry; 618 parts have no assembly step (the order covers the right leg); 37 printed parts have no print settings. 38
+printed parts lack a scripted native STEP (`robot/body/bom/defects.json`, Idle T-jsnes2 for the ones with no script).
+Connectivity (manifest of 2026-11-19, 27.6 s): 3 isolated parts (chest indicator relief, head neck collar, B0410 camera),
+5 groups not reaching the core (head skin with B0196; ROCK4D compute stack; fan stack; pelvis cells 8 and 9), 175 parts
+reach the core by contact only, the largest contact-only break points the pelvis battery cradle (55 parts beyond it) and
+the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s.
+
+The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 10 steps) and `rebuild_chain.py` reruns
+it in an isolated copy: steps 1-2 reproduce main exactly (747 / 707 parts, meshes byte-identical, STEPs identical up to
+the header, bounds 0.0 mm); step 3 (`ape-proportions/build.py`, untracked) did not finish at 6 GB nor at 12 GB / 3600 s
+(Idle T-be4dt7).
 
 ## Slicer pass (2026-11-19)
 
