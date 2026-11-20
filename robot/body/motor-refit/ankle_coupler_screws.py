@@ -215,6 +215,10 @@ def build():
 
 def swap_parts(parts):
     """The manifest part list with the ankle coupler + sleeves of both sides replaced by the edited ones (offset 0)."""
+    if not (OUT / "records.json").exists():   # derived output not built here: keep the manifest buildable, say so loudly
+        print(f"WARNING ankle coupler: {(OUT / 'records.json').relative_to(ROOT)} missing, the UNEDITED coupler stays in the "
+              "manifest; run `.venv/bin/python -B robot/body/motor-refit/ankle_coupler_screws.py build` (T-9wpegg) first")
+        return parts
     recs = json.loads((OUT / "records.json").read_text())["records"]
     res = []
     for p in parts:
