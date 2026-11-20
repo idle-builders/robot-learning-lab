@@ -31,7 +31,7 @@
       "steel_sleeves": null
     },
     "fem": {
-      "_doc": "Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case's 2 lower ear screws per face (face0 = front, face1 = rear; M2 into the STS3250 aluminium case); load: the knee case's 2 medial corner screws + 2 lateral screws (rigid: the ST3025 case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).",
+      "_doc": "Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case's 2 lower ear screws per face (face0 = front, face1 = rear; M2 into the STS3250 aluminium case); load: the knee case's 2 medial + 2 lateral screws (mirrored pairs at y -3 / 11, z 143) (rigid: the ST3025 case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).",
       "mesh_h_mm": 1.2,
       "bonded": [
         {

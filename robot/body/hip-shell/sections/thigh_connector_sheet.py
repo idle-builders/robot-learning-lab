@@ -92,7 +92,7 @@ axs = {"front": fig.add_subplot(gs[0, 0]), "side": fig.add_subplot(gs[0, 1]), "t
        "secx": fig.add_subplot(gs[1, 0]), "secz": fig.add_subplot(gs[1, 1]), "info": fig.add_subplot(gs[1, 2])}
 for v in VIEWS: render(axs[v], v)
 SECS = INFO.get("sections", [dict(axis=0, value=45.75, uv=[1, 2], lims=[[-22, 36], [135, 205]], title="SECTION A-A at x 45.75 (inboard ear-screw column), seen from +x"),
-                              dict(axis=2, value=143.0, uv=[0, 1], lims=[[22, 86], [-22, 36]], title="SECTION B-B at z 143 (lateral knee screws), seen from +z")])
+                              dict(axis=2, value=143.0, uv=[0, 1], lims=[[22, 86], [-22, 36]], title="SECTION B-B at z 143 (all four knee screws), seen from +z")])
 for key, sc in zip(("secx", "secz"), SECS):
     section(axs[key], sc["axis"], sc["value"], tuple(sc["uv"]), tuple(map(tuple, sc["lims"])), sc["title"])
 # screw sites

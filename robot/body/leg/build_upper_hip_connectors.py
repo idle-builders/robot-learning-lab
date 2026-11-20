@@ -703,7 +703,8 @@ RF_KNEE_AXIS = (4.0, 123.0)
 RF_KNEE_SCREWS = [(-4.0, 151.0), (12.0, 151.0), (4.0, 150.0), (-3.0, 143.0), (11.0, 143.0)]   # history: the five medial holes the U cradle used
 RF_KNEE_FACE_X = 33.15               # clamping face of the cheek = the knee case's medial face
 RF_END_X0 = 31.0                     # medial face of the kept end block (and of the motor-refit cheek)
-RF_CHEEK_X0 = 29.0                   # medial face of the new cheek (4.15 mm thick; roll-stall bending): screw heads seat here
+RF_CHEEK_X0 = 29.0                   # medial face of the new cheek (4.15 mm thick; roll-stall bending); the screw heads seat
+                                     # in spot faces at rf_med_seat_x(), the mirror of the lateral seat (owner 2026-11-20)
 RF_CHEEK_Y = (-6.5, 14.5)            # cheek width below the knee case top: case y -6..14 plus 0.5 mm
 RF_CHEEK_Z0 = 139.5                  # cheek lower edge (lowest screw hole edge z 141.8)
 # Shell posts: (x, z), tip y (the shell boss sits on it), nut y (make_captive_nut_pocket centre: the pocket spans
@@ -719,9 +720,12 @@ RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1]), ((66.25, 17
 # H-cage (owner 2026-11-19: the 0.15 mm plate-to-arm gaps will not hold for printed parts and hand assembly; the 4 upper
 # roll-case screws go; "an H connector with a 90 deg rotation in the middle", 2 + 2 screws on each actuator).
 #   roll case: its 2 lower ear screws per y face (z 161 front, 157.25 rear); plates cut back under the swept Stage 5 arms;
-#   knee case: 2 medial corner screws + 2 lateral screws through a lateral cheek, joined to the plates by an outboard wall
-#   on the roll case's outboard end and a bridge over the knee case top. Every screw has a steel sleeve; the screw sites
-#   are the defined holes of connector_screws.json (rf_defined_holes), threads and lengths come from screw_plan.py.
+#   knee case: 2 medial + 2 lateral screws, joined to the plates by an outboard wall on the roll case's outboard end and a
+#   bridge over the knee case top to the lateral cheek. The two wings mirror each other about the knee case's mid-plane
+#   (owner 2026-11-20 "why not make it symmetric the wings of the H?"): medial holes case+z.4 / .5 and lateral holes
+#   case-z.1 / .2 are all at (y -3 / 11, z 143); both cheeks seat the heads in dia RF_SPOT_D spot faces at the same
+#   stack from the case face (the lateral one, set by the shell), so all four are one screw. Every screw has a steel
+#   sleeve; the screw sites are the defined holes of connector_screws.json (rf_defined_holes), threads and lengths come from screw_plan.py.
 RF_PLATE_Z0 = 153.4                  # plate / rib / walls lower edge: knee case top (z 153) + 0.4, so the knee case (with the
                                      # shin on its output) slides in along y between the cheeks
 RF_CASE_END_X = 68.36                # turned roll case's outboard end face
@@ -747,8 +751,6 @@ RF_SHELL_TRIM_Z = (136.0, 166.0)     # heights of the trim envelope (lateral kne
 RF_LAT_HEAD_K = 1.3                  # head height of the lateral screws (ISO 7380-1-style M2 button head, assumption):
                                      # the head seats in a dia RF_SPOT_D spot face so its top stays inside the envelope
 RF_SPOT_D = 8.0                      # = the press tool's heated tip (press_lib TIP_D): flat landing for pressing the sleeve
-RF_MED_CHEEK_Y = (-7.5, 15.5)        # medial cheek widened by 1 mm per side above RF_MED_WIDE_Z0: wall around the sleeves
-RF_MED_WIDE_Z0 = 146.0
 RF_SHIN_CHAMFER = 3.0                # cheeks' rear-lower corner (y max, z min): chamfer leg, clear of the shin swept to knee 110
 RF_ROLL_SWEEP = (-45.0, 25.0)        # hip roll the plates leave room for (manifest -30..25; library poses reach -45)
 RF_YELLOW_MARGIN = 1.3               # plates to the swept Stage 5 arms (the 2D inner fillets of the cut eat ~0.2)
@@ -1012,6 +1014,15 @@ def rf_lat_seat_x() -> float:
     return round(min(xs) - RF_LAT_HEAD_K, 3)
 
 
+def rf_med_seat_x() -> float:
+    """Head seat (x) of the medial knee screws: the mirror of rf_lat_seat_x() about the knee case's mid-plane (midway
+    between the medial and lateral hole openings), so both wings clamp the same stack and take the same screw."""
+    H = rf_defined_holes_cached()
+    xm = float(np.mean([h["opening"][0] for h in H["knee_case"]]))
+    xl = float(np.mean([h["opening"][0] for h in H["knee_case_lateral"]]))
+    return round(xm - (rf_lat_seat_x() - xl), 3)
+
+
 def rf_shell_trim_cutter() -> Solid:
     """Everything outside the committed shell skin minus WALL + RF_SHELL_CLEAR in the lateral knee-cheek zone (x > 72,
     z RF_SHELL_TRIM_Z): the skin rings (thigh_shell.SURF) offset inward, lofted through smooth closed splines."""
@@ -1049,7 +1060,7 @@ def rf_screws() -> list[dict]:
     along the hole axis, from the clamping face (the case face) to the outer face where the head seats. The screw itself
     (thread, standard length) is generated by robot/body/fastening/screw_plan.py when the manifest is built."""
     faces = {"A13_roll_case_front": (RF_Y_F_IN, RF_Y_F_OUT - RF_RIB_F), "A13_roll_case_rear": (RF_Y_R_IN, RF_Y_R_OUT + RF_RIB),
-             "knee_case": (RF_KNEE_FACE_X, RF_CHEEK_X0), "knee_case_lateral": (RF_KNEE_LAT_FACE_X, rf_lat_seat_x())}
+             "knee_case": (RF_KNEE_FACE_X, rf_med_seat_x()), "knee_case_lateral": (RF_KNEE_LAT_FACE_X, rf_lat_seat_x())}
     rows = []
     for g, holes in rf_defined_holes_cached().items():
         f_in, f_out = faces[g]
@@ -1148,13 +1159,12 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     new_sol = bevel_3d_edges(largest_solid(fuse_all([new_sol, *late])), r_outer=0.40, r_inner=0.75)
 
     # 5. Knee interface. Medial: the end of the current (motor-refit) thigh's end block (above z 155.5) and the medial
-    #    cheek on the knee case's medial face (x 29.0 .. 33.15), widened around the corner sleeves (the lateral cheek is
-    #    in step 4). Screws along x, heads on the cheeks' outer faces, each through a sleeve.
+    #    cheek on the knee case's medial face (x 29.0 .. 33.15), the same profile as the lateral cheek (step 4). Screws along
+    #    x, heads in spot faces on the cheeks' outer faces (step 7), each through a sleeve.
     knee = largest_solid(occ_common(rf_current_step("R_thigh_combined"), occ_box(*RF_KNEE_KEEP)))
-    y0w, y1w = RF_MED_CHEEK_Y
-    cheek = [extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, 154.0, wide=(y0w, y1w, RF_MED_WIDE_Z0)), RF_CHEEK_X0, RF_KNEE_FACE_X),
+    cheek = [extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, 154.0), RF_CHEEK_X0, RF_KNEE_FACE_X),
              occ_box(RF_END_X0, RF_KNEE_FACE_X, -13.0, 20.0, 153.0, 156.0),
-             poly_prism_y([(RF_CHEEK_X0, 150.0), (RF_END_X0, 150.0), (RF_END_X0, 158.0), (RF_CHEEK_X0, 154.0)], y0w, y1w),
+             poly_prism_y([(RF_CHEEK_X0, 150.0), (RF_END_X0, 150.0), (RF_END_X0, 158.0), (RF_CHEEK_X0, 154.0)], cy0, cy1),
              occ_box(RF_KNEE_FACE_X, 34.5, RF_Y_F_OUT, cy0, 153.0, 156.0),   # flush with the front plate face (no 0.14 mm edge)
              occ_box(RF_KNEE_FACE_X, 34.5, cy1, 20.0, 153.0, 156.0)]
     knee = fuse_all([knee, *cheek])
@@ -1185,10 +1195,13 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
         sleeves.append(rf_sleeve(s["sleeve"][0], s["sleeve"][1]))
     res = largest_solid(cut_all(fuse_all([new_sol, knee, *posts]), post_cut))
     # 7. The lateral cheek gives way to the shell (owner 2026-11-20: no flare at the knee end): trimmed to the shell skin
-    #    minus WALL + RF_SHELL_CLEAR; the lateral screw heads seat in press-tip-wide spot faces at rf_lat_seat_x()
-    seat = rf_lat_seat_x()
+    #    minus WALL + RF_SHELL_CLEAR; the lateral screw heads seat in press-tip-wide spot faces at rf_lat_seat_x(), the
+    #    medial ones in the mirrored spot faces at rf_med_seat_x()
+    seat, seat_m = rf_lat_seat_x(), rf_med_seat_x()
     spots = [occ_cyl((seat, s["opening"][1], s["opening"][2]), (95.0, s["opening"][1], s["opening"][2]), RF_SPOT_D / 2)
              for s in screws if s["group"] == "knee_case_lateral"]
+    spots += [occ_cyl((seat_m, s["opening"][1], s["opening"][2]), (RF_CHEEK_X0 - 5.0, s["opening"][1], s["opening"][2]), RF_SPOT_D / 2)
+              for s in screws if s["group"] == "knee_case"]
     res = largest_solid(cut_all(res, [rf_shell_trim_cutter(), *spots]))
     return res, sleeves
 
@@ -1414,6 +1427,7 @@ def build_roll_flip(stage5_only: bool = False):
                                         "tip_wall_mm": [round(abs(rf_post_nut_face(t, n) - t), 3) for _, t, n in (RF_POSTS[0], RF_POSTS_R[0])],
                                         "insertion": "slot open +z through the post top"}, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
                    "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "shell envelope"], "lateral_seat_x": rf_lat_seat_x(),
+                   "medial_cheek_x": [RF_CHEEK_X0, RF_KNEE_FACE_X], "medial_seat_x": rf_med_seat_x(),
                    "shell_clear_mm": RF_SHELL_CLEAR, "shin_chamfer_mm": RF_SHIN_CHAMFER,
                    "key_pocket_clearance_mm": RF_KEY_CLEAR, "roll_sweep_deg": list(RF_ROLL_SWEEP),
                    "yellow_margin_mm": RF_YELLOW_MARGIN, "yellow_clearance": yellow},
