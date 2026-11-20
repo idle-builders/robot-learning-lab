@@ -601,7 +601,16 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         env = envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, ref_z, centers, ll.VON_MISES)
         k = env.pop("_worst_index")
         sub = solve_rows_from_basis(dict(worst=np.asarray(W[k], float)), react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh, field_path, field_case if field_case != case else "worst")
-        rows[case] = dict(sub["worst"], worst_wrench_N_Nmm=np.round(W[k], 2).tolist(), worst_label=labels[k], envelope=env)
+        row = sub["worst"]
+        if summary.get("symmetric"):    # layer tension of the opposite wrench (same von Mises and displacement)
+            kz = int(np.argmax(env.pop("_layer_by_wrench")))
+            neg = solve_rows_from_basis(dict(a=np.asarray(W[kz], float), b=-np.asarray(W[kz], float)), react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh)
+            lz = max(neg.values(), key=lambda r: r["p99_layer_tension_MPa"])
+            row = dict(row, p99_layer_tension_MPa=lz["p99_layer_tension_MPa"], p99_layer_ratio=lz["p99_layer_ratio"],
+                       layer_tension_worst_wrench_N_Nmm=np.round(W[kz] * (1 if lz is neg["a"] else -1), 2).tolist())
+        else:
+            env.pop("_layer_by_wrench", None)
+        rows[case] = dict(row, worst_wrench_N_Nmm=np.round(W[k], 2).tolist(), worst_label=labels[k], envelope=env)
     return rows
 
 
@@ -682,6 +691,7 @@ def envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, r
     """Distributions over an envelope of wrenches W (n, 6) on the unit-wrench basis (linear, exact per wrench): p99 von Mises, p99 layer tension,
     peak, max displacement, strength ratios; the worst wrenches with their pose / direction labels; and the envelope field = per element the
     highest von Mises over all wrenches (its p99 and peak location show where the part needs material)."""
+    symmetric = bool((summary or {}).get("symmetric"))
     v = vol[pm].astype(np.float64)
     S = np.ascontiguousarray(st_basis[:, pm, :], dtype=np.float32)
     U = u_basis.reshape(-1, 3, 6)
@@ -696,13 +706,15 @@ def envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, r
         peak[a:a + len(w)] = vm.max(axis=1)
         p99[a:a + len(w)] = _wq_batch(vm, v, 0.99)
         pz[a:a + len(w)] = _wq_batch(np.maximum(st[..., ln_axis], 0.0), v, 0.99)
+        if symmetric:      # the wrench stands for itself and its opposite: layer tension of -w is max(-sigma_n, 0)
+            pz[a:a + len(w)] = np.maximum(pz[a:a + len(w)], _wq_batch(np.maximum(-st[..., ln_axis], 0.0), v, 0.99))
         disp[a:a + len(w)] = np.linalg.norm(np.einsum("ni,dci->ndc", w.astype(np.float64), U), axis=2).max(axis=1)
     worst = np.argsort(-p99)[:keep]
     ie = int(np.argmax(env))
     env_q = volume_quantiles_np(env.astype(np.float64), v)
     ratio = (ref / np.maximum(p99, 1e-6)) if ref else None
     lratio = (ref_z / np.maximum(pz, 1e-6)) if ref_z else None
-    return dict(_worst_index=int(worst[0]), loads=summary, wrenches=n,
+    return dict(_worst_index=int(worst[0]), _layer_by_wrench=pz, loads=summary, wrenches=n, layer_tension_both_signs=symmetric,
                 p99_vm_MPa=_qs(p99), p99_layer_tension_MPa=_qs(pz), peak_vm_MPa=_qs(peak), max_displacement_mm=_qs(disp),
                 p99_strength_ratio=_qs(ratio) if ratio is not None else None, p99_layer_ratio=_qs(lratio) if lratio is not None else None,
                 wrenches_with_p99_strength_ratio_below_1=int((ratio < 1.0).sum()) if ratio is not None else None,

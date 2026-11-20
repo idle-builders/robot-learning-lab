@@ -6,7 +6,9 @@ A load case {"hand_envelope": {...}} in a part's FEM setup (data/part_settings.j
   hand_parts     part names or globs whose combined box gives the hand tip: x / y centre, lowest z (knuckle / fingertip contact)
   stage_link     the link the connector belongs to (its wrench is expressed in that link's neutral frame, i.e. the manifest frame the part is meshed in)
   step_deg       pose grid step over each joint's manifest range (ends included), default 15
-  directions     force directions sampled on a half sphere (a force and its opposite give the same von Mises), default 48
+  directions     force directions sampled on a half sphere, default 48. With cone_deg each kept sample is turned to the push side
+                 (toward the shoulder). Without it a sample stands for itself and its opposite: von Mises and displacement are the same for
+                 both, layer tension is not, so the fem check evaluates it for both signs (summary "symmetric")
   stall_factor   joint torque allowed as a multiple of the servo's 12 V stall torque (motor map), default 1.0
   cone_deg       optional: keep only directions within this angle of the line from the hand tip to the chain's first joint (the shoulder):
                  a push through the hand with floor friction mu = tan(cone_deg); without it every direction counts
@@ -126,8 +128,11 @@ def envelope(body, spec, origin):
         org_w = R_stage @ origin + t_stage
         Dp = D
         if spec.get("cone_deg") is not None:
+            # push cone: the half-sphere sample (or its opposite) within cone_deg of the hand -> shoulder line, turned to the push side
             u = o_w[0] - p; u = u / np.linalg.norm(u)
-            Dp = D[np.abs(D @ u) >= math.cos(math.radians(float(spec["cone_deg"]))) - 1e-12]
+            c = D @ u
+            keep = np.abs(c) >= math.cos(math.radians(float(spec["cone_deg"]))) - 1e-12
+            Dp = D[keep] * np.sign(c[keep])[:, None]
         tau = np.array([[abs(float(ax_w[k] @ np.cross(p - o_w[k], d))) for k in range(len(chain))] for d in Dp])   # (nd, nj) per unit force
         with np.errstate(divide="ignore"):
             fj = np.where(tau > 1e-9, lim[None, :] / tau, np.inf)
@@ -146,7 +151,11 @@ def envelope(body, spec, origin):
                                hand_lever_mm=round(float(np.linalg.norm(np.cross(p - org_w, d))), 1)))
     W = np.array(Ws)
     Fm = np.linalg.norm(W[:, :3], axis=1); Mm = np.linalg.norm(W[:, 3:], axis=1)
+    symmetric = spec.get("cone_deg") is None
     summary = dict(wrenches=len(W), poses=len(mesh_q), directions_half_sphere=len(D), cone_deg=spec.get("cone_deg"), case_force_N=F_case, stall_factor=fac,
+                   symmetric=symmetric,
+                   directions=("every direction: each wrench stands for itself and its opposite (von Mises and displacement are the same; "
+                               "layer tension is evaluated for both signs)") if symmetric else "push cone: forces on the hand toward the shoulder only",
                    stall_torque_Nmm={n: (None if not np.isfinite(lim[k]) else round(lim[k] / fac, 1)) for k, n in enumerate(names)},
                    chain=names, held_at_0=names[0], step_deg=step, hand_tip_mm=np.round(p_hand0, 2).tolist(), hand_parts=hand_names, stage_link=spec["stage_link"],
                    origin_mm=np.round(origin, 2).tolist(),
