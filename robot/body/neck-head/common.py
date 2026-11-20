@@ -538,6 +538,10 @@ def cyl_along(pt, direction, r: float, length: float):
     return Solid(c.wrapped)
 
 
+# @lore Sleeve length = plate thickness at an XM335 screw site, chosen so a standard screw length reaches the hole's reference
+# engagement with the tip inside the hole (screw_plan.choose_length): the case M2 holes are 1.8 mm deep from a seat 0.2 mm
+# outside the opening, so a 2.5 mm sleeve takes M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
+# reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6).
 def stage_interface_specs() -> dict:
     """Return exact hole centers, per-hole outward normals, and pressed-in 304 SS compression sleeve specifications
     for all 4 Neck & Head connector stages:
@@ -562,6 +566,16 @@ def stage_interface_specs() -> dict:
             + 4x M2 B0410 camera posts (`(-36.0, -12.9, 441.0)`, `(-36.0, -12.9, 471.0)`, `(-6.0, -12.9, 441.0)`, `(-6.0, -12.9, 471.0)`, normal `+Y`, `h = 1.5 mm`)
             + 4x M2 B0196 camera posts (`(7.0, -12.9, 444.1662)`, `(7.0, -12.9, 472.1662)`, `(35.0, -12.9, 444.1662)`, `(35.0, -12.9, 472.1662)`, normal `+Y`, `h = 1.5 mm`)
     """
+    # Screw sites of the XM335 horns / cases come from the standard-part definitions (defined_holes.py, M-jpppfb).
+    import defined_holes as DH
+    sites = {c: DH.seat_sites(c) for c in DH.connectors()}
+
+    def _pts(connector, group):
+        return [np.asarray(x["centre"], float) for x in sites[connector] if x["group"] == group]
+
+    def _norms(connector, group):
+        return [np.asarray(x["axis_out"], float) for x in sites[connector] if x["group"] == group]
+
     # Stage 1 (`neck_root_cradle`)
     s1_sup_pts = [
         np.array([-29.0, 25.0, 347.5]),
@@ -569,39 +583,19 @@ def stage_interface_specs() -> dict:
     ]
     s1_sup_norms = [np.array([0.0, 1.0, 0.0])] * 2
 
-    s1_load_pts = [
-        np.array([-6.5, 30.5, 356.75]),
-        np.array([-6.5, 30.5, 362.25]),
-        np.array([6.5, 30.5, 356.75]),
-        np.array([6.5, 30.5, 362.25]),
-    ]
-    s1_load_norms = [np.array([0.0, 1.0, 0.0])] * 4
+    s1_load_pts = _pts("neck_root_cradle", "yaw_case_rear")
+    s1_load_norms = _norms("neck_root_cradle", "yaw_case_rear")
 
     # Stage 2 (`neck_yaw_to_pitch_link`)
-    s2_sup_pts = [
-        np.array([0.0, -1.0, 372.5]),
-        np.array([0.0, 11.0, 372.5]),
-        np.array([-6.0, 5.0, 372.5]),
-        np.array([6.0, 5.0, 372.5]),
-    ]
-    s2_sup_norms = [np.array([0.0, 0.0, 1.0])] * 4
+    s2_sup_pts = _pts("neck_yaw_to_pitch_link", "yaw_horn")
+    s2_sup_norms = _norms("neck_yaw_to_pitch_link", "yaw_horn")
 
-    s2_load_pts = [
-        np.array([-21.0, 5.0, 408.0]),
-        np.array([-21.0, 5.0, 420.0]),
-        np.array([-21.0, -1.0, 414.0]),
-        np.array([-21.0, 11.0, 414.0]),
-    ]
-    s2_load_norms = [np.array([-1.0, 0.0, 0.0])] * 4
+    s2_load_pts = _pts("neck_yaw_to_pitch_link", "pitch_horn")
+    s2_load_norms = _norms("neck_yaw_to_pitch_link", "pitch_horn")
 
     # Stage 3 (`neck_pitch_to_head_cradle`)
-    s3_sup_pts = [
-        np.array([-10.75, 14.5, 391.5]),
-        np.array([-10.75, 14.5, 401.0]),
-        np.array([-5.25, 14.5, 391.5]),
-        np.array([-5.25, 14.5, 401.0]),
-    ]
-    s3_sup_norms = [np.array([0.0, 1.0, 0.0])] * 4
+    s3_sup_pts = _pts("neck_pitch_to_head_cradle", "pitch_case_rear")
+    s3_sup_norms = _norms("neck_pitch_to_head_cradle", "pitch_case_rear")
 
     s3_load_pts = [
         np.array([0.0, -12.9, 413.0]),
@@ -654,7 +648,7 @@ def stage_interface_specs() -> dict:
                 "centres": s1_load_pts,
                 "sleeve_ro": 1.75,
                 "sleeve_ri": 1.10,
-                "sleeve_len": 3.0,
+                "sleeve_len": 2.5,
                 "patch_r": 2.2,
             },
             "aux_bores": [],
@@ -669,7 +663,7 @@ def stage_interface_specs() -> dict:
                 "rocker_r": 3.0,
                 "sleeve_ro": 1.75,
                 "sleeve_ri": 1.10,
-                "sleeve_len": 3.0,
+                "sleeve_len": 3.5,
                 "patch_r": 2.2,
             },
             "load": {
@@ -681,7 +675,7 @@ def stage_interface_specs() -> dict:
                 "rocker_r": 3.0,
                 "sleeve_ro": 1.75,
                 "sleeve_ri": 1.10,
-                "sleeve_len": 3.0,
+                "sleeve_len": 3.5,
                 "patch_r": 2.2,
             },
             "aux_bores": [],
@@ -694,7 +688,7 @@ def stage_interface_specs() -> dict:
                 "centres": s3_sup_pts,
                 "sleeve_ro": 1.75,
                 "sleeve_ri": 1.10,
-                "sleeve_len": 3.0,
+                "sleeve_len": 2.5,
                 "patch_r": 2.2,
             },
             "load": {

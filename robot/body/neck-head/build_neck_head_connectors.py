@@ -45,6 +45,19 @@ from common import (
 )
 
 
+def _seat(connector: str, group: str) -> float:
+    """Coordinate along the hole axis of a group's seat plane (the standard part's outer face), from the definitions."""
+    import defined_holes as DH
+    xs = [float(np.dot(x["centre"], x["axis_out"])) for x in DH.seat_sites(connector) if x["group"] == group]
+    return float(np.mean(xs))
+
+
+# (stage, role) sites on a plate whose thickness equals the sleeve length (screws into the XM335 holes, generated from the
+# definitions by defined_holes.py / neck_screws.py)
+FLUSH_SITES = {("stage1_neck_root_cradle", "load"), ("stage2_neck_yaw_to_pitch_link", "support"),
+               ("stage2_neck_yaw_to_pitch_link", "load"), ("stage3_neck_pitch_to_head_cradle", "support")}
+
+
 def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
     """Cut all sleeved bolt bores (`ro = sleeve_ro`), spotfaces, rocker center bores, and auxiliary pilot bores."""
     specs = stage_interface_specs()[stage_key]
@@ -60,9 +73,10 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
             n = n / np.linalg.norm(n)
             # Cut through bore + outer spotface so dorsal ribs/gussets never obstruct sleeve or driver access
             cut_tools.append(cyl_along(pt - 1.2 * n, n, ro + 0.005, h + 5.2))
-            if stage_key == "stage2_neck_yaw_to_pitch_link":
-                # Spotface (r = 2.40 mm) beyond the 3.0 mm sleeve seat for M2x5 pan-head screws
-                cut_tools.append(cyl_along(pt + (h - 0.02) * n, n, 2.40, 4.5))
+            if (stage_key, role_key) in FLUSH_SITES:
+                # The sleeve is as long as the plate is thick (flush, no counterbore, M-evmrv6): ribs and walls that rise above the
+                # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
+                cut_tools.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
             if stage_key == "stage1_neck_root_cradle" and role_key == "support":
                 cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
@@ -126,6 +140,7 @@ def build_stage1(family: str) -> Solid:
     onto the `Z = 359.0` shelf and wraps around the `-X` cheek and `+Y` rear face (`4x M2`)
     of `upper__neck_yaw_case_XM335`.
     """
+    case_face_y = _seat("neck_root_cradle", "yaw_case_rear")    # the yaw case's rear face; the sleeves are 2.5 mm long
     if family == "truss_box":
         # 1. Lower spine wing plate in XZ plane (Y in [25.0, 28.0], X in [-32.8, -17.2], Z in [343.6, 350.5])
         f_spine = fillet_2d_face(Pos(-25.0, 347.05) * Rectangle(15.6, 6.9), r_default=1.5, r_inner=1.9)
@@ -141,7 +156,7 @@ def build_stage1(family: str) -> Solid:
         )
         s_riser = extrude_xy_to_y(f_riser, 25.0, 33.50)
 
-        # 3. Rear motor cradle + upper bridge (Y in [30.52, 33.50], X in [-24.0, 9.2], Z in [353.6, 365.6])
+        # 3. Rear motor cradle + upper bridge (Y in [30.5, 33.0], X in [-24.0, 9.2], Z in [353.6, 365.6])
         pts_motor = [
             (-24.0, 359.2),
             (-9.55, 359.2),
@@ -153,7 +168,7 @@ def build_stage1(family: str) -> Solid:
         f_motor = fillet_2d_face(Polygon(*pts_motor, align=None), r_default=1.6, r_inner=2.2)
         win_m = fillet_2d_face(Pos(0.0, 359.5) * Rectangle(5.6, 6.0), r_default=1.4, r_inner=1.8)
         f_motor = (f_motor - win_m).faces()[0]
-        s_motor = extrude_xy_to_y(f_motor, 30.52, 33.50)
+        s_motor = extrude_xy_to_y(f_motor, case_face_y, case_face_y + 2.5)
 
         # 4. Dorsal stiffening rib across rear cradle (X in [-24.0, 3.6], Y in [33.0, 34.6], Z in [361.4, 364.2])
         f_rib = fillet_2d_face(Pos(-10.2, 362.8) * Rectangle(27.6, 2.8), r_default=1.0, r_inner=1.4)
@@ -196,7 +211,7 @@ def build_stage1(family: str) -> Solid:
         f_motor = fillet_2d_face(Polygon(*pts_motor, align=None), r_default=1.7, r_inner=2.3)
         win_m = Pos(0.0, 359.5) * SlotOverall(6.2, 4.4, rotation=90)
         f_motor = (f_motor - win_m).faces()[0]
-        s_motor = extrude_xy_to_y(f_motor, 30.52, 33.50)
+        s_motor = extrude_xy_to_y(f_motor, case_face_y, case_face_y + 2.5)
 
         f_bridge = fillet_2d_face(Pos(-10.2, 362.8) * Rectangle(27.6, 2.8), r_default=1.0, r_inner=1.4)
         s_bridge = extrude_xy_to_y(f_bridge, 33.0, 34.50)
@@ -225,24 +240,27 @@ def build_stage2(family: str) -> Solid:
     that clears `Power_supervisor_PA12_open_tray` (`Z_max = 374.0`) across all yaw angles, deep
     triangulated corner gussets, and a circular `R = 9.4 mm` upper dome.
     """
-    # 1. Yaw horn mounting pad (X in [-9.2, 8.8], Y in [-4.4, 14.4], Z in [372.5, 377.5])
+    z_horn = _seat("neck_yaw_to_pitch_link", "yaw_horn")             # yaw horn face (definition); the sleeves are 3.5 mm long
+    x_horn = -_seat("neck_yaw_to_pitch_link", "pitch_horn")          # pitch horn face (axis -X)
+    # 1. Yaw horn mounting pad (X in [-9.2, 8.8], Y in [-4.4, 14.4], Z in [372.5, 376.0]): as thick as the sleeves are long
     f_pad = fillet_2d_face(
         Pos(-0.2, 5.0) * Rectangle(18.0, 18.8),
         r_default=2.4,
         r_inner=3.0,
         skip_xy=[(-9.2, -4.4), (-9.2, 14.4)],
     )
-    s_pad = extrude_xy_to_z(f_pad, 372.5, 377.5)
+    s_pad = extrude_xy_to_z(f_pad, z_horn, z_horn + 3.5)
 
     # 2. Stepped horizontal bridge deck (X in [-24.5, 8.8], Y in [-4.4, 14.4], Z in [374.5, 377.5])
     # Clears Power_supervisor_PA12_open_tray (Z_max = 374.0 mm) across all ±60 deg yaw angles!
+    # It ends at X = -8.0, 0.25 mm short of the sleeve of the yaw hole at X = -6 (the pad carries the heads there).
     pts_base = [
-        (-24.5, -4.4),
-        (8.8, -4.4),
-        (8.8, 14.4),
-        (-24.5, 14.4),
+        (x_horn - 3.5, -4.4),
+        (-8.0, -4.4),
+        (-8.0, 14.4),
+        (x_horn - 3.5, 14.4),
     ]
-    f_base = fillet_2d_face(Polygon(*pts_base, align=None), r_default=2.4, r_inner=3.2, skip_xy=[(-24.5, -4.4), (-24.5, 14.4)])
+    f_base = fillet_2d_face(Polygon(*pts_base, align=None), r_default=2.4, r_inner=3.2, skip_xy=[(x_horn - 3.5, -4.4), (x_horn - 3.5, 14.4), (-8.0, -4.4), (-8.0, 14.4)])
     s_base = extrude_xy_to_z(f_base, 374.5, 377.5)
 
     # 3. Vertical left arm in YZ plane (X in [-24.5, -21.0]), capped by tangent circular R = 9.4 mm dome at (Y=5, Z=414)
@@ -254,7 +272,7 @@ def build_stage2(family: str) -> Solid:
     else:
         win_v = Pos(5.0, 395.0) * SlotOverall(12.0, 5.6, rotation=90)
     f_vert = (f_vert - win_v).faces()[0]
-    s_vert = extrude_xy_to_x(f_vert, -24.5, -21.0)
+    s_vert = extrude_xy_to_x(f_vert, x_horn - 3.5, x_horn)
 
     # 4. Deep triangulated anterior & posterior 3D corner gusset webs (Y in [-4.4, -1.3] and Y in [11.3, 14.4])
     # spanning X in [-23.0, -7.5] at the base (Z in [375.5, 381.4]) and up the column (X in [-23.0, -19.5], Z up to 396.0)
@@ -272,10 +290,11 @@ def build_stage2(family: str) -> Solid:
     s_gus_rear = extrude_xy_to_y(f_gus, 11.3, 14.4)
 
     # 5. Central lower base spine rib (Y in [2.6, 7.4], X in [-23.0, -7.5], Z in [375.5, 383.5])
+    # ends at X = -9.0: the 0.75 mm ring around the sleeve of the yaw hole at X = -6 stays clear for head, driver and press tool
     pts_spine = [
         (-23.0, 375.5),
-        (-7.5, 375.5),
-        (-7.5, 378.8),
+        (-9.0, 375.5),
+        (-9.0, 378.8),
         (-19.5, 381.8),
         (-21.0, 385.0),
         (-23.0, 385.0),
@@ -298,15 +317,16 @@ def build_stage3(family: str) -> Solid:
     (`2x M3` at `X = 0.0, Y in [-15.9, -12.9], Z in {413.0, 419.0}`).
     """
     # 1. U-profile in XY plane extruded across Z in [388.5, 421.2], then sculpted in YZ and XZ
+    y_case = _seat("neck_pitch_to_head_cradle", "pitch_case_rear")   # pitch case rear face (definition); sleeves are 2.5 mm long
     pts_u = [
-        (-13.8, 17.5),
-        (8.8, 17.5),
+        (-13.8, y_case + 2.5),
+        (8.8, y_case + 2.5),
         (8.8, -15.9),
         (-4.2, -15.9),
         (-4.2, -12.92),
         (3.25, -12.92),
-        (3.25, 14.52),
-        (-13.8, 14.52),
+        (3.25, y_case),
+        (-13.8, y_case),
     ]
     f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4, skip_xy=[(3.25, -12.92), (-4.2, -12.92)])
     s_u_full = extrude_xy_to_z(f_u, 388.5, 421.2)

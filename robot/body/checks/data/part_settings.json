@@ -5431,7 +5431,9 @@
             "mate": [
               "upper__neck_yaw_front_horn",
               "upper__neck_yaw_horn_M2x5_0",
-              "upper__neck_yaw_horn_M2x5_1"
+              "upper__neck_yaw_horn_M2x5_1",
+              "upper__neck_yaw_horn_M2x5_2",
+              "upper__neck_yaw_horn_M2x5_3"
             ],
             "gap_mm": 2.0,
             "r_max_mm": 2.0,
@@ -5444,7 +5446,9 @@
           "mate": [
             "upper__neck_pitch_front_horn",
             "upper__neck_pitch_horn_M2x5_0",
-            "upper__neck_pitch_horn_M2x5_1"
+            "upper__neck_pitch_horn_M2x5_1",
+            "upper__neck_pitch_horn_M2x5_2",
+            "upper__neck_pitch_horn_M2x5_3"
           ],
           "gap_mm": 2.0,
           "r_max_mm": 2.0,
