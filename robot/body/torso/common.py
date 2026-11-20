@@ -277,6 +277,14 @@ def aligned_cylinder(center: tuple[float, float, float], normal: tuple[float, fl
     return Pos(*center) * rot * Cylinder(radius, length, align=(Align.CENTER, Align.CENTER, Align.CENTER))
 
 
+# Stage 3 board mounts (mm, body frame). PCB faces on the carrier side, measured on the installed boards
+# (Power_supervisor_source_board -20.51, Main_precharge_source_board -33.68); the frame's rear face is -13.55 (rear plate),
+# the precharge deck's rear face -28.72. Tuples: (front face Y, rear face Y, centre Y).
+STAGE3_PCB_FACE_Y = {"power_supervisor": -20.51, "main_precharge": -33.68}
+STAGE3_PS_BOSS_Y = (-20.51, -13.55, -17.03)
+STAGE3_MP_BOSS_Y = (-33.68, -28.72, -31.20)
+
+
 def stage_interface_specs() -> dict[str, dict[str, Any]]:
     """Exact bolt hole centers, axes, and pressed-in 304 SS compression sleeve specs for each center-body torso stage."""
     return {
@@ -389,14 +397,17 @@ def stage_interface_specs() -> dict[str, dict[str, Any]]:
                 {"center": ( 17.0, -10.80, 338.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.65, "length": 9.2},
             ],
             "load_bores": [
+                # Board mounts: the boss runs from the PCB's carrier-side face (STAGE3_PCB_FACE_Y, 0.00 contact) to the
+                # frame's rear face; the sleeve is the full thickness of that stack, flush at both ends (every clamped
+                # printed hole sleeved, head on the outer face), M2 bore 2.2 (standard-parts.json sleeve.bore_for).
                 # 4x M2 Power Supervisor PCB sleeves
-                {"center": ( 48.5, -17.8, 280.8), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.65, "length": 4.0},
-                {"center": (-11.5, -17.8, 280.8), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.65, "length": 4.0},
-                {"center": ( 48.0, -17.8, 364.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.65, "length": 4.0},
-                {"center": (-11.0, -17.8, 364.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.65, "length": 4.0},
-                # 2x M2 Main Precharge PCB sleeves (flush inside mp_bosses Y=[-31.94, -28.72])
-                {"center": ( -7.0, -30.33, 332.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.00, "r_od": 1.65, "length": 3.1},
-                {"center": ( 37.0, -30.33, 301.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.00, "r_od": 1.65, "length": 3.1},
+                *[{"center": (x, STAGE3_PS_BOSS_Y[2], z), "normal": (0.0, 1.0, 0.0), "r_id": 1.10, "r_od": 1.70,
+                   "length": STAGE3_PS_BOSS_Y[1] - STAGE3_PS_BOSS_Y[0]}
+                  for x, z in ((48.5, 280.8), (-11.5, 280.8), (48.0, 364.0), (-11.0, 364.0))],
+                # 2x M2 Main Precharge PCB sleeves (inside mp_bosses)
+                *[{"center": (x, STAGE3_MP_BOSS_Y[2], z), "normal": (0.0, 1.0, 0.0), "r_id": 1.10, "r_od": 1.70,
+                   "length": STAGE3_MP_BOSS_Y[1] - STAGE3_MP_BOSS_Y[0]}
+                  for x, z in ((-7.0, 332.0), (37.0, 301.0))],
             ],
             "aux_bores": [],
             "load_arm_mm": 32.0,

@@ -276,11 +276,11 @@ def build_stage3_front_power_electronics_carrier(family: str):
         rear_frame = rear_plate.fuse(*spine_rails, rib_h, hub).cut(Pos(17.0, -14.5, 313.0) * Rot(90, 0, 0) * Cylinder(4.5, 4.0))
         r_in, r_out = 0.60, 0.22
 
+    # board bosses reach the PCB face (0.00 contact; before: 0.51 / 1.74 mm short of it)
+    ps_len = common.STAGE3_PS_BOSS_Y[1] - common.STAGE3_PS_BOSS_Y[0]
     ps_bosses = [
-        Pos( 48.5, -16.77, 280.8) * Rot(90, 0, 0) * Cylinder(2.8, 6.45),
-        Pos(-11.5, -16.77, 280.8) * Rot(90, 0, 0) * Cylinder(2.8, 6.45),
-        Pos( 48.0, -16.77, 364.0) * Rot(90, 0, 0) * Cylinder(2.8, 6.45),
-        Pos(-11.0, -16.77, 364.0) * Rot(90, 0, 0) * Cylinder(2.8, 6.45),
+        Pos(x, common.STAGE3_PS_BOSS_Y[2], z) * Rot(90, 0, 0) * Cylinder(2.8, ps_len)
+        for x, z in ((48.5, 280.8), (-11.5, 280.8), (48.0, 364.0), (-11.0, 364.0))
     ]
     # 4x Integral Rearward Standoff Brackets built into Stage 3 (X = ±17.0 mm, Z = 288.0 & 338.0 mm, Y = [-15.46, -6.15] mm)
     # + vertical connecting webs along Y = [-15.46, -11.50] mm, mating flush onto Stage 1's flat Y = -6.10 mm front mounts:
@@ -298,9 +298,10 @@ def build_stage3_front_power_electronics_carrier(family: str):
         Pos(-17.0, -29.68, 338.0) * Rot(90, 0, 0) * Cylinder(3.6, 5.0),
         Pos( 17.0, -29.68, 338.0) * Rot(90, 0, 0) * Cylinder(3.6, 5.0),
     )
+    mp_len = common.STAGE3_MP_BOSS_Y[1] - common.STAGE3_MP_BOSS_Y[0]
     mp_bosses = [
-        Pos(-7.0, -30.33, 332.0) * Rot(90, 0, 0) * Cylinder(2.8, 3.22),
-        Pos(37.0, -30.33, 301.0) * Rot(90, 0, 0) * Cylinder(2.8, 3.22),
+        Pos(x, common.STAGE3_MP_BOSS_Y[2], z) * Rot(90, 0, 0) * Cylinder(2.8, mp_len)
+        for x, z in ((-7.0, 332.0), (37.0, 301.0))
     ]
     side_bridges = [
         Pos(-18.0, -22.1, 316.5) * Box(5.0, 15.2, 30.0),

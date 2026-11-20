@@ -183,6 +183,9 @@ def build_manifest():
     sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
     import ankle_coupler_screws as ACS      # run its `build` first (T-9wpegg): edited ankle coupler + sleeves
     parts = ACS.swap_parts(parts)
+    sys.path.insert(0, str(ROOT / "robot/body/torso"))
+    import torso_screws as TS               # T-nh6ytf: stage 3 carrier rebuilt, stale torso_mate hardware dropped (warns when not built)
+    parts = TS.swap_parts(parts)
     srows, plans = hip_screws(parts, man)
     parts += srows
     log += [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
