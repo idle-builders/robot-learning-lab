@@ -163,30 +163,6 @@
      "derived": "graph order, fastened distance 16 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_roll_upper_horn_reference, R_roll_passive_idler_reference), snapped to the nearest axis"
     },
     {
-     "id": "s14",
-     "screw": [
-      "R_A13_roll_face0_PA2x3_0",
-      "R_A13_roll_face0_PA2x3_1",
-      "R_A13_roll_face0_PA2x3_2",
-      "R_A13_roll_face0_PA2x3_3"
-     ],
-     "direction": "screw axis",
-     "seeded": true,
-     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_servo_case_reference; driver path vs placed parts"
-    },
-    {
-     "id": "s15",
-     "screw": [
-      "R_A13_roll_face1_PA2x3_0",
-      "R_A13_roll_face1_PA2x3_1",
-      "R_A13_roll_face1_PA2x3_2",
-      "R_A13_roll_face1_PA2x3_3"
-     ],
-     "direction": "screw axis",
-     "seeded": true,
-     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_servo_case_reference; driver path vs placed parts"
-    },
-    {
      "id": "p16",
      "part": [
       "R_thigh_roll_flip",
@@ -198,31 +174,50 @@
       1.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 18 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_roll_servo_case_reference, R_hip_pitch_to_roll_roll_flip), snapped to the nearest axis"
+     "derived": "H-cage (2026-11-19): the cage rises onto the hanging roll case from below (it boxes the case on four sides), before the ear screws"
+    },
+    {
+     "id": "s14",
+     "screw": [
+      "R_A13_roll_face0_PA2x3_0",
+      "R_A13_roll_face0_PA2x3_1"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "H-cage (2026-11-19): the 2 lower front ear screws (M2, generated from STS3250.case+y.3 / .4), driven along +y once the Stage 4 is on the case"
+    },
+    {
+     "id": "s15",
+     "screw": [
+      "R_A13_roll_face1_PA2x3_0",
+      "R_A13_roll_face1_PA2x3_1"
+     ],
+     "direction": "screw axis",
+     "seeded": true,
+     "derived": "H-cage (2026-11-19): the 2 lower rear ear screws (M2, STS3250.case-y.3 / .4), driven along -y"
     },
     {
      "id": "p17",
      "part": "R_knee_ST3025_case",
      "direction": [
-      -0.999,
       0.0,
-      -0.047
+      1.0,
+      0.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 5 screw(s) joining it to placed parts (R_knee_ST3025_PA2x8_0, R_knee_ST3025_PA2x8_1, R_knee_ST3025_PA2x8_2, R_knee_ST3025_PA2x8_3, R_knee_ST3025_PA2x8_4), head to tip when the part carries the head, else reversed"
+     "derived": "H-cage (2026-11-19): the knee case slides in along +y between the medial and lateral cheeks, under the bridge (0.4 mm) and the plates' lower edge (z 153.4); the shin may already be on its output (it stays below z 133.5, the cheeks start at 139.5)"
     },
     {
      "id": "s18",
      "screw": [
       "R_knee_ST3025_PA2x8_0",
       "R_knee_ST3025_PA2x8_1",
-      "R_knee_ST3025_PA2x8_2",
-      "R_knee_ST3025_PA2x8_3",
-      "R_knee_ST3025_PA2x8_4"
+      "R_knee_ST3025_PA2x8_lat0",
+      "R_knee_ST3025_PA2x8_lat1"
      ],
      "direction": "screw axis",
      "seeded": true,
-     "derived": "5 screw(s) whose touched chain parts are all placed after R_knee_ST3025_case; driver path vs placed parts"
+     "derived": "H-cage (2026-11-19): 2 medial corner screws (ST3025.case+z.1 / .2, from -x) + 2 lateral (case-z.1 / .2, from +x), M2"
     },
     {
      "id": "p19",

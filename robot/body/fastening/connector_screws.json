@@ -15,12 +15,14 @@
   "thigh_roll_flip": {
    "clamped": ["{S}thigh_roll_flip", "{S}thigh_roll_flip_steel_sleeves"],
    "groups": {
-    "A13_roll_case_front": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case+y.1", "STS3250.case+y.2", "STS3250.case+y.3", "STS3250.case+y.4"],
+    "A13_roll_case_front": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case+y.3", "STS3250.case+y.4"],
                             "owning_link": "{S}roll_link", "name": "{S}A13_roll_face0_PA2x3_{i}", "head": "ISO 7380-1"},
-    "A13_roll_case_rear": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case-y.1", "STS3250.case-y.2", "STS3250.case-y.3", "STS3250.case-y.4"],
+    "A13_roll_case_rear": {"standard_part": "{S}roll_servo_case_reference", "holes": ["STS3250.case-y.3", "STS3250.case-y.4"],
                            "owning_link": "{S}roll_link", "name": "{S}A13_roll_face1_PA2x3_{i}", "head": "ISO 7380-1"},
-    "knee_case": {"standard_part": "{S}knee_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2", "ST3025.case+z.3", "ST3025.case+z.4", "ST3025.case+z.5"],
-                  "owning_link": "{S}roll_link", "name": "{S}knee_ST3025_PA2x8_{i}", "head": "ISO 7380-1"}
+    "knee_case": {"standard_part": "{S}knee_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2"],
+                  "owning_link": "{S}roll_link", "name": "{S}knee_ST3025_PA2x8_{i}", "head": "ISO 7380-1"},
+    "knee_case_lateral": {"standard_part": "{S}knee_ST3025_case", "holes": ["ST3025.case-z.1", "ST3025.case-z.2"],
+                          "owning_link": "{S}roll_link", "name": "{S}knee_ST3025_PA2x8_lat{i}", "head": "ISO 7380-1"}
    }
   }
  }

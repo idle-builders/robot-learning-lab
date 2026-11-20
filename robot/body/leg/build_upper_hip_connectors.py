@@ -646,9 +646,12 @@ def build_all_upper_hip():
 # The hip-roll STS3250 case rides with the thigh (R_roll_link), turned -90 deg about its own shaft (Ry(-90) about the
 # roll axis, URDF sign convention, as in robot/body/hip-shell/sections/roll_options.py) so it hangs down into the thigh.
 # Its horn and idler stay where they are and are bolted to the pitch link. Roll axis, position and range are unchanged.
-#   Stage 4 (thigh, R_roll_link):  the current thigh's knee interface (medial ST3025 cheek + the medial end of its end
-#     block, exact motor-refit B-rep) + a U cradle for the hanging case: front and rear plates on the case's ear faces
-#     (the old Stage 5 cradle data rotated with the case), an inboard wall, 4 shell posts.
+#   Stage 4 (thigh, R_roll_link), H-cage (owner 2026-11-19): front and rear plates on the case's ear faces (the old
+#     Stage 5 cradle data rotated with the case; 2 lower ear screws each, upper edge cut back under the swept Stage 5
+#     arms), an inboard and an outboard wall on the case's end faces, a bridge over the knee case to a lateral knee
+#     cheek, the medial ST3025 cheek on the medial end of the current thigh's end block (exact motor-refit B-rep);
+#     2 + 2 screws on the knee case; every screw at its defined hole (connector_screws.json, standard-parts.json) and
+#     through a steel sleeve; 4 shell posts.
 #   Stage 5 (pitch link):  a lateral plate on the hip-pitch ST3025 output wheel (x 63..71), whose lower edge follows
 #     an arc 18 mm about the roll axis, and two arms (the old thigh arm layers) bolted to the roll horn and idler.
 # Built in the current assembly frame (shell-pass, after the motor refit and the 12 mm narrower hips), not in this
@@ -667,6 +670,8 @@ RF_OLD_REAR_BOLTS = [(31.25, 179.75), (31.25, 200.25), (55.7, 179.75), (55.7, 20
 RF_Y_F_IN, RF_Y_F_CLAMP, RF_Y_F_OUT = -8.80, -10.80, -11.75      # front ear face, sleeve clamp, plate outer face
 RF_Y_R_IN, RF_Y_R_CLAMP, RF_Y_R_OUT = 23.20, 25.20, 25.20        # rear ear face, sleeve clamp, plate outer face
 RF_RIB = 2.0                        # outward rib on both plates below RF_RIB_TOP (outside the arms' sweep)
+RF_RIB_F = 1.2                      # front rib (H-cage): plate + rib = 4.15 + 0.2 from the defined M2 hole opening
+                                    # (3.9 mm deep): an M2x8 then engages 3.15 mm with the tip 0.75 short of the bottom
 RF_RIB_TOP = 176.0
 # Old thigh arm layers (now the Stage 5 arms) and horn / idler bolt circle
 RF_ARM_F = (-15.30, -14.10, -12.10)  # out, clamp, in
@@ -693,7 +698,7 @@ RF_KNEE_KEEP = (20.0, 42.9, -16.5, 30.0, 155.5, 162.8)  # box of the current thi
 # "far group" (16 mm circle about (4, 143)) only matches dia 2.0 holes inside the case, behind its 2.35 mm medial wall
 # (x 35.5..37.3); a screw there meets solid wall, so the cheek no longer has those four holes.
 RF_KNEE_AXIS = (4.0, 123.0)
-RF_KNEE_SCREWS = [(-4.0, 151.0), (12.0, 151.0), (4.0, 150.0), (-3.0, 143.0), (11.0, 143.0)]
+RF_KNEE_SCREWS = [(-4.0, 151.0), (12.0, 151.0), (4.0, 150.0), (-3.0, 143.0), (11.0, 143.0)]   # history: the five medial holes the U cradle used
 RF_KNEE_FACE_X = 33.15               # clamping face of the cheek = the knee case's medial face
 RF_END_X0 = 31.0                     # medial face of the kept end block (and of the motor-refit cheek)
 RF_CHEEK_X0 = 29.0                   # medial face of the new cheek (4.15 mm thick; roll-stall bending): screw heads seat here
@@ -701,6 +706,34 @@ RF_CHEEK_Y = (-6.5, 14.5)            # cheek width below the knee case top: case
 RF_CHEEK_Z0 = 139.5                  # cheek lower edge (lowest screw hole edge z 141.8)
 RF_POSTS = [((45.75, 171.5), -18.35, -15.67), ((66.25, 171.5), -18.35, -15.67)]   # tips at the blue shell's inner wall   # front: (x, z), tip y, nut y
 RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92), ((66.25, 171.5), 31.60, 28.92)]     # rear
+# H-cage (owner 2026-11-19: the 0.15 mm plate-to-arm gaps will not hold for printed parts and hand assembly; the 4 upper
+# roll-case screws go; "an H connector with a 90 deg rotation in the middle", 2 + 2 screws on each actuator).
+#   roll case: its 2 lower ear screws per y face (z 161 front, 157.25 rear); plates cut back under the swept Stage 5 arms;
+#   knee case: 2 medial corner screws + 2 lateral screws through a lateral cheek, joined to the plates by an outboard wall
+#   on the roll case's outboard end and a bridge over the knee case top. Every screw has a steel sleeve; the screw sites
+#   are the defined holes of connector_screws.json (rf_defined_holes), threads and lengths come from screw_plan.py.
+RF_PLATE_Z0 = 153.4                  # plate / rib / walls lower edge: knee case top (z 153) + 0.4, so the knee case (with the
+                                     # shin on its output) slides in along y between the cheeks
+RF_CASE_END_X = 68.36                # turned roll case's outboard end face
+RF_OUT_WALL_X = (68.6, 73.0)         # outboard wall on that face (0.24 mm off it)
+RF_OUT_WALL_TOP = 178.0
+RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
+RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
+RF_LAT_CHEEK_X1 = 77.3               # lateral cheek outer face (4.15 mm, as the medial cheek): lateral screw heads seat here
+RF_MED_CHEEK_Y = (-7.5, 15.5)        # medial cheek widened by 1 mm per side above RF_MED_WIDE_Z0: wall around the sleeves
+RF_MED_WIDE_Z0 = 146.0
+RF_SHIN_CHAMFER = 3.0                # cheeks' rear-lower corner (y max, z min): chamfer leg, clear of the shin swept to knee 110
+RF_ROLL_SWEEP = (-45.0, 25.0)        # hip roll the plates leave room for (manifest -30..25; library poses reach -45)
+RF_YELLOW_MARGIN = 1.3               # plates to the swept Stage 5 arms (the 2D inner fillets of the cut eat ~0.2)
+RF_NECK_FILLET_ALLOW = 0.5           # the arms' r 5 inner fillet (hub -> neck) reaches below the neck's lower edge z RF_AZ + 2
+RF_KEY_CLEAR = 0.05                  # case ear-boss pockets: CAD clearance per side (printers.json hole_offset_mm not
+                                     # measured yet; tune to the coupon). The bosses key the roll torque.
+RF_IN_WALL_X = (38.0, 43.4)          # inboard wall on the case's inboard end face (old Stage 5 deck, turned)
+RF_IN_WINDOW = (17.0, 19.0)          # inboard wall window (y, z size, rounded 3.5)
+RF_OUT_WINDOW = (17.0, 15.0)         # outboard wall window
+RF_KEY_CORNER_R = 1.0               # pocket corner radius (the bosses' corners are rounded more)
+RF_FLOOR_WINDOW_INSET = None         # None: closed pocket floors; else windows through them, this far inside the boss outline
+RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
 
 
 def rf_rot(x_r2: float, z: float) -> tuple[float, float]:
@@ -743,88 +776,255 @@ def occ_common(a: Shape, b: Shape) -> Shape:
     return Compound(op.Shape())
 
 
+def rf_case_turned() -> Shape:
+    """The STS3250 roll case (all solids) of the shell-pass manifest, turned RF_TURN_DEG about the roll axis (right leg)."""
+    import json
+    import sys
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from infra.storage.blob_store import ensure
+    from build123d import import_step, Location
+    p = {q["name"]: q for q in json.loads(RF_SHELL_PASS.read_text())["parts"]}["R_roll_servo_case_reference"]
+    sh = import_step(str(ensure(ROOT / p["native_step"])))
+    sh = sh.moved(Location(tuple(float(v) for v in (p.get("native_step_offset_mm") or [0.0, 0.0, 0.0]))))
+    return sh.rotate(Axis((RF_AX, 0.0, RF_AZ), (0.0, 1.0, 0.0)), RF_TURN_DEG)
+
+
+def rf_ear_boss_outline(case: Shape, y_root: float) -> Face:
+    """Outer outline (x, z) of the case's ear boss at its root (just outside the ear face y_root), as a face in the plane
+    y = y_root. The bosses are drafted, so the root is the largest section."""
+    sl = occ_common(case, occ_box(30.0, 80.0, y_root - 0.01, y_root + 0.01, 140.0, 184.0))   # below the shaft stub
+    fs = [f for f in sl.faces() if abs(f.normal_at(f.center()).Y) > 0.99 and abs(f.center().Y - (y_root - 0.01)) < 1e-3]
+    big = max(fs, key=lambda f: f.area)
+    return Face(big.outer_wire())
+
+
+def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow: float | None = None) -> Solid:
+    """Pocket for an ear boss: the bounding rectangle (x, z) of its root outline grown by RF_KEY_CLEAR per side (or by
+    `grow`, negative = inside), corners rounded RF_KEY_CORNER_R (smaller than the boss's own corner rounding, so the
+    flat sides key and the corners stay clear), from y_in (inside the case envelope) to y_floor. A box, not the outline
+    offset: the offset outline's edges make the part unmeshable for gmsh."""
+    b = rf_ear_boss_outline(case, y_root).bounding_box()
+    g = RF_KEY_CLEAR if grow is None else grow
+    x0, x1, z0, z1 = b.min.X - g, b.max.X + g, b.min.Z - g, b.max.Z + g
+    if grow is not None:     # a lightening window: stays 3 mm under the plates' upper edge (the hub keep-out arc)
+        z1 = min(z1, RF_AZ - (RF_ROLL_HUB_R + RF_YELLOW_MARGIN) - 3.0)
+    f = Pos(0.5 * (x0 + x1), 0.5 * (z0 + z1)) * RectangleRounded(x1 - x0, z1 - z0, RF_KEY_CORNER_R if grow is None else 2.0)
+    return extrude_xy_to_y(f.faces()[0], min(y_in, y_floor), max(y_in, y_floor))
+
+
+def rf_yellow_keepout_xz() -> Face:
+    """(x, z) region the plates stay out of: the Stage 5 arms (hub r RF_ROLL_HUB_R about the roll axis, neck from z
+    RF_AZ + 2 up between x 60.5 and RF_PLATE_X[1]) swept over RF_ROLL_SWEEP, grown by RF_YELLOW_MARGIN. In the thigh frame
+    the arms turn by -roll; at roll RF_ROLL_SWEEP[0] the neck's outboard face (x RF_PLATE_X[1]) and lower edge (z RF_AZ + 2)
+    are lowest. The union over the sweep lies in the hub disk plus the 90 deg wedge above the point where those two
+    faces meet at that roll (both faces offset by the margin)."""
+    m = RF_YELLOW_MARGIN
+    th = math.radians(-RF_ROLL_SWEEP[0])
+    nb = (math.sin(th), math.cos(th))           # lower edge normal (into the neck) at the extreme roll
+    no = (math.cos(th), -math.sin(th))          # outboard face normal (out of the neck)
+    db, do = 2.0 - RF_NECK_FILLET_ALLOW - m, (RF_PLATE_X[1] - RF_AX) + m
+    vx, vz = RF_AX + db * nb[0] + do * no[0], RF_AZ + db * nb[1] + do * no[1]
+    L = 80.0
+    wedge = Polygon((vx, vz), (vx + L * nb[0], vz + L * nb[1]), (vx + L * (nb[0] - no[0]), vz + L * (nb[1] - no[1])),
+                    (vx - L * no[0], vz - L * no[1]), align=None)
+    return (wedge + Pos(RF_AX, RF_AZ) * Circle(RF_ROLL_HUB_R + m)).clean().faces()[0]
+
+
+def rf_sleeve(p0, p1) -> Solid:
+    """Steel sleeve dia 2 * RF_SLEEVE_R, bore 2 * RF_SLEEVE_BORE_R, from p0 to p1 (flush with both faces)."""
+    import numpy as _np
+    a, b = _np.array(p0, float), _np.array(p1, float)
+    d = (b - a) / _np.linalg.norm(b - a)
+    return largest_solid(cut_all(occ_cyl(tuple(a), tuple(b), RF_SLEEVE_R),
+                                 [occ_cyl(tuple(a - 0.5 * d), tuple(b + 0.5 * d), RF_SLEEVE_BORE_R)]))
+
+
+def rf_cheek_face(y0: float, y1: float, z0: float, z1: float, wide=None) -> Face:
+    """(y, z) profile of a knee cheek: rear-lower corner chamfered RF_SHIN_CHAMFER (shin swept to knee 110), lower corners
+    rounded, top corners left sharp (they join the parts above). wide = (y0w, y1w, z_w): wider from z_w up."""
+    c = RF_SHIN_CHAMFER
+    if wide is None:
+        pts = [(y0, z0), (y1 - c, z0), (y1, z0 + c), (y1, z1), (y0, z1)]
+        skip = [(y1, z1), (y0, z1)]
+    else:
+        y0w, y1w, zw = wide
+        pts = [(y0, z0), (y1 - c, z0), (y1, z0 + c), (y1, zw), (y1w, zw + 3.0), (y1w, z1), (y0w, z1), (y0w, zw + 3.0), (y0, zw)]
+        skip = [(y1w, z1), (y0w, z1)]
+    return fillet_2d_face(Polygon(*pts, align=None).faces()[0], 2.0, skip_xy=skip)
+
+
+def rf_defined_holes() -> dict:
+    """The thigh_roll_flip screw groups of robot/body/fastening/connector_screws.json with their defined holes (official
+    standard-part definitions, robot/actuators/interfaces/standard-parts.json) registered on the shell-pass instances of
+    the right leg (robot/body/fastening/interfaces.py); the roll case's holes turned with the case. {group: [hole]}, each
+    hole with opening / axis_out (body frame, mm), depth, thread, reference engagement."""
+    import json
+    import sys
+    for d in (ROOT / "robot/body/fastening", ROOT / "robot/body"):
+        if str(d) not in sys.path:
+            sys.path.insert(0, str(d))
+    import interfaces as I
+    import screw_plan as SP
+    from checks import bodylib as BL
+    man = json.loads(RF_SHELL_PASS.read_text())
+    conn = SP.connectors()["thigh_roll_flip"]["groups"]
+    need = {g["standard_part"].replace("{S}", "R_") for g in conn.values()}
+    sub = dict(man, parts=[p for p in man["parts"] if p["name"] in need or p.get("motor")])
+    iface = I.instances(BL.Body(sub), sub)
+    a = math.radians(RF_TURN_DEG)
+    R = np.array([[math.cos(a), 0.0, math.sin(a)], [0.0, 1.0, 0.0], [-math.sin(a), 0.0, math.cos(a)]])
+    c = np.array([RF_AX, 0.0, RF_AZ])
+    out = {}
+    for gname, g in conn.items():
+        sp = g["standard_part"].replace("{S}", "R_")
+        rows = []
+        for h in SP.hole_positions(iface, sp, g["holes"]):
+            o, ax = np.asarray(h["opening"], float), np.asarray(h["axis_out"], float)
+            if sp.endswith("roll_servo_case_reference"):       # the shell-pass case hangs from the pitch link; turn it
+                o, ax = R @ (o - c) + c, R @ ax
+            rows.append(dict(hole_id=h["label"], opening=o, axis_out=ax / np.linalg.norm(ax), depth_mm=h["depth_mm"],
+                             thread=h["thread"], reference_engagement_mm=h["reference_engagement_mm"]))
+        out[gname] = rows
+    return out
+
+
+_RF_HOLES = None
+
+
+def rf_screws() -> list[dict]:
+    """Every Stage 4 screw (right leg), at its defined hole (rf_defined_holes): the sleeve spans the part's thickness
+    along the hole axis, from the clamping face (the case face) to the outer face where the head seats. The screw itself
+    (thread, standard length) is generated by robot/body/fastening/screw_plan.py when the manifest is built."""
+    global _RF_HOLES
+    if _RF_HOLES is None:
+        _RF_HOLES = rf_defined_holes()
+    faces = {"A13_roll_case_front": (RF_Y_F_IN, RF_Y_F_OUT - RF_RIB_F), "A13_roll_case_rear": (RF_Y_R_IN, RF_Y_R_OUT + RF_RIB),
+             "knee_case": (RF_KNEE_FACE_X, RF_CHEEK_X0), "knee_case_lateral": (RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1)}
+    rows = []
+    for g, holes in _RF_HOLES.items():
+        f_in, f_out = faces[g]
+        for h in holes:
+            o, ax = h["opening"], h["axis_out"]
+            k = int(np.argmax(np.abs(ax)))
+            p_in, p_out = o.copy(), o.copy()
+            p_in[k], p_out[k] = f_in, f_out
+            rows.append(dict(group=g, hole_id=h["hole_id"], opening=np.round(o, 3).tolist(), axis_out=np.round(ax, 4).tolist(),
+                             depth_mm=h["depth_mm"], thread=h["thread"], reference_engagement_mm=h["reference_engagement_mm"],
+                             mate="roll_servo_case_reference" if g.startswith("A13") else "knee_ST3025_case",
+                             head=np.round(p_out, 3).tolist(), sleeve=[np.round(p_out, 3).tolist(), np.round(p_in, 3).tolist()],
+                             stack_from_opening_mm=round(float(abs(p_out[k] - o[k])), 3)))
+    return rows
+
+
+def rf_bolts_used() -> dict:
+    """(x, z) of the roll-case ear screws in use (defined holes), per face."""
+    r = rf_screws()
+    return {"front": [(s["opening"][0], s["opening"][2]) for s in r if s["group"] == "A13_roll_case_front"],
+            "rear": [(s["opening"][0], s["opening"][2]) for s in r if s["group"] == "A13_roll_case_rear"]}
+
+
 def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
-    """Stage 4 thigh for the hanging roll case: knee interface kept, U cradle on the turned case's ear faces."""
+    """Stage 4 thigh for the hanging roll case, H-cage: plates on the roll case's ear faces (2 lower ear screws each),
+    an outboard wall and a bridge to a lateral knee cheek, the medial knee cheek on the kept end block; 2 + 2 screws per
+    actuator, every one with a sleeve."""
     if side == "L":
         r_res, r_slv = build_stage4_thigh_roll_flip("R")
         return mirror_x(r_res), [mirror_x(s) for s in r_slv]
-    bolts = rf_case_bolts()
-    yf_in, yf_cl, yf_out = RF_Y_F_IN, RF_Y_F_CLAMP, RF_Y_F_OUT
-    yr_in, yr_cl, yr_out = RF_Y_R_IN, RF_Y_R_CLAMP, RF_Y_R_OUT
+    yf_in, yf_out = RF_Y_F_IN, RF_Y_F_OUT
+    yr_in, yr_out = RF_Y_R_IN, RF_Y_R_OUT
+    z0 = RF_PLATE_Z0
+    xw0, xw1 = RF_OUT_WALL_X
+    case = rf_case_turned()
 
-    # 1. Front and rear plates on the case ear faces (XZ profile). Upper edge stays below z 186.5 so the plates stay
-    #    inside r ~15 of the roll axis on the outboard side (Stage 5 plate above), lower edge just below the case.
-    pl = [(31.0, 152.0), (70.0, 152.0), (70.0, 183.0), (67.0, 186.5), (40.5, 186.5), (31.0, 176.5)]
-    pl_face = fillet_2d_face(Polygon(*pl, align=None).faces()[0], 2.5)
-    rib = [(32.5, 153.5), (68.5, 153.5), (68.5, RF_RIB_TOP), (32.5, RF_RIB_TOP)]   # inset 1.5 mm: no grazing faces
-    rib_face = fillet_2d_face(Polygon(*rib, align=None).faces()[0], 2.5)
+    # 1. Front and rear plates on the case ear faces (XZ profile), upper edge cut back under the swept Stage 5 arms
+    #    (rf_yellow_keepout_xz); the outward rib (below RF_RIB_TOP) is flush with the plate's lower edge.
+    pl = Polygon((31.0, z0), (xw1, z0), (xw1, 178.0), (70.0, 183.0), (67.0, 186.5), (40.5, 186.5), (31.0, 176.5), align=None)
+    pl_face = fillet_2d_face(max((pl - rf_yellow_keepout_xz()).clean().faces(), key=lambda f: f.area), 2.5)
+    rib = Polygon((32.5, z0), (xw1 - 1.5, z0), (xw1 - 1.5, RF_RIB_TOP), (32.5, RF_RIB_TOP), align=None)
+    rib_face = fillet_2d_face(rib.faces()[0], 2.5, skip_xy=[(32.5, z0), (xw1 - 1.5, z0)])
     plate_f = extrude_xy_to_y(pl_face, yf_out, yf_in)
     plate_r = extrude_xy_to_y(pl_face, yr_in, yr_out)
-    rib_f = extrude_xy_to_y(rib_face, yf_out - RF_RIB, yf_out)
+    rib_f = extrude_xy_to_y(rib_face, yf_out - RF_RIB_F, yf_out)
     rib_r = extrude_xy_to_y(rib_face, yr_out, yr_out + RF_RIB)
 
     # 2. Inboard wall (YZ profile) on the case's inboard end face (the old Stage 5 deck, turned): x 38.0..43.4
-    w_face = Polygon((yf_in - 0.6, 153.15), (yr_in + 0.6, 153.15), (yr_in + 0.6, 185.5), (yf_in - 0.6, 185.5), align=None).faces()[0]
-    w_face = (w_face - Pos(7.2, 171.5) * RectangleRounded(17.0, 19.0, 3.5).faces()[0]).clean().faces()[0]
-    wall = extrude_xy_to_x(w_face, 38.0, 43.4)
+    w_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, 185.5), (yf_in - 0.6, 185.5), align=None).faces()[0]
+    w_face = (w_face - Pos(7.2, 171.5) * RectangleRounded(*RF_IN_WINDOW, 3.5).faces()[0]).clean().faces()[0]
+    wall = extrude_xy_to_x(w_face, *RF_IN_WALL_X)
 
     body = fuse_all([plate_f, plate_r, rib_f, rib_r, wall])
 
-    # 3. Old Stage 5 cradle cutters, turned with the case
+    # 3. Cutters: case envelope between the ear faces, ear-boss pockets (the bosses key the roll torque: their root
+    #    outline + RF_KEY_CLEAR), front window, horn / idler
     cutters = [
         rf_rot_box(27.0, 75.0, yf_in, yr_in, 175.0, 202.55),                      # case envelope between the ear faces
-        rf_rot_box(29.55, 55.20, -9.96, yf_in + 1.0, 182.85, 197.15),             # front boss pocket
-        rf_rot_box(38.0, 46.5, yf_out - RF_RIB - 1.0, yf_in + 1.0, 185.0, 195.0),  # front window (case screw)
-        rf_rot_box(34.15, 46.75, yr_in - 1.0, 25.5, 180.60, 199.35),              # rear boss pocket (rib kept closed)
-        occ_cyl((RF_AX, yf_out - RF_RIB - 2.0, RF_AZ), (RF_AX, yr_out + RF_RIB + 2.0, RF_AZ), 10.15),  # horn / idler
+        rf_key_pocket(case, yf_in - 0.05, yf_in + 1.0, -10.0),                    # front boss (tip y -9.9)
+        rf_rot_box(38.0, 46.5, yf_out - RF_RIB_F - 1.0, yf_in + 1.0, 185.0, 195.0),  # front window (case screw)
+        rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5),                     # rear boss (tip y 25.1; rib kept closed)
+        *([] if RF_FLOOR_WINDOW_INSET is None else            # lightening: windows through the pocket floors, inside the key walls
+          [rf_key_pocket(case, yf_in - 0.05, yf_in + 1.0, yf_out - RF_RIB_F - 1.0, -RF_FLOOR_WINDOW_INSET),
+           rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, yr_out + RF_RIB + 1.0, -RF_FLOOR_WINDOW_INSET)]),
+        occ_cyl((RF_AX, yf_out - RF_RIB_F - 2.0, RF_AZ), (RF_AX, yr_out + RF_RIB + 2.0, RF_AZ), 10.15),  # horn / idler
     ]
     sleeves = []
-    # Sleeves run through the whole plate (rib included), flush with its outer face: the heated press tip lands on a
-    # flat outer face with no counterbore around it (pressability rule, Idle M-evmrv6); screw heads seat on that face.
-    for bx_c, bz_c in bolts["front"]:  # 4 front case PA2 + sleeves, straight -Y driver channels
-        f_out = yf_out - (RF_RIB if bz_c < RF_RIB_TOP else 0.0)
-        cutters.append(occ_cyl((bx_c, f_out - 1.5, bz_c), (bx_c, yf_in + 1.0, bz_c), 1.80))
-        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, f_out, bz_c), (bx_c, yf_in, bz_c), 1.80),
-                                             [occ_cyl((bx_c, f_out - 0.5, bz_c), (bx_c, yf_in + 0.5, bz_c), 1.1)])))
-    for bx_c, bz_c in bolts["rear"]:   # 4 rear case PA2 + sleeves, straight +Y driver channels
-        r_out = yr_out + (RF_RIB if bz_c < RF_RIB_TOP else 0.0)
-        cutters.append(occ_cyl((bx_c, yr_in - 1.0, bz_c), (bx_c, r_out + 1.5, bz_c), 1.80))
-        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yr_in, bz_c), (bx_c, r_out, bz_c), 1.80),
-                                             [occ_cyl((bx_c, yr_in - 0.5, bz_c), (bx_c, r_out + 0.5, bz_c), 1.1)])))
-    new_sol = bevel_3d_edges(largest_solid(cut_all(body, cutters)), r_outer=0.40, r_inner=0.75)
+    screws = rf_screws()
+    # Sleeves run through the whole plate (rib included), flush with its outer face: the heated press tip lands on a flat
+    # outer face with no counterbore (pressability rule, Idle M-evmrv6); screw heads seat on that face.
+    for s in screws:
+        if s["mate"] != "roll_servo_case_reference":
+            continue
+        (ax_, ay_, az_), (bx_, by_, bz_) = s["sleeve"]
+        d = 1.0 if by_ > ay_ else -1.0
+        cutters.append(occ_cyl((ax_, ay_ - 1.5 * d, az_), (bx_, by_ + 1.0 * d, bz_), RF_SLEEVE_R))
+        sleeves.append(rf_sleeve(s["sleeve"][0], s["sleeve"][1]))
+    new_sol = largest_solid(cut_all(body, cutters))
 
-    # 4. Knee interface: the medial end of the current (motor-refit) thigh's end block (above z 155.5), and a new cheek
-    #    on the knee case's medial face. The motor-refit cheek kept four bored bosses of the old C047 knee pattern
-    #    (y -6.25 / 14.25, z 131.3 / 152): their axes miss the case's holes (2.5 / 12.1 mm) and stand beside the case
-    #    (bosses out to y -9.4 / 17.4 against case y -6 .. 14). The new cheek is the case's width and carries only the
-    #    case's five open threaded holes; screws enter from the medial side (straight -x drivers), heads on x 29.0.
-    knee = largest_solid(occ_common(rf_current_step("R_thigh_combined"), occ_box(*RF_KNEE_KEEP)))
+    # 4. Outboard wall on the case's outboard end face (x RF_CASE_END_X) and the bridge over the knee case top to the
+    #    lateral cheek; fused after the case-envelope cutter (which reaches x 71)
+    o_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, RF_OUT_WALL_TOP), (yf_in - 0.6, RF_OUT_WALL_TOP), align=None).faces()[0]
+    o_face = (o_face - Pos(7.2, 167.0) * RectangleRounded(*RF_OUT_WINDOW, 3.5).faces()[0]).clean().faces()[0]
     cy0, cy1 = RF_CHEEK_Y
-    ck = Polygon((cy0, RF_CHEEK_Z0), (cy1, RF_CHEEK_Z0), (cy1, 154.0), (cy0, 154.0), align=None).faces()[0]
-    ck = fillet_2d_face(ck, 2.0, skip_xy=[(cy1, 154.0), (cy0, 154.0)])
-    cheek = [extrude_xy_to_x(ck, RF_CHEEK_X0, RF_KNEE_FACE_X),
-             # above the knee case top (z 153) the cheek widens into the kept end block
+    late = [extrude_xy_to_x(o_face, xw0, xw1),
+            # the bridge is 0.5 mm narrower than the cheek and ends inside it (no coplanar side / end faces to fillet)
+            extrude_xy_to_x(Polygon((cy0 + 0.5, z0), (cy1 - 0.5, z0), (cy1 - 0.5, RF_BRIDGE_Z1), (cy0 + 0.5, RF_BRIDGE_Z1),
+                                    align=None).faces()[0], xw0, RF_LAT_CHEEK_X1 - 2.0),
+            # lateral knee cheek on the case's lateral face (x 73.15 .. 77.3), hung from the bridge
+            extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, RF_BRIDGE_Z1), RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1)]
+    new_sol = bevel_3d_edges(largest_solid(fuse_all([new_sol, *late])), r_outer=0.40, r_inner=0.75)
+
+    # 5. Knee interface. Medial: the end of the current (motor-refit) thigh's end block (above z 155.5) and the medial
+    #    cheek on the knee case's medial face (x 29.0 .. 33.15), widened around the corner sleeves (the lateral cheek is
+    #    in step 4). Screws along x, heads on the cheeks' outer faces, each through a sleeve.
+    knee = largest_solid(occ_common(rf_current_step("R_thigh_combined"), occ_box(*RF_KNEE_KEEP)))
+    y0w, y1w = RF_MED_CHEEK_Y
+    cheek = [extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, 154.0, wide=(y0w, y1w, RF_MED_WIDE_Z0)), RF_CHEEK_X0, RF_KNEE_FACE_X),
              occ_box(RF_END_X0, RF_KNEE_FACE_X, -13.0, 20.0, 153.0, 156.0),
-             # the 2 mm thicker medial layer tapers into the end block's medial face (x 31) above the knee case
-             poly_prism_y([(RF_CHEEK_X0, 150.0), (RF_END_X0, 150.0), (RF_END_X0, 158.0), (RF_CHEEK_X0, 154.0)], cy0, cy1),
+             poly_prism_y([(RF_CHEEK_X0, 150.0), (RF_END_X0, 150.0), (RF_END_X0, 158.0), (RF_CHEEK_X0, 154.0)], y0w, y1w),
              occ_box(RF_KNEE_FACE_X, 34.5, RF_Y_F_OUT, cy0, 153.0, 156.0),   # flush with the front plate face (no 0.14 mm edge)
              occ_box(RF_KNEE_FACE_X, 34.5, cy1, 20.0, 153.0, 156.0)]
     knee = fuse_all([knee, *cheek])
-    knee_holes = [occ_cyl((RF_CHEEK_X0 - 1.0, ky, kz), (RF_KNEE_FACE_X + 1.0, ky, kz), 1.20) for ky, kz in RF_KNEE_SCREWS]
-    knee = largest_solid(cut_all(knee, knee_holes))
     # the old arm stubs of the kept end block stand 1.55 / 1.35 mm proud of the plate ribs next to the inboard case-ear
     # sleeves: trim them back to the rib faces there, so the dia 8 press tip lands on a flat face (Idle M-evmrv6)
-    knee = largest_solid(cut_all(knee, [occ_box(40.0, 43.5, yf_out - RF_RIB - 5.0, yf_out - RF_RIB, 150.0, 164.0),
+    knee = largest_solid(cut_all(knee, [occ_box(40.0, 43.5, yf_out - RF_RIB_F - 5.0, yf_out - RF_RIB_F, 150.0, 164.0),
                                         occ_box(40.0, 43.5, yr_out + RF_RIB, yr_out + RF_RIB + 5.0, 150.0, 164.0)]))
 
-    # 5. Shell posts (thigh covers are being redesigned): moved down to z 170, below the Stage 5 arms' sweep
+    # 6. Shell posts (thigh covers): unchanged
     posts, post_cut = [], []
     for (px, pz), tip, nut in RF_POSTS:
-        posts.append(bevel_3d_edges(occ_cyl((px, tip, pz), (px, yf_out - RF_RIB + 0.3, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
+        posts.append(bevel_3d_edges(occ_cyl((px, tip, pz), (px, yf_out - RF_RIB_F + 0.3, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
         post_cut += [occ_cyl((px, tip - 2.0, pz), (px, yf_out - 0.2, pz), 1.70), make_captive_nut_pocket((px, nut, pz), (0.0, 1.0, 0.0))]
     for (px, pz), tip, nut in RF_POSTS_R:
         posts.append(bevel_3d_edges(occ_cyl((px, yr_out + RF_RIB - 0.3, pz), (px, tip, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
         post_cut += [occ_cyl((px, yr_out + 0.8, pz), (px, tip + 2.0, pz), 1.70), make_captive_nut_pocket((px, nut, pz), (0.0, -1.0, 0.0))]
+    # knee screw sleeve bores through both cheeks (cut after the fuse: the medial cheek is the end block's)
+    for s in screws:
+        if s["mate"] != "knee_ST3025_case":
+            continue
+        (ax_, ay_, az_), (bx_, by_, bz_) = s["sleeve"]
+        d = 1.0 if bx_ > ax_ else -1.0
+        post_cut.append(occ_cyl((ax_ - 1.5 * d, ay_, az_), (bx_ + 1.0 * d, by_, bz_), RF_SLEEVE_R))
+        sleeves.append(rf_sleeve(s["sleeve"][0], s["sleeve"][1]))
     res = largest_solid(cut_all(fuse_all([new_sol, knee, *posts]), post_cut))
     return res, sleeves
 
@@ -900,6 +1100,38 @@ def rf_polymer_density(pname: str) -> tuple[str, float]:
     return mat, rf_density(mat)
 
 
+def rf_yellow_clearance(s4: Shape, s5: list, step_deg: float = 1.0) -> dict:
+    """Minimum distance (mm) from the Stage 4 surface to the Stage 5 parts (pitch link) turned about the roll axis over
+    RF_ROLL_SWEEP (thigh frame: Stage 5 turns by -roll), and over the manifest range -30..25; surface samples 0.2 mm."""
+    import trimesh
+    from scipy.spatial import cKDTree
+
+    def mesh(sh):
+        v, f = sh.tessellate(0.02, 0.2)
+        return trimesh.Trimesh([(p.X, p.Y, p.Z) for p in v], f, process=True)
+    m4 = mesh(s4)
+    q4 = np.vstack([trimesh.sample.sample_surface_even(m4, int(m4.area / 0.2 ** 2), seed=1)[0], m4.vertices])
+    T = cKDTree(q4)
+    pts = []
+    for sh in s5:
+        m = mesh(sh)
+        pts.append(np.vstack([trimesh.sample.sample_surface_even(m, int(m.area / 0.2 ** 2), seed=1)[0], m.vertices]))
+    P = np.vstack(pts) - [RF_AX, 0.0, RF_AZ]
+    out = {}
+    for lo, hi, key in ((RF_ROLL_SWEEP[0], RF_ROLL_SWEEP[1], "sweep"), (-30.0, 25.0, "manifest_range")):
+        best = (np.inf, None, None)
+        for q in np.arange(lo, hi + 1e-9, step_deg):
+            a = math.radians(-q)        # Ry(a) (URDF sign) of the Stage 5 about the roll axis in the thigh frame
+            R = np.array([[math.cos(a), 0, math.sin(a)], [0, 1, 0], [-math.sin(a), 0, math.cos(a)]])
+            X = P @ R.T + [RF_AX, 0.0, RF_AZ]
+            d, _ = T.query(X, distance_upper_bound=8.0)
+            j = int(np.argmin(d))
+            if d[j] < best[0]:
+                best = (float(d[j]), float(q), X[j])
+        out[key] = {"roll_deg": [lo, hi], "min_mm": round(best[0], 3), "at_roll_deg": best[1], "at_mm": np.round(best[2], 2).tolist()}
+    return out
+
+
 def build_roll_flip():
     import json
     rho = {"PETG_CF": rf_density("Bambu PETG-CF"), "Steel_Sleeve": MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3}
@@ -911,9 +1143,10 @@ def build_roll_flip():
         ("stage5_hip_pitch_to_roll_roll_flip", "R", "R_hip_pitch_to_roll_roll_flip", "R_pitch_link", lambda: build_stage5_pitch_to_roll_roll_flip("R")),
         ("stage5_hip_pitch_to_roll_roll_flip", "L", "L_hip_pitch_to_roll_roll_flip", "L_pitch_link", lambda: build_stage5_pitch_to_roll_roll_flip("L")),
     ]
-    rows = []
+    rows, built = [], {}
     for stage, side, pname, link, fn in configs:
         sol, sleeves = fn()
+        built[pname] = (sol, sleeves)
         step_p, stl_p = parts_dir / f"{pname}.step", parts_dir / f"{pname}.stl"
         sol = export_part_and_mesh(sol, step_p, stl_p)
         sl_name = f"{pname}_steel_sleeves"
@@ -940,6 +1173,8 @@ def build_roll_flip():
         })
         print(f"Built {pname:34s}: valid={sol.is_valid}, solids={len(sol.solids())}, polymer={vol * rho_p:.2f} g ({mat}), "
               f"sleeves={len(sleeves)} ({sl_vol * rho['Steel_Sleeve']:.2f} g)", flush=True)
+    yellow = rf_yellow_clearance(built["R_thigh_roll_flip"][0], [built["R_hip_pitch_to_roll_roll_flip"][0], *built["R_hip_pitch_to_roll_roll_flip"][1]])
+    print(f"Stage 4 to the swept Stage 5 (roll {RF_ROLL_SWEEP[0]:+.0f}..{RF_ROLL_SWEEP[1]:+.0f}): {yellow}", flush=True)
     manifest = {
         "family": "cove50-upper-hip-fdm-roll-flip",
         "idle_task": "T-fs5v6d (parent T-czv2d8)",
@@ -947,9 +1182,14 @@ def build_roll_flip():
         "frame": "current assembly frame (artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json); left = mirror x",
         "roll_case_turn": {"axis_point_mm": [RF_AX, None, RF_AZ], "axis": [0, 1, 0], "deg": RF_TURN_DEG,
                            "convention": "Ry(deg) about the roll axis, URDF sign (roll_options.Ry)"},
-        "case_ear_bolts_xz_mm": rf_case_bolts(),
-        "knee_case_screws_yz_mm": {"sites": RF_KNEE_SCREWS, "axis": "x", "head_face_x": RF_CHEEK_X0,
-                                   "case_face_x": RF_KNEE_FACE_X, "note": "right leg; left = mirror x"},
+        "case_ear_bolts_xz_mm": rf_bolts_used(),
+        "screws": {"rows": rf_screws(), "note": "right leg (left = mirror x); head = point on the seat face, axis head -> tip; "
+                   "every screw has a steel sleeve over the part's thickness ('sleeve' span); PA2 self-tapping into the case hole"},
+        "h_cage": {"owner": "2026-11-19 (H connector, 2 + 2 screws per actuator, upper roll-case screws removed)",
+                   "plate_lower_edge_z": RF_PLATE_Z0, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
+                   "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1], "shin_chamfer_mm": RF_SHIN_CHAMFER,
+                   "key_pocket_clearance_mm": RF_KEY_CLEAR, "roll_sweep_deg": list(RF_ROLL_SWEEP),
+                   "yellow_margin_mm": RF_YELLOW_MARGIN, "yellow_clearance": yellow},
         "parts": rows,
         "source_code": {"path": rel(Path(__file__).resolve()), "sha256": sha(Path(__file__).resolve())},
     }
