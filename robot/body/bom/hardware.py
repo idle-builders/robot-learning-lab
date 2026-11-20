@@ -65,8 +65,8 @@ def kind_of(p):
         return "spacer"
     if "washer" in n:
         return "washer"
-    if k == "other_hardware" and thread_of(p["name"]):
-        return "screw"     # e.g. fan_M3_11_430: a fan screw named by thread and position
+    if k == "other_hardware" and (thread_of(p["name"]) or re.search(r"(^|_)screw(_|\d|$)", n)):
+        return "screw"     # fan_M3_11_430 (thread and position); shoulder_u_roll_horn_screw_0 (thread and length measured)
     return k
 
 

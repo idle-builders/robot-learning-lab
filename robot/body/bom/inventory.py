@@ -61,6 +61,7 @@ MANIFEST_CHAIN = [
     ("robot/body/leg/roll_flip_checks.py manifest", "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"),
     ("robot/body/leg/thigh_shell.py build", "(edits assembly-parts-roll-flip.json in place)"),
     ("robot/body/leg/thigh_shell.py shin-cover", "(edits assembly-parts-roll-flip.json in place)"),
+    ("robot/body/arm/shoulder_clevis.py build + manifest", "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json"),
 ]
 
 PRINTED_ROLES = {"printed_structural_connector", "printed_structural_carrier", "body_shell", "produced_backing",
