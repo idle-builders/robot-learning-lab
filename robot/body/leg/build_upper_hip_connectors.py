@@ -811,13 +811,15 @@ def rf_ear_boss_outline(case: Shape, y_root: float) -> Face:
 def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow: float | None = None) -> Solid:
     """Pocket for an ear boss: the bounding rectangle (x, z) of its root outline grown by RF_KEY_CLEAR per side (or by
     `grow`, negative = inside), corners rounded RF_KEY_CORNER_R (smaller than the boss's own corner rounding, so the
-    flat sides key and the corners stay clear), from y_in (inside the case envelope) to y_floor. A box, not the outline
-    offset: the offset outline's edges make the part unmeshable for gmsh."""
+    flat sides key and the corners stay clear), from y_in (inside the case envelope) to y_floor, open upward. A box, not
+    the outline offset: the offset outline's edges make the part unmeshable for gmsh."""
     b = rf_ear_boss_outline(case, y_root).bounding_box()
     g = RF_KEY_CLEAR if grow is None else grow
     x0, x1, z0, z1 = b.min.X - g, b.max.X + g, b.min.Z - g, b.max.Z + g
     if grow is not None:     # a lightening window: stays 3 mm under the plates' upper edge (the hub keep-out arc)
         z1 = min(z1, RF_AZ - (RF_ROLL_HUB_R + RF_YELLOW_MARGIN) - 3.0)
+    else:                    # the key pocket runs out through the plate's upper edge: the cage rises onto the hanging
+        z1 = RF_AZ           # case from below (+z), so the bosses must pass up the pockets (a closed top blocked it)
     f = Pos(0.5 * (x0 + x1), 0.5 * (z0 + z1)) * RectangleRounded(x1 - x0, z1 - z0, RF_KEY_CORNER_R if grow is None else 2.0)
     return extrude_xy_to_y(f.faces()[0], min(y_in, y_floor), max(y_in, y_floor))
 
