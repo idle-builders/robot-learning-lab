@@ -67,6 +67,21 @@ def screw_probe_points(g):
     return np.array(shank + head), len(shank)
 
 
+def screw_from_bounds(p, nominal):
+    """Screw geometry for a screw row without a usable mesh (L/R_wrist_M3x8_1..4 carry bounds only): the axis along the
+    longest extent of its bounds through their centre, shank radius from the thread in its name, no head (rings only)."""
+    th = nominal(p["name"]).get("thread", "")
+    try:
+        rs = float(th[1:]) / 2.0 if th.upper().startswith("M") else None
+    except ValueError:
+        rs = None
+    if not rs or not p.get("bounds_mm"):
+        return None
+    b = np.array(p["bounds_mm"], float); ext = b[1] - b[0]; i = int(np.argmax(ext))
+    d = np.eye(3)[i]; h = b.mean(0) - 0.5 * ext[i] * d
+    return {"_d": d, "_head": h, "head_height_mm": 0.0, "length_mm": float(ext[i]), "r_shank_mm": rs, "r_head_mm": rs}
+
+
 def solid(ctx, n):
     """(probe mesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid().
     The probe mesh is what the screw points are tested against: the screening mesh when it is watertight, else the
@@ -90,8 +105,9 @@ def solid(ctx, n):
 
 def build_graph(ctx):
     sys.path.insert(0, str(ROOT / "robot/body/fastening"))
-    from mount_check import kind, screw_geometry
+    from mount_check import kind, nominal, screw_geometry
     body = ctx.body
+    screws_from_bounds, screws_unprobed = ctx.__dict__.setdefault("_conn_screws_from_bounds", []), ctx.__dict__.setdefault("_conn_screws_unprobed", [])
     parts = body.parts
     nodes = [n for n, p in parts.items() if kind(p) is None and (not BL.is_fastener(n, p) or p.get("role") == "compression_limit_sleeves")]
     q0 = body.standing
@@ -117,13 +133,19 @@ def build_graph(ctx):
     # screws: rings around the shank at several radii, and under the head, in the screw's manifest (neutral) frame,
     # mapped to world at standing; a part is held by the screw when it encircles the shank or bears the head
     t0 = time.time()
-    for k, p in parts.items():
+    # checks.bodylib.Body keeps only rows with a mesh: screw rows without one (L/R_wrist_M3x8_1..4) come from the raw manifest
+    raw = {p["name"]: p for p in json_manifest(ctx).get("parts", []) if p.get("name") not in parts and p.get("owning_link") in T}
+    for k, p in list(parts.items()) + list(raw.items()):
         if kind(p) != "screw":
             continue
         try:
             g = screw_geometry(BL.load_mesh(p["mesh"]))
         except Exception:  # noqa: BLE001
-            continue
+            g = screw_from_bounds(p, nominal)
+            if g is None:
+                screws_unprobed.append(k)
+                continue
+            screws_from_bounds.append(k)
         pts, shank_n = screw_probe_points(g)
         Ts = T[p["owning_link"]]
         pw = pts @ Ts[:3, :3].T + Ts[:3, 3]
@@ -175,10 +197,18 @@ def build_graph(ctx):
     return nodes, edges
 
 
-def json_joints(ctx):
+def json_manifest(ctx):
     import json
-    man = json.loads(open(ctx.manifest).read())
-    return man.get("joints", [])
+    if "_conn_manifest" not in ctx.__dict__:
+        man = json.loads(open(ctx.manifest).read())
+        if isinstance(man.get("parts"), dict):
+            man["parts"] = [{"name": k, **v} for k, v in man["parts"].items()]
+        ctx.__dict__["_conn_manifest"] = man
+    return ctx.__dict__["_conn_manifest"]
+
+
+def json_joints(ctx):
+    return json_manifest(ctx).get("joints", [])
 
 
 @register("connectivity", lambda ctx: bool(ctx.body.parts))
@@ -261,9 +291,11 @@ def run(ctx):
     hows = {}
     for n, (_, h, _) in ctx.__dict__.get("_conn_solids", {}).items():
         hows.setdefault(h, []).append(n)
-    return dict(solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h or "approximate" in h},
+    return dict(screws_probed_from_bounds=ctx.__dict__.get("_conn_screws_from_bounds", []), screws_not_probed=ctx.__dict__.get("_conn_screws_unprobed", []),
+                solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h or "approximate" in h},
                 per_part=per, core=core, worst_cases=cases, bad_events=dict(parts=len(nodes), isolated_parts=len(isolated), groups_not_reaching_core=len(groups),
-                parts_not_reaching_core=len(unreached), parts_reaching_core_by_contact_only=len(contact_only), contact_only_break_points=len(breaks), **{f"edges_{k}": v for k, v in kinds.items()}),
+                parts_not_reaching_core=len(unreached), parts_reaching_core_by_contact_only=len(contact_only), contact_only_break_points=len(breaks), **{f"edges_{k}": v for k, v in kinds.items()},
+                screws_probed_from_bounds=len(ctx.__dict__.get("_conn_screws_from_bounds", [])), screws_not_probed=len(ctx.__dict__.get("_conn_screws_unprobed", []))),
                 evidence=[], contact_only_breaks=[dict(from_part=a, to_part=b, parts_beyond=k) for a, b, k in breaks], groups_not_reaching_core=groups, isolated=isolated, contact_only=contact_only,
                 notes=f"screw edge = the part encircles the shank (>= {ENCIRCLE} of 8 ring points inside at one station, every {STATION_MM} mm, rings at r_shank + {RING_RADII_MM} mm) or the head "
                       f"or bears the head (>= {HEAD_BEAR} of 8 points 0.3 / 0.8 mm under the head) at standing; "
