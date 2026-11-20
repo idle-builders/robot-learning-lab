@@ -905,7 +905,80 @@
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
-          ]
+          ],
+          "mesh_h_mm": 0.9,
+          "convergence": {
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (commit 31979a94b build)",
+            "levels": [
+              {
+                "h_from": "1.2",
+                "h_to": "0.9",
+                "nodes": "9649 -> 17821",
+                "p99_change_pct": "+6.1..+7.7 (envelope max and p50, PAHT-CF / PETG-CF, support / recovery)",
+                "max_displacement_change_pct": "+12.3..+13.3"
+              },
+              {
+                "h_from": "0.9",
+                "h_to": "0.7",
+                "nodes": "17821 -> 30892",
+                "p99_change_pct": "+3.0..+3.1 (recovery envelope p50 / p90 / max, PAHT-CF)",
+                "p99_layer_tension_change_pct": "+5.2 (max)",
+                "max_displacement_change_pct": "+6.8 (max)"
+              }
+            ],
+            "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
+            "stored_h_result": "0.9",
+            "converged": true,
+            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 31.1 MPa, strength ratio min 2.83, layer ratio min 3.35, displacement max 1.22 mm, 0 wrenches below 1"
+          }
+        },
+        "shoulder_u_convergence": {
+          "_doc": "Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.",
+          "load": [
+            {
+              "holes": {
+                "of": "R_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            },
+            {
+              "holes": {
+                "of": "R_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_rear_idler"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF"
+          ],
+          "load_cases": {
+            "recovery_4kg_1p5g": {
+              "hand_envelope": {
+                "force_N": 58.84,
+                "hand_parts": [
+                  "R_palm_*",
+                  "R_left_finger",
+                  "R_right_finger"
+                ],
+                "stage_link": "R_shoulder_pitch_link",
+                "step_deg": 15.0,
+                "directions": 96,
+                "cone_deg": 30.0
+              }
+            }
+          }
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -7093,7 +7166,80 @@
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
-          ]
+          ],
+          "mesh_h_mm": 0.9,
+          "convergence": {
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (commit 31979a94b build)",
+            "levels": [
+              {
+                "h_from": "1.2",
+                "h_to": "0.9",
+                "nodes": "9649 -> 17821",
+                "p99_change_pct": "+6.1..+7.7 (envelope max and p50, PAHT-CF / PETG-CF, support / recovery)",
+                "max_displacement_change_pct": "+12.3..+13.3"
+              },
+              {
+                "h_from": "0.9",
+                "h_to": "0.7",
+                "nodes": "17821 -> 30892",
+                "p99_change_pct": "+3.0..+3.1 (recovery envelope p50 / p90 / max, PAHT-CF)",
+                "p99_layer_tension_change_pct": "+5.2 (max)",
+                "max_displacement_change_pct": "+6.8 (max)"
+              }
+            ],
+            "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %",
+            "stored_h_result": "0.9",
+            "converged": true,
+            "at_h_0p7": "recovery PAHT-CF over 8310 wrenches: p99 max 31.1 MPa, strength ratio min 2.83, layer ratio min 3.35, displacement max 1.22 mm, 0 wrenches below 1"
+          }
+        },
+        "shoulder_u_convergence": {
+          "_doc": "Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.",
+          "load": [
+            {
+              "holes": {
+                "of": "L_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            },
+            {
+              "holes": {
+                "of": "L_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_rear_idler"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF"
+          ],
+          "load_cases": {
+            "recovery_4kg_1p5g": {
+              "hand_envelope": {
+                "force_N": 58.84,
+                "hand_parts": [
+                  "L_palm_*",
+                  "L_left_finger",
+                  "L_right_finger"
+                ],
+                "stage_link": "L_shoulder_pitch_link",
+                "step_deg": 15.0,
+                "directions": 96,
+                "cone_deg": 30.0
+              }
+            }
+          }
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
