@@ -78,12 +78,13 @@ def build_right():
     lens = st["head_types"]["ISO 4762"]["M3"]["lengths"]
     L = min(l for l in lens if window_stack(l, pt, ref) >= h0["opening"][2] - DECK_BOTTOM)   # seat at or below the deck: no deck cut
     stack = window_stack(L, pt, ref)
-    seat = h0["opening"][2] - stack
+    seat = round(h0["opening"][2] - stack, 2)
     print(f"yaw: M3x{L:g}, ref engagement {ref}, hole depth {depth}, stack {stack:.2f}, head seat z {seat:.2f}", flush=True)
     chan, add, cut, new_sleeves = [], [], [], []
     for h in yaw:
-        x, y, z0 = h["opening"]
+        x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
         add.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R))
+        add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
         chan += [C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R), C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
