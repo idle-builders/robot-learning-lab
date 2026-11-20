@@ -631,7 +631,39 @@ def _vm_batch(st):
 
 
 def _wq_batch(vals, v, q):
-    """Volume-weighted quantile q of every row of vals (n, E) with element volumes v (E,), linear between sorted elements as volume_quantiles."""
+    """Volume-weighted quantile q of every row of vals (n, E) with element volumes v (E,), linear between sorted elements as volume_quantiles.
+    For q >= 0.9 only the top slice of each row is sorted (argpartition, linear time): the slice holds the largest k elements with k chosen so that
+    even the smallest elements fill 2 x (1 - q) of the volume; rows whose slice does not reach (1 - q) of the volume fall back to the full sort."""
+    if q >= 0.9:
+        E = vals.shape[1]
+        tail = (1.0 - q) * float(v.sum())
+        vs = np.sort(v)
+        k = int(min(E - 1, max(2, np.searchsorted(np.cumsum(vs), 2.0 * tail) + 2)))
+        idx = np.argpartition(vals, E - k, axis=1)[:, E - k:]                 # the k largest per row (unordered)
+        top = np.take_along_axis(vals, idx, axis=1)
+        o = np.argsort(-top, axis=1)
+        top, vt = np.take_along_axis(top, o, axis=1), v[np.take_along_axis(idx, o, axis=1)]
+        cum_top = np.cumsum(vt, axis=1)                                       # volume above-or-at each sorted value, from the top
+        ok = cum_top[:, -1] >= tail
+        out = np.empty(len(vals))
+        if ok.any():
+            # cum from below at the element with rank j from the top = total - cum_top[j] + vt[j]; quantile where cum_below/total crosses q
+            tot = float(v.sum())
+            r = np.flatnonzero(ok)
+            cb = (tot - cum_top[r] + vt[r]) / tot                            # decreasing along the row
+            j = np.clip((cb >= q).sum(axis=1), 1, k - 1)                     # first rank (from the top) whose cum_below < q
+            rr = np.arange(len(r))
+            hi_v, lo_v = top[r, j - 1], top[r, j]
+            c_hi, c_lo = cb[rr, j - 1], cb[rr, j]
+            t = np.clip((q - c_lo) / np.maximum(c_hi - c_lo, 1e-12), 0.0, 1.0)
+            out[r] = lo_v + t * (hi_v - lo_v)
+        if (~ok).any():
+            out[~ok] = _wq_batch_full(vals[~ok], v, q)
+        return out
+    return _wq_batch_full(vals, v, q)
+
+
+def _wq_batch_full(vals, v, q):
     order = np.argsort(vals, axis=1)
     sv = np.take_along_axis(vals, order, axis=1)
     cum = np.cumsum(v[order], axis=1); cum /= cum[:, -1:]

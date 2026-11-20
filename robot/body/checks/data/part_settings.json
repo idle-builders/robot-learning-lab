@@ -873,6 +873,39 @@
               }
             }
           }
+        },
+        "shoulder_u": {
+          "_doc": "Stage 1 as the owner's blue U (Idle T-2e49mv, decisions M-e9bjtf / M-s9tnc9; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid patch (the STS3250's aluminium case ties horn and idler; the wrench acts at their centroid). Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "load": [
+            {
+              "holes": {
+                "of": "R_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            },
+            {
+              "holes": {
+                "of": "R_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_rear_idler"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ]
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -891,16 +924,17 @@
       "printer": "Bambu X2D",
       "material": "Bambu PAHT-CF",
       "layer_normal_axes": [
-        "y"
+        "z"
       ],
-      "up": "+y",
+      "up": [
+        -0.164399,
+        0.0,
+        0.986394
+      ],
       "material_alternatives": [
         "Bambu PETG-CF"
       ],
-      "seeded": "up from manifest print_orientation 'XZ Roll-Horn Flange Bed (layer normal Y)'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (20.3, 867.3), '-y': (20.3, 870.0)}; SIGN AMBIGUOUS",
-      "seeded_keys": [
-        "up"
-      ]
+      "up_source": "designed (Idle T-2e49mv, robot/body/arm/shoulder_clevis.py): the green U is printed on its plate bottom (yaw-saddle plane), up = the yaw-local normal, 9.5 deg off +z; layer_normal_axes z = the nearest axis, used by the FEM because up is not along an axis"
     },
     "fem": {
       "_doc": "Arm stage 2 (R_shoulder_roll_to_yaw). Supports: the sleeve sites at the roll C047 motor case (today's body: the old 'roll main horn' interface is the roll case here); load: the sleeve sites at the yaw C047 motor case. Load cases: the arm load envelope (load_cases_doc); the old ARM_LOAD_WRENCHES are the variant short_arm_wrenches. Sleeve sites come from the sleeve companion part's bores, so they follow the part. Regions: 304 steel collars 0.7 mm around every sleeve bore (0.25 mm beyond the ends); no metal seat regions (the parts carry no metal inserts except the sleeves; the polymer under the Al servo cases is polymer). Sleeves are told apart by their axis (roll-case sleeves point along y, yaw-case sleeves along the yaw axis): one yaw-case sleeve sits 0.5 mm from the roll case and would otherwise be clamped and loaded. The load patch is rigid (all its nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend independently.",
@@ -1171,6 +1205,13 @@
               }
             }
           }
+        },
+        "shoulder_u": {
+          "_doc": "Stage 2 as the simplified green U (Idle T-2e49mv, decisions M-e9bjtf / M-s9tnc9; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ]
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -7016,6 +7057,39 @@
               }
             }
           }
+        },
+        "shoulder_u": {
+          "_doc": "Stage 1 as the owner's blue U (Idle T-2e49mv, decisions M-e9bjtf / M-s9tnc9; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid patch (the STS3250's aluminium case ties horn and idler; the wrench acts at their centroid). Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "load": [
+            {
+              "holes": {
+                "of": "L_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            },
+            {
+              "holes": {
+                "of": "L_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_rear_idler"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ]
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -7024,16 +7098,23 @@
   "L_shoulder_roll_to_yaw_combined": {
     "process": {
       "printer": "Bambu X2D",
-      "up": "+y",
+      "up": [
+        0.164399,
+        0.0,
+        0.986394
+      ],
       "material": "Bambu PAHT-CF",
       "material_alternatives": [
         "Bambu PETG-CF"
       ],
       "seeded": "up from manifest print_orientation 'XZ Roll-Horn Flange Bed (layer normal Y)'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (20.3, 867.3), '-y': (20.3, 870.0)}; SIGN AMBIGUOUS; material from manifest text 'Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3)'",
       "seeded_keys": [
-        "up",
         "material"
-      ]
+      ],
+      "layer_normal_axes": [
+        "z"
+      ],
+      "up_source": "designed (Idle T-2e49mv, robot/body/arm/shoulder_clevis.py): the green U is printed on its plate bottom (yaw-saddle plane), up = the yaw-local normal, 9.5 deg off +z; layer_normal_axes z = the nearest axis, used by the FEM because up is not along an axis"
     },
     "fem": {
       "mesh_h_mm": 1.2,
@@ -7275,6 +7356,13 @@
               }
             }
           }
+        },
+        "shoulder_u": {
+          "_doc": "Stage 2 as the simplified green U (Idle T-2e49mv, decisions M-e9bjtf / M-s9tnc9; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ]
         }
       },
       "load_cases_doc": "Load cases (T-ysng9c, owner decision M-s8gt2p 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
