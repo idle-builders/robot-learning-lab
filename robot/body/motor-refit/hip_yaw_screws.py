@@ -119,7 +119,9 @@ def build_right():
         for yw in yaw:
             if abs(y - yw["opening"][1]) < 2.0 and abs(z - 247.0) < 3.0 and reaches(yw):
                 sg = 1.0 if y > yw["opening"][1] else -1.0
-                ribs.append(C.box((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f + 0.5, max(y, y + sg * RIB_LEN), z + RIB_H)))
+                # ends at the seat plane: the head pocket (cut from seat_f outward) only trims inside its radius, so a rib
+                # reaching seat_f + 0.5 like the pads left a 0.5 mm ledge round the sleeve end (press support 73 -> 45 %)
+                ribs.append(C.box((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f, max(y, y + sg * RIB_LEN), z + RIB_H)))
     P = C.fuse(P, *ribs) if ribs else P
     P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
     P = C.fuse(P, *add, *fpads)
