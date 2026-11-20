@@ -1,12 +1,15 @@
-"""Owner drawing sheet of the roll-flip thigh connector (R_thigh_roll_flip): front (from -y), side (from +x), top (from +z),
-section A-A at x 45.75 (inboard ear-screw column) and section B-B at z 143 (lateral knee screws), parts in their assembly
-colours with the generated screws, used / removed screw sites marked, the blue thigh shell dashed in the sections, and an
-info box (measurements typed in the sheet's JSON from the check reports).
+"""Owner drawing sheet of a roll-flip connector: front (from -y), side (from +x), top (from +z), two sections, parts in
+their assembly colours with the generated screws, used / removed screw sites marked, the blue thigh shell dashed in the
+sections, and an info box (measurements typed in the sheet's JSON from the check reports). Default: the thigh connector
+(R_thigh_roll_flip; section A-A at x 45.75, B-B at z 143). The sheet JSON may set "focus" (the connector drawn opaque with
+its _steel_sleeves; the yellow Stage 5 R_hip_pitch_to_roll_roll_flip draws the pitch-link screws and the green yaw-to-pitch
+connector instead of the shin), "clip" and "sections" ([{axis, value, uv, lims, title}, ...]).
 
   .venv/bin/python -B robot/body/hip-shell/sections/thigh_connector_sheet.py \
       artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json \
       robot/body/hip-shell/sections/drawing-sheets/roll-flip/thigh-connector-h-cage.png \
       robot/body/hip-shell/sections/thigh-connector-h-cage.json
+  (Stage 5: ... drawing-sheets/roll-flip/hip-pitch-to-roll-stage5.png robot/body/hip-shell/sections/hip-pitch-to-roll-stage5.json)
 (derived; recreate with this command)"""
 import sys, json
 from pathlib import Path
@@ -22,24 +25,39 @@ man_f, out_png, info_f = sys.argv[1], sys.argv[2], sys.argv[3]
 INFO = json.loads(Path(info_f).read_text())
 man = json.loads(Path(man_f).read_text())
 P = {p["name"]: p for p in man["parts"]}
-CONN = P["R_thigh_roll_flip"]["mesh"]
+FOCUS = INFO.get("focus", "R_thigh_roll_flip")
+STAGE5 = FOCUS == "R_hip_pitch_to_roll_roll_flip"
+CONN = P[FOCUS]["mesh"]
 COL = dict(blue=(0.25, 0.55, 0.85), yellow=(0.93, 0.76, 0.16), red=(0.82, 0.22, 0.20), dark=(0.22, 0.23, 0.26), grey=(0.62, 0.64, 0.67),
            light=(0.80, 0.81, 0.83), steel=(0.85, 0.87, 0.90), shell=(0.55, 0.70, 0.95))
 def M(path): return trimesh.load(ROOT / path, force="mesh") if not str(path).endswith(".npz") else BL.load_mesh(path)
-parts = [  # (label, mesh, colour, alpha, z-bias)
-    ("connector", M(CONN), COL["blue"], 1.0),
-    ("connector sleeves", M(P["R_thigh_roll_flip_steel_sleeves"]["mesh"]), COL["steel"], 1.0),
-    ("screws", trimesh.util.concatenate([BL.load_mesh(P[n]["mesh"]) for n in P if n.startswith("R_") and "screw_plan" in P[n] and P[n]["owning_link"] == "R_roll_link"]), (0.55, 0.57, 0.6), 1.0),
-    ("roll case STS3250", BL.load_mesh(P["R_roll_servo_case_reference"]["mesh"]), COL["red"], 1.0),
-    ("knee case ST3025", BL.load_mesh(P["R_knee_ST3025_case"]["mesh"]), COL["dark"], 1.0),
-    ("Stage 5 (yellow)", BL.load_mesh(P["R_hip_pitch_to_roll_roll_flip"]["mesh"]), COL["yellow"], 0.55),
-    ("roll horn / idler", None, COL["light"], 0.55),
-    ("shin frame", BL.load_mesh(P["R_shin_combined"]["mesh"]), COL["grey"], 0.85),
-    ("knee output", BL.load_mesh(P["R_knee_ST3025_output"]["mesh"]), COL["light"], 0.85),
-]
+COL["green"] = (0.35, 0.68, 0.38)
 hi = trimesh.util.concatenate([BL.load_mesh(P[n]["mesh"]) for n in ("R_roll_upper_horn_reference", "R_roll_passive_idler_reference")])
-parts[6] = ("roll horn / idler", hi, COL["light"], 0.55)
-CLIP = np.array([[20, -26, 108], [86, 40, 214]])
+if STAGE5:   # the yellow yoke opaque with its sleeves and pitch-link screws; the blue cage, case and pitch motor around it
+    parts = [  # (label, mesh, colour, alpha)
+        ("connector", M(CONN), COL["yellow"], 1.0),
+        ("connector sleeves", M(P[FOCUS + "_steel_sleeves"]["mesh"]), COL["steel"], 1.0),
+        ("screws", trimesh.util.concatenate([BL.load_mesh(P[n]["mesh"]) for n in P if n.startswith("R_") and "screw_plan" in P[n] and P[n]["owning_link"] == "R_pitch_link"]), (0.55, 0.57, 0.6), 1.0),
+        ("roll horn / idler", hi, COL["light"], 1.0),
+        ("pitch output wheel", BL.load_mesh(P["R_hip_pitch_ST3025_output"]["mesh"]), COL["light"], 1.0),
+        ("pitch case ST3025", BL.load_mesh(P["R_hip_pitch_ST3025_case"]["mesh"]), COL["dark"], 0.85),
+        ("roll case STS3250", BL.load_mesh(P["R_roll_servo_case_reference"]["mesh"]), COL["red"], 0.85),
+        ("H-cage (blue)", BL.load_mesh(P["R_thigh_roll_flip"]["mesh"]), COL["blue"], 0.55),
+        ("yaw-to-pitch (green)", BL.load_mesh(P["R_hip_yaw_to_pitch_combined"]["mesh"]), COL["green"], 0.45),
+    ]
+else:
+    parts = [  # (label, mesh, colour, alpha)
+        ("connector", M(CONN), COL["blue"], 1.0),
+        ("connector sleeves", M(P[FOCUS + "_steel_sleeves"]["mesh"]), COL["steel"], 1.0),
+        ("screws", trimesh.util.concatenate([BL.load_mesh(P[n]["mesh"]) for n in P if n.startswith("R_") and "screw_plan" in P[n] and P[n]["owning_link"] == "R_roll_link"]), (0.55, 0.57, 0.6), 1.0),
+        ("roll case STS3250", BL.load_mesh(P["R_roll_servo_case_reference"]["mesh"]), COL["red"], 1.0),
+        ("knee case ST3025", BL.load_mesh(P["R_knee_ST3025_case"]["mesh"]), COL["dark"], 1.0),
+        ("Stage 5 (yellow)", BL.load_mesh(P["R_hip_pitch_to_roll_roll_flip"]["mesh"]), COL["yellow"], 0.55),
+        ("roll horn / idler", hi, COL["light"], 0.55),
+        ("shin frame", BL.load_mesh(P["R_shin_combined"]["mesh"]), COL["grey"], 0.85),
+        ("knee output", BL.load_mesh(P["R_knee_ST3025_output"]["mesh"]), COL["light"], 0.85),
+    ]
+CLIP = np.array(INFO.get("clip", [[20, -26, 108], [86, 40, 214]]))
 VIEWS = {"front": (1, (0, 2), -1, "FRONT (from -y): x lateral ->", False), "side": (0, (1, 2), +1, "SIDE (from +x, lateral): y rear ->", False),
          "top": (2, (0, 1), +1, "TOP (from +z): x lateral ->, y rear ^", False)}   # sgn: viewer direction along the depth axis
 L = np.array([-0.4, -0.5, 0.75]); L /= np.linalg.norm(L)
@@ -73,10 +91,12 @@ gs = fig.add_gridspec(2, 3, hspace=0.18, wspace=0.12)
 axs = {"front": fig.add_subplot(gs[0, 0]), "side": fig.add_subplot(gs[0, 1]), "top": fig.add_subplot(gs[0, 2]),
        "secx": fig.add_subplot(gs[1, 0]), "secz": fig.add_subplot(gs[1, 1]), "info": fig.add_subplot(gs[1, 2])}
 for v in VIEWS: render(axs[v], v)
-section(axs["secx"], 0, 45.75, (1, 2), ((-22, 36), (135, 205)), "SECTION A-A at x 45.75 (inboard ear-screw column), seen from +x")
-section(axs["secz"], 2, 143.0, (0, 1), ((22, 86), (-22, 36)), "SECTION B-B at z 143 (lateral knee screws), seen from +z")
+SECS = INFO.get("sections", [dict(axis=0, value=45.75, uv=[1, 2], lims=[[-22, 36], [135, 205]], title="SECTION A-A at x 45.75 (inboard ear-screw column), seen from +x"),
+                              dict(axis=2, value=143.0, uv=[0, 1], lims=[[22, 86], [-22, 36]], title="SECTION B-B at z 143 (lateral knee screws), seen from +z")])
+for key, sc in zip(("secx", "secz"), SECS):
+    section(axs[key], sc["axis"], sc["value"], tuple(sc["uv"]), tuple(map(tuple, sc["lims"])), sc["title"])
 # screw sites
-used, gone = INFO["screws_used"], INFO["screws_removed"]
+used, gone = INFO.get("screws_used", {}), INFO.get("screws_removed", {})
 def mark(ax, pts, used_):
     for (u, v) in pts:
         if used_: ax.add_patch(Circle((u, v), 1.75, fc="#18a558", ec="k", lw=0.6, zorder=20))
@@ -91,7 +111,8 @@ def shell_outline(ax, axis, value, uv):
         if sct is None: continue
         for ent in sct.discrete:
             ent = np.asarray(ent); ax.plot(ent[:, uv[0]], ent[:, uv[1]], color="#3d7cc9", lw=0.9, ls="--", zorder=15)
-shell_outline(axs["secx"], 0, 45.75, (1, 2)); shell_outline(axs["secz"], 2, 143.0, (0, 1))
+for key, sc in zip(("secx", "secz"), SECS):
+    shell_outline(axs[key], sc["axis"], sc["value"], tuple(sc["uv"]))
 for ax_name, txts in INFO.get("callouts", {}).items():
     for t in txts:
         axs[ax_name].annotate(t["text"], xy=t["xy"], xytext=t["at"], fontsize=7, color="k", zorder=30,
@@ -101,9 +122,13 @@ ax.text(0, 1.0, INFO["title"], fontsize=12, weight="bold", va="top", transform=a
 ax.text(0, 0.93, INFO["body"], fontsize=8, va="top", family="monospace", transform=ax.transAxes)
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
-hand = [Patch(color=COL["blue"], label="R_thigh_roll_flip (blue, roll link)"), Patch(color=COL["yellow"], label="Stage 5 yoke (yellow, pitch link, moves)"),
+hand = ([Patch(color=COL["yellow"], label="R_hip_pitch_to_roll_roll_flip (yellow, pitch link)"), Patch(color=COL["steel"], label="steel sleeves"),
+         Patch(color=COL["light"], label="roll horn / idler, pitch output wheel"), Patch(color=COL["dark"], label="ST3025 hip-pitch case (yaw link)"),
+         Patch(color=COL["red"], label="STS3250 roll case (red, roll link)"), Patch(color=COL["blue"], label="H-cage (blue, roll link)"),
+         Patch(color=COL["green"], label="yaw-to-pitch connector (green, yaw link)")] if STAGE5 else
+        [Patch(color=COL["blue"], label="R_thigh_roll_flip (blue, roll link)"), Patch(color=COL["yellow"], label="Stage 5 yoke (yellow, pitch link, moves)"),
         Patch(color=COL["red"], label="STS3250 roll case (red)"), Patch(color=COL["dark"], label="ST3025 knee case (dark grey)"),
-        Patch(color=COL["grey"], label="shin frame (grey, moves)"), Patch(color=COL["light"], label="horn / idler / knee output"),
+        Patch(color=COL["grey"], label="shin frame (grey, moves)"), Patch(color=COL["light"], label="horn / idler / knee output")]) + [
         Line2D([], [], marker="o", ls="", mfc="#18a558", mec="k", label="screw used"), Line2D([], [], marker="x", ls="", color="#e0201b", mew=2, label="screw site not used"),
         Line2D([], [], color="#3d7cc9", ls="--", label="blue thigh shell (sections)")]
 ax.legend(handles=hand, loc="lower left", fontsize=7, frameon=True)

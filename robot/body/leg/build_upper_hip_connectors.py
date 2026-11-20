@@ -673,7 +673,9 @@ RF_RIB = 2.0                        # outward rib on both plates below RF_RIB_TO
 RF_RIB_F = 1.2                      # front rib (H-cage): plate + rib = 4.15 + 0.2 from the defined M2 hole opening
                                     # (3.9 mm deep): an M2x8 then engages 3.15 mm with the tip 0.75 short of the bottom
 RF_RIB_TOP = 176.0
-# Old thigh arm layers (now the Stage 5 arms) and horn / idler bolt circle
+# Old thigh arm layers and horn / idler bolt circle. The Stage 5 arms now follow the defined holes and screw lengths
+# (rf5_screws: front y -16.6 .. -11.6, rear 25.0 .. 30.4); these values stay as the arm faces the committed thigh-shell skin
+# was fitted around (thigh_shell.py arm_hub_points / station_hull: RF_ARM_F/R with RF_ARM_THICKEN).
 RF_ARM_F = (-15.30, -14.10, -12.10)  # out, clamp, in
 RF_ARM_R = (25.35, 27.35, 28.55)     # in, clamp, out
 RF_HORN_BOLTS = [(RF_AX - 7.0, RF_AZ), (RF_AX + 7.0, RF_AZ), (RF_AX, RF_AZ - 7.0), (RF_AX, RF_AZ + 7.0)]
@@ -743,6 +745,52 @@ RF_OUT_WINDOW = (21.0, 14.0)         # outboard wall window (its lower edge 1 mm
 RF_KEY_CORNER_R = 1.0               # pocket corner radius (the bosses' corners are rounded more)
 RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
+# Stage 5 screw connections (Idle T-sgms6h, screw check hip-screws-s1). Every Stage 5 screw sits at its defined hole
+# (connector_screws.json hip_pitch_to_roll_roll_flip, rf_defined_holes) and its standard length (data/hardware.json) is
+# chosen here; the clamped stack along the hole axis is then the one that gives exactly the hole's reference engagement:
+# stack = L - point - reference (screw_plan.choose_length's window), tip margin = depth - reference.
+#   pitch wheel: the plate's inner face reaches down to the wheel face (the tapped face) as a land about the pitch axis,
+#     pocketed for the raised hub; the heads seat in counterbores on the outer face (stack 8.55 for M3x12, 2.95 engaged);
+#   roll horn / idler: each arm clamps on the horn / idler face (no gap) through a clamp disc about the roll axis and is as
+#     thick as its stack there (horn 5.0, idler 5.4: one screw kind, M3x8, for both; horn 2.5 and idler 2.1 engaged = the
+#     flange thickness, tip at the flange's back). Outside the discs the arms keep their old faces (RF_ARM_F / RF_ARM_R with
+#     RF_ARM_THICKEN), so the H-cage plates keep their y offset from the swept arm necks and the thigh shell its fit.
+RF5_SCREW_L = {"A13_pitch_horn": 12.0, "A9_roll_horn": 8.0, "A9_roll_idler": 8.0}   # ISO 7380-1 M3 lengths
+RF5_LAND_R = 11.0                    # land on the pitch wheel face (wheel face dia ~18.8, overhangs it 1.6 mm, 0.9 mm
+                                     # above the pitch case face x 60.05); r <= 11.3 keeps it outside RF_CLEAR_R + 0.4 of the roll axis
+RF5_HUB_R, RF5_HUB_TOP_X = 4.0, 63.0  # the wheel's raised hub (ST3025 output, r 4.0 up to x 63.0)
+RF5_HUB_CLEAR = (0.2, 0.3)           # hub pocket clearance: radial, beyond the hub top
+RF5_CBORE_R = 3.2                    # counterbore for the M3 button head (dk 5.7) on the plate's outer face
+RF5_SLEEVE_R, RF5_SLEEVE_BORE_R = 2.25, 1.60   # 304 sleeve dia 4.5 / 3.2 for M3
+RF5_CLAMP_R = 12.1                   # inner clamp disc on the horn / idler face and outer head-seat disc (recess front 0.2,
+RF5_SEAT_R = 12.1                    # pad rear 0.35): bolt circle r 7 + the dia 10 spacer / press annulus (r 5), 0.3 inside
+                                     # the arm hub (r 12.4); the necks keep the old faces (H-cage plate clearance)
+
+
+def rf5_screws() -> dict:
+    """The Stage 5 screws (right leg) at their defined holes: per group the chosen standard length, the stack that gives the
+    reference engagement, and per hole the opening, axis, clamp point (= opening, the face the part rests on) and head seat
+    (opening + stack along the axis)."""
+    import sys
+    sp_dir = str(ROOT / "robot/body/fastening")
+    if sp_dir not in sys.path:
+        sys.path.insert(0, sp_dir)
+    import screw_plan as SP
+    st = SP.standards()
+    conn = SP.connectors()["hip_pitch_to_roll_roll_flip"]["groups"]
+    out = {}
+    for g, holes in rf_defined_holes_cached("hip_pitch_to_roll_roll_flip").items():
+        L = RF5_SCREW_L[g]
+        head = conn[g].get("head", "ISO 7380-1")
+        rows = []
+        for h in holes:
+            stack = L - st["point_mm"] - h["reference_engagement_mm"]
+            o, ax = np.asarray(h["opening"], float), np.asarray(h["axis_out"], float)
+            rows.append(dict(hole_id=h["hole_id"], opening=o, axis_out=ax, depth_mm=h["depth_mm"], thread=h["thread"],
+                             reference_engagement_mm=h["reference_engagement_mm"], stack_mm=round(stack, 3),
+                             tip_margin_mm=round(h["depth_mm"] - h["reference_engagement_mm"], 3), seat=o + ax * stack))
+        out[g] = dict(length_mm=L, head=head, holes=rows)
+    return out
 
 
 def rf_rot(x_r2: float, z: float) -> tuple[float, float]:
@@ -865,11 +913,12 @@ def rf_cheek_face(y0: float, y1: float, z0: float, z1: float, wide=None) -> Face
     return fillet_2d_face(Polygon(*pts, align=None).faces()[0], 2.0, skip_xy=skip)
 
 
-def rf_defined_holes() -> dict:
-    """The thigh_roll_flip screw groups of robot/body/fastening/connector_screws.json with their defined holes (official
-    standard-part definitions, robot/actuators/interfaces/standard-parts.json) registered on the shell-pass instances of
-    the right leg (robot/body/fastening/interfaces.py); the roll case's holes turned with the case. {group: [hole]}, each
-    hole with opening / axis_out (body frame, mm), depth, thread, reference engagement."""
+def rf_defined_holes(connector: str = "thigh_roll_flip") -> dict:
+    """The screw groups of one connector of robot/body/fastening/connector_screws.json (thigh_roll_flip = Stage 4,
+    hip_pitch_to_roll_roll_flip = Stage 5) with their defined holes (official standard-part definitions,
+    robot/actuators/interfaces/standard-parts.json) registered on the shell-pass instances of the right leg
+    (robot/body/fastening/interfaces.py); the roll case's holes turned with the case (the horn, idler and pitch output stay
+    where they are). {group: [hole]}, each hole with opening / axis_out (body frame, mm), depth, thread, reference engagement."""
     import json
     import sys
     for d in (ROOT / "robot/body/fastening", ROOT / "robot/body"):
@@ -879,7 +928,7 @@ def rf_defined_holes() -> dict:
     import screw_plan as SP
     from checks import bodylib as BL
     man = json.loads(RF_SHELL_PASS.read_text())
-    conn = SP.connectors()["thigh_roll_flip"]["groups"]
+    conn = SP.connectors()[connector]["groups"]
     need = {g["standard_part"].replace("{S}", "R_") for g in conn.values()}
     sub = dict(man, parts=[p for p in man["parts"] if p["name"] in need or p.get("motor")])
     iface = I.instances(BL.Body(sub), sub)
@@ -960,14 +1009,13 @@ def rf_shell_trim_cutter() -> Solid:
     return largest_solid(cut_all(zone, [env]))
 
 
-def rf_defined_holes_cached() -> dict:
-    global _RF_HOLES
-    if _RF_HOLES is None:
-        _RF_HOLES = rf_defined_holes()
-    return _RF_HOLES
+def rf_defined_holes_cached(connector: str = "thigh_roll_flip") -> dict:
+    if connector not in _RF_HOLES:
+        _RF_HOLES[connector] = rf_defined_holes(connector)
+    return _RF_HOLES[connector]
 
 
-_RF_HOLES = None
+_RF_HOLES = {}
 
 
 def rf_screws() -> list[dict]:
@@ -1111,22 +1159,31 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
 
 
 def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
-    """Stage 5 yoke for the flipped roll motor: pitch output wheel -> lateral plate -> arms on the roll horn / idler."""
+    """Stage 5 yoke for the flipped roll motor: pitch output wheel -> lateral plate -> arms on the roll horn / idler.
+    Every clamp face and head seat follows the defined holes and the chosen screw lengths (rf5_screws)."""
     if side == "L":
         r_res, r_slv = build_stage5_pitch_to_roll_roll_flip("R")
         return mirror_x(r_res), [mirror_x(s) for s in r_slv]
-    yfo, yfc, yfi = RF_ARM_F
-    yri, yrc, yro = RF_ARM_R
-    yfo, yro = yfo - RF_ARM_THICKEN, yro + RF_ARM_THICKEN   # outer faces; clamp faces (sleeve ends) stay where they were
+    S = rf5_screws()
+    pitch, horn, idler = S["A13_pitch_horn"]["holes"], S["A9_roll_horn"]["holes"], S["A9_roll_idler"]["holes"]
+    # arms: inner face on the horn / idler face (the defined holes' opening plane), outer face at the head seat
+    yfi = float(np.mean([h["opening"][1] for h in horn])); yfo = float(np.mean([h["seat"][1] for h in horn]))
+    yri = float(np.mean([h["opening"][1] for h in idler])); yro = float(np.mean([h["seat"][1] for h in idler]))
     hy, hz = RF_PITCH_HUB
     x0, x1 = RF_PLATE_X
+    x_face = float(np.mean([h["opening"][0] for h in pitch]))       # the wheel's tapped face (land face)
+    x_seat = float(np.mean([h["seat"][0] for h in pitch]))          # pitch screw head seat (counterbore floor)
     # lower edge of the plate: outside RF_CLEAR_R about the roll axis at its inner face x0 (the binding point)
     z_low = round(RF_AZ + math.sqrt(RF_CLEAR_R**2 - (x0 - RF_AX) ** 2) + 0.4, 2)
 
     # 1. Lateral plate (YZ profile) on the ST3025 output wheel, spreading fore-aft to the two arm layers
-    lp = Polygon((yfo, z_low), (yro, z_low), (yro, RF_WING_TOP), (hy + 7.5, hz + 6.0), (hy - 7.5, hz + 6.0), (yfo, RF_WING_TOP), align=None)
+    wfo, wro = RF_ARM_F[0] - RF_ARM_THICKEN, RF_ARM_R[2] + RF_ARM_THICKEN      # plate wings to the arms' old outer faces
+    lp = Polygon((wfo, z_low), (wro, z_low), (wro, RF_WING_TOP), (hy + 7.5, hz + 6.0), (hy - 7.5, hz + 6.0), (wfo, RF_WING_TOP), align=None)
     lp_face = fillet_2d_face((lp + Pos(hy, hz) * Circle(RF_PITCH_HUB_R)).clean().faces()[0], 2.5, r_inner=4.0)
     plate = extrude_xy_to_x(lp_face, x0, x1)
+    # land: the plate's inner face reaches the wheel face about the pitch axis (clamps on the tapped face, not the hub)
+    land = occ_cyl((x_face, hy, hz), (x0 + 0.5, hy, hz), RF5_LAND_R)
+    assert hz - RF5_LAND_R >= RF_AZ + math.sqrt(RF_CLEAR_R**2 - (x_face - RF_AX) ** 2) + 0.4, "land inside the case sweep"
 
     # 2. Arms (XZ profile, the old thigh arm layers) around the roll horn / idler, rising outboard into the plate.
     #    Inboard edge of the rising neck at x 60.5: clear of the yaw link's columns and pitch-case plate (x <= 60.05).
@@ -1134,35 +1191,68 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     arm = Polygon((RF_AX + 10.5, RF_AZ + 2.0), (x1, RF_AZ + 2.0), (x1, top), (60.5, top), (60.5, RF_AZ + 9.0), align=None)  # counter-clockwise, or the union with the hub stays 2 faces
     arm_face = fillet_2d_face((arm + Pos(RF_AX, RF_AZ) * Circle(RF_ROLL_HUB_R)).clean().faces()[0], 2.2, r_inner=5.0,
                               skip_xy=[(60.5, top), (x1, top)])
-    arm_f = extrude_xy_to_y(arm_face, yfo, yfi)
-    arm_r = extrude_xy_to_y(arm_face, yri, yro)
+    # old arm faces outside the clamp discs (envelope); clamp disc on the horn / idler face; head-seat disc on the outer face
+    efo, efi = RF_ARM_F[0] - RF_ARM_THICKEN, RF_ARM_F[2]
+    eri, ero = RF_ARM_R[0], RF_ARM_R[2] + RF_ARM_THICKEN
+    arm_f = extrude_xy_to_y(arm_face, efo, efi)
+    arm_r = extrude_xy_to_y(arm_face, eri, ero)
+    # the sub-mm clamp / seat steps are added after the 3D bevel (a 0.4 fillet on a 0.2-0.5 mm step fails and takes the
+    # arm outline's fillets with it): bosses fused, recesses cut, then the holes cut again through them
+    steps_add = [occ_cyl((RF_AX, efi - 0.5, RF_AZ), (RF_AX, yfi, RF_AZ), RF5_CLAMP_R),
+                 occ_cyl((RF_AX, yri, RF_AZ), (RF_AX, eri + 0.5, RF_AZ), RF5_CLAMP_R)]
+    steps_cut = []
+    for y_seat, y_env, sgn in ((yfo, efo, -1.0), (yro, ero, 1.0)):     # sgn: outward direction along y
+        if (y_seat - y_env) * sgn > 0:     # head seat outside the old face: a pad
+            steps_add.append(occ_cyl((RF_AX, y_env - sgn * 0.5, RF_AZ), (RF_AX, y_seat, RF_AZ), RF5_SEAT_R))
+        elif (y_seat - y_env) * sgn < 0:   # inside: a recess
+            steps_cut.append(occ_cyl((RF_AX, y_seat, RF_AZ), (RF_AX, y_env + sgn * 1.0, RF_AZ), RF5_SEAT_R))
 
     # the larger pitch hub must not reach below the plate's lower edge (case sweep, RF_CLEAR_R)
-    plate = largest_solid(cut_all(plate, [occ_box(x0 - 1.0, x1 + 1.0, yfo - 1.0, yro + 1.0, z_low - 20.0, z_low)]))
+    plate = largest_solid(cut_all(fuse_all([plate, land]), [occ_box(x_face - 1.0, x1 + 1.0, wfo - 1.0, wro + 1.0, z_low - 20.0, z_low)]))
     # front arm hub flattened at RF_FRONT_HUB_TOP where the yaw link's anterior column passes at hip pitch -90
-    arm_f = largest_solid(cut_all(arm_f, [occ_box(50.0, 60.5, yfo - 1.0, yfi + 1.0, RF_FRONT_HUB_TOP, RF_AZ + 20.0)]))
+    arm_f = largest_solid(cut_all(arm_f, [occ_box(50.0, 60.5, efo - 1.0, yfi + 1.0, RF_FRONT_HUB_TOP, RF_AZ + 20.0)]))
     body = fuse_all([plate, arm_f, arm_r])
     cutters = [
-        occ_cyl((RF_AX, yfo - 2.0, RF_AZ), (RF_AX, yfi + 2.0, RF_AZ), RF_ROLL_CENTRE_R),
-        occ_cyl((RF_AX, yri - 2.0, RF_AZ), (RF_AX, yro + 2.0, RF_AZ), RF_ROLL_CENTRE_R_REAR),
-        occ_cyl((x0 - 1.0, hy, hz), (x1 + 1.0, hy, hz), 3.25),      # output wheel centre screw head
+        occ_cyl((RF_AX, min(yfo, efo) - 2.0, RF_AZ), (RF_AX, yfi + 2.0, RF_AZ), RF_ROLL_CENTRE_R),
+        occ_cyl((RF_AX, yri - 2.0, RF_AZ), (RF_AX, max(yro, ero) + 2.0, RF_AZ), RF_ROLL_CENTRE_R_REAR),
+        occ_cyl((x_face - 1.0, hy, hz), (x1 + 1.0, hy, hz), 3.25),      # output wheel centre screw head
+        occ_cyl((x_face - 1.0, hy, hz), (RF5_HUB_TOP_X + RF5_HUB_CLEAR[1], hy, hz), RF5_HUB_R + RF5_HUB_CLEAR[0]),   # hub pocket
     ]
     sleeves = []
-    for by_c, bz_c in RF_PITCH_BOLTS:  # 4 ST3025 wheel M3 + sleeves, +X driver channels
-        cutters.append(occ_cyl((x0 - 1.0, by_c, bz_c), (x1 + 1.5, by_c, bz_c), 2.25))
-        cutters.append(occ_cyl((x1, by_c, bz_c), (x1 + 28.0, by_c, bz_c), 2.85))
-        sleeves.append(largest_solid(cut_all(occ_cyl((x0, by_c, bz_c), (x1, by_c, bz_c), 2.25),
-                                             [occ_cyl((x0 - 0.5, by_c, bz_c), (x1 + 0.5, by_c, bz_c), 1.6)])))
-    for bx_c, bz_c in RF_HORN_BOLTS:   # 4 roll horn M3 (front, -Y drivers) + 4 roll idler M3 (rear, +Y drivers)
-        # sleeves through the whole arm, flush with its outer face (flat press-tip landing, heads on that face)
-        cutters.append(occ_cyl((bx_c, yfo - 2.0, bz_c), (bx_c, yfi + 1.0, bz_c), 2.25))
-        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yfo, bz_c), (bx_c, yfi, bz_c), 2.25),
-                                             [occ_cyl((bx_c, yfo - 0.5, bz_c), (bx_c, yfi + 0.5, bz_c), 1.6)])))
-        cutters.append(occ_cyl((bx_c, yri - 1.0, bz_c), (bx_c, yro + 2.0, bz_c), 2.25))
-        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yri, bz_c), (bx_c, yro, bz_c), 2.25),
-                                             [occ_cyl((bx_c, yri - 0.5, bz_c), (bx_c, yro + 0.5, bz_c), 1.6)])))
+    for h in pitch:  # 4 ST3025 wheel M3: sleeve from the wheel face to the counterbore floor, head in the counterbore
+        _, by_c, bz_c = h["opening"]
+        cutters.append(occ_cyl((x_face - 1.0, by_c, bz_c), (x_seat + 0.5, by_c, bz_c), RF5_SLEEVE_R))
+        cutters.append(occ_cyl((x_seat, by_c, bz_c), (x1 + 28.0, by_c, bz_c), RF5_CBORE_R))
+        sleeves.append(largest_solid(cut_all(occ_cyl((x_face, by_c, bz_c), (x_seat, by_c, bz_c), RF5_SLEEVE_R),
+                                             [occ_cyl((x_face - 0.5, by_c, bz_c), (x_seat + 0.5, by_c, bz_c), RF5_SLEEVE_BORE_R)])))
+    for hf, hr in zip(horn, idler):   # 4 roll horn M3 (front, -Y drivers) + 4 roll idler M3 (rear, +Y drivers)
+        # sleeves through the whole arm, flush with both faces (flat press-tip landing, heads on the outer face)
+        bx_c, _, bz_c = hf["opening"]
+        cutters.append(occ_cyl((bx_c, yfo - 2.0, bz_c), (bx_c, yfi + 1.0, bz_c), RF5_SLEEVE_R))
+        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yfo, bz_c), (bx_c, yfi, bz_c), RF5_SLEEVE_R),
+                                             [occ_cyl((bx_c, yfo - 0.5, bz_c), (bx_c, yfi + 0.5, bz_c), RF5_SLEEVE_BORE_R)])))
+        bx_c, _, bz_c = hr["opening"]
+        cutters.append(occ_cyl((bx_c, yri - 1.0, bz_c), (bx_c, yro + 2.0, bz_c), RF5_SLEEVE_R))
+        sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yri, bz_c), (bx_c, yro, bz_c), RF5_SLEEVE_R),
+                                             [occ_cyl((bx_c, yri - 0.5, bz_c), (bx_c, yro + 0.5, bz_c), RF5_SLEEVE_BORE_R)])))
     res = bevel_3d_edges(largest_solid(cut_all(body, cutters)), r_outer=0.40, r_inner=0.75)
+    # the front hub flat (RF_FRONT_HUB_TOP, yaw-link column at hip pitch -90) also trims the front clamp disc
+    hub_flat = occ_box(50.0, 60.5, efo - 1.0, yfi + 1.0, RF_FRONT_HUB_TOP, RF_AZ + 20.0)
+    res = largest_solid(cut_all(fuse_all([res, *steps_add]), steps_cut + cutters + [hub_flat]))
     return res, sleeves
+
+
+def rf5_screw_rows() -> list[dict]:
+    """The Stage 5 screws for the cad-manifest (right leg): hole, length, stack, sleeve span, expected engagement."""
+    rows = []
+    for g, d in rf5_screws().items():
+        for h in d["holes"]:
+            rows.append(dict(group=g, hole_id=h["hole_id"], head_standard=d["head"], thread=h["thread"], length_mm=d["length_mm"],
+                             opening=np.round(h["opening"], 3).tolist(), axis_out=np.round(h["axis_out"], 4).tolist(),
+                             head=np.round(h["seat"], 3).tolist(), stack_from_opening_mm=h["stack_mm"],
+                             engagement_mm=h["reference_engagement_mm"], reference_engagement_mm=h["reference_engagement_mm"],
+                             depth_mm=h["depth_mm"], tip_margin_mm=h["tip_margin_mm"]))
+    return rows
 
 
 RF_CHECK_DATA = ROOT / "robot/body/checks/data"
@@ -1213,11 +1303,14 @@ def rf_yellow_clearance(s4: Shape, s5: list, step_deg: float = 1.0) -> dict:
     return out
 
 
-def build_roll_flip():
+def build_roll_flip(stage5_only: bool = False):
+    """All four roll-flip connectors, or (stage5_only) only Stage 5: the Stage 4 files and its cad-manifest rows stay as
+    they are (its STEP is read back for the Stage 4 to Stage 5 clearance)."""
     import json
     rho = {"PETG_CF": rf_density("Bambu PETG-CF"), "Steel_Sleeve": MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3}
     parts_dir = RF_ART / "parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
+    prev = json.loads((RF_ART / "cad-manifest.json").read_text()) if stage5_only else None
     configs = [
         ("stage4_thigh_roll_flip", "R", "R_thigh_roll_flip", "R_roll_link", lambda: build_stage4_thigh_roll_flip("R")),
         ("stage4_thigh_roll_flip", "L", "L_thigh_roll_flip", "L_roll_link", lambda: build_stage4_thigh_roll_flip("L")),
@@ -1225,6 +1318,11 @@ def build_roll_flip():
         ("stage5_hip_pitch_to_roll_roll_flip", "L", "L_hip_pitch_to_roll_roll_flip", "L_pitch_link", lambda: build_stage5_pitch_to_roll_roll_flip("L")),
     ]
     rows, built = [], {}
+    if stage5_only:
+        from build123d import import_step
+        configs = [c for c in configs if c[0].startswith("stage5")]
+        rows = [r for r in prev["parts"] if r["stage"].startswith("stage4")]
+        built["R_thigh_roll_flip"] = (largest_solid(import_step(str(parts_dir / "R_thigh_roll_flip.step"))), [])
     for stage, side, pname, link, fn in configs:
         sol, sleeves = fn()
         built[pname] = (sol, sleeves)
@@ -1266,6 +1364,12 @@ def build_roll_flip():
         "case_ear_bolts_xz_mm": rf_bolts_used(),
         "screws": {"rows": rf_screws(), "note": "right leg (left = mirror x); head = point on the seat face, axis head -> tip; "
                    "every screw has a steel sleeve over the part's thickness ('sleeve' span); PA2 self-tapping into the case hole"},
+        "stage5_screws": {"rows": rf5_screw_rows(), "lengths_mm": RF5_SCREW_L, "land_r_mm": RF5_LAND_R,
+                          "arm_clamp_disc_r_mm": RF5_CLAMP_R, "arm_head_seat_disc_r_mm": RF5_SEAT_R,
+                          "hub_pocket": {"r_mm": RF5_HUB_R + RF5_HUB_CLEAR[0], "to_x_mm": RF5_HUB_TOP_X + RF5_HUB_CLEAR[1]},
+                          "counterbore_r_mm": RF5_CBORE_R, "sleeve_od_id_mm": [2 * RF5_SLEEVE_R, 2 * RF5_SLEEVE_BORE_R],
+                          "note": "right leg (left = mirror x); head = head seat point, stack = L - point - reference engagement "
+                                  "(screw_plan.choose_length window), so each screw engages exactly its hole's reference"},
         "h_cage": {"owner": "2026-11-19 (H connector, 2 + 2 screws per actuator, upper roll-case screws removed)",
                    "plate_lower_edge_z": RF_PLATE_Z0, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
                    "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "shell envelope"], "lateral_seat_x": rf_lat_seat_x(),
@@ -1282,6 +1386,6 @@ def build_roll_flip():
 if __name__ == "__main__":
     import sys
     if "--roll-flip" in sys.argv:
-        build_roll_flip()
+        build_roll_flip(stage5_only="--stage5-only" in sys.argv)
     else:
         build_all_upper_hip()

@@ -1,0 +1,108 @@
+{
+ "title": "Stage 5 screw connections",
+ "suptitle": "R_hip_pitch_to_roll_roll_flip (yellow Stage 5, pitch link): land on the ST3025 wheel face, arms clamped on the roll horn / idler faces",
+ "focus": "R_hip_pitch_to_roll_roll_flip",
+ "clip": [
+  [
+   30,
+   -28,
+   160
+  ],
+  [
+   90,
+   42,
+   240
+  ]
+ ],
+ "sections": [
+  {
+   "axis": 1,
+   "value": 2.0,
+   "uv": [
+    0,
+    2
+   ],
+   "lims": [
+    [
+     50,
+     76
+    ],
+    [
+     203,
+     235
+    ]
+   ],
+   "title": "SECTION A-A at y 2 (pitch axis, wheel screws 1 / 4), seen from -y"
+  },
+  {
+   "axis": 2,
+   "value": 190.0,
+   "uv": [
+    0,
+    1
+   ],
+   "lims": [
+    [
+     36,
+     76
+    ],
+    [
+     -22,
+     36
+    ]
+   ],
+   "title": "SECTION B-B at z 190 (roll axis, horn / idler screws), seen from +z"
+  }
+ ],
+ "body": "mass 12.40 g PAHT-CF (was 11.57) + 12 steel sleeves 4.68 g (was 4.30)\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 ISO 7380 into the ST3025 wheel: stack 8.55,\n    engaged 2.935-2.95 of 2.95, tip at the hole bottom\n    (land on the wheel face, hub pocket r 4.2, heads in\n    dia 6.4 counterbores 1.51 deep)\n  4 x M3x8 into the roll horn: stack 5.0, engaged 2.5 of 2.5\n  4 x M3x8 into the roll idler: stack 5.4, engaged 2.1 of 2.1\n    (arms clamp on the horn / idler face via r 12.1 discs;\n     necks keep the old faces)\ngaps (library / exact fit):\n  H-cage plates: 1.38 mm (roll -45..25; was 1.38)\n  roll case: 0.60 mm (was 0.60); Stage 6 green: 0.55 (was 0.55)\nFEM (roll_flip_checks, legacy PAHT-CF dry, layer x):\n  6 kg x 1.5 g: p99 24.7 MPa (was 34.0), SR 3.73 (was 2.71)\n  roll stall:   p99 25.4 MPa (was 24.6), SR 3.62 (was 3.74)\npress: spacer support 90.6-94.2 % per sleeve (was 90.6-94.2)",
+ "callouts": {
+  "secx": [
+   {
+    "text": "land on the wheel face\n(clamp face x 60.94),\nhub pocket r 4.2",
+    "xy": [
+     61.6,
+     214.5
+    ],
+    "at": [
+     50.5,
+     205.5
+    ]
+   },
+   {
+    "text": "M3x12 head in a\ncounterbore, seat x 69.49",
+    "xy": [
+     70.2,
+     226.0
+    ],
+    "at": [
+     64.5,
+     233.0
+    ]
+   }
+  ],
+  "secz": [
+   {
+    "text": "front arm on the horn face\n(y -11.6), seat y -16.6",
+    "xy": [
+     49.0,
+     -14.0
+    ],
+    "at": [
+     37.0,
+     -2.0
+    ]
+   },
+   {
+    "text": "rear arm on the idler face\n(y 25.0), seat y 30.4",
+    "xy": [
+     63.0,
+     28.0
+    ],
+    "at": [
+     55.0,
+     14.0
+    ]
+   }
+  ]
+ }
+}

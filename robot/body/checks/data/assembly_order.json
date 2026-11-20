@@ -228,18 +228,18 @@
       0.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_rear_carrier_shell_thigh_back_1_M3x8, R_Thigh_rear_carrier_shell_thigh_back_2_M3x8), head to tip when the part carries the head, else reversed"
+     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk, R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk), head to tip when the part carries the head, else reversed"
     },
     {
      "id": "s20",
-     "screw": "R_Thigh_rear_carrier_shell_thigh_back_1_M3x8",
+     "screw": "R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk",
      "direction": "screw axis",
      "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
     },
     {
      "id": "s21",
-     "screw": "R_Thigh_rear_carrier_shell_thigh_back_2_M3x8",
+     "screw": "R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk",
      "direction": "screw axis",
      "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
@@ -253,18 +253,18 @@
       -0.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_carrier_shell_thigh_front_1_M3x8, R_Thigh_carrier_shell_thigh_front_2_M3x8), head to tip when the part carries the head, else reversed"
+     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk, R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk), head to tip when the part carries the head, else reversed"
     },
     {
      "id": "s23",
-     "screw": "R_Thigh_carrier_shell_thigh_front_1_M3x8",
+     "screw": "R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk",
      "direction": "screw axis",
      "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
     },
     {
      "id": "s24",
-     "screw": "R_Thigh_carrier_shell_thigh_front_2_M3x8",
+     "screw": "R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk",
      "direction": "screw axis",
      "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
