@@ -411,7 +411,8 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | Radian heatsink + TIM | contact-only | 0.11 mm from ROCK4D, TIM 0.0, guard 0.5 mm, no screw | unresolved: intended hold (adhesive TIM, guard clip) not in the CAD |
 | Wuerth 61304021821 header | contact-only | 0.18 mm from the neck pitch case, not on a board (ROCK4D beyond 0.34 mm) | unresolved: placement looks stale |
 | center back shell | contact-only | T02_back_mount1/3 clamp it per mount_check; probe 0.2 mm short on the decimated mesh | artefact: residual of the probe |
-| upper arm covers (shoulder U body) | contact-only | cover posts removed with the shoulder U connectors | expected until the shell redesign (T-tph7xb) |
+| upper arm covers (shoulder U body) | contact-only (screwed via the cover posts on the roll-flip body) | cover posts removed with the shoulder U connectors | expected until the shell redesign (T-tph7xb) |
+| center front shell | contact-only on both bodies | no screw on either body; on the shoulder U body both U connectors (moving, on the shoulder pitch link) come within 0.2 mm of it at standing | real gap: shell has no mount; the U connector contact is a clearance item for the shoulder work |
 
 Counts (shoulder U body): 224 parts, 3 isolated, 4 groups not reaching the core (14 parts), 150 parts reach the core by
 contact only, 37 contact-only break points; edges: screw 164, contact 378, joint 34, sleeve 32; 8 screws probed from bounds.
