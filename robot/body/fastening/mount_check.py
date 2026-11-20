@@ -45,7 +45,7 @@ import interfaces as I  # noqa: E402  (standard-part instances and their defined
 
 DEFAULT_MANIFEST = ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
 HARDWARE_ROLES = {"fastener", "fastener_proxy", "nominal_fastener", "nominal_hardware", "standard_fastener_reference",
-                  "standard_nominal"}
+                  "standard_nominal", "spacer"}   # spacer: the B0196 / B0410 / compute M2 / M2.5 F-F standoffs
 SCREW_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)x(\d+(?:p\d+)?)|_CS\d+|countersunk", re.I)
 NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I)
 DT = 0.25            # radial probe step along the axis (mm)

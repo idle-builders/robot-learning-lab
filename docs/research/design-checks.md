@@ -401,8 +401,8 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | lower yaw servo cases, 47 / 49 beyond each | same | gap 0.04 mm, 1235 mm2 within 1 mm of the chassis pocket; free along -x and -y (L; +x / -y R): only its own idler, 35 mm3; no hardware within 2 mm, none in the waist-pelvis source design either; none of the case's 8 defined mount holes has a screw | real design gap: the whole leg hangs on a pocket seat |
 | upper dorsal / core cells 01-07 with insulators and fins | contact-only | captured in all six directions, min about 100 mm3 (+z, chassis) | artefact: held by the honeycomb pocket, which the graph does not model |
 | pelvis cells 08 / 09 with insulator and fin (groups) | same | 0.83 mm from the cradle; free along +-y (0 mm3); cradle mesh note: floor under the lower cell removed, "hold that cell at its ends" until the CAD pass | real design gap (known, pending the cradle CAD pass) |
-| head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gaps: head skin has no mount; B0196 standoffs missing from the CAD |
-| B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | real CAD gap: standoffs missing |
+| head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gap: head skin has no mount. B0196 standoffs: artefact (T-bv7bwe): the 4 `B0196_M2_FF5_spacer_*_v23` are in the manifest (role `spacer`), but `mount_check.HARDWARE_ROLES` lacked `spacer`, so the graph dropped them; fixed, camera and plate screw join through each spacer (8 / 8 ring points) |
+| B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | artefact (T-bv7bwe): same `spacer` role fix; B0410 now reaches the core by screw |
 | fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing |
 | head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect) |
 | chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified) |
@@ -416,6 +416,18 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 
 Counts (shoulder U body): 224 parts, 3 isolated, 4 groups not reaching the core (14 parts), 150 parts reach the core by
 contact only, 37 contact-only break points; edges: screw 164, contact 378, joint 34, sleeve 32; 8 screws probed from bounds.
+After the `spacer` role fix (T-bv7bwe, same body): 2 isolated (chest indicator relief, head neck collar), 3 groups not reaching
+the core (12 parts: pelvis cells 08 / 09, fan stack), 151 by contact only (the head skin now hangs on B0196 by contact), 35
+contact-only break points; edges screw 172 (+8 through the 8 F-F standoffs), contact 372.
+
+Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
+`aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
+2.6 mm, no thread). Past the stage-1 end there is no room for a nut: at the front pairs (cradle x +-17, z 271.5; stage 3
+x +-17, z 288 / 338) the stage-1 sleeve end lies 0.77 / 0.48 mm inside battery cells 06 / 07 (vertical cylinders, dia 21.5);
+at the rear pairs (cradle x +-11.2 / +-33.6; stage 4 x -33.6 / +-11.2, z 304 / 335) the bore runs into the valley between
+cells 02-05: axis free about 3 mm at r <= 1.2 mm, cell or pocket wall at r 2.0 mm from the exit (M2 nut corners r 2.3).
+Fastening them needs a design choice (threaded insert instead of the stage-1 steel sleeve, bores moved off the cells,
+or another joint); the cradle's two sleeves at x +-16, z 252 have no partner on their axis.
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 
