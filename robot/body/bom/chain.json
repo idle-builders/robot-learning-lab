@@ -104,7 +104,8 @@
    "manifest_out": "artifacts/robot/body/ape-proportions/assembly-parts.json",
    "in_place_edits": [],
    "notes": "Env APE_OUT / APE_UPPER / APE_FOREARM / APE_SHELL_PASS only for variants; defaults are the selected build. robot/body/ape-proportions/ (build.py, hips.py, elbow_flip.py, cap_trim.py, shells.py) is not in Git (untracked, no history) on 2026-11-20, and build.py / hips.py / elbow_flip.py / cap_trim.py were modified 05:35-06:22 on 2026-11-15, after the selected assembly-parts.json (05:07). 2026-11-20 rerun: memguard 6 GB stopped it at 6.02 GB after 191 s, during the in-process gmsh surface meshes (surface_mesh.step_to_closed_mesh) of the hip pitch-to-roll sleeves STEP, before assembly-parts.json was written. 12 GB cap: at 6 GB memguard stopped build.py while gmsh meshed the hip pitch-to-roll sleeves STEP (2026-11-20); shells.py documents 12 GB. Approved by the owner 2026-11-20.",
-   "limit_gb": 12
+   "limit_gb": 12,
+   "timeout_s": 3600
   },
   {
    "id": "shell-pass",
@@ -115,7 +116,7 @@
     "artifacts/robot/body/ape-proportions/assembly-parts.json",
     "artifacts/robot/body/ape-proportions/shell-pass"
    ],
-   "timeout_s": 1800,
+   "timeout_s": 3600,
    "inputs": [
     "artifacts/robot/body/ape-proportions/assembly-parts.json"
    ],
