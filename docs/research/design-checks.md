@@ -414,7 +414,9 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | upper arm covers (shoulder U body) | contact-only (screwed via the cover posts on the roll-flip body) | cover posts removed with the shoulder U connectors | expected until the shell redesign (T-tph7xb) |
 | center front shell | contact-only on both bodies | no screw on either body; on the shoulder U body both U connectors (moving, on the shoulder pitch link) come within 0.2 mm of it at standing | real gap: shell has no mount; the U connector contact is a clearance item for the shoulder work |
 
-Counts (shoulder U body): 224 parts, 3 isolated, 4 groups not reaching the core (14 parts), 150 parts reach the core by
+After the 18:42 manifest (639d0069ed6c: B0196 / B0410 standoffs restored as spacers, 5e3e81fa0): 2 isolated (chest
+indicator relief, head neck collar), 3 groups (pelvis cells 08 and 09, fan stack), 153 contact-only, 38 break points,
+screw edges 172; connectivity 38 s wall. Before it: Counts (shoulder U body): 224 parts, 3 isolated, 4 groups not reaching the core (14 parts), 150 parts reach the core by
 contact only, 37 contact-only break points; edges: screw 164, contact 378, joint 34, sleeve 32; 8 screws probed from bounds.
 After the `spacer` role fix (T-bv7bwe, same body): 2 isolated (chest indicator relief, head neck collar), 3 groups not reaching
 the core (12 parts: pelvis cells 08 / 09, fan stack), 151 by contact only (the head skin now hangs on B0196 by contact), 35
@@ -508,6 +510,19 @@ measures at standing its overlap with every other part, sleeve and shell: volume
 40 mm, share of the path, first obstructing part and distance from the head. A ray integral over the same path agrees with
 the boolean on the yaw M3x14 screws (first obstruction 8.20 vs 8.25 mm, 136 vs 138 mm3 of the connector itself; 55 vs 55 mm3
 of the pitch servo case). Other screws' heads are not in the path. Not covered: a nut slot or the insertion of the tip side.
+
+Unscoped run (2026-11-20, T-c4sy9d). `run.py --checks connectivity,screws,bom` unscoped on the shoulder U body hit
+memguard's 1800 s timeout in `screws`. Stack dumps every 12-45 s over 200 s all sat in `screwlib.screws_of_scope` ->
+`ctx.solid()` -> `core.step_mesh` (build123d tessellate): the selection asked for the fine 0.03 mm STEP tessellation of
+every scoped part, the cause found for connectivity. Its coarse watertight solid is now `screwlib.screen()`, shared by
+both. With that fixed the selection takes 30 s, and the next stage passed 6 GB in 48 s: `mount_check.run_screws` took
+all 229 selected screws in one process, holding the full mesh of every part within driver reach of any screw (in practice
+the whole body, the 587k-face power board and the shells among them) and two embree scenes over them. The check now runs
+mount_check in chunks of 30 screws per process, as `mount_check.run` already does for the whole manifest (embree leaks per
+scene). Not a per-screw reload and not an O(screws x parts) loop: candidates are bounds-filtered per screw. Timed
+unscoped, shoulder U body (manifest 639d0069ed6c): 124 s wall, selection 30 s, mount_check 85 s in 8 chunks, tree peak
+5.5 GiB under a 6 GB cap; 218 screws analysed, 47 with an engagement shortfall, 32 with a hole offset over 0.1 mm, 121
+with a clamp gap over 0.05 mm, 125 sleeves without a screw, 87 mount-hole faces with unused holes.
 
 ## Fastener heads and tips over motion (2026-11-19)
 
