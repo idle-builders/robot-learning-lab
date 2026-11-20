@@ -99,8 +99,10 @@ def regenerate_command(producer, chain):
         return None
     script = producer.split(" ")[0]
     for st in (chain or {}).get("steps", []):
-        if script in (st.get("command") or ""):
-            return st["command"]
+        cmd = st.get("command") or ""
+        cmd = " ".join(cmd) if isinstance(cmd, list) else cmd
+        if script in cmd:
+            return cmd
     return f".venv/bin/python -B {script}"
 
 
@@ -296,8 +298,10 @@ def markdown(bom):
          f"no geometry {c['parts_without_geometry']}. Hardware kinds to buy: {c['hardware_kinds_to_buy']}.", "",
          "## How to rebuild the body files", ""]
     for i, s in enumerate(bom["chain"].get("steps", [])):
-        L.append(f"{i + 1}. `{s.get('command')}` -> `{s.get('output') or ', '.join(s.get('outputs', []) or [])}`")
-    L += ["", "Standard hardware STEP/STL: `.venv/bin/python -B robot/body/bom/hardware.py`. This page: `.venv/bin/python -B robot/body/bom/build.py`.", ""]
+        cmd = " ".join(s["command"]) if isinstance(s.get("command"), list) else s.get("command")
+        L.append(f"{i + 1}. `{cmd}` -> `{s.get('manifest_out') or s.get('output') or ', '.join(s.get('outputs', []) or [])}`")
+    L += ["", "Rerun the chain in an isolated copy and compare it with the selected body: `.venv/bin/python -B robot/body/bom/rebuild_chain.py run` then `compare`.",
+          "Standard hardware STEP/STL: `.venv/bin/python -B robot/body/bom/hardware.py`. This page: `.venv/bin/python -B robot/body/bom/build.py`.", ""]
     d = bom["defects"]
     L += ["## Open defects: printed parts without a scripted native STEP (robot/body/bom/defects.json)", "",
           "| group | parts | state | fix | effort |", "|---|---|---|---|---|"]
