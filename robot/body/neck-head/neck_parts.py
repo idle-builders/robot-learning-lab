@@ -84,6 +84,35 @@ def rebuild(connector: str, man: dict) -> None:
     print(f"{connector}: {fam} volume {sol.volume:.1f} mm3, {len(slv)} sleeves of {slv[0]['length_mm']} .. {slv[-1]['length_mm']} mm")
 
 
+def apply(man: dict) -> list[str]:
+    """Point the manifest's neck connector + sleeve entries at the files `connectors` built (artifacts/robot/body/neck-head)
+    and generate their screws; called by robot/body/leg/roll_flip_checks.py build_manifest so a rebuild keeps them.
+    Connectors whose files are not built here are left as they are, with a warning (run `neck_parts.py connectors ...`)."""
+    import trimesh
+    log, built = [], []
+    rho = C.MATERIALS["PAHT_CF_dry"]["density_g_cm3"]
+    for conn, stage in STAGE.items():
+        bname = C.STAGE_PART_BASENAMES[stage]
+        name = f"combined__{bname}"
+        files = (C.ART / "parts" / f"{name}.step", C.ART / "parts" / f"{name}.npz",
+                 C.ART / "combined" / f"{bname}_sleeves.step", C.ART / "combined" / f"{bname}_sleeves.npz")
+        if not all(f.exists() for f in files):
+            print(f"WARNING neck: {conn} not built in {_rel(C.ART)}, the unedited connector and its legacy screws stay; "
+                  f"run `.venv/bin/python -B robot/body/neck-head/neck_parts.py connectors {conn}` (T-6dvwjq) first")
+            continue
+        for (step, npz), ename, dens in (((files[0], files[1]), name, rho), ((files[2], files[3]), f"{name}_steel_sleeves", STEEL_G_MM3 * 1e3)):
+            z = np.load(npz); m = trimesh.Trimesh(z["vertices"], z["faces"], process=False)
+            _entry(man, ename).update(native_step=_rel(step), native_step_sha256=_sha(step), mesh=_rel(npz), mesh_sha256=_sha(npz),
+                                      bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
+                                      mass_kg=round(abs(float(m.volume)) * dens * 1e-6, 6),
+                                      neck_parts="built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq)")
+        built.append(conn)
+        log.append(f"{name}: rebuilt neck connector + sleeves (neck_parts.py)")
+    if built:
+        log += [f"{p['name']}: {p['thread_label']}x{p['length_mm']:g} into {p['hole_id']}" for p in screws(built, man, None)]
+    return log
+
+
 def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
     """Replace the legacy neck screws and washers by the screws generated from the defined holes."""
     from checks import bodylib

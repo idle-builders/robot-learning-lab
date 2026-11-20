@@ -187,6 +187,10 @@ def build_manifest():
     parts += srows
     log += [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
     man["parts"] = parts
+    sys.path.insert(0, str(ROOT / "robot/body/neck-head"))
+    import neck_parts as NP                 # T-6dvwjq: rebuilt XM335 neck connectors + their screws, when built (warns if not)
+    log += NP.apply(man)
+    parts = man["parts"]
     man["study_id"] = man["result_id"] = "cove50-hip-roll-flip"
     man["roll_flip"] = dict(idle_task="T-fs5v6d", owner=["D-12", "D-13"], source_manifest=str(SHELL_PASS.relative_to(ROOT)),
                             source_manifest_sha256=hashlib.sha256(SHELL_PASS.read_bytes()).hexdigest(),
