@@ -174,7 +174,7 @@ def build_manifest():
                                     (r["sleeves"]["name"], r["sleeves"], "compression_limit_sleeves", r["sleeves"]["mass_g"] / 1000.0)):
             parts.append(dict(name=nm, owning_link=r["owning_link"], role=role, native_step=src["native_step"],
                               native_step_sha256=src["native_step_sha256"], mesh=src["mesh"], mesh_sha256=src["mesh_sha256"],
-                              mesh_units="mm", bounds_mm=src["bounds_mm"], mass_kg=round(mass, 6),
+                              mesh_units="mm", bounds_mm=src["bounds_mm"], mass_kg=round(mass, 6), volume_mm3=src["volume_mm3"],
                               color=[228, 190, 40, 255] if "pitch_to_roll" in nm and role != "compression_limit_sleeves"
                               else [64, 156, 212, 255] if role != "compression_limit_sleeves" else [215, 222, 230, 255],
                               mass_basis=f"native STEP volume x {r['polymer_density_g_cm3']} g/cm3 ({r['polymer_material']}, "
