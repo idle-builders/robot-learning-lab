@@ -49,6 +49,8 @@ PART, SLEEVES = "ankle_coupler_combined", "ankle_coupler_combined_steel_sleeves"
 HORN = "B13_C047_foot_roll_main_horn"
 
 R_SLEEVE = (4.5 / 2, 3.2 / 2)       # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
+EAR_LIP = 0.5                       # ear top above the floor plane (no coplanar fuse: the floor is made by the pocket cut alone)
+FILLET_R = 0.6                      # concave edges where a head pocket wall meets its floor (stress concentration, poor to print)
 TIP_R = 8.0 / 2 + 0.05              # heated press tip (checks/press_lib.py TIP_D) + clearance: pocket radius around each head
 EAR_R = 10.0 / 2 + 0.1              # printed ear around each sleeve from the horn face to the floor: the flat counter face the anvil
                                     # annulus (press_lib ANVIL_D) rests on, where the 19.8 mm horn disc outline ends before it
@@ -68,6 +70,65 @@ def bbox(s):
 def window_stack(length, point, ref):
     """Clamped stack that gives exactly the reference engagement for a standard length (screw_plan.choose_length)."""
     return length - point - ref
+
+
+def rounded_pocket(x, y0, z, y1, r, fr):
+    """Pocket cutter: cylinder r from y0 to y1 with its bottom edge rounded by fr, so the cut leaves a filleted floor edge."""
+    from OCP.BRepAdaptor import BRepAdaptor_Curve
+    from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
+    from OCP.TopAbs import TopAbs_EDGE
+    from OCP.TopExp import TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    cyl = C.cylinder((x, y0, z), (x, y1, z), r)
+    ex = TopExp_Explorer(cyl, TopAbs_EDGE)
+    mk = BRepFilletAPI_MakeFillet(cyl)
+    while ex.More():
+        e = TopoDS.Edge_s(ex.Current())
+        if abs(BRepAdaptor_Curve(e).Value(0.0).Y() - y0) < 1e-6 and abs(BRepAdaptor_Curve(e).Value(0.5 * (BRepAdaptor_Curve(e).FirstParameter() + BRepAdaptor_Curve(e).LastParameter())).Y() - y0) < 1e-6:
+            mk.Add(fr, e)
+        ex.Next()
+    mk.Build()
+    assert mk.IsDone()
+    return mk.Shape()
+
+
+def fillet_ear_junctions(P, holes, y_face, y_seat, centre):
+    """Fillet the vertical concave edges where an ear's wall meets the horn-disc outline (peak stress sat there)."""
+    from OCP.BRepAdaptor import BRepAdaptor_Curve
+    from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
+    from OCP.GeomAbs import GeomAbs_Line
+    from OCP.TopAbs import TopAbs_EDGE
+    from OCP.TopExp import TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    def pick(S):
+        out = []
+        ex = TopExp_Explorer(S, TopAbs_EDGE)
+        while ex.More():
+            e = TopoDS.Edge_s(ex.Current()); c = BRepAdaptor_Curve(e)
+            if c.GetType() == GeomAbs_Line:
+                a, b = c.Value(c.FirstParameter()), c.Value(c.LastParameter())
+                if abs(a.X() - b.X()) < 1e-4 and abs(a.Z() - b.Z()) < 1e-4 and abs(a.Y() - b.Y()) > 1.0 \
+                        and y_face - 0.01 <= min(a.Y(), b.Y()) and max(a.Y(), b.Y()) <= y_seat + EAR_LIP + 0.01:
+                    d = min(((a.X() - h["opening"][0]) ** 2 + (a.Z() - h["opening"][2]) ** 2) ** 0.5 for h in holes)
+                    if abs(d - EAR_R) < 0.05:
+                        out.append(e)
+            ex.Next()
+        return out
+    done, skip = 0, set()
+    for _ in range(60):          # one edge at a time on the current shape; edges the B-rep refuses are skipped
+        cand = [e for e in pick(P) if (round(BRepAdaptor_Curve(e).Value(0).X(), 2), round(BRepAdaptor_Curve(e).Value(0).Z(), 2)) not in skip]
+        if not cand:
+            break
+        e = cand[0]; key = (round(BRepAdaptor_Curve(e).Value(0).X(), 2), round(BRepAdaptor_Curve(e).Value(0).Z(), 2))
+        try:
+            mk = BRepFilletAPI_MakeFillet(P); mk.Add(FILLET_R, e); mk.Build()
+            if mk.IsDone() and C.valid(mk.Shape()) and C.n_solids(mk.Shape()) == 1:
+                P = mk.Shape(); done += 1; continue
+        except Exception:
+            pass
+        skip.add(key)
+    print(f"filleted {done} ear junction edges at r {FILLET_R}, skipped {len(skip)}", flush=True)
+    return P
 
 
 def build_right():
@@ -115,9 +176,8 @@ def build_right():
     add, pockets, bores, new_sleeves = [ring], [C.cylinder((cx, y_face - 1, cz), (cx, BACK_PAD_TOP + 1, cz), CENTRE_R)], [], []
     for h in holes:
         x, _, z = h["opening"]
-        add.append(C.cylinder((x, y_face, z), (x, y_seat + 0.5, z), EAR_R))
-        pockets.append(C.cylinder((x, y_seat, z), (x, y_seat + 0.6, z), EAR_R + 0.5))      # trims the ear's top to the floor
-        pockets.append(C.cylinder((x, y_seat, z), (x, BACK_PAD_TOP + POCKET_TOP, z), TIP_R))
+        add.append(C.cylinder((x, y_face, z), (x, y_seat + EAR_LIP, z), EAR_R))      # the lip above the floor is interior where the pad stands
+        pockets.append(rounded_pocket(x, y_seat, z, BACK_PAD_TOP + POCKET_TOP, TIP_R, FILLET_R))
         bores.append(C.cylinder((x, y_face - 0.5, z), (x, y_seat + 0.5, z), R_SLEEVE[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y_face, z), (x, y_seat, z), R_SLEEVE[0]),
                                  C.cylinder((x, y_face - 0.5, z), (x, y_seat + 0.5, z), R_SLEEVE[1])))
@@ -126,6 +186,7 @@ def build_right():
     P = C.fuse(P, *add)
     P = C.cut_many(P, pockets + bores)
     P = C.largest_solid(P)
+    P = fillet_ear_junctions(P, holes, y_face, y_seat, (cx, cz))
     assert C.valid(P), "edited coupler is not a valid solid"
     print(f"printed volume {v0:.0f} -> {C.volume(P):.0f} mm3, solids {C.n_solids(P)}", flush=True)
     return dict(part=P, sleeves=MR.compound(keep + new_sleeves),
