@@ -8,7 +8,10 @@ import numpy as np
 
 def step_to_closed_mesh(step_path, size=0.9, timeout_s=None):
     """timeout_s (default env CAD_GMSH_TIMEOUT_S or 300): hard stop of the whole process, with the stack printed, even
-    while gmsh is inside C++ (a 0.8 mm surface mesh once ran 2.4 h). Run it in a subprocess if the caller must survive."""
+    while gmsh is inside C++ (a 0.8 mm surface mesh once ran 2.4 h). Run it in a subprocess if the caller must survive.
+    faulthandler has one global timer: this call replaces any timer the caller armed and cancels it on return, so it
+    bounds only the gmsh call itself, not the caller's later work (2026-11-20, Idle T-be4dt7: the step-3 stall came
+    after this call, in a lazy manifold3d boolean; the limit was checked to stop gmsh inside mesh.generate)."""
     import faulthandler
     import os
     import gmsh
