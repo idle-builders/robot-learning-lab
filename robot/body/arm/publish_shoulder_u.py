@@ -445,7 +445,7 @@ def screw_evidence(refs):
                              "so those are driven before the roll servo goes in.",
                  measurements=rows,
                  conditions={"generated": "robot/body/fastening/screw_plan.py from the defined holes (manifest screw_plan rows)",
-                             "kept": "screws and driver_access checks of run.py on the kept pitch-horn and yaw-case screws (blade 3.0 mm, assumption)"},
+                             "existing_screws": "screws and driver_access checks of run.py on the kept pitch-horn and yaw-case screws (blade 3.0 mm, assumption)"},
                  limitations="The shared screws and driver_access checks did not pick up the generated screw meshes (they count the 12 new "
                              "sleeves as sleeves without a screw); the generated screws' numbers come from the screw plan, and their driver "
                              "paths are not measured. No assembly-order data (assembly_order.json) for the shoulder yet.",
