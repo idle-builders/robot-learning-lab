@@ -4,7 +4,7 @@
   "status": "selected_complete_body",
   "scope": "The selected robot: the complete 3D-printed FDM body with its connectors, the integrated electronics and the selected actuators. Selection does not qualify physical behaviour.",
   "body": "robot/body/motor-refit",
-  "body_manifest": "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json",
+  "body_manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json",
   "electronics": "robot/electronics/selection.json",
   "actuators": "robot/actuators/tier-pick",
   "look_reference": "robot/shell/sketch",
@@ -94,6 +94,19 @@
       "dashboard_url": "http://127.0.0.1:8805/design/?result=cove50-complete-fdm-body",
       "name": "Complete printed body (motor refit)",
       "built_from": "robot/body/assembly (the r1 assembly of the four part studies, refitted here)"
+    },
+    "Shoulder (FDM connectors)": {
+      "section": "Shoulder",
+      "study_id": "shoulder-roll-u-connectors",
+      "result_id": "shoulder-roll-u-connectors",
+      "version": "731143cda",
+      "selected_on": "2026-11-20",
+      "status": "user_selected_shoulder_u_connectors",
+      "user_statement": "Much better the two U connectors look clean now. Continue (then: select now, before the shell redesign)",
+      "idle_decision": "M-rya3ty",
+      "idle_task": "T-2e49mv",
+      "scope": "Shoulder roll servo held on both faces: stage 1 (blue U, pitch link) on the roll horn + roll idler, stage 2 (green U, roll link) on the 2+2 far case holes, R and L. Torso shell / upper-arm cover overlaps (standing 16 + 4 / 155 + 109 mm3) remain until the shell redesign T-tph7xb. Selection does not qualify hardware.",
+      "folder": "robot/body/arm"
     }
   },
   "earlier_selections": [
@@ -151,10 +164,11 @@
     "Hip": "hip-roll-motor-in-thigh",
     "Knee": "cove50-complete-leg-hip-fdm-combined",
     "Ankle / foot": "cove50-complete-leg-hip-fdm-combined",
-    "Shoulder": "cove50-arm-fdm-combined",
+    "Shoulder": "shoulder-roll-u-connectors",
     "Elbow": "cove50-arm-fdm-combined",
     "Neck / head": "cove50-neck-head-fdm-combined",
     "Torso / shell": "cove50-torso-fdm-combined",
     "Waist / pelvis": "cove50-torso-fdm-combined"
-  }
+  },
+  "body_manifest_chain": "The selected body = the roll-flip body (artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json, built by robot/body/leg/roll_flip_checks.py) with the shoulder U connectors applied by robot/body/arm/shoulder_clevis.py manifest. After the roll-flip body is regenerated, run `.venv/bin/python -B robot/body/arm/shoulder_clevis.py manifest` to carry the change into the selected body."
 }
