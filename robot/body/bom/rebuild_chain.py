@@ -46,7 +46,7 @@ CHAIN = json.loads((Path(__file__).resolve().parent / "chain.json").read_text())
 WORK = Path(os.environ.get("BODY_REBUILD_WORK", ROOT / ".cache/work/body-rebuild"))
 REPO = WORK / "repo"
 RUNS = WORK / "runs.json"
-SNAPSHOT = WORK / "selected" / "assembly-parts-roll-flip.json"
+SNAPSHOT = WORK / "selected" / Path(CHAIN["target_manifest"]).name
 
 RSYNC_EXCLUDE = ["/artifacts/", "/.cache/", "/.venv/", "/.venv-control/", "/.venv-runpod/", "/data/", "/.git/", "/.tools/",
                  "node_modules/", "/.artifact-store/", "/.artifact-incoming/", "/.public-upstream/", "/.bookkeeping/",
@@ -63,6 +63,23 @@ def link(dst: Path, src: Path):
     if dst.is_symlink() or dst.exists():
         return
     os.symlink(src, dst)
+
+
+def link_except(rel: str, produced: list[str]):
+    """Link ROOT/rel into the copy; when a chain output lies inside it (arm/shoulder-clevis inside arm), make rel a real
+    folder and link its children one by one, leaving the produced path empty so the chain writes it in the copy."""
+    if not produced:
+        link(REPO / rel, ROOT / rel)
+        return
+    (REPO / rel).mkdir(parents=True, exist_ok=True)
+    for c in sorted((ROOT / rel).iterdir()):
+        sub = f"{rel}/{c.name}"
+        if sub in produced:
+            (REPO / sub).mkdir(parents=True, exist_ok=True)
+        elif any(q.startswith(sub + "/") for q in produced):
+            link_except(sub, [q for q in produced if q.startswith(sub + "/")])
+        else:
+            link(REPO / sub, c)
 
 
 def setup():
@@ -84,9 +101,10 @@ def setup():
         if p.name != "body":
             link(art / "robot" / p.name, p)
     (art / "robot/body").mkdir(parents=True, exist_ok=True)
+    produced = CHAIN["section_inputs"]["produced_by_chain"]
     for rel in CHAIN["section_inputs"]["linked_read_only"]:
         if (ROOT / rel).exists():
-            link(REPO / rel, ROOT / rel)
+            link_except(rel, [q for q in produced if q.startswith(rel + "/")])
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     if not SNAPSHOT.exists():
         shutil.copy2(ROOT / CHAIN["target_manifest"], SNAPSHOT)
