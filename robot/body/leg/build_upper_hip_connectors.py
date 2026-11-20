@@ -706,8 +706,16 @@ RF_END_X0 = 31.0                     # medial face of the kept end block (and of
 RF_CHEEK_X0 = 29.0                   # medial face of the new cheek (4.15 mm thick; roll-stall bending): screw heads seat here
 RF_CHEEK_Y = (-6.5, 14.5)            # cheek width below the knee case top: case y -6..14 plus 0.5 mm
 RF_CHEEK_Z0 = 139.5                  # cheek lower edge (lowest screw hole edge z 141.8)
-RF_POSTS = [((45.75, 171.5), -18.35, -15.67), ((66.25, 171.5), -18.35, -15.67)]   # tips at the blue shell's inner wall   # front: (x, z), tip y, nut y
-RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92), ((66.25, 171.5), 31.60, 28.92)]     # rear
+# Shell posts: (x, z), tip y (the shell boss sits on it), nut y (make_captive_nut_pocket centre: the pocket spans
+# RF_NUT_POCKET_H from 0.10 behind it towards the tip). The nut sits behind a solid wall at the tip (the pocket used to open
+# through the tip, so under pull-off the nut left with the shell): moved RF_POST_NUT_SHIFT deeper (front, rear). The rear
+# shift is smaller: the rear screw bore cannot go deeper than y 26.0 (the rear ear-boss key pocket floor at y 25.5 overlaps
+# the bore's edge in x), and a full nut plus a tip margin needs >= 3.2 mm of bore beyond the nut's near face. The insertion
+# slot of each pocket opens upward (+z) through the post top, into free space above the post.
+RF_NUT_POCKET_H = 2.60
+RF_POST_NUT_SHIFT = (2.60, 2.00)
+RF_POSTS = [((45.75, 171.5), -18.35, -15.67 + RF_POST_NUT_SHIFT[0]), ((66.25, 171.5), -18.35, -15.67 + RF_POST_NUT_SHIFT[0])]  # front
+RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1]), ((66.25, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1])]   # rear
 # H-cage (owner 2026-11-19: the 0.15 mm plate-to-arm gaps will not hold for printed parts and hand assembly; the 4 upper
 # roll-case screws go; "an H connector with a 90 deg rotation in the middle", 2 + 2 screws on each actuator).
 #   roll case: its 2 lower ear screws per y face (z 161 front, 157.25 rear); plates cut back under the swept Stage 5 arms;
@@ -719,7 +727,16 @@ RF_PLATE_Z0 = 153.4                  # plate / rib / walls lower edge: knee case
 RF_CASE_END_X = 68.36                # turned roll case's outboard end face
 RF_OUT_WALL_X = (68.6, 73.6)         # outboard wall on that face (0.24 mm off it); reaches 0.45 mm into the lateral cheek
                                      # (x 73.15 ..): a 73.0 face left a 0.15 mm slit beside the bridge (49 MPa FEM peak)
-RF_OUT_WALL_TOP = 178.0
+RF_PLATE_TOP = 177.0                 # top of the H-cage plates and both end walls (owner 2026-11-20: the plates reached up
+                                     # to the yellow arms while only the lower ear screws connect). What still has a function
+                                     # above the lower ear screws: the shell posts (z 171.5 + r 4.8 = 176.3), the front
+                                     # ear-boss key pocket walls (the boss reaches z 181.0; the swept-arm keep-out arc capped
+                                     # the walls beside it at z 178.25) and the rear ones (boss to z 172.6). Flat at this z
+                                     # with r 2.5 corners; the keep-out arc dips to z 176.3 between x 51.7 and 60.3, inside
+                                     # the front key pocket's x span (48.96 .. 63.04): a top at 178 put the arc's filleted
+                                     # junction across the pocket's side walls (slivers; the 3D bevel crashed on them).
+RF_OUT_WALL_TOP = RF_PLATE_TOP - 1.0  # both end walls stop 1 mm under the plates' top: a flush top put a 3-face corner
+                                     # (plate inner face, wall face, shared top) under the 3D bevel, which crashed OCC
 RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
 RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
 RF_LAT_CHEEK_X1 = 79.4               # lateral cheek block before the shell trim: its outer face becomes the shell envelope
@@ -738,10 +755,12 @@ RF_YELLOW_MARGIN = 1.3               # plates to the swept Stage 5 arms (the 2D 
 RF_NECK_FILLET_ALLOW = 0.5           # the arms' r 5 inner fillet (hub -> neck) reaches below the neck's lower edge z RF_AZ + 2
 RF_KEY_CLEAR = 0.05                  # case ear-boss pockets: CAD clearance per side (printers.json hole_offset_mm not
                                      # measured yet; tune to the coupon). The bosses key the roll torque.
-RF_IN_WALL_X = (40.4, 43.4)          # inboard wall on the case's inboard end face (old Stage 5 deck, turned); 3 mm
-                                     # (lightening, FEM 2026-11-20: was 5.4 mm, p95 2.5 MPa at 6 kg x 1.5 g)
-RF_IN_WINDOW = (22.0, 22.0)          # inboard wall window (y, z size, rounded 3.5)
-RF_OUT_WINDOW = (21.0, 14.0)         # outboard wall window (its lower edge 1 mm above the bridge)
+RF_IN_WALL_X = (40.4, 43.5)          # inboard wall on the case's inboard end face (old Stage 5 deck, turned); 3 mm
+                                     # (lightening, FEM 2026-11-20: was 5.4 mm, p95 2.5 MPa at 6 kg x 1.5 g). It ends 0.05
+                                     # past the case-envelope cut (x 43.45), which then forms its face: a 43.4 face left
+                                     # 0.05 mm edges, at the flush top too since the plates and the wall share their top
+RF_IN_WINDOW = (22.0, 160.5, RF_OUT_WALL_TOP - 3.0)   # inboard wall window: y size, z from .. to (rounded 3.5)
+RF_OUT_WINDOW = (21.0, 13.0)         # outboard wall window (its lower edge 1 mm above the bridge, 3 mm under the wall top)
 RF_KEY_CORNER_R = 1.0               # pocket corner radius (the bosses' corners are rounded more)
 RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
@@ -760,11 +779,13 @@ RF5_LAND_R = 11.0                    # land on the pitch wheel face (wheel face 
                                      # above the pitch case face x 60.05); r <= 11.3 keeps it outside RF_CLEAR_R + 0.4 of the roll axis
 RF5_HUB_R, RF5_HUB_TOP_X = 4.0, 63.0  # the wheel's raised hub (ST3025 output, r 4.0 up to x 63.0)
 RF5_HUB_CLEAR = (0.2, 0.3)           # hub pocket clearance: radial, beyond the hub top
-RF5_CBORE_R = 3.2                    # counterbore for the M3 button head (dk 5.7) on the plate's outer face
+RF5_CBORE_R = 3.05                   # counterbore for the M3 button head (dk 5.7: 0.2 radial clearance) on the plate's
+                                     # outer face; 0.70 mm web to the dia 6.5 centre screw-head hole (was 3.2: 0.53 mm)
 RF5_SLEEVE_R, RF5_SLEEVE_BORE_R = 2.25, 1.60   # 304 sleeve dia 4.5 / 3.2 for M3
-RF5_CLAMP_R = 12.1                   # inner clamp disc on the horn / idler face and outer head-seat disc (recess front 0.2,
-RF5_SEAT_R = 12.1                    # pad rear 0.35): bolt circle r 7 + the dia 10 spacer / press annulus (r 5), 0.3 inside
-                                     # the arm hub (r 12.4); the necks keep the old faces (H-cage plate clearance)
+RF5_CLAMP_R = RF_ROLL_HUB_R          # inner clamp disc on the horn / idler face (0.5 mm) and the rear outer head-seat pad
+RF5_SEAT_R = RF_ROLL_HUB_R           # (0.35 mm): run out to the arm hub's edge (r 12.4; at r 12.1 they left 0.3 mm rims,
+                                     # under one line); the necks keep the old faces (H-cage plate, shell clearance). The front
+                                     # head seat lies 0.2 inside the old face: the whole front arm's outer face moves to it.
 
 
 def rf5_screws() -> dict:
@@ -888,6 +909,11 @@ def rf_yellow_keepout_xz() -> Face:
     wedge = Polygon((vx, vz), (vx + L * nb[0], vz + L * nb[1]), (vx + L * (nb[0] - no[0]), vz + L * (nb[1] - no[1])),
                     (vx - L * no[0], vz - L * no[1]), align=None)
     return (wedge + Pos(RF_AX, RF_AZ) * Circle(RF_ROLL_HUB_R + m)).clean().faces()[0]
+
+
+def rf_post_nut_face(tip: float, nut: float) -> float:
+    """y of the tip-side face of a shell post's nut pocket (the face the nut bears on under pull-off)."""
+    return nut + (0.10 + RF_NUT_POCKET_H) * (-1.0 if nut > tip else 1.0)
 
 
 def rf_sleeve(p0, p1) -> Solid:
@@ -1062,8 +1088,10 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
 
     # 1. Front and rear plates on the case ear faces (XZ profile), upper edge cut back under the swept Stage 5 arms
     #    (rf_yellow_keepout_xz); the outward rib (below RF_RIB_TOP) is flush with the plate's lower edge.
-    pl = Polygon((31.0, z0), (xw1, z0), (xw1, 178.0), (70.0, 183.0), (67.0, 186.5), (40.5, 186.5), (31.0, 176.5), align=None)
-    pl_face = fillet_2d_face(max((pl - rf_yellow_keepout_xz()).clean().faces(), key=lambda f: f.area), 2.5)
+    #    The outboard top corner stays square in XZ (the outboard wall ends flush with it; the 3D bevel rounds it).
+    pl = Polygon((31.0, z0), (xw1, z0), (xw1, RF_PLATE_TOP), (31.0, RF_PLATE_TOP), align=None)
+    pl_face = fillet_2d_face(max((pl - rf_yellow_keepout_xz()).clean().faces(), key=lambda f: f.area), 2.5,
+                             skip_xy=[(xw1, RF_PLATE_TOP)])
     rib = Polygon((32.5, z0), (xw1 - 1.5, z0), (xw1 - 1.5, RF_RIB_TOP), (32.5, RF_RIB_TOP), align=None)
     rib_face = fillet_2d_face(rib.faces()[0], 2.5, skip_xy=[(32.5, z0), (xw1 - 1.5, z0)])
     plate_f = extrude_xy_to_y(pl_face, yf_out, yf_in)
@@ -1072,8 +1100,10 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     rib_r = extrude_xy_to_y(rib_face, yr_out, yr_out + RF_RIB)
 
     # 2. Inboard wall (YZ profile) on the case's inboard end face (the old Stage 5 deck, turned): x 38.0..43.4
-    w_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, 185.5), (yf_in - 0.6, 185.5), align=None).faces()[0]
-    w_face = (w_face - Pos(7.2, 171.5) * RectangleRounded(*RF_IN_WINDOW, 3.5).faces()[0]).clean().faces()[0]
+    w_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, RF_OUT_WALL_TOP), (yf_in - 0.6, RF_OUT_WALL_TOP),
+                     align=None).faces()[0]
+    wy, wz0, wz1 = RF_IN_WINDOW
+    w_face = (w_face - Pos(7.2, 0.5 * (wz0 + wz1)) * RectangleRounded(wy, wz1 - wz0, 3.5).faces()[0]).clean().faces()[0]
     wall = extrude_xy_to_x(w_face, *RF_IN_WALL_X)
 
     body = fuse_all([plate_f, plate_r, rib_f, rib_r, wall])
@@ -1105,8 +1135,9 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
 
     # 4. Outboard wall on the case's outboard end face (x RF_CASE_END_X) and the bridge over the knee case top to the
     #    lateral cheek; fused after the case-envelope cutter (which reaches x 71)
-    o_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, RF_OUT_WALL_TOP), (yf_in - 0.6, RF_OUT_WALL_TOP), align=None).faces()[0]
-    o_face = (o_face - Pos(7.2, 167.0) * RectangleRounded(*RF_OUT_WINDOW, 3.5).faces()[0]).clean().faces()[0]
+    o_face = Polygon((yf_in - 0.6, z0), (yr_in + 0.6, z0), (yr_in + 0.6, RF_OUT_WALL_TOP), (yf_in - 0.6, RF_OUT_WALL_TOP),
+                     align=None).faces()[0]
+    o_face = (o_face - Pos(7.2, RF_BRIDGE_Z1 + 1.0 + RF_OUT_WINDOW[1] / 2) * RectangleRounded(*RF_OUT_WINDOW, 3.5).faces()[0]).clean().faces()[0]
     cy0, cy1 = RF_CHEEK_Y
     late = [extrude_xy_to_x(o_face, xw0, xw1),
             # the bridge is 0.5 mm narrower than the cheek and ends inside it (no coplanar side / end faces to fillet)
@@ -1132,14 +1163,18 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     knee = largest_solid(cut_all(knee, [occ_box(40.0, 43.5, yf_out - RF_RIB_F - 5.0, yf_out - RF_RIB_F, 150.0, 164.0),
                                         occ_box(40.0, 43.5, yr_out + RF_RIB, yr_out + RF_RIB + 5.0, 150.0, 164.0)]))
 
-    # 6. Shell posts (thigh covers): unchanged
+    # 6. Shell posts (thigh covers): outer shape and tips unchanged; the post runs back into the plate (not only into the
+    #    rib), so the nut pocket behind the tip wall has solid post behind it above the rib top too
     posts, post_cut = [], []
     for (px, pz), tip, nut in RF_POSTS:
-        posts.append(bevel_3d_edges(occ_cyl((px, tip, pz), (px, yf_out - RF_RIB_F + 0.3, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
-        post_cut += [occ_cyl((px, tip - 2.0, pz), (px, yf_out - 0.2, pz), 1.70), make_captive_nut_pocket((px, nut, pz), (0.0, 1.0, 0.0))]
+        posts.append(bevel_3d_edges(occ_cyl((px, tip, pz), (px, yf_out + 0.3, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
+        post_cut += [occ_cyl((px, tip - 2.0, pz), (px, yf_out - 0.2, pz), 1.70),
+                     make_captive_nut_pocket((px, nut, pz), (0.0, 1.0, 0.0), h=RF_NUT_POCKET_H)]
     for (px, pz), tip, nut in RF_POSTS_R:
-        posts.append(bevel_3d_edges(occ_cyl((px, yr_out + RF_RIB - 0.3, pz), (px, tip, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
-        post_cut += [occ_cyl((px, yr_out + 0.8, pz), (px, tip + 2.0, pz), 1.70), make_captive_nut_pocket((px, nut, pz), (0.0, -1.0, 0.0))]
+        posts.append(bevel_3d_edges(occ_cyl((px, yr_out - 0.3, pz), (px, tip, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
+        post_cut += [occ_cyl((px, yr_out + 0.8, pz), (px, tip + 2.0, pz), 1.70),
+                     make_captive_nut_pocket((px, nut, pz), (0.0, -1.0, 0.0), h=RF_NUT_POCKET_H)]
+    post_cut.append(rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5))   # the rear posts reach into the rear boss pocket
     # knee screw sleeve bores through both cheeks (cut after the fuse: the medial cheek is the end block's)
     for s in screws:
         if s["mate"] != "knee_ST3025_case":
@@ -1178,6 +1213,9 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
 
     # 1. Lateral plate (YZ profile) on the ST3025 output wheel, spreading fore-aft to the two arm layers
     wfo, wro = RF_ARM_F[0] - RF_ARM_THICKEN, RF_ARM_R[2] + RF_ARM_THICKEN      # plate wings to the arms' old outer faces
+    # a head seat inside the old outer face (front: 0.2 mm) moves the whole arm's outer face (and the plate wing) to it:
+    # a recess disc of the hub's radius left a 0.2 mm step around the neck and a notch at the hub flat (FEM peak)
+    wfo = max(wfo, yfo)
     lp = Polygon((wfo, z_low), (wro, z_low), (wro, RF_WING_TOP), (hy + 7.5, hz + 6.0), (hy - 7.5, hz + 6.0), (wfo, RF_WING_TOP), align=None)
     lp_face = fillet_2d_face((lp + Pos(hy, hz) * Circle(RF_PITCH_HUB_R)).clean().faces()[0], 2.5, r_inner=4.0)
     plate = extrude_xy_to_x(lp_face, x0, x1)
@@ -1192,7 +1230,7 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     arm_face = fillet_2d_face((arm + Pos(RF_AX, RF_AZ) * Circle(RF_ROLL_HUB_R)).clean().faces()[0], 2.2, r_inner=5.0,
                               skip_xy=[(60.5, top), (x1, top)])
     # old arm faces outside the clamp discs (envelope); clamp disc on the horn / idler face; head-seat disc on the outer face
-    efo, efi = RF_ARM_F[0] - RF_ARM_THICKEN, RF_ARM_F[2]
+    efo, efi = max(RF_ARM_F[0] - RF_ARM_THICKEN, yfo), RF_ARM_F[2]
     eri, ero = RF_ARM_R[0], RF_ARM_R[2] + RF_ARM_THICKEN
     arm_f = extrude_xy_to_y(arm_face, efo, efi)
     arm_r = extrude_xy_to_y(arm_face, eri, ero)
@@ -1371,7 +1409,10 @@ def build_roll_flip(stage5_only: bool = False):
                           "note": "right leg (left = mirror x); head = head seat point, stack = L - point - reference engagement "
                                   "(screw_plan.choose_length window), so each screw engages exactly its hole's reference"},
         "h_cage": {"owner": "2026-11-19 (H connector, 2 + 2 screws per actuator, upper roll-case screws removed)",
-                   "plate_lower_edge_z": RF_PLATE_Z0, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
+                   "plate_lower_edge_z": RF_PLATE_Z0, "plate_top_z": RF_PLATE_TOP,
+                   "post_nut_pockets": {"shift_front_rear_mm": list(RF_POST_NUT_SHIFT), "pocket_h_mm": RF_NUT_POCKET_H,
+                                        "tip_wall_mm": [round(abs(rf_post_nut_face(t, n) - t), 3) for _, t, n in (RF_POSTS[0], RF_POSTS_R[0])],
+                                        "insertion": "slot open +z through the post top"}, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
                    "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "shell envelope"], "lateral_seat_x": rf_lat_seat_x(),
                    "shell_clear_mm": RF_SHELL_CLEAR, "shin_chamfer_mm": RF_SHIN_CHAMFER,
                    "key_pocket_clearance_mm": RF_KEY_CLEAR, "roll_sweep_deg": list(RF_ROLL_SWEEP),

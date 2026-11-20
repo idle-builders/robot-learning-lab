@@ -17,8 +17,9 @@ Stage 4 posts), re-fitted:
     swept over ROLL_RANGE (fabric covers what is above it); the knee edge clears every lower-leg part swept
     over KNEE_RANGE about the knee axis (the shin hard covers slope in to clear it); the knee edge is one tilted plane, at
     the front just above the knee hub, and below the Stage 4 bracket the back slopes in to hug the knee motor;
-  - holes with 90-deg countersinks (flat-head M3, flush with the outer skin) at the Stage 4 posts, bosses from the post
-    tips to the wall; no sleeves or inserts.
+  - holes with 90-deg countersinks (flat-head M3, flush with the outer skin, or sunk below it in a counterbore where no
+    standard length gives a full nut with a tip margin; post_fit) at the Stage 4 posts, bosses from the post tips to the
+    wall, a steel sleeve in each.
 shin-cover cuts the lower leg's back hard cover clear of all this over KNEE_RANGE and re-mounts it (its old top M3s are
 cut away): four PA2x8 per leg through bosses on its side wings into pilot holes drilled in the shin frame's STEP.
 Nothing in the build or the check uses the core torso shell (cut at z 271 and redesigned next, D-12).
@@ -742,15 +743,17 @@ def build():
     print("skin containment", edge_info["skin_containment"], flush=True)
     print(f"tube + smooth edges ({time.time() - t0:.0f}s)", flush=True)
     # bosses / holes at the Stage 4 posts: boss r 4.8 from the post tip out, a steel sleeve bore through it and a 90-deg
-    # countersink for an ISO 10642 M3 head flush with the outer surface (post_screws)
+    # countersink for an ISO 10642 M3 head, flush with the outer surface or sunk below it (post_fit, post_screws)
     posts = shell_posts(th, zs, ro)
+    s4 = body.mesh("R_thigh_roll_flip")
     bosses, holes = [], []
     for q in posts:
         x, z, tip, sg, y_out = q["x"], q["z"], q["tip_y"], q["sg"], q["skin_y"]
+        q["fit"] = post_fit(q, s4)
         y0, y1 = sorted((tip, y_out + sg * 2.0))
         bosses.append(trimesh.creation.cylinder(4.8, y1 - y0, sections=48, transform=_ty(x, (y0 + y1) / 2, z)))
         holes.append(trimesh.creation.cylinder(SLEEVE_R, 40.0, sections=48, transform=_ty(x, tip + sg * 15.0, z)))
-        holes.append(countersink(x, y_out, z, sg))
+        holes += head_seat_cutters(x, y_out, z, sg, q["fit"]["recess_mm"])
     hull_out = kit.mf(_outer_hull(th, zs, ro))
     boss = M.Manifold.batch_boolean([kit.mf(b) for b in bosses], M.OpType.Add) ^ hull_out
     shell = (shell + boss) - M.Manifold.batch_boolean([kit.mf(h) for h in holes], M.OpType.Add)
@@ -799,10 +802,13 @@ def build():
 # flush with the outer skin at the post axis, through a 304 steel sleeve (dia 4.5 / 3.2) pressed into the boss from the
 # post tip to the countersink (its outer end countersunk 90 deg like the shell, so the head bears on the steel and the clamp
 # is head -> sleeve -> nut: the printed boss is not crushed and the preload does not creep away), into the ISO 4032 M3 nut
-# in the post's captive-nut pocket. The pocket opens at the post tip, so the nut sits against the sleeve end / boss tip.
-# The length is the shortest standard one that runs the thread through the whole nut with the tip short of the post bore's
-# bottom (screw_plan.choose_length: stack = head top to the nut's near face, reference = nut height).
+# in the post's captive-nut pocket, behind a solid wall at the post tip (B.RF_POST_NUT_SHIFT): under pull-off the nut bears
+# on that wall, and the clamp is head -> sleeve -> post tip wall -> nut. post_fit picks the length and the head recess: the
+# thread runs through the whole nut and the tip stays POST_TIP_MIN short of the post bore's bottom (the whole screw
+# length, point included); flush heads first, then the shortest length; a head sinks below the skin (counterbore over the
+# countersink) only when no standard length fits flush. stack = head top to the nut's near face, reference = nut height.
 SLEEVE_R, SLEEVE_BORE_R = 2.25, 1.60
+POST_TIP_MIN, POST_RECESS_MAX, POST_CBORE_CLEAR = 0.3, 2.5, 0.2   # mm: tip to bore bottom, head below the skin, counterbore
 CS_HEAD, NUT_STD, THREAD = "ISO 10642", "ISO 4032", "M3"
 
 
@@ -818,9 +824,10 @@ def shell_posts(th, zs, ro):
     at the axis, the shell half and the legacy screw name stem."""
     out = []
     for half, sg, posts in (("front", -1.0, B.RF_POSTS), ("back", 1.0, B.RF_POSTS_R)):
-        for i, ((x, z), tip, _) in enumerate(posts):
+        for i, ((x, z), tip, _nut) in enumerate(posts):
             stem = f"Thigh_carrier_shell_thigh_front_{i + 1}" if half == "front" else f"Thigh_rear_carrier_shell_thigh_back_{i + 1}"
             out.append(dict(half=half, i=i + 1, stem=stem, x=x, z=z, tip_y=tip, sg=sg, skin_y=_outer_y(th, zs, ro, x, z, sg),
+                            nut_face_y=B.rf_post_nut_face(tip, _nut),
                             skin_y_over_head=[_outer_y(th, zs, ro, x + 3.36 * np.cos(a), z + 3.36 * np.sin(a), sg)
                                               for a in np.linspace(0, 2 * np.pi, 24, endpoint=False)]))
     return out
@@ -836,6 +843,40 @@ def countersink(x, y_out, z, sg):
     T[:3, 3] = [x, y_out + sg * (rb - rcs), z]
     cone.apply_transform(T)
     return cone
+
+
+def head_seat_cutters(x, y_out, z, sg, recess):
+    """Countersink with its head top `recess` below the skin point (x, y_out, z), plus (recess > 0) a counterbore of the
+    head's radius + POST_CBORE_CLEAR from that plane out through the skin."""
+    import trimesh
+    y_seat = y_out - sg * recess
+    out = [countersink(x, y_seat, z, sg)]
+    if recess > 1e-6:
+        r = _hw()[2]["dk"] / 2.0 + POST_CBORE_CLEAR
+        out.append(trimesh.creation.cylinder(r, 12.0, sections=64, transform=_ty(x, y_seat + sg * 6.0, z)))
+    return out
+
+
+def post_fit(q, s4):
+    """Length and head recess for one post (see the comment above SLEEVE_R): dist = flush head top -> nut near face,
+    free = nut near face -> post bore bottom."""
+    SP, st, head, nut = _hw()
+    pt, m = st["point_mm"], nut["m"]
+    tip, sg, y_out, nf = q["tip_y"], q["sg"], q["skin_y"], q["nut_face_y"]
+    bottom = _bore_bottom(s4, q["x"], q["z"], tip, sg)
+    dist0, free = abs(y_out - nf), abs(bottom - nf)
+    cands = []
+    for L in head["lengths"]:
+        s = max(0.0, dist0 + m - (L - pt))                 # recess that runs the thread through the whole nut
+        if s <= POST_RECESS_MAX and (dist0 - s + free) - L >= POST_TIP_MIN:
+            cands.append((round(s, 6), L, s))
+    if cands:
+        _, L, s = min(cands)
+    else:                                                    # nothing fits: flush, nearest length by violation
+        s, L = 0.0, SP.choose_length(dist0, free - pt, nut["reference_engagement_mm"], head["lengths"], pt)["length_mm"]
+    return dict(length_mm=float(L), recess_mm=round(s, 3), dist_flush_mm=round(dist0, 3), dist_mm=round(dist0 - s, 3),
+                free_mm=round(free, 3), bore_bottom_y=round(bottom, 3), nut_face_y=round(nf, 3),
+                tip_wall_mm=round(abs(nf - tip), 3), fits=bool(cands))
 
 
 def _shell_hardware(name):
@@ -861,29 +902,33 @@ def post_screws(posts, body):
     rows, rep, sleeves = [], [], {"front": [], "back": []}
     for q in posts:
         x, z, tip, sg, y_out = q["x"], q["z"], q["tip_y"], q["sg"], q["skin_y"]
-        dist = abs(y_out - tip)                                      # head top (flush) -> nut near face
-        bottom = _bore_bottom(s4, x, z, tip, sg)
-        free = abs(bottom - tip)                                     # nut near face -> bore bottom
-        pick = SP.choose_length(dist, free - pt, nut["reference_engagement_mm"], head["lengths"], pt)
-        L = pick["length_mm"]
+        fit = q.get("fit") or post_fit(q, s4)
+        nf, rec, free, L = fit["nut_face_y"], fit["recess_mm"], fit["free_mm"], fit["length_mm"]
+        y_head = y_out - sg * rec                                    # head top (flush, or sunk by the recess)
+        dist = abs(y_head - nf)                                      # head top -> nut near face
+        pick = SP.choose_length(dist, free - pt, nut["reference_engagement_mm"], [L], pt)
         eng = pick["engagement_mm"]
         plan = dict(thread=THREAD, head_dia_mm=head["dk"], head_height_mm=head["k"], length_mm=L, point_mm=pt, countersunk=True,
-                    axis_out=np.array([0.0, sg, 0.0]), opening=np.array([x, tip, z]), stack_mm=dist)
+                    axis_out=np.array([0.0, sg, 0.0]), opening=np.array([x, nf, z]), stack_mm=dist)
         sm = SP.screw_mesh(plan)
-        nm = trimesh.creation.cylinder(nut["s"] / np.sqrt(3.0), nut["m"], sections=6, transform=_ty(x, tip - sg * nut["m"] / 2, z))
-        nm = kit.tm(kit.mf(nm) - kit.mf(trimesh.creation.cylinder(1.25, nut["m"] + 2.0, sections=32, transform=_ty(x, tip - sg * nut["m"] / 2, z))))
-        tube = trimesh.creation.cylinder(SLEEVE_R, dist, sections=48, transform=_ty(x, tip + sg * dist / 2, z))
-        bore = trimesh.creation.cylinder(SLEEVE_BORE_R, dist + 2.0, sections=48, transform=_ty(x, tip + sg * dist / 2, z))
-        sl = kit.mf(tube) - kit.mf(bore) - kit.mf(countersink(x, y_out, z, sg))
+        nc = nf - sg * nut["m"] / 2                                  # nut against the tip wall (pull-off direction)
+        nm = trimesh.creation.cylinder(nut["s"] / np.sqrt(3.0), nut["m"], sections=6, transform=_ty(x, nc, z))
+        nm = kit.tm(kit.mf(nm) - kit.mf(trimesh.creation.cylinder(1.25, nut["m"] + 2.0, sections=32, transform=_ty(x, nc, z))))
+        sl_len = abs(y_head - tip)                                   # sleeve: post tip -> head seat
+        tube = trimesh.creation.cylinder(SLEEVE_R, sl_len, sections=48, transform=_ty(x, tip + sg * sl_len / 2, z))
+        bore = trimesh.creation.cylinder(SLEEVE_BORE_R, sl_len + 2.0, sections=48, transform=_ty(x, tip + sg * sl_len / 2, z))
+        sl = kit.mf(tube) - kit.mf(bore) - kit.mf(countersink(x, y_head, z, sg))
         sleeves[q["half"]].append(sl)
-        over = np.array(q["skin_y_over_head"]) - y_out
+        over = np.array(q["skin_y_over_head"]) - y_head
         r = dict(site=q["stem"], post_xz_mm=[x, z], half=q["half"], head_standard=CS_HEAD, length_mm=L,
+                 head_recess_below_skin_mm=rec, fits_full_nut_and_tip_margin=fit["fits"],
+                 post_tip_wall_mm=fit["tip_wall_mm"], nut_face_y_mm=nf,
                  head_top_to_nut_mm=round(dist, 3), nut_to_bore_bottom_mm=round(free, 3),
                  thread_in_nut_mm=round(min(max(eng, 0.0), nut["m"]), 3), nut_height_mm=nut["m"],
                  thread_past_nut_mm=round(eng - nut["m"], 3), tip_to_bore_bottom_mm=round(dist + free - L, 3),
                  shortfall_mm=pick["shortfall_mm"], overrun_mm=pick["overrun_mm"],
                  skin_vs_head_top_over_head_disc_mm=[round(float((-sg * over).min()), 2), round(float((-sg * over).max()), 2)],
-                 sleeve_len_axis_mm=round(dist - (head["dk"] / 2 - SLEEVE_R), 3))
+                 sleeve_len_axis_mm=round(sl_len - (head["dk"] / 2 - SLEEVE_R), 3))
         rep.append(r)
         lbl = f"M3x{L:g}"
         for side in ("R", "L"):
@@ -909,7 +954,7 @@ def post_screws(posts, body):
             rows.append(dict(name=nn, physical_part_id=nn, bom_group=f"{side}_thigh_shell_nut_M3", owning_link=f"{side}_roll_link",
                              role="fastener_proxy", **R.save_npz(nn, mn), volume_mm3=round(float(mn.volume), 3),
                              mass_kg=round(float(mn.volume) * R.STEEL / 1000.0, 7),
-                             material=f"{NUT_STD} M3 hex nut (s {nut['s']}, m {nut['m']}) in the Stage 4 post's captive-nut pocket, against the sleeve end",
+                             material=f"{NUT_STD} M3 hex nut (s {nut['s']}, m {nut['m']}) in the Stage 4 post's captive-nut pocket, against its tip wall",
                              color=[220, 185, 75, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
                              inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
