@@ -97,13 +97,17 @@ for key, sc in zip(("secx", "secz"), SECS):
     section(axs[key], sc["axis"], sc["value"], tuple(sc["uv"]), tuple(map(tuple, sc["lims"])), sc["title"])
 # screw sites
 used, gone = INFO.get("screws_used", {}), INFO.get("screws_removed", {})
-def mark(ax, pts, used_):
+def mark(ax, pts, used_, near=True):
     for (u, v) in pts:
-        if used_: ax.add_patch(Circle((u, v), 1.75, fc="#18a558", ec="k", lw=0.6, zorder=20))
-        else: ax.plot(u, v, marker="x", ms=7, mew=2, color="#e0201b", zorder=20)
-for k, ax_name, ij in (("roll_front", "front", (0, 2)), ("roll_rear", "front", (0, 2)), ("knee_med", "side", (1, 2)), ("knee_lat", "side", (1, 2))):
+        if used_ and near: ax.add_patch(Circle((u, v), 1.75, fc="#18a558", ec="k", lw=0.6, zorder=20))
+        elif used_: ax.add_patch(Circle((u, v), 1.75, fc="none", ec="#18a558", lw=1.4, ls="--", zorder=20))
+        elif near: ax.plot(u, v, marker="x", ms=7, mew=2, color="#e0201b", zorder=20)
+# each view marks the screws on the face nearest the viewer filled and the far face's screws as dashed rings, so the
+# two faces of one actuator never read as 4 screws on one face (owner 2026-11-20); removed sites only on the near face
+for k, ax_name, ij, near in (("roll_front", "front", (0, 2), True), ("roll_rear", "front", (0, 2), False),
+                             ("knee_lat", "side", (1, 2), True), ("knee_med", "side", (1, 2), False)):
     for flag, src in ((True, used), (False, gone)):
-        pts = [(p[ij[0]], p[ij[1]]) for p in src.get(k, [])]; mark(axs[ax_name], pts, flag)
+        pts = [(p[ij[0]], p[ij[1]]) for p in src.get(k, [])]; mark(axs[ax_name], pts, flag, near)
 SHELLS = [BL.load_mesh(P[n]["mesh"]) for n in ("R_thigh_shell_front", "R_thigh_shell_back")]
 def shell_outline(ax, axis, value, uv):
     for m in SHELLS:
@@ -129,7 +133,9 @@ hand = ([Patch(color=COL["yellow"], label="R_hip_pitch_to_roll_roll_flip (yellow
         [Patch(color=COL["blue"], label="R_thigh_roll_flip (blue, roll link)"), Patch(color=COL["yellow"], label="Stage 5 yoke (yellow, pitch link, moves)"),
         Patch(color=COL["red"], label="STS3250 roll case (red)"), Patch(color=COL["dark"], label="ST3025 knee case (dark grey)"),
         Patch(color=COL["grey"], label="shin frame (grey, moves)"), Patch(color=COL["light"], label="horn / idler / knee output")]) + [
-        Line2D([], [], marker="o", ls="", mfc="#18a558", mec="k", label="screw used"), Line2D([], [], marker="x", ls="", color="#e0201b", mew=2, label="screw site not used"),
+        Line2D([], [], marker="o", ls="", mfc="#18a558", mec="k", label="screw on the face you see"),
+        Line2D([], [], marker="o", ls="", mfc="none", mec="#18a558", mew=1.4, label="screw on the far face (hidden)"),
+        Line2D([], [], marker="x", ls="", color="#e0201b", mew=2, label="screw site not used (face you see)"),
         Line2D([], [], color="#3d7cc9", ls="--", label="blue thigh shell (sections)")]
 ax.legend(handles=hand, loc="lower left", fontsize=7, frameon=True)
 fig.suptitle(INFO["suptitle"], fontsize=13, weight="bold", x=0.01, ha="left")
