@@ -2,18 +2,22 @@
 # This checkout pushes to the public idle-builders/robot-learning-lab (docs/operations/public-upstream.md).
 # Its history starts with a fresh root commit on 2026-11-20. The private history before that
 # (archive/*, design/*, history/* tags and the private-history bundle) must never leave this
-# checkout: a ref whose history reaches that history's root commit is refused.
+# checkout, nor may the first public root of that morning (c1ef64f99, replaced at 08:10 because it
+# still named the archive endpoint, buckets and account ids): a ref whose history reaches either root
+# commit is refused.
 # Every pushed range is scanned with Gitleaks (.gitleaks.toml) before anything is sent.
 set -eu
 python3 infra/tools/public_source.py check
-private_root=9bf48951f2d021f8925a8652adc4b2b55513c9e6
+blocked_roots="9bf48951f2d021f8925a8652adc4b2b55513c9e6 c1ef64f9912ce1f3d9fb651f43fbd9ed3662bb28"
 zero=0000000000000000000000000000000000000000
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ "$local_sha" = "$zero" ] && continue
-  if git merge-base --is-ancestor "$private_root" "$local_sha" 2>/dev/null; then
-    echo "pre-push: $local_ref contains the private history before 2026-11-20; refusing to push it" >&2
-    exit 1
-  fi
+  for root in $blocked_roots; do
+    if git merge-base --is-ancestor "$root" "$local_sha" 2>/dev/null; then
+      echo "pre-push: $local_ref contains a retired private history (root $root); refusing to push it" >&2
+      exit 1
+    fi
+  done
   if [ "$remote_sha" = "$zero" ]; then
     range="$local_sha --not --remotes=$1"
   else
