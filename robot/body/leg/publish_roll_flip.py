@@ -77,7 +77,8 @@ def record():
     mp = mass["parts"]["R"]
     links = mass["links"]
     renders = [ART / "renders" / n for n in ("thigh-shell-shaded.png", "thigh-connector-h-cage.png", "thigh-shell-top.png", "shin-cover-mounts.png") if (ART / "renders" / n).exists()] + sorted((ART / "renders").glob("case-*.png"))
-    src = [rel(HERE / f) for f in ("build_upper_hip_connectors.py", "common.py", "roll_flip_checks.py", "thigh_shell.py", "publish_roll_flip.py")]
+    src = [rel(HERE / f) for f in ("build_upper_hip_connectors.py", "common.py", "roll_flip_checks.py", "thigh_shell.py", "publish_roll_flip.py")] \
+        + [rel(SHEETS.parents[1] / f) for f in ("thigh_connector_sheet.py", "thigh_shell_views.py", "shin_cover_mounts_view.py")]   # published images
     data_assets = [ART / "report.json", ART / "cad-manifest.json", ART / "connectors-bilateral.step", MANIFEST,
                    ROOT / "robot/body/hip-shell/DECISIONS.md"]
     data_assets += sorted((ART / "parts").glob("*_roll_flip*.st*")) + sorted((ART / "parts").glob("*_thigh_shell_*.stl")) \
