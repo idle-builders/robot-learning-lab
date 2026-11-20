@@ -62,6 +62,7 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
     """Cut all sleeved bolt bores (`ro = sleeve_ro`), spotfaces, rocker center bores, and auxiliary pilot bores."""
     specs = stage_interface_specs()[stage_key]
     cut_tools = []
+    keep_out = []
     for role_key in ("support", "load"):
         grp = specs[role_key]
         centres = grp["centres"]
@@ -76,7 +77,7 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
             if (stage_key, role_key) in FLUSH_SITES:
                 # The sleeve is as long as the plate is thick (flush, no counterbore, M-evmrv6): ribs and walls that rise above the
                 # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
-                cut_tools.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
+                keep_out.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
             if stage_key == "stage1_neck_root_cradle" and role_key == "support":
                 cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
@@ -96,6 +97,10 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
     res = sol
     for ct in cut_tools:
         res = Solid((res - ct).wrapped)
+    for ko in keep_out:     # only where the ring really removes material (a cut that only grazes the plate face leaves sliver facets)
+        hit = res & ko
+        if hit is not None and float(hit.volume) > 0.05:
+            res = Solid((res - ko).wrapped)
     return res
 
 
