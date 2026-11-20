@@ -2,8 +2,8 @@
 shows up (owner 2026-11-19: no part unconnected; every part linked through the assembly chain to the core).
 
 Nodes: every non-hardware part. Edges:
-  screw     a screw passes through or bears on both parts: points on a ring just outside its shank (r_shank + RING_MM)
-            along its length, and under its head, lie inside each part's solid
+  screw     a screw holds both parts: the part encircles the shank (rings at several radii beyond the shank, so a
+            hole with a pressed steel sleeve counts too) or the head bears on it
   sleeve    <part>_steel_sleeves is pressed into <part>
   joint     for each joint, the servo case / motor parts and the horn / output parts of its two links within 5 mm
   contact   the two parts are within CONTACT_MM at standing (touching, bonded, seated, or just resting)
@@ -28,9 +28,11 @@ import numpy as np
 from checks import bodylib as BL
 from checks.core import ROOT, tick
 from checks.registry import register
-from checks.screwlib import ring_points
 
-RING_MM = 0.8
+RING_RADII_MM = (0.3, 0.8, 1.5, 2.5)   # beyond the shank radius: 0.8 alone falls into the gap of a pressed steel sleeve
+STATION_MM = 0.5                        # ring spacing along the shank
+ENCIRCLE = 5                            # of 8 ring angles inside the part at one station and radius: the part surrounds the shank
+HEAD_BEAR = 3                           # of 8 points just under the head inside the part: the head bears on it
 CONTACT_MM = 0.2
 CASE_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference"}
 HORN_ROLES = {"output", "output_horn", "horn", "purchased_servo_output_family_reference"}
@@ -46,14 +48,42 @@ def _near(b1, b2, m):
     return not (np.any(b1[0] > b2[1] + m) or np.any(b2[0] > b1[1] + m))
 
 
+def screw_probe_points(g):
+    """Probe points of a screw (mount_check.screw_geometry) in its own frame: rings of 8 around the shank every
+    STATION_MM along it (a 1.6 mm board between coarser stations was missed) at the RING_RADII_MM radii beyond the
+    shank, and around the head at mid-height 0.4 mm beyond its radius (a countersink or counterbore that holds it);
+    then rings of 8 under the head (0.3 and 0.8 mm below its seat: some screw models stand 0.5 mm proud of the part
+    they clamp) at half-way and 90 % between shank and head radius.
+    Returns (points, number of ring points)."""
+    d, h = np.asarray(g["_d"], float), np.asarray(g["_head"], float)
+    u = np.cross(d, [1, 0, 0] if abs(d[0]) < 0.9 else [0, 1, 0]); u /= np.linalg.norm(u); w = np.cross(d, u)
+    ang = np.radians(np.arange(0, 360, 45))
+    ring = np.array([np.cos(a) * u + np.sin(a) * w for a in ang])
+    rs, rh, hh = g["r_shank_mm"], g["r_head_mm"], g["head_height_mm"]
+    ts = np.linspace(hh + 0.2, g["length_mm"] - 0.2, max(2, int(np.ceil((g["length_mm"] - hh - 0.4) / STATION_MM)) + 1))
+    shank = [h + t * d + (rs + dr) * r for t in ts for dr in RING_RADII_MM for r in ring]
+    shank += [h + 0.5 * hh * d + (rh + 0.4) * r for r in ring]
+    head = [h + (hh + dz) * d + (rs + f * max(0.3, rh - rs)) * r for dz in (0.3, 0.8) for f in (0.5, 0.9) for r in ring]
+    return np.array(shank + head), len(shank)
+
+
 def solid(ctx, n):
-    """(trimesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid()."""
+    """(probe mesh, how, manifold) of part n as a neighbour is screened (coarse), cached on ctx apart from ctx.solid().
+    The probe mesh is what the screw points are tested against: the screening mesh when it is watertight, else the
+    manifold's own mesh (a decimated closed CAD mesh can leave the decimation open: trimesh's ray-parity contains()
+    then answers differently on repeated calls, measured on microphone_6049_v23 and foot_ADC_6494, 2026-11-20)."""
     from checks.core import kit, screen_solid
     c = ctx.__dict__.setdefault("_conn_solids", {})
     if n not in c:
         t0 = time.time()
         m, how = screen_solid(ctx.body, n, set())
-        c[n] = (m, how, kit.mf(m))
+        f = kit.mf(m)
+        if not m.is_watertight:
+            if not f.is_empty():
+                m, how = kit.tm(f), how + ", probed as its manifold"
+            else:
+                how += ", not watertight (screw probe approximate)"
+        c[n] = (m, how, f)
         tick("connectivity solids", t0)
     return c[n]
 
@@ -84,7 +114,8 @@ def build_graph(ctx):
         s = f"{n}_steel_sleeves"
         if s in parts and s in WB:
             add(n, s, "sleeve", s)
-    # screws: ring points in the manifest (neutral) frame of the screw, mapped to world at standing
+    # screws: rings around the shank at several radii, and under the head, in the screw's manifest (neutral) frame,
+    # mapped to world at standing; a part is held by the screw when it encircles the shank or bears the head
     t0 = time.time()
     for k, p in parts.items():
         if kind(p) != "screw":
@@ -93,7 +124,7 @@ def build_graph(ctx):
             g = screw_geometry(BL.load_mesh(p["mesh"]))
         except Exception:  # noqa: BLE001
             continue
-        pts = ring_points(g, RING_MM)
+        pts, shank_n = screw_probe_points(g)
         Ts = T[p["owning_link"]]
         pw = pts @ Ts[:3, :3].T + Ts[:3, 3]
         lo, hi = pw.min(0), pw.max(0)
@@ -108,7 +139,9 @@ def build_graph(ctx):
                 inside = m.contains(loc)
             except Exception:  # noqa: BLE001
                 continue
-            if inside.sum() >= 2:
+            rings = inside[:shank_n].reshape(-1, 8).sum(1)          # per ring (station x radius, head): angles inside, of 8
+            head = inside[shank_n:].reshape(-1, 8).sum(1)
+            if rings.max(initial=0) >= ENCIRCLE or head.max(initial=0) >= HEAD_BEAR:
                 hit.append(n)
         for i, a in enumerate(hit):
             for b in hit[i + 1:]:
@@ -228,10 +261,11 @@ def run(ctx):
     hows = {}
     for n, (_, h, _) in ctx.__dict__.get("_conn_solids", {}).items():
         hows.setdefault(h, []).append(n)
-    return dict(solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h},
+    return dict(solids_by_kind={h: len(v) for h, v in hows.items()}, solids_approximate={h: sorted(v) for h, v in hows.items() if "voxel" in h or "hull" in h or "approximate" in h},
                 per_part=per, core=core, worst_cases=cases, bad_events=dict(parts=len(nodes), isolated_parts=len(isolated), groups_not_reaching_core=len(groups),
                 parts_not_reaching_core=len(unreached), parts_reaching_core_by_contact_only=len(contact_only), contact_only_break_points=len(breaks), **{f"edges_{k}": v for k, v in kinds.items()}),
                 evidence=[], contact_only_breaks=[dict(from_part=a, to_part=b, parts_beyond=k) for a, b, k in breaks], groups_not_reaching_core=groups, isolated=isolated, contact_only=contact_only,
-                notes=f"screw edge = >= 2 of the ring points (r_shank + {RING_MM} mm, 8 x 8 along the shank, 8 under the head) inside the part's solid at standing; "
+                notes=f"screw edge = the part encircles the shank (>= {ENCIRCLE} of 8 ring points inside at one station, every {STATION_MM} mm, rings at r_shank + {RING_RADII_MM} mm) or the head "
+                      f"or bears the head (>= {HEAD_BEAR} of 8 points 0.3 / 0.8 mm under the head) at standing; "
                       f"contact = within {CONTACT_MM} mm at standing (screening solids); joint = case / motor and horn / output parts of a joint's two links within 5 mm; "
                       f"core = {core}; chains prefer fastened edges (contact costs {COST['contact']:g})")
