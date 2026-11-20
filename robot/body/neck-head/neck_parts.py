@@ -20,8 +20,23 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import common as C  # noqa: E402
-import defined_holes as DH  # noqa: E402
+
+
+def _own(name: str, alias: str):
+    """This folder's module by file path under a unique name: other body folders also have a `common.py`, and when
+    roll_flip_checks.build_manifest imports this file the leg's `common` is already in sys.modules."""
+    import importlib.util
+    if alias in sys.modules:
+        return sys.modules[alias]
+    spec = importlib.util.spec_from_file_location(alias, HERE / f"{name}.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[alias] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+C = _own("common", "neck_head_common")
+DH = _own("defined_holes", "neck_head_defined_holes")
 
 ROOT = C.ROOT
 STAGE = {"neck_root_cradle": "stage1_neck_root_cradle", "neck_yaw_to_pitch_link": "stage2_neck_yaw_to_pitch_link",
