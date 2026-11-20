@@ -720,7 +720,14 @@ RF_OUT_WALL_X = (68.6, 73.6)         # outboard wall on that face (0.24 mm off i
 RF_OUT_WALL_TOP = 178.0
 RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
 RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
-RF_LAT_CHEEK_X1 = 77.3               # lateral cheek outer face (4.15 mm, as the medial cheek): lateral screw heads seat here
+RF_LAT_CHEEK_X1 = 79.4               # lateral cheek block before the shell trim: its outer face becomes the shell envelope
+RF_SHELL_CLEAR = 0.5                 # cage to the blue thigh shell's inner wall (same link, static; lead 2026-11-20):
+                                     # the lateral cheek is trimmed to the committed shell skin (thigh_shell.SURF) minus
+                                     # WALL + this (no flare at the knee end: the cage gives way, not the shell)
+RF_SHELL_TRIM_Z = (136.0, 166.0)     # heights of the trim envelope (lateral knee-cheek zone, x > 72)
+RF_LAT_HEAD_K = 1.3                  # head height of the lateral screws (ISO 7380-1-style M2 button head, assumption):
+                                     # the head seats in a dia RF_SPOT_D spot face so its top stays inside the envelope
+RF_SPOT_D = 8.0                      # = the press tool's heated tip (press_lib TIP_D): flat landing for pressing the sleeve
 RF_MED_CHEEK_Y = (-7.5, 15.5)        # medial cheek widened by 1 mm per side above RF_MED_WIDE_Z0: wall around the sleeves
 RF_MED_WIDE_Z0 = 146.0
 RF_SHIN_CHAMFER = 3.0                # cheeks' rear-lower corner (y max, z min): chamfer leg, clear of the shin swept to knee 110
@@ -891,6 +898,73 @@ def rf_defined_holes() -> dict:
     return out
 
 
+def _thigh_shell():
+    """robot/body/leg/thigh_shell.py (its SURF skin), imported late: it imports this builder."""
+    import sys
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import thigh_shell
+    return thigh_shell
+
+
+def rf_shell_xmax(y: float, z: float, r: float) -> float:
+    """Largest x (lateral, right leg) at (y, z) whose disc of radius r stays inside the committed shell's outer skin."""
+    T = _thigh_shell()
+    ang = np.linspace(0.0, 2.0 * math.pi, 48, endpoint=False)
+    lo, hi = 50.0, 100.0
+    for _ in range(36):
+        x = 0.5 * (lo + hi)
+        Q = np.c_[x + r * np.cos(ang), y + r * np.sin(ang), np.full(len(ang), z)]
+        lo, hi = (x, hi) if T.level(T.surface(Q[:, 2]), Q).max() <= 1.0 else (lo, x)
+    return lo
+
+
+def rf_lat_seat_x() -> float:
+    """Head seat (x) of the lateral knee screws: the head top (RF_LAT_HEAD_K above the seat) stays RF_SHELL_CLEAR inside
+    the shell's inner wall over the whole head disc (dia 3.5), for both screws (one seat plane, one screw length)."""
+    T = _thigh_shell()
+    r = T.WALL + RF_SHELL_CLEAR
+    xs = []
+    for g, holes in rf_defined_holes_cached().items():
+        if g != "knee_case_lateral":
+            continue
+        for h in holes:
+            _, y, z = h["opening"]
+            xs += [rf_shell_xmax(y + 1.75 * math.cos(t), z + 1.75 * math.sin(t), r) for t in np.linspace(0, 2 * math.pi, 24, endpoint=False)]
+    return round(min(xs) - RF_LAT_HEAD_K, 3)
+
+
+def rf_shell_trim_cutter() -> Solid:
+    """Everything outside the committed shell skin minus WALL + RF_SHELL_CLEAR in the lateral knee-cheek zone (x > 72,
+    z RF_SHELL_TRIM_Z): the skin rings (thigh_shell.SURF) offset inward, lofted through smooth closed splines."""
+    from shapely.geometry import Polygon as SPoly
+    from build123d import Spline, Wire, Solid as BSolid
+    T = _thigh_shell()
+    d = T.WALL + RF_SHELL_CLEAR
+    th = np.linspace(-math.pi, math.pi, 360, endpoint=False)
+    wires = []
+    for z in np.arange(RF_SHELL_TRIM_Z[0], RF_SHELL_TRIM_Z[1] + 0.01, 2.0):
+        cx, cy, a, bf, bk, n, nk = T.surface(np.array([z]))[0]
+        b = np.where(np.sin(th) > 0, bk, bf); e = np.where(np.sin(th) > 0, nk, n)
+        c, s_ = np.cos(th), np.sin(th)
+        rr = 1.0 / (np.abs(c / a) ** e + np.abs(s_ / b) ** e) ** (1.0 / e)
+        ring = SPoly(np.c_[cx + rr * c, cy + rr * s_]).buffer(-d, join_style=1, resolution=32)
+        xy = np.asarray(ring.exterior.coords)[:-1]
+        k = np.linspace(0, len(xy), 120, endpoint=False).astype(int)
+        wires.append(Wire([Spline(*[(float(x), float(y), float(z)) for x, y in xy[k]], periodic=True)]))
+    env = BSolid.make_loft(wires)
+    zone = occ_box(72.0, 95.0, -25.0, 35.0, RF_SHELL_TRIM_Z[0] + 0.5, RF_SHELL_TRIM_Z[1] - 0.5)
+    return largest_solid(cut_all(zone, [env]))
+
+
+def rf_defined_holes_cached() -> dict:
+    global _RF_HOLES
+    if _RF_HOLES is None:
+        _RF_HOLES = rf_defined_holes()
+    return _RF_HOLES
+
+
 _RF_HOLES = None
 
 
@@ -898,13 +972,10 @@ def rf_screws() -> list[dict]:
     """Every Stage 4 screw (right leg), at its defined hole (rf_defined_holes): the sleeve spans the part's thickness
     along the hole axis, from the clamping face (the case face) to the outer face where the head seats. The screw itself
     (thread, standard length) is generated by robot/body/fastening/screw_plan.py when the manifest is built."""
-    global _RF_HOLES
-    if _RF_HOLES is None:
-        _RF_HOLES = rf_defined_holes()
     faces = {"A13_roll_case_front": (RF_Y_F_IN, RF_Y_F_OUT - RF_RIB_F), "A13_roll_case_rear": (RF_Y_R_IN, RF_Y_R_OUT + RF_RIB),
-             "knee_case": (RF_KNEE_FACE_X, RF_CHEEK_X0), "knee_case_lateral": (RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1)}
+             "knee_case": (RF_KNEE_FACE_X, RF_CHEEK_X0), "knee_case_lateral": (RF_KNEE_LAT_FACE_X, rf_lat_seat_x())}
     rows = []
-    for g, holes in _RF_HOLES.items():
+    for g, holes in rf_defined_holes_cached().items():
         f_in, f_out = faces[g]
         for h in holes:
             o, ax = h["opening"], h["axis_out"]
@@ -990,7 +1061,7 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     late = [extrude_xy_to_x(o_face, xw0, xw1),
             # the bridge is 0.5 mm narrower than the cheek and ends inside it (no coplanar side / end faces to fillet)
             extrude_xy_to_x(Polygon((cy0 + 0.5, z0), (cy1 - 0.5, z0), (cy1 - 0.5, RF_BRIDGE_Z1), (cy0 + 0.5, RF_BRIDGE_Z1),
-                                    align=None).faces()[0], xw0, RF_LAT_CHEEK_X1 - 2.0),
+                                    align=None).faces()[0], xw0, RF_KNEE_LAT_FACE_X + 2.15),
             # lateral knee cheek on the case's lateral face (x 73.15 .. 77.3), hung from the bridge
             extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, RF_BRIDGE_Z1), RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1)]
     new_sol = bevel_3d_edges(largest_solid(fuse_all([new_sol, *late])), r_outer=0.40, r_inner=0.75)
@@ -1028,6 +1099,12 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
         post_cut.append(occ_cyl((ax_ - 1.5 * d, ay_, az_), (bx_ + 1.0 * d, by_, bz_), RF_SLEEVE_R))
         sleeves.append(rf_sleeve(s["sleeve"][0], s["sleeve"][1]))
     res = largest_solid(cut_all(fuse_all([new_sol, knee, *posts]), post_cut))
+    # 7. The lateral cheek gives way to the shell (owner 2026-11-20: no flare at the knee end): trimmed to the shell skin
+    #    minus WALL + RF_SHELL_CLEAR; the lateral screw heads seat in press-tip-wide spot faces at rf_lat_seat_x()
+    seat = rf_lat_seat_x()
+    spots = [occ_cyl((seat, s["opening"][1], s["opening"][2]), (95.0, s["opening"][1], s["opening"][2]), RF_SPOT_D / 2)
+             for s in screws if s["group"] == "knee_case_lateral"]
+    res = largest_solid(cut_all(res, [rf_shell_trim_cutter(), *spots]))
     return res, sleeves
 
 
@@ -1189,7 +1266,8 @@ def build_roll_flip():
                    "every screw has a steel sleeve over the part's thickness ('sleeve' span); PA2 self-tapping into the case hole"},
         "h_cage": {"owner": "2026-11-19 (H connector, 2 + 2 screws per actuator, upper roll-case screws removed)",
                    "plate_lower_edge_z": RF_PLATE_Z0, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
-                   "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1], "shin_chamfer_mm": RF_SHIN_CHAMFER,
+                   "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "shell envelope"], "lateral_seat_x": rf_lat_seat_x(),
+                   "shell_clear_mm": RF_SHELL_CLEAR, "shin_chamfer_mm": RF_SHIN_CHAMFER,
                    "key_pocket_clearance_mm": RF_KEY_CLEAR, "roll_sweep_deg": list(RF_ROLL_SWEEP),
                    "yellow_margin_mm": RF_YELLOW_MARGIN, "yellow_clearance": yellow},
         "parts": rows,
