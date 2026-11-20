@@ -99,23 +99,36 @@
       "R_hip_pitch_to_roll_roll_flip_steel_sleeves"
      ],
      "direction": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): Stage 5 goes onto the ST3025 output wheel face along -x (its land seats on the wheel face x 61.0, the 4 wheel screws run along x from the plate's outer face); the roll servo is not in yet"
+    },
+    {
+     "id": "s08b",
+     "screw": [
+      "R_A13_pitch_horn_M3x12_0",
+      "R_A13_pitch_horn_M3x12_1",
+      "R_A13_pitch_horn_M3x12_2",
+      "R_A13_pitch_horn_M3x12_3"
+     ],
+     "direction": "screw axis",
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the 4 Stage 5 to pitch output M3x12 (ST3025.horn+z.1..4), driven along -x into the wheel once Stage 5 sits on it"
+    },
+    {
+     "id": "p09",
+     "part": [
+      "R_roll_servo_case_reference",
+      "R_roll_upper_horn_reference",
+      "R_roll_passive_idler_reference"
+     ],
+     "direction": [
       0.0,
       0.0,
       1.0
      ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 14 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_hip_pitch_ST3025_output), snapped to the nearest axis"
-    },
-    {
-     "id": "p09",
-     "part": "R_roll_passive_idler_reference",
-     "direction": [
-      -0.0,
-      1.0,
-      -0.0
-     ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 15 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A9_hip_M3x4_1_0, R_A9_hip_M3x4_1_1, R_A9_hip_M3x4_1_2, R_A9_hip_M3x4_1_3), head to tip when the part carries the head, else reversed"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the roll servo with its horn and idler as one unit rises into the Stage 5 U from below (+z): the arms' inner faces are 0.10 mm clear of the horn / idler faces per side (running fit), the screws close it"
     },
     {
      "id": "s10",
@@ -126,19 +139,7 @@
       "R_A9_hip_M3x4_1_3"
      ],
      "direction": "screw axis",
-     "seeded": true,
-     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference; driver path vs placed parts"
-    },
-    {
-     "id": "p11",
-     "part": "R_roll_upper_horn_reference",
-     "direction": [
-      -0.0,
-      -1.0,
-      -0.0
-     ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 15 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A9_hip_M3x4_0_0, R_A9_hip_M3x4_0_1, R_A9_hip_M3x4_0_2, R_A9_hip_M3x4_0_3), head to tip when the part carries the head, else reversed"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (4 screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference; driver path vs placed parts)"
     },
     {
      "id": "s12",
@@ -149,19 +150,7 @@
       "R_A9_hip_M3x4_0_3"
      ],
      "direction": "screw axis",
-     "seeded": true,
-     "derived": "4 screw(s) whose touched chain parts are all placed after R_roll_upper_horn_reference; driver path vs placed parts"
-    },
-    {
-     "id": "p13",
-     "part": "R_roll_servo_case_reference",
-     "direction": [
-      0.0,
-      0.0,
-      1.0
-     ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 16 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_roll_upper_horn_reference, R_roll_passive_idler_reference), snapped to the nearest axis"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (4 screw(s) whose touched chain parts are all placed after R_roll_upper_horn_reference; driver path vs placed parts)"
     },
     {
      "id": "p16",
@@ -174,8 +163,7 @@
       0.0,
       1.0
      ],
-     "seeded": true,
-     "derived": "H-cage (2026-11-19): the cage rises onto the hanging roll case from below (it boxes the case on four sides), before the ear screws"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the H-cage rises onto the hanging roll case from below (+z), the case's ear bosses pass up its key pockets"
     },
     {
      "id": "s14",
@@ -184,8 +172,7 @@
       "R_A13_roll_face0_PA2x3_1"
      ],
      "direction": "screw axis",
-     "seeded": true,
-     "derived": "H-cage (2026-11-19): the 2 lower front ear screws (M2, generated from STS3250.case+y.3 / .4), driven along +y once the Stage 4 is on the case"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the 2 lower front ear screws (STS3250.case+y.3 / .4), driven along +y once the H-cage is on the case"
     },
     {
      "id": "s15",
@@ -194,8 +181,7 @@
       "R_A13_roll_face1_PA2x3_1"
      ],
      "direction": "screw axis",
-     "seeded": true,
-     "derived": "H-cage (2026-11-19): the 2 lower rear ear screws (M2, STS3250.case-y.3 / .4), driven along -y"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the 2 lower rear ear screws (STS3250.case-y.3 / .4), driven along -y"
     },
     {
      "id": "p17",
@@ -205,8 +191,7 @@
       1.0,
       0.0
      ],
-     "seeded": true,
-     "derived": "H-cage (2026-11-19): the knee case slides in along +y between the medial and lateral cheeks, under the bridge (0.4 mm) and the plates' lower edge (z 153.4); the shin may already be on its output (it stays below z 133.5, the cheeks start at 139.5)"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the knee case slides in along +y between the medial and lateral cheeks, under the bridge and the plates' lower edge (z 153.4); the shin may already be on its output"
     },
     {
      "id": "s18",
@@ -217,57 +202,56 @@
       "R_knee_ST3025_PA2x8_lat1"
      ],
      "direction": "screw axis",
-     "seeded": true,
-     "derived": "H-cage (2026-11-19): 2 medial corner screws (ST3025.case+z.1 / .2, from -x) + 2 lateral (case-z.1 / .2, from +x), M2"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): 2 medial (ST3025.case+z.4 / .5, from -x) + 2 lateral (case-z.1 / .2, from +x) M2 knee screws"
     },
     {
      "id": "p19",
-     "part": "R_thigh_shell_back",
+     "part": [
+      "R_thigh_shell_back",
+      "R_thigh_shell_back_steel_sleeves"
+     ],
      "direction": [
       0.0,
       -1.0,
       0.0
      ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk, R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk), head to tip when the part carries the head, else reversed"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): thigh shells last: the back half with its pressed boss sleeves along -y onto the rear posts"
     },
     {
      "id": "s20",
      "screw": "R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk",
      "direction": "screw axis",
-     "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
     },
     {
      "id": "s21",
      "screw": "R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk",
      "direction": "screw axis",
-     "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts"
     },
     {
      "id": "p22",
-     "part": "R_thigh_shell_front",
+     "part": [
+      "R_thigh_shell_front",
+      "R_thigh_shell_front_steel_sleeves"
+     ],
      "direction": [
       0.0,
       1.0,
       -0.0
      ],
-     "seeded": true,
-     "derived": "graph order, fastened distance 19 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk, R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk), head to tip when the part carries the head, else reversed"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the front half with its pressed boss sleeves along +y onto the front posts"
     },
     {
      "id": "s23",
      "screw": "R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk",
      "direction": "screw axis",
-     "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
     },
     {
      "id": "s24",
      "screw": "R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk",
      "direction": "screw axis",
-     "seeded": true,
      "derived": "1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts"
     },
     {
@@ -299,12 +283,12 @@
      "id": "p27",
      "part": "R_shin_back_hard_cover",
      "direction": [
-      0.999,
       0.0,
-      0.047
+      -1.0,
+      0.0
      ],
      "seeded": true,
-     "derived": "graph order, fastened distance 31 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_shin_back_cover_PA2x8_0, R_shin_back_cover_PA2x8_1, R_shin_back_cover_PA2x8_2, R_shin_back_cover_PA2x8_3), head to tip when the part carries the head, else reversed"
+     "derived": "shin back cover (thigh_shell.py shin-cover, 2026-11-20 hip fix): a wrap-around cover behind the shin goes on from behind along -y, its side wings sliding along the shin frame's sides; then the 4 PA2x8 through the wings along x (the seeded +x, the mean screw direction, pushed the whole cover sideways through the shin)"
     },
     {
      "id": "s28",

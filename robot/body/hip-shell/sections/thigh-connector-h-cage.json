@@ -95,7 +95,7 @@
   ]
  },
  "head_faces": {},
- "body": "mass 15.85 g PAHT-CF + 8 steel sleeves 1.05 g (was 16.14 g + 1.35 g)\nplates + end walls: top z 177 / 176; above the lower ear screws only the\n  shell posts (to z 176.3) and the ear-boss key pocket walls remain\nscrews: 4 x M2x8 roll ears; 4 x M2x5 knee, mirrored: medial case+z.4/.5,\n  lateral case-z.1/.2, all at y -3 / 11, z 143, stack 1.17, dia 8 spot faces;\n  engaged 3.15-3.33 mm (ref 3.0), tips 0.67-1.50 mm short of the bottom\nshell posts: M3 nut behind a 2.58 / 1.98 mm tip wall, from +z; M3x16 / M3x12\ngaps:\n  plate -> swept Stage 5 arm: 1.29 mm (roll -45..25 and -30..25)\n  cage -> blue shell: overlap 0; lateral cheek 0.46 mm; knee heads\n    lateral 0.50 / 1.30 mm, medial 3.79 / 4.48 mm\n  cage -> swept shin, knee 0..110: cheek corners 1.68 medial / 1.67 lateral;\n    knee screw heads 2.78 / 2.80 mm; key pockets: boss + 0.05 mm per side\nFEM (roll_flip_checks fem, PAHT-CF dry, layer normal x):\n  6 kg x 1.5 g: p99 9.6 MPa, SR 9.6 (was 12.7), disp 0.082 mm\n  roll stall:   p99 4.8 MPa, SR 19.3 (was 21.0), disp 0.058 mm\n  min SR over 3 materials 7.2 (was 9.6); peak 62 MPa (lateral cheek corner)",
+ "body": "mass 15.79 g PAHT-CF + 8 steel sleeves 1.05 g (was 15.85 g + 1.05 g)\nprint up -z (plate tops on the bed, brim): bed 94 mm2, centre of mass 17.6 mm\n  inside; support 1.95 g, 42.7 min (was up +x: 5.97 g, 58.7 min, COM outside)\nscrews: 4 x M2x8 roll ears (sleeve bores teardropped to -z); 4 x M2x5 knee,\n  mirrored, y -3 / 11, z 143, stack 1.17; dia 8 spot faces cut back through\n  the cheeks' lower and near edges (no 31.6 deg knife edges / 0.08 slivers)\nknee wings: rear-lower chamfer 2.4 (was 3.0): sleeve boss walls 1.46 / 1.26\n  medial / lateral (were 1.03 / 0.84)\nshell posts: tops flat-cut over the nut slot (walls 0.6, were 0.01 mm)\ngaps:\n  plate -> swept Stage 5 arm: 1.45 mm (roll -45..25; was 1.29)\n  cage -> swept shin, knee 0..110: 1.27 mm medial corner (was 1.69)\nFEM (roll_flip_checks fem, layer normal z):\n  min p99 strength ratio Bambu PAHT-CF 9.70 (layer x: 9.51),\n    legacy PETG-CF 7.39 (x: 7.08); across-layer 12.5 / 6.36 (x: 36 / 17)\n  peak 64 MPa (lateral cheek corner, knee stall)",
  "callouts": {
   "secz": [
    {
@@ -123,7 +123,7 @@
   ],
   "secx": [
    {
-    "text": "plates trimmed to z 177\n(>= 1.29 mm to the\nswept Stage 5 arm)",
+    "text": "plates trimmed to z 177\n(>= 1.45 mm to the\nswept Stage 5 arm)",
     "xy": [
      -10.3,
      177.0

@@ -21,11 +21,8 @@
         "x",
         "y"
       ],
-      "up": "+x",
-      "seeded": "up from FEM layer_normal_axes ['x', 'y'] (no manifest orientation); chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+x': (280.3, 1556.8), '-x': (4.8, 1787.2), '+y': (34.6, 2142.8), '-y': (34.6, 2128.2)}",
-      "seeded_keys": [
-        "up"
-      ]
+      "up": "-z",
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): printed upside down, the plates' flat tops (z 177) and the end walls on the bed. Against the seeded +x (run.py bed / overhang / small_features / slicer, .cache/work/cad-speed/checks/hip-own-light vs hip-fix-light): bed 93.7 mm2 in 4 islands with the centre of mass 17.6 mm inside the contact hull (was 207 mm2 with it 7.65 mm outside), support standing on the part 222 mm2 (was 1054, the knee-case seat and the floating ceiling under the lateral wing), slicer 1.95 g support / 42.7 min (was 5.97 g / 58.7 min); use a brim (4 contact islands, 89 mm2 of it in strips under 4 mm). FEM (fem stage4_roll_flip, layer normal z vs x on the same geometry, .cache/work/cad-speed/checks/hip-fix-fem4-upx): min p99 strength ratio Bambu PAHT-CF 9.70 vs 9.51, legacy PETG-CF 7.39 vs 7.08; across-layer ratio 12.48 vs 36.4 (PAHT-CF), 6.36 vs 17.4 (legacy PETG-CF, knee stall), so the layer direction costs layer margin but stays above 6. The four ear-screw sleeve bores (along y) have flat-topped teardrop roofs toward -z; the knee bores (1.17 mm long) are bridged."
     },
     "expected_hardware": {
       "steel_sleeves": null
@@ -304,10 +301,7 @@
         "y"
       ],
       "up": "-x",
-      "seeded": "up from FEM layer_normal_axes ['z', 'x', 'y'] (no manifest orientation); chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+z': (18.1, 784.7), '-z': (0.0, 785.1), '+x': (6.6, 1155.2), '-x': (866.0, 290.4), '+y': (577.4, 688.8), '-y': (543.4, 694.0)}",
-      "seeded_keys": [
-        "up"
-      ]
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): the plate's flat outer face (x 71) on the bed, the largest contact of the six axes and the least overhang (bed mm2, overhang>45deg mm2) {'+z': (18.1, 784.7), '-z': (0.0, 785.1), '+x': (6.6, 1155.2), '-x': (866.0, 290.4), '+y': (577.4, 688.8), '-y': (543.4, 694.0)}; the horn / idler sleeve bores (along y, horizontal) have flat-topped teardrop roofs toward -x, the pitch-wheel bores run along the print axis"
     },
     "expected_hardware": {
       "steel_sleeves": null
@@ -573,6 +567,16 @@
         5.0
       ],
       "z_min_mm": 150.0
+    },
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "-y",
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
+      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
+      "seeded_keys": [
+        "material"
+      ]
     }
   },
   "R_thigh_shell_back": {
@@ -589,6 +593,40 @@
         5.0
       ],
       "z_min_mm": 150.0
+    },
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "+y",
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
+      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
+      "seeded_keys": [
+        "material"
+      ]
+    }
+  },
+  "L_thigh_shell_front": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "-y",
+      "up_source": "mirror of R_thigh_shell_front (x mirror keeps -y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
+      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
+      "seeded_keys": [
+        "material"
+      ]
+    }
+  },
+  "L_thigh_shell_back": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "+y",
+      "up_source": "mirror of R_thigh_shell_back (x mirror keeps +y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
+      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
+      "seeded_keys": [
+        "material"
+      ]
     }
   },
   "R_roll_servo_case_reference": {
@@ -8185,12 +8223,8 @@
   "L_thigh_roll_flip": {
     "process": {
       "printer": "Bambu X2D",
-      "up": "-x",
-      "seeded": "up set to the mirror of R_thigh_roll_flip (+x -> -x; own estimate None); material as R_thigh_roll_flip",
-      "seeded_keys": [
-        "material",
-        "up"
-      ],
+      "up": "-z",
+      "up_source": "mirror of R_thigh_roll_flip (-z stays -z), confirmed by its designer 2026-11-20; material as R_thigh_roll_flip",
       "material": "Bambu PAHT-CF"
     }
   },
@@ -8198,11 +8232,7 @@
     "process": {
       "printer": "Bambu X2D",
       "up": "+x",
-      "seeded": "up set to the mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x; own estimate None); material as R_hip_pitch_to_roll_roll_flip",
-      "seeded_keys": [
-        "material",
-        "up"
-      ],
+      "up_source": "mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip",
       "material": "Bambu PAHT-CF"
     }
   }

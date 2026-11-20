@@ -1,6 +1,6 @@
 {
  "title": "Stage 5 screw connections",
- "suptitle": "R_hip_pitch_to_roll_roll_flip (yellow Stage 5, pitch link): land on the ST3025 wheel face, arms clamped on the roll horn / idler faces",
+ "suptitle": "R_hip_pitch_to_roll_roll_flip (yellow Stage 5, pitch link): land on the ST3025 wheel face, arms on the measured roll horn / idler faces with a 0.10 mm running fit, rear top corner chamfered clear of the back shell",
  "focus": "R_hip_pitch_to_roll_roll_flip",
  "clip": [
   [
@@ -54,11 +54,11 @@
    "title": "SECTION B-B at z 190 (roll axis, horn / idler screws), seen from +z"
   }
  ],
- "body": "mass 12.40 g PAHT-CF (was 11.57) + 12 steel sleeves 4.68 g (was 4.30)\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 ISO 7380 into the ST3025 wheel: stack 8.55,\n    engaged 2.935-2.95 of 2.95, tip at the hole bottom\n    (land on the wheel face, hub pocket r 4.2, heads in\n    dia 6.4 counterbores 1.51 deep)\n  4 x M3x8 into the roll horn: stack 5.0, engaged 2.5 of 2.5\n  4 x M3x8 into the roll idler: stack 5.4, engaged 2.1 of 2.1\n    (arms clamp on the horn / idler face via r 12.1 discs;\n     necks keep the old faces)\ngaps (library / exact fit):\n  H-cage plates: 1.38 mm (roll -45..25; was 1.38)\n  roll case: 0.60 mm (was 0.60); Stage 6 green: 0.55 (was 0.55)\nFEM (roll_flip_checks, legacy PAHT-CF dry, layer x):\n  6 kg x 1.5 g: p99 24.7 MPa (was 34.0), SR 3.73 (was 2.71)\n  roll stall:   p99 25.4 MPa (was 24.6), SR 3.62 (was 3.74)\npress: spacer support 90.6-94.2 % per sleeve (was 90.6-94.2)",
+ "body": "mass 11.52 g PAHT-CF (was 12.40) + 12 steel sleeves 4.50 g (was 4.68)\nmating faces measured (holes open inside them): horn y -12.0, idler y 25.25,\n  wheel x 61.0; U inside 37.45 vs the 37.25 stack (was 36.60: 0.65 interference)\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 into the ST3025 wheel: engaged 2.935-2.95 of 2.95\n    (land on the wheel face, hub recess r 6.0 open into the sleeve bores)\n  4 x M3x8 horn / 4 x M3x8 idler: 0.10 mm free gap per side, the screws\n    close it: engaged 2.5 / 2.1 clamped (2.4 / 2.0 free); sleeves 4.6 / 5.15\n  sleeve bores teardropped (print up -x); arm-to-plate gussets 2.5\ngaps: H-cage plates 1.45 mm (roll -45..25; was 1.29); roll case 0.60;\n  Stage 6 green 1.20 (library); center_back_shell 0.75 over pitch -58..45 x\n  yaw -30..30 (was 83.5 mm3 at pitch 45 / yaw -30): rear chamfer y 19.5..31.5\nFEM (roll_flip_checks, layer x), min p99 strength ratio, roll stall:\n  Bambu PAHT-CF 3.41 (was 3.61), legacy PETG-CF 2.51 (was 2.70);\n  without the rear chamfer 3.64 / 2.69; peak 86.7 MPa at the front arm root\n  (was 81-98 at the hub-flat corner, now r 1.5); press support 89-93 %",
  "callouts": {
   "secx": [
    {
-    "text": "land on the wheel face\n(clamp face x 60.94),\nhub pocket r 4.2",
+    "text": "land on the wheel face\n(x 61.0, measured),\nhub recess r 6.0",
     "xy": [
      61.6,
      214.5
@@ -82,7 +82,7 @@
   ],
   "secz": [
    {
-    "text": "front arm on the horn face\n(y -11.6), seat y -16.6",
+    "text": "front arm 0.10 off the horn face\n(y -12.0), seat y -16.7",
     "xy": [
      49.0,
      -14.0
@@ -93,7 +93,7 @@
     ]
    },
    {
-    "text": "rear arm on the idler face\n(y 25.0), seat y 30.4",
+    "text": "rear arm 0.10 off the idler face\n(y 25.25), seat y 30.5",
     "xy": [
      63.0,
      28.0
