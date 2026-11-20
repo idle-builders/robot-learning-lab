@@ -31,7 +31,7 @@
       "steel_sleeves": null
     },
     "fem": {
-      "_doc": "Roll-flip Stage 4 (thigh). Supports: the roll servo case's 8 ear screws (face0 = front arm, face1 = rear arm); load: the knee case's 5 screws. Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).",
+      "_doc": "Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case's 2 lower ear screws per face (face0 = front, face1 = rear; M2 into the STS3250 aluminium case); load: the knee case's 2 medial corner screws + 2 lateral screws (rigid: the ST3025 case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).",
       "mesh_h_mm": 1.2,
       "bonded": [
         {
@@ -57,18 +57,14 @@
         "case_front_screws": {
           "contact": [
             "R_A13_roll_face0_PA2x3_0",
-            "R_A13_roll_face0_PA2x3_1",
-            "R_A13_roll_face0_PA2x3_2",
-            "R_A13_roll_face0_PA2x3_3"
+            "R_A13_roll_face0_PA2x3_1"
           ],
           "gap_mm": 2.0
         },
         "case_rear_screws": {
           "contact": [
             "R_A13_roll_face1_PA2x3_0",
-            "R_A13_roll_face1_PA2x3_1",
-            "R_A13_roll_face1_PA2x3_2",
-            "R_A13_roll_face1_PA2x3_3"
+            "R_A13_roll_face1_PA2x3_1"
           ],
           "gap_mm": 2.0
         }
@@ -77,9 +73,8 @@
         "contact": [
           "R_knee_ST3025_PA2x8_0",
           "R_knee_ST3025_PA2x8_1",
-          "R_knee_ST3025_PA2x8_2",
-          "R_knee_ST3025_PA2x8_3",
-          "R_knee_ST3025_PA2x8_4"
+          "R_knee_ST3025_PA2x8_lat0",
+          "R_knee_ST3025_PA2x8_lat1"
         ],
         "gap_mm": 2.0,
         "rigid": true
@@ -246,9 +241,8 @@
             "contact": [
               "R_knee_ST3025_PA2x8_0",
               "R_knee_ST3025_PA2x8_1",
-              "R_knee_ST3025_PA2x8_2",
-              "R_knee_ST3025_PA2x8_3",
-              "R_knee_ST3025_PA2x8_4"
+              "R_knee_ST3025_PA2x8_lat0",
+              "R_knee_ST3025_PA2x8_lat1"
             ],
             "gap_mm": 2.0
           }
