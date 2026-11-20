@@ -249,6 +249,9 @@ def top_free_limit(body, th, zz, r_skin, z_top):
     return lim
 
 
+FIT_MAX_CHANGE = 8.0               # fit-surface refuses a result that moves any control value further (mm / exponent units)
+
+
 def fit_surface():
     """Re-fit the SURF control values (same heights) after a covered or neighbouring part moved: the surface closest to
     today's SURF skin between the edges that holds the requirement, stays inside the top free space below the top edge
@@ -284,6 +287,11 @@ def fit_surface():
     def obj(v):
         return float(np.mean(((_radial_grid(surface(zz, unpack(v)), th) - R0)[vis]) ** 2))
     v = np.concatenate([np.asarray(SURF[k][1], float) for k in RING])
+    v0 = v.copy()
+    L0 = lev(v, slice(None)).max()
+    if L0 > 1.0:     # a covered part reaches outside today's skin: SLSQP starts infeasible (2026-11-20: it then ran away)
+        Lq = lev(v, slice(None)); jq = int(np.argmax(Lq))
+        print(f"start: max level {L0:.4f} > 1 at {np.round(Q[jq], 1)} ({int((Lq > 1).sum())} requirement points outside)", flush=True)
     act = lev(v, slice(None)) > 0.85
     for _ in range(4):
         m = np.nonzero(act)[0]
@@ -295,6 +303,13 @@ def fit_surface():
         if L.max() <= 1.0 + 1e-4:
             break
         act |= L > 0.97
+    # fail loudly instead of printing a run-away surface (2026-11-20: from an infeasible start SLSQP ended at control values in
+    # the thousands with "Positive directional derivative for linesearch")
+    change = float(np.max(np.abs(v - v0)))
+    if not (r.success and np.all(np.isfinite(v)) and L.max() <= 1.0 + 1e-4 and change <= FIT_MAX_CHANGE):
+        raise SystemExit(f"fit-surface did not converge ({r.message}; max level {L.max():.4f}, largest control value change "
+                         f"{change:.2f} > {FIT_MAX_CHANGE} allowed or solver failed): SURF left as committed")
+    print(f"largest control value change {change:.3f} (mm, or exponent units)")
     s = unpack(v)
     print("SURF = {"); [print(f'    "{k}": ({tuple(s[k][0])}, ({", ".join(f"{x:.3f}" for x in s[k][1])},)),') for k in RING]; print("}")
 
