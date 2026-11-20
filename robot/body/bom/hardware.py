@@ -162,12 +162,13 @@ def spec_of(p, mesh=None):
         elif csk:
             head = "ISO 10642"
         elif m and thr in THREADS:
-            heads = {h: STD["head_types"][h][thr] for h in STD["head_types"] if thr in STD["head_types"][h]}
+            heads = {h: STD["head_types"][h][thr] for h in STD["head_types"] if thr in STD["head_types"][h]
+                     and not STD["head_types"][h].get("countersunk")}     # a countersunk head is named, never guessed
             head = min(heads, key=lambda h: abs(heads[h]["dk"] - m["head_dia"]) + abs(heads[h]["k"] - m["head_height"]))
             s["source_of_spec"].append("head standard nearest to the measured head")
         else:
             head = "ISO 7380-1"
-        if head == "ISO 10642":
+        if head == "ISO 10642" and thr not in STD["head_types"].get(head, {}):
             dk, kk = CSK.get(thr, (2 * THREADS.get(thr, 3), 0.6 * THREADS.get(thr, 3)))
         else:
             hh = STD["head_types"].get(head, {}).get(thr) or {}

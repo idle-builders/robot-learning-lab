@@ -166,14 +166,8 @@ def build_manifest():
             q["owning_link"] = f"{s}pitch_link"; q["roll_flip"] = "unchanged place, bolted to the new Stage 5 (pitch link)"
             log.append(f"{n}: now on {q['owning_link']}")
         elif "Thigh_carrier_shell" in n or "Thigh_rear_carrier_shell" in n:
-            m = body.mesh(n).copy()
-            c = m.bounds.mean(0); sx = 1.0 if s == "R_" else -1.0
-            tx = (B.RF_POSTS[0][0][0] if abs(c[0]) < 56.0 else B.RF_POSTS[1][0][0]) * sx
-            ty = 0.0
-            if abs(c[0]) > 56.0:   # the outboard posts got the inboard posts' length
-                ty = -3.5 if c[1] < 0 else 3.5
-            m.apply_translation([tx - (49.0 if abs(c[0]) < 56.0 else 63.0) * sx, ty, B.RF_POSTS[0][0][1] - 178.0])
-            q.update(save_npz(n, m)); q["roll_flip"] = "moved with the shell post"
+            # the old cover screws / nuts: thigh_shell.py build generates them at the posts (post_screws), with sleeves
+            log.append(f"{n}: legacy thigh-cover hardware, replaced by thigh_shell.py build"); continue
         parts.append(q)
     for r in cad["parts"]:
         for nm, src, role, mass in ((r["name"], r, "printed_structural_connector", r["polymer_mass_g"] / 1000.0),

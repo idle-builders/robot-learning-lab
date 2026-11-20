@@ -107,7 +107,8 @@ def choose_length(stack: float, depth: float, ref: float, lengths: list[float], 
 def screw_spec(thread: str, family: str, head: str) -> dict:
     st = standards()
     h = st["head_types"][head][thread]
-    return dict(dk=h["dk"], k=h["k"], lengths=h["lengths"], point_mm=st["point_mm"], standard=head)
+    return dict(dk=h["dk"], k=h["k"], lengths=h["lengths"], point_mm=st["point_mm"], standard=head,
+                countersunk=bool(st["head_types"][head].get("countersunk")))
 
 
 def plan_connector(body, iface: dict, connector: str, side: str, mesh=None, spec: dict | None = None) -> list[dict]:
@@ -143,9 +144,23 @@ def plan_connector(body, iface: dict, connector: str, side: str, mesh=None, spec
 
 def screw_mesh(plan: dict) -> trimesh.Trimesh:
     """Revolved envelope (head disc dk x k, shank at the thread's major diameter, 0.5 mm point) in the body frame: the
-    head underside on the clamped outer face (opening + stack along the hole axis), the shank into the hole."""
+    head underside on the clamped outer face (opening + stack along the hole axis), the shank into the hole.
+    Countersunk heads (plan["countersunk"]): a 90 deg cone from dk at the head top to the shank, the head top at
+    opening + stack (the stack then runs to the surface the head sits flush in) and the nominal length includes the head."""
     d = float(plan["thread"].lstrip("M").replace("PA", ""))
     r, hd, hh, L, pt = d / 2.0, plan["head_dia_mm"], plan["head_height_mm"], plan["length_mm"], plan["point_mm"]
+    if plan.get("countersunk"):
+        prof = [(0.0, 0.0), (hd / 2, 0.0), (r, hh), (r, L - pt), (0.0, L)]
+        m = trimesh.creation.revolve(np.array(prof), sections=48)
+        a = np.asarray(plan["axis_out"], float); a /= np.linalg.norm(a)
+        z = -a
+        u = np.cross(z, [1.0, 0, 0] if abs(z[0]) < 0.9 else [0, 1.0, 0]); u /= np.linalg.norm(u)
+        T = np.eye(4); T[:3, :3] = np.c_[u, np.cross(z, u), z]
+        T[:3, 3] = np.asarray(plan["opening"], float) + a * plan["stack_mm"]      # head top, flush
+        m.apply_transform(T)
+        if m.volume < 0:
+            m.invert()
+        return m
     prof = [(0.0, 0.0), (hd / 2, 0.0), (hd / 2, hh), (r, hh), (r, hh + L - pt), (0.0, hh + L)]   # (radius, along the screw from the head top)
     m = trimesh.creation.revolve(np.array(prof), sections=48)
     a = np.asarray(plan["axis_out"], float); a /= np.linalg.norm(a)
