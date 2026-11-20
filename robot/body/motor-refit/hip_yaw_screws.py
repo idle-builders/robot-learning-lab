@@ -47,6 +47,7 @@ CHANNEL_Z0 = 215.0
 DECK_BOTTOM = 262.75
 FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
 BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): the front bosses of z.1 / z.2 are trimmed out of the yaw screws' blade path (measured 17.5 -> 0.001 mm3 per screw)
+RIB_LEN, RIB_H = 7.0, 3.8         # rib behind a trimmed front boss: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
 POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
 
 
@@ -108,13 +109,21 @@ def build_right():
         new_sleeves.append(C.cut(C.cylinder((x_face, y, z), (seat_f, y, z), R_SLEEVE_FRONT[0]),
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
-    P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
-    P = C.fuse(P, *add, *fpads)
-    P = C.cut_many(P, cut + fcuts)
     def reaches(h):   # the blade disc overlaps a front pad's x-y footprint (x_face..seat_f, y +- pad radius)
         x, y, _ = h["opening"]
         dx = max(0.0, x_face - x, x - seat_f)
         return min(max(0.0, abs(y - f["opening"][1]) - FRONT_PAD_R) for f in front) ** 2 + dx ** 2 < BLADE_R ** 2
+    ribs = []                                     # a front boss whose blade path is trimmed keeps one thin web to the plate: a rib on the far side of the channel carries the load around it
+    for h in front:
+        _, y, z = h["opening"]
+        for yw in yaw:
+            if abs(y - yw["opening"][1]) < 2.0 and abs(z - 247.0) < 3.0 and reaches(yw):
+                sg = 1.0 if y > yw["opening"][1] else -1.0
+                ribs.append(C.box((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f + 0.5, max(y, y + sg * RIB_LEN), z + RIB_H)))
+    P = C.fuse(P, *ribs) if ribs else P
+    P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
+    P = C.fuse(P, *add, *fpads)
+    P = C.cut_many(P, cut + fcuts)
     keep = [h["opening"] for h in yaw if reaches(h)]
     P = C.cut_many(P, [C.cylinder((round(x, 2), round(y, 2), seat - 40.0), (round(x, 2), round(y, 2), seat), BLADE_R) for x, y, _ in keep])
     P = C.largest_solid(P)
