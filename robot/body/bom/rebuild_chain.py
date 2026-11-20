@@ -12,9 +12,10 @@ The ordered builder steps are data: robot/body/bom/chain.json. This script
              or as a file an earlier step writes) without running anything.
   --step ID  runs one step in the copy under infra/tools/memguard.py (waits while the heavy-job budget is full: 4 jobs or 24 GB of caps).
   run        runs every step from --from ID (default the first) in order and stops at the first failure.
-  compare    compares the copy's manifests with the main checkout's (the final one against the snapshot of the selected
-             manifest taken at setup): part names added / removed, native STEP and mesh sha256 (raw and content: STEP
-             without its HEADER, npz by array bytes), bounds difference, owning link / role changes, counts per kind.
+  compare    compares the copy's manifests with the main checkout's live ones (the final one also records whether the
+             selected manifest changed since the snapshot taken at setup): part names added / removed, native STEP and mesh sha256 (raw and content: STEP
+             without its HEADER, npz by array bytes; same_file when both resolve to one file through links or path moves), reference
+             files that no longer hash to their recorded sha256 (input changed since the reference was built), bounds difference, owning link / role changes, counts per kind.
              Scores and counts only.
 
 Results: WORK/runs.json (per step: return code, seconds, memguard peak GB, log), WORK/compare.json and WORK/compare.md.
@@ -65,21 +66,40 @@ def link(dst: Path, src: Path):
     os.symlink(src, dst)
 
 
-def link_except(rel: str, produced: list[str]):
+def own_paths() -> tuple[list[str], list[str]]:
+    """(produced, copied): folders the chain writes in the copy. produced start empty; copied start as a copy of the
+    main checkout's folder (a hook rewrites some files of a section folder that also holds section inputs)."""
+    si = CHAIN["section_inputs"]
+    return list(si["produced_by_chain"]), list(si.get("copied_writable", []))
+
+
+def link_except(rel: str, produced: list[str], copied: list[str] = ()):
     """Link ROOT/rel into the copy; when a chain output lies inside it (arm/shoulder-clevis inside arm), make rel a real
-    folder and link its children one by one, leaving the produced path empty so the chain writes it in the copy."""
-    if not produced:
+    folder and link its children one by one: a produced path starts empty, a copied path as a copy, so no step can
+    write through a link into the main checkout."""
+    mine = [q for q in list(produced) + list(copied) if q.startswith(rel + "/")]
+    if not mine:
         link(REPO / rel, ROOT / rel)
         return
+    if (REPO / rel).is_symlink():
+        (REPO / rel).unlink()  # an older setup linked the whole folder
     (REPO / rel).mkdir(parents=True, exist_ok=True)
     for c in sorted((ROOT / rel).iterdir()):
         sub = f"{rel}/{c.name}"
+        if (REPO / sub).is_symlink() and (sub in mine or any(q.startswith(sub + "/") for q in mine)):
+            (REPO / sub).unlink()
         if sub in produced:
             (REPO / sub).mkdir(parents=True, exist_ok=True)
-        elif any(q.startswith(sub + "/") for q in produced):
-            link_except(sub, [q for q in produced if q.startswith(sub + "/")])
+        elif sub in copied:
+            if not (REPO / sub).exists():
+                shutil.copytree(c, REPO / sub, symlinks=True)
+        elif any(q.startswith(sub + "/") for q in mine):
+            link_except(sub, produced, copied)
         else:
             link(REPO / sub, c)
+    for q in mine:  # produced folders that do not exist in the main checkout yet
+        if q in produced and q.count("/") == rel.count("/") + 1:
+            (REPO / q).mkdir(parents=True, exist_ok=True)
 
 
 def setup():
@@ -101,10 +121,10 @@ def setup():
         if p.name != "body":
             link(art / "robot" / p.name, p)
     (art / "robot/body").mkdir(parents=True, exist_ok=True)
-    produced = CHAIN["section_inputs"]["produced_by_chain"]
+    produced, copied = own_paths()
     for rel in CHAIN["section_inputs"]["linked_read_only"]:
         if (ROOT / rel).exists():
-            link_except(rel, [q for q in produced if q.startswith(rel + "/")])
+            link_except(rel, produced, copied)
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     if not SNAPSHOT.exists():
         shutil.copy2(ROOT / CHAIN["target_manifest"], SNAPSHOT)
@@ -195,6 +215,10 @@ def run_step(sid: str) -> int:
     mg = CHAIN["memguard"]
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(s.get("limit_gb", mg["limit_gb"])),
            "--timeout-s", str(s.get("timeout_s", mg["timeout_s"])), "--"] + s["command"]
+    if shutil.which("caffeinate"):
+        # macOS: keep the machine awake while the step runs. memguard's timeout is wall time, so a step that ran while
+        # the laptop slept was stopped with almost no CPU time (2026-11-20, roll-flip-cad: 997 s wall, asleep 18:06-18:21).
+        cmd = ["caffeinate", "-i", "-s"] + cmd
     logs = WORK / "logs"; logs.mkdir(parents=True, exist_ok=True)
     log = logs / f"{sid}.log"
     marker = time.time()
@@ -208,10 +232,13 @@ def run_step(sid: str) -> int:
     stopped = re.findall(r"memguard: (.*), stopping", text)
     # files in the linked (main-checkout) section inputs changed while the step ran (other sessions may also write there)
     touched = []
+    own = [ROOT / q for q in sum(own_paths(), [])]  # the copy has its own folders there; main's change by other sessions
     for rel in CHAIN["section_inputs"]["linked_read_only"]:
         p = ROOT / rel
         for f in ([p] if p.is_file() else p.rglob("*") if p.is_dir() else []):
             try:
+                if any(f.is_relative_to(o) for o in own):
+                    continue
                 if f.is_file() and f.stat().st_mtime >= marker:
                     touched.append(str(f.relative_to(ROOT)))
             except OSError:
@@ -268,9 +295,18 @@ def file_cmp(rel_a, rel_b, root_a, root_b):
     pb = resolve(root_b, rel_b) if rel_b else None
     if pa is None or pb is None:
         return "missing_selected" if pa is None and pb is not None else "missing_rebuilt" if pb is None and pa is not None else "missing_both"
+    if pa.resolve() == pb.resolve():
+        return "same_file"  # both resolve (path-moves, links into the main checkout) to one file: not a reproduction
     if sha(pa) == sha(pb):
         return "raw_equal"
     return "content_equal" if content_sha(pa) == content_sha(pb) else "differs"
+
+
+def ref_matches(part, key, root):
+    """Does the reference's file still hash to the sha256 its manifest recorded? False = the input changed since the
+    reference was built (e.g. a section rebuilt later), so equality with it says nothing about that reference."""
+    p = resolve(root, part[key])
+    return None if p is None else sha(p) == part[f"{key}_sha256"]
 
 
 def bounds_diff(a, b):
@@ -300,13 +336,15 @@ def compare_manifests(path_a: Path, root_a: Path, path_b: Path, root_b: Path):
                  owning_link=None if a.get("owning_link") == b.get("owning_link") else [a.get("owning_link"), b.get("owning_link")],
                  role=None if a.get("role") == b.get("role") else [a.get("role"), b.get("role")],
                  path_changed=[k for k in ("native_step", "mesh") if a.get(k) != b.get(k)],
-                 recorded_sha_equal={k: a.get(k) == b.get(k) for k in ("native_step_sha256", "mesh_sha256") if k in a or k in b})
+                 recorded_sha_equal={k: a.get(k) == b.get(k) for k in ("native_step_sha256", "mesh_sha256") if k in a or k in b},
+                 reference_file_matches_recorded_sha={k: ref_matches(a, k, root_a) for k in ("native_step", "mesh") if a.get(k) and a.get(f"{k}_sha256")})
         rows.append(r)
         c = counts.setdefault(r["kind"], Counter())
         c["parts"] += 1
         c[f"step_{r['step']}"] += 1
         c[f"mesh_{r['mesh']}"] += 1
         c["owning_link_changed"] += bool(r["owning_link"]); c["role_changed"] += bool(r["role"])
+        c["reference_file_changed_since_recorded"] += sum(v is False for v in r["reference_file_matches_recorded_sha"].values())
         bd = r["bounds_max_diff_mm"]
         if bd is not None:
             c["bounds_diff_over_0.01mm"] += bd > 0.01; c["bounds_diff_over_0.1mm"] += bd > 0.1; c["bounds_diff_over_1mm"] += bd > 1.0
@@ -338,9 +376,16 @@ def compare():
         if not m or m in seen or not (REPO / m).exists():
             continue
         seen.add(m)
-        ref = SNAPSHOT if m == CHAIN["target_manifest"] else ROOT / m
+        # against the main checkout's live file: the chain never writes there (setup makes every chain output a folder
+        # of the copy), and the selected body moves while a run takes an hour (2026-11-20: the setup snapshot of the
+        # shoulder-U body was 2 h older than main's and showed 59 stale differences). The snapshot's sha stays recorded.
+        ref = ROOT / m
         if ref.exists():
             out["manifests"][m] = compare_manifests(ref, ROOT, REPO / m, REPO)
+            if m == CHAIN["target_manifest"] and SNAPSHOT.exists():
+                out["manifests"][m]["reference_sha256"] = sha(ref)
+                out["manifests"][m]["setup_snapshot_sha256"] = sha(SNAPSHOT)
+                out["manifests"][m]["selected_changed_since_setup"] = sha(ref) != sha(SNAPSHOT)
     (WORK / "compare.json").write_text(json.dumps(out, indent=1) + "\n")
     L = ["# Body rebuild comparison", "", f"Setup: {out['setup']}", "", "## Steps", "",
          "| step | ran | rc | seconds | peak GB |", "|---|---|---|---|---|"]

@@ -24,8 +24,16 @@
    "artifacts/robot/body/ape-proportions",
    "artifacts/robot/body/leg/roll-flip",
    "artifacts/robot/body/leg/ankle-coupler-screws",
-   "artifacts/robot/body/arm/shoulder-clevis"
-  ]
+   "artifacts/robot/body/arm/shoulder-clevis",
+   "artifacts/robot/body/leg/foot-screws",
+   "artifacts/robot/body/leg/hip-yaw-screws",
+   "artifacts/robot/body/torso/torso-screws"
+  ],
+  "copied_writable": [
+   "artifacts/robot/body/neck-head/parts",
+   "artifacts/robot/body/neck-head/combined"
+  ],
+  "copied_writable_note": "Section folders that also hold section inputs, but a hook rewrites some of their files (roll_flip_checks manifest -> neck_parts.apply rebuilds the XM335 neck connectors and their screws into neck-head/parts and the sleeves into neck-head/combined). Copied into the copy at setup, so the chain never writes through a link into the main checkout (2026-11-20: 16 neck screw meshes rewritten in main, byte-identical)."
  },
  "steps": [
   {
@@ -131,6 +139,65 @@
    "in_place_edits": [],
    "notes": "Voxel sweep of the hip and ankle target ranges; the script's docstring runs it under memguard --limit-gb 12 (not applied here: the chain runs every step at the memguard default unless a step's limit is approved). shells.py was modified 2026-11-15 06:47, after the selected shell-pass manifest (06:44). 12 GB cap: at 6 GB memguard stopped build.py while gmsh meshed the hip pitch-to-roll sleeves STEP (2026-11-20); shells.py documents 12 GB. Approved by the owner 2026-11-20.",
    "limit_gb": 12
+  },
+  {
+   "id": "foot-screws",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/leg/foot_screws.py",
+    "build"
+   ],
+   "inputs": [
+    "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json",
+    "robot/body/fastening/connector_screws.json"
+   ],
+   "outputs": [
+    "artifacts/robot/body/leg/foot-screws/records.json",
+    "artifacts/robot/body/leg/foot-screws/parts"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "notes": "Edited foot monocoque + sleeves (T-rptay5) that roll_flip_checks manifest swaps in; without it the manifest keeps the unedited foot and warns (2026-11-20 run)."
+  },
+  {
+   "id": "hip-yaw-screws",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/motor-refit/hip_yaw_screws.py",
+    "build"
+   ],
+   "inputs": [
+    "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json",
+    "robot/body/fastening/connector_screws.json"
+   ],
+   "outputs": [
+    "artifacts/robot/body/leg/hip-yaw-screws/records.json",
+    "artifacts/robot/body/leg/hip-yaw-screws/parts"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "notes": "Edited hip yaw-to-pitch connector + sleeves (T-v3kzs4) that roll_flip_checks manifest swaps in."
+  },
+  {
+   "id": "torso-screws",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/torso/torso_screws.py",
+    "build"
+   ],
+   "inputs": [
+    "artifacts/robot/body/torso/combined"
+   ],
+   "outputs": [
+    "artifacts/robot/body/torso/torso-screws/records.json",
+    "artifacts/robot/body/torso/torso-screws/parts"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "notes": "Rebuilt stage 3 torso carrier + sleeves (T-nh6ytf) that roll_flip_checks manifest swaps in; until 2026-11-20 the copy read the main checkout's records through the torso link."
   },
   {
    "id": "roll-flip-cad",

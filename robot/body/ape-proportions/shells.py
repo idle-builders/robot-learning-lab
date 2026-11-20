@@ -50,7 +50,7 @@ def _solid_voxels(m, lo, shape):
     (trimesh's voxelizer subdivides detailed meshes down to the voxel size and needs several GB.)"""
     from scipy.ndimage import binary_fill_holes
     n = int(min(4e6, max(2e4, m.area / (0.4 * PITCH) ** 2)))
-    pts = np.vstack([m.sample(n), m.vertices])
+    pts = np.vstack([trimesh.sample.sample_surface(m, n, seed=0)[0], m.vertices])  # seeded: the same voxels every run
     idx = np.round((pts - lo) / PITCH).astype(np.int32)
     a = np.maximum(idx.min(0) - 1, 0); b = np.minimum(idx.max(0) + 2, shape)
     sub = np.zeros(b - a, bool)
