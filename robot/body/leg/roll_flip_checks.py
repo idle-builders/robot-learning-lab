@@ -142,6 +142,49 @@ def hip_screws(parts, man, only=None):
     return rows, plans
 
 
+def _keep_shell_step_rows(man):
+    """Carry the outputs of `thigh_shell.py build` / `shin-cover` over from the previous variant manifest, so a manifest
+    rebuild without those two steps no longer drops the blue thigh shells and their post hardware or restores the
+    untrimmed shin back cover (it did on 2026-11-21). A row is carried only while it still matches its source in the
+    new manifest (the trimmed cover's trim_source_mesh, the drilled shin frame's pilot_source_step); otherwise the new
+    row stays and a warning says to rerun the shell steps. Rerun them whenever Stage 4 or a covered part changes."""
+    if not VARIANT.exists():
+        return ["WARNING no previous variant manifest: run thigh_shell.py build and shin-cover"]
+    prev = {p["name"]: p for p in json.loads(VARIANT.read_text())["parts"]}
+    cur = {p["name"]: p for p in man["parts"]}
+    log = []
+
+    def shell_row(n):
+        b = n[2:]
+        return (b in ("thigh_shell_front", "thigh_shell_back", "thigh_shell_front_steel_sleeves", "thigh_shell_back_steel_sleeves")
+                or b.startswith(("Thigh_carrier_shell_thigh_front_", "Thigh_rear_carrier_shell_thigh_back_", "shin_back_cover_PA2")))
+    carried = [p for n, p in prev.items() if shell_row(n) and n not in cur]
+    if not any(p["name"][2:] in ("thigh_shell_front", "thigh_shell_back") for p in carried + list(cur.values())):
+        log.append("WARNING the previous manifest has no thigh shells: run thigh_shell.py build and shin-cover")
+    parts = list(man["parts"])
+    if any(p["name"][2:] == "thigh_shell_front" for p in carried):
+        parts = [p for p in parts if p["name"][2:] not in ("thigh_front_hard_cover", "thigh_back_hard_cover")]
+    if any(p["name"][2:].startswith("shin_back_cover_PA2") for p in carried):
+        parts = [p for p in parts if not p["name"][2:].startswith("Shin_carrier_shell_shin_back")]
+    for i, p in enumerate(parts):
+        q = prev.get(p["name"])
+        if not q:
+            continue
+        if q.get("trim_source_mesh") and q["trim_source_mesh"] == p.get("mesh"):
+            parts[i] = copy.deepcopy(q); log.append(f"{p['name']}: trimmed shin back cover carried over (shin-cover output)")
+        elif q.get("trim_source_mesh"):
+            log.append(f"WARNING {p['name']}: its source changed, untrimmed row kept: run thigh_shell.py shin-cover")
+        if q.get("pilot_source_step") and q["pilot_source_step"] == p.get("native_step"):
+            parts[i] = copy.deepcopy(q); log.append(f"{p['name']}: drilled shin frame carried over (shin-cover output)")
+        elif q.get("pilot_source_step"):
+            log.append(f"WARNING {p['name']}: its source changed, undrilled frame kept: run thigh_shell.py shin-cover")
+    man["parts"] = parts + [copy.deepcopy(p) for p in carried]
+    if carried:
+        log.append(f"{len(carried)} thigh-shell / shin-cover rows carried over from the previous manifest "
+                   "(rerun thigh_shell.py build and shin-cover when Stage 4 or a covered part changed)")
+    return log
+
+
 def build_manifest():
     man = json.loads(SHELL_PASS.read_text())
     cad = json.loads((OUT / "cad-manifest.json").read_text())
@@ -201,6 +244,7 @@ def build_manifest():
     sys.path.insert(0, str(ROOT / "robot/body/neck-head"))
     import neck_parts as NP                 # T-6dvwjq: rebuilt XM335 neck connectors + their screws, when built (warns if not)
     log += NP.apply(man)
+    log += _keep_shell_step_rows(man)
     parts = man["parts"]
     man["study_id"] = man["result_id"] = "cove50-hip-roll-flip"
     man["roll_flip"] = dict(idle_task="T-fs5v6d", owner=["D-12", "D-13"], source_manifest=str(SHELL_PASS.relative_to(ROOT)),
@@ -208,6 +252,9 @@ def build_manifest():
                             cad_manifest=str((OUT / "cad-manifest.json").relative_to(ROOT)), changes=log,
                             note="Kinematics (joints, ranges, URDF) unchanged; only part placement and ownership change. "
                                  "Thigh hard covers are the selected ones and are being redesigned.")
+    prev_rf = json.loads(VARIANT.read_text()).get("roll_flip", {}) if VARIANT.exists() else {}
+    if "thigh_shell" in prev_rf and any(p["name"][2:] == "thigh_shell_front" for p in parts):
+        man["roll_flip"]["thigh_shell"] = prev_rf["thigh_shell"]     # written by thigh_shell.py build; kept with its rows
     VARIANT.write_text(json.dumps(man, indent=1) + "\n")
     print(f"wrote {VARIANT.relative_to(ROOT)} ({len(parts)} parts)")
     for line in log:
