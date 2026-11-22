@@ -132,8 +132,14 @@ def tools():
     return json.loads((DATA / "tools.json").read_text())
 
 
-def head_type(name, g, thread, data=None):
-    """Head type of a screw from its name, thread family and mesh (data/tools.json head_types)."""
+def head_type(name, g, thread, data=None, head_standard=None):
+    """Head type of a screw (data/tools.json head_types): the type whose standards list its head standard (screw_plan or
+    body definition, mount_check.screw_spec); without one, from its name, thread family and mesh."""
+    if head_standard:
+        data = data or tools()
+        ht = next((k for k, v in data["head_types"].items() if head_standard in v.get("standards", [])), None)
+        if ht:
+            return ht
     if re.search(r"_CS\d+|countersunk", name, re.I):
         return "countersunk"
     if thread and thread.startswith("PA"):
@@ -149,7 +155,10 @@ def tool_for(head, thread, data=None):
     data = data or tools()
     kind = data["head_types"][head]["drive"]
     t = data["tools"][kind]
-    size = t["by_head_type_and_thread"].get(head, {}).get(thread)
+    sizes = t["by_head_type_and_thread"].get(head, {})
+    size = sizes.get(thread)
+    if size is None and thread and thread.startswith("PA"):
+        size = sizes.get("M" + thread[2:])    # a thread-forming PA screw with a metric head standard: the drive of that head and diameter
     if size is None:
         return None
     if kind == "hex_key":
