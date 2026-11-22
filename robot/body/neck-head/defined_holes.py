@@ -2,7 +2,7 @@
 sites of the XM335 horns and cases from robot/actuators/interfaces/standard-parts.json, registered to the body's instance of
 each part (robot/body/fastening/interfaces.py), instead of typed numbers.
 
-  registered(manifest)      registered standard-part instances and their defined holes (body frame, mm)
+  registered(manifest)      registered standard-part instances and their defined holes (body frame, mm; default manifest: shell-pass)
   seat_sites(connector)     per screw of a connector in robot/body/neck-head/connector_screws.json: the hole axis and the point
                             of its seat plane (the standard part's outer face around the hole, measured on its mesh), the
                             thread, the hole depth and the reference engagement
@@ -34,9 +34,17 @@ def manifest_path() -> Path:
     return ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
 
 
+# The default manifest of the neck / head hole readers is the declared upstream shell-pass manifest, not the selected body
+# (robot/design.json): that is this chain's final output, so reading it made roll-flip-manifest (NP.apply -> head_screws) and the neck
+# connector builds circular in a clean rebuild. The neck servos, the head carrier's supplier spacers / nuts / boards and the skin sit
+# there as supplied: seat_sites of the three neck connectors and head_holes posts / threaded_posts / screw_plans / plate_faces are
+# identical from both manifests (max difference 0.0, 2026-11-22). The neck_parts CLI still edits the selected body (manifest_path).
+SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
+
+
 def registered(manifest: Path | None = None):
-    """(body, manifest dict, iface) of the body manifest (default: the selected one in robot/design.json)."""
-    path = Path(manifest) if manifest else manifest_path()
+    """(body, manifest dict, iface) of the body manifest (default: the shell-pass manifest, SHELL_PASS)."""
+    path = Path(manifest) if manifest else SHELL_PASS
     if path in _CACHE:
         return _CACHE[path]
     from checks import bodylib
