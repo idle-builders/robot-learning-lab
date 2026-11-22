@@ -727,12 +727,12 @@ recess / open points are not supported.
 ## Head carrier camera and mic screws into catalogue heat-set inserts (2026-11-22, T-5bqc3m)
 
 Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned 304 sleeves of OD 3.5 with a 1 mm wall,
-clearances of 0.3-0.5 mm, walls of two print lines). The 8 camera screws are driven from the camera front through washer, board and a
+clearances of 0.3-0.5 mm, walls of two print lines). The 8 camera screws are driven from the camera front through the board (no washer: a 0.3 mm washer does not exist as stock hardware; the ISO 4762 head bears on the board's mount pad) and a
 printed 5 mm column (replaces the supplier F-F standoff, clearance bore 2.4) into an M2 x 3 mm brass heat-set insert that is pushed from
-the plate's rear face (before ROCK4D goes on) up to the column bore's ledge and ends 0.1 mm inside the rear face; ISO 4762 M2x8 (engagement
-2.0-2.1 mm = 1 d, the 0.5 mm point inside the insert), nothing stands behind the plate any more. The 2 mic screws leave the carrier: the mic
+the plate's rear face (before ROCK4D goes on) up to the column bore's ledge and stands 0.2 mm proud of the rear face (the ledge sits 2.8 mm from it; ROCK4D is 1.7 mm behind); ISO 4762 M2x8 (engagement
+2.06-2.13 mm = 1 d, tip 0.37-0.44 mm short of the insert's end). The 2 mic screws leave the carrier: the mic
 wing is gone, two printed bosses on the head skin's inner side (R 3.0, trimmed to the skin wall's mid plane, outer surface untouched)
-carry the inserts, the board rests on the boss ends without a shim, ISO 7380-style M2x5 from the board side (driven before ROCK4D goes on).
+carry the inserts, the board rests on the boss ends without a shim, ISO 7380-style M2x5 (lower) / M2x4 (upper) from the board side (driven before ROCK4D goes on). The board sits 0.2 mm deeper (-x) on the bosses than the supplier model: the upper boss's skin leaves 1.06 mm behind a 3 mm insert (outer surface fixed), 1.26 mm with the shift; M2x4 keeps the tip inside the insert, so no relief hole behind it (the M2x5 tip reaches 0.37 mm past the insert and needs one). Cost: screw heads 0.26 / 0.35 mm from ROCK4D (was 0.46 / 0.55), engagement of M2x4 1.87 mm by the 0.5 mm-point convention.
 Insert sizes are catalogue-class (OD 3.2-3.6, L 3-4 mm; Ruthex / CNC Kitchen / Voron class); no supplier data in the repo: the thread is modelled
 at the ISO 724 minor diameter 1.567 mm, 1 d engagement for a steel screw in a brass thread, insert OD 3.5 = hole size (assumption).
 Sites come from the standoff / shim bores (cached in robot/body/neck-head/head_carrier_measured.json, since the parts are dropped from the manifest).

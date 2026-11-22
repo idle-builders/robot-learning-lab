@@ -62,6 +62,10 @@ def bore(mesh) -> dict:
     return dict(axis=int(k), centre=w, radius_mm=r, extent=(float(lo[k]), float(hi[k])))
 
 
+def _man_parts(manifest=None):
+    return _body(manifest)[1]["parts"]
+
+
 def _body(manifest=None):
     body, man, _ = DH.registered(manifest)
     return body, man
@@ -174,7 +178,7 @@ def threaded_posts(manifest: Path | None = None) -> dict:
     front, rear = plate_faces(manifest)
     st = _standards()
     out = {}
-    # camera: head on the camera front (washer, board, printed column), insert in the column's rear end, flush with the plate's rear face
+    # camera: head on the camera board front (board, printed column), insert in the column's rear end, flush with the plate's rear face
     spec = POSTS["camera"]
     sl = sleeve("camera")
     th = thread(sl["thread"])
@@ -183,8 +187,8 @@ def threaded_posts(manifest: Path | None = None) -> dict:
     rows = []
     for i, r in enumerate(P["camera"]):
         b = r["spacer_bore"]
-        wb = bore(body.mesh(spec["washers"][i]))
-        seat = wb["extent"][0]                          # the washer's front face: the head's seat
+        wb = _measure(body, spec["washers"][i])       # the 0.3 mm washer is gone (owner 2026-11-22): its board-side face is the board's front face
+        seat = wb["extent"][1]                          # the board's mount pad: the ISO 4762 head bears on it directly
         start = rear - sl.get("recess_mm", 0.0) - sl["length"]     # the insert's front end (the screw enters here)
         stack = float(start - seat)
         ax = np.zeros(3); ax[b["axis"]] = 1.0
@@ -201,13 +205,17 @@ def threaded_posts(manifest: Path | None = None) -> dict:
     ref = sl["engagement_x_d"] * th["major"]
     std = st["head_types"][spec["head"]["standard"]][spec["head"]["thread"]]
     rows = []
+    shift = float(spec["boss"].get("board_shift_mm", 0.0))     # the board sits deeper on its bosses (neck_parts.skin_mic_bosses moves its mesh)
+    applied = float(next(p for p in _man_parts(manifest) if p["name"] == spec["clamped"][0]).get("mic_board_shift_mm", 0.0))
     for i, r in enumerate(P["mic"]):
         b = r["spacer_bore"]
         ax = np.zeros(3); ax[b["axis"]] = 1.0
-        c = np.array(b["centre"], float); c[b["axis"]] = b["extent"][0]          # the shim's board-side face = the board's back face
+        c = np.array(b["centre"], float); c[b["axis"]] = b["extent"][0] + applied    # the shim's board-side face = the board's back face (where the mesh is now)
         stk = SP.stack_along_axis([body.mesh(n) for n in spec["clamped"]], c, -ax, radii=(1.5, 2.0))
         stack = float(stk["stack_mm"])
-        pick = SP.choose_length(stack, sl["length"], ref, spec["head"]["lengths"], st["point_mm"])
+        c[b["axis"]] = b["extent"][0] + shift
+        fixed = spec["head"].get("fixed_lengths")
+        pick = SP.choose_length(stack, sl["length"], ref, [float(fixed[i])] if fixed else spec["head"]["lengths"], st["point_mm"])
         pick.update(ref_mm=ref, head_seat=round(float(c[b["axis"]] - stack), 3), insert_start=round(float(c[b["axis"]]), 3))
         rows.append(dict(plan=_plan_dict(spec["screws"][i], "mic", spec, std, r, c, -ax, stack, sl["length"], pick, "brass", f"mic_insert_{i}"),
                          sleeve_len=sl["length"], start=float(c[b["axis"]])))

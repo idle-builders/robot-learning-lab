@@ -162,7 +162,7 @@ def head_screws(man: dict) -> list[dict]:
     plans = HH.screw_plans()                 # measures (and caches) the standoff / shim bores before they are dropped
     import re
     skin_mic_bosses(man)
-    drop = {n for g in HH.POSTS.values() if g is not HH.POSTS["compute"] for n in g["spacers"]}
+    drop = {n for g in HH.POSTS.values() if g is not HH.POSTS["compute"] for n in g["spacers"] + g.get("washers", [])}
     names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])} | drop
     # an earlier generated length of the same post: B0410_camera_M2_0 is stored as B0410_camera_M2x<L>_0
     stale = [re.compile(re.escape(b).replace("_M2_", r"_M2(?:x[0-9p.]+)?_") + "$") for g in HH.POSTS.values() if "legacy_screws" in g for b in g["screws"]]
@@ -215,6 +215,18 @@ def skin_mic_bosses(man: dict) -> None:
         c = md.Manifold.cylinder(float(x1 - x0), float(r), float(r), 64)          # along z from 0
         return c.rotate([0.0, 90.0, 0.0]).translate([float(x0), float(y), float(z)])
 
+    # the board sits board_shift_mm deeper (x) on the bosses so the skin keeps its wall behind the insert; the shifted mesh is derived from
+    # the board's source mesh (recorded on its manifest entry) so a second run shifts by the same amount, not twice
+    bname = spec["clamped"][0]
+    be = next(p for p in man["parts"] if p["name"] == bname)
+    shift = float(bs.get("board_shift_mm", 0.0))
+    bsrc = be.get("mic_board_source_mesh") or be["mesh"]
+    bm = BL.load_mesh(bsrc)
+    bm.apply_translation([shift, 0.0, 0.0])
+    bnpz = C.ART / "parts" / f"{bname}.npz"
+    _npz(bm, bnpz)
+    be.update(mic_board_source_mesh=bsrc, mic_board_shift_mm=shift, mesh=_rel(bnpz), mesh_sha256=_sha(bnpz),
+              bounds_mm=[np.round(bm.bounds[0], 3).tolist(), np.round(bm.bounds[1], 3).tolist()])
     res = to_mf(skin)
     holes = []
     for r in posts:
@@ -239,7 +251,9 @@ def skin_mic_bosses(man: dict) -> None:
         print(f"{pl['name']}: boss R{ro} x {x0:.2f} .. wall mid plane x {coef[0]:.2f} (slope y {coef[1]:+.3f} z {coef[2]:+.3f}); "
               f"skin inner {w[:, 0].min():.2f}..{w[:, 0].max():.2f}, outer {w[:, 1].min():.2f}..{w[:, 1].max():.2f}; end plane to outer {resid.min():.2f} mm")
         holes.append(cyl_x(x0 - 0.5, x0 + L, float(sl["ro"]), c[1], c[2]))
-        holes.append(cyl_x(x0 + L - 0.1, x0 + L + float(bs["tip_hole_extra_mm"]), float(bs["tip_hole_ro"]), c[1], c[2]))
+        prot = float(pl["length_mm"]) - float(pl["stack_mm"]) - L        # the screw's tip beyond the insert's end (negative: inside it)
+        if prot > 0:                  # a relief hole for the tip, 0.1 mm deeper than it reaches
+            holes.append(cyl_x(x0 + L - 0.1, x0 + L + prot + float(bs["tip_hole_extra_mm"]), float(bs["tip_hole_ro"]), c[1], c[2]))
     for h in holes:
         res = res - h
     m = res.to_mesh()
