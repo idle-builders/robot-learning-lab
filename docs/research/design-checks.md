@@ -535,6 +535,47 @@ contact / support standing on the part): +z 15 / 712 mm2 / 15 mm2 (only the slee
 in part_settings (the flange is the only flat face). walls: a 0.004 mm sliver where the flange tip meets the head-envelope cut (128 mm2 under one line). Connectivity: isolated parts 0, groups not reaching the core 2 (pelvis cells 08 / 09).
 BOM row: STEP disk, producer neck_collar.py, +z (no seeded), no flags; defects.json no longer lists it.
 
+Neck collar redesign for the checks (T-6rr3sa, 22 Nov; owner: the collar passes every design verification check). Baseline (17831ca46, library poses, all checks): engagement 3.25 of 4.0 mm,
+wall 0.004 mm (127.8 mm2 under one line, the flange tip where the head cut meets the base) and a 0.055 mm gap at the tab, press entry tool 45 / 18 mm3 (8 mm tip, 4.4 recess) and counter
+support 73 / 62 %, boss wall 0.79 mm, clearance 15.7 mm3 (neck pitch case at +35), 0.3 mm3 (cradle), 9.3 mm3 (head skin at pitch -30; collision_sweep), 0 sliver faces by tolerance but a 2.5 mm2 / 10 mm2 scatter of micro-edges at the tab, heat margin -2.0 C (PETG-CF 68 C against the 70 C case assumption), no FEM setup.
+Changes (all B-rep, `neck_collar.py build` / `sweep`): (1) link: 1.1 mm boss on the plate's outer face (y 5-13.3, z 394.4-405.4) plus a plug in the plate's lightening window beside the pilots,
+the tab grows to the boss face (x -25.6), sleeves 3.6 / 2.2 x 3.5, M2x8: thread 4.6 deep, engagement 4.25 of 4.0 (0.0 shortfall); (2) screws moved to y 9.0, z 397.4 / 401.9 (boss wall, window edge, counter disc);
+(3) a vertical flat channel in the collar's outer left wall (8.1 mm wide, floor x -29.1, 0-1.8 mm deep, replaces the two dia 4.4 recesses): heads bear flat, the dia 8 press tip has a free path (entry tool 0 / 0 mm3);
+(4) `neck_collar.py sweep`: what the moving head parts reach over neck_pitch -30..35 deg (2.5 deg steps, + 0.5 mm) is measured against the collar and written to neck_collar_envelope.json:
+the notch is now a flat floor per theta (62-136 deg; the old notch kept a 1.2 slope that made acute tips) and the head cut drops 0.3-0.7 mm at theta 358-6 and 90-97 deg where the skin tilts in;
+(5) a trim removes the footprint where the head cut leaves under 1.4 mm over the flange (sliver 0.004 mm gone), the notch floor (z 394.8 at the deepest, 0.6 mm over the bed) is the only link between the ring's halves;
+(6) 0.4 mm chamfer on the tab's bed edge (elephant foot). Look change: the collar's left side shows a flat channel 8 mm wide, 1.8 mm deep at most, the flange is cut back where the head cut came down to the base, and the back notch is wider and flat;
+nothing stands out. Renders: .cache/work/collar-renders/collar-before-after.png (before = HEAD build, after).
+Collar after (full run, library poses, all checks incl. exact fit: no collar overlap, 0.59 mm to the cradle, 5.8 mm to the case at standing): clearance min distance 0.32 mm (case at +35), 0.58 mm (cradle), collision_sweep skin 0.16 mm3 at yaw -60 pitch -30 (was 9.3), geometry 4 sliver faces
+(0.0039 mm2) and 2 micro-edges (0.08 mm) left at the tab corner and channel flank, walls 2.0 mm2 under one line (was 127.8), boss wall 0.9 mm, press support 71 / 75 % (flat tab face; limit: 2 sleeves 4.5 mm apart
+need a dia 10 disc each, the collar is 11.8 mm high), overhang 10.1 mm2 (sleeve-bore tops, support 0 g in the slicer), heat margin +100 C at 1.8 MPa (material now PAHT-CF, nozzle 0.4: the collar is screwed to a PAHT-CF link; the 0.6 mm default made the thin walls worse), driver access 0 mm3, assembly steps clear, connectivity by screw, BOM row without flags.
+FEM (new setup on the collar: sleeve bores at the link clamped, load = rim within 2 mm of the head skin, 5 N / 20 N down and 10 N sideways, nominal assumptions): p99 strength ratio PETG-CF 1.79 / 0.45 / 2.69, PAHT-CF 2.68 / 0.67 / 4.01; the 20 N hard press bends the C-shaped ring (displacement 50-77 mm at the free ends).
+Link: p99 von Mises (adverse neck stall, PAHT-CF) 34.7 -> 30.0 MPa, strength ratio 2.54 -> 2.94, fall 3.13 -> 3.42; volume 4809 -> 4964 mm3; walls under one line 0 -> 0.
+
+Neck collar round 2 (T-6rr3sa, 22 Nov; replaces the screw count, press, sliver, wall, overhang and collision_sweep numbers of the round above; `neck_collar.py build` / `sweep`). Remaining findings of round 1 and what
+the redesign does: ONE M2x8 at the collar's mid height (y 9.0, z 399.8) instead of two stacked in z (4.5 mm apart on an 11.8 mm high collar: each dia 10 press counter disc ran off the collar top / bottom, support 71 / 75 %).
+Screen of the options (counter support of the sleeve's dia 10 disc, flat + wall / link pilot or bore wall / FEM p99 strength ratio / look): (a) two screws side by side in y at mid height: at y 5.6 / 10.6 support 92.5 / 92.5 % (each disc
+loses the neighbour's bore) but the boss wall round the second bore is 0.56 mm (the outer wall slopes in: the bore nearly breaks out above the channel floor) and a 0.045 mm wall at the channel end; at y 2.2 / 9.2 (7 mm apart, no neighbour loss)
+the head cut is low at y 2 (collar top about 402): the bore roof breaks through the top, support 64 / 98 %, boss wall 0.20 mm with 25 % of the rays open, so (a) needs a collar taller than it is; (b) one screw + a locating key: support 98.3 %,
+boss wall 2.16 mm, no look change (the 8 mm flat channel is unchanged), 1 sleeve / 1 screw / 1 pilot fewer; FEM p99 strength ratio 0.36 / 0.54 (PETG-CF / PAHT-CF, 20 N hard press; round 1 two screws 0.45 / 0.67), 1.45 / 2.16 at 5 N (1.8 / 2.7),
+side push 2.19 / 3.26 (2.69 / 4.01): the single bore support is about 20 % weaker, the peak stays in the ring arch at the back (z 394.8), not at the screw, and the ridge support does not change it. A key that stands out of the tab
+face into the plate's lightening slot (tried first) blocks the collar's way on (the collar slides in along y over the neck: 24 mm3 overlap along the insertion path), so the key is a ridge along y (trapezoid, 45 deg flanks, 0.8 high, z 395.6-397.6)
+in a groove of the link boss (0.25 mm clearance, 3 deg of play): assembly path overlap 0 mm3, the screw driver path 0 mm3. Also: the tab runs into the ring wall (no wedge at y 14.3) and through the head cut (no flat top
+grazing it); the tab is cut from a box far outside the ring so it is bounded by the ring's own outer surface (no seam edges on the flange cone); the trim of the thin flange applies to the ring and the tab alike; the flange top radius is the
+cone's at z 397.4 (the 0.08 mm ledge that made five 0.075 mm micro-edges is gone); the channel flank's top edge, where the head cut rises towards the flank in a 38 deg knife edge, has a 0.7 mm fillet; the tab and ridge bed edges 0.5 mm fillets
+(a fillet of the ring's whole bed outline took its 4.1 mm wide foot under the 4 mm strip width: thin strips 51 -> 250-370 mm2, and OCC cannot round the 1.4 mm high vertical foot corners); the bore has a 45 deg teardrop roof;
+`sweep` takes the head poses collision_sweep uses (neck_pitch step 5 x neck_yaw neighbour grid, reduced to the distinct head-in-neck_yaw-link transforms: yaw turns collar and head together, so only the pitch matters) plus the 2.5 deg pitch grid,
+and re-measures against the collar made with the stored cutters until no overlap is left (3 rounds: the head cut drop is now 0.78 mm at most, 48 knots instead of 18). The link's plug in the lightening window reaches z 402.5 (the 0.03 mm2 sliver and
+0.023 mm micro-edge where it met the window's rounded top are gone), the groove edges have 0.3 mm fillets.
+Before (round 1, f2573de17) -> after, head_neck_collar, library poses, PAHT-CF 0.4 nozzle: press counter support (flat + wall) 71.4 / 74.7 -> 98.3 % (flat 80.8, ridge wall 17.5, teardrop notch 1.7; the old fixed-post coverage 71 / 75 -> 80.8 %), entry tool path 0 -> 0 mm3,
+sleeve interference 0.001 mm; geometry sliver faces 4 -> 0 (smallest face 0.0039 -> 0.96 mm2), micro-edges 2 -> 0 (0.08 -> 0.4 mm), acute wedges 0, unrounded corners 0; walls under one line 2.0 -> 0.0 mm2, thinnest wall 0.004 -> 0.477 mm, under two lines 12.8 -> 7.0 mm2;
+overhang beyond 70 deg 10.1 -> 0.0 mm2 (floating ceilings 2 -> 0; the holes check now counts the teardrop bore as 1 partial sleeve bore, 20.8 % open rays, boss wall 2.16 mm), support in the slicer 0 g, print 506 s / 2.02 g (519 s / 2.03 g);
+free sharp edges 75 -> 84 (length 695 -> 747 mm; the 0.5 mm fillets end in short creases and the ridge adds edges; OCC rounded none of the long spline rims), sharp bed corners 6 -> 5, thin features under one line 5 -> 7 (knife tips of the head-cut rim at the channel flank / floor top and the two ring ends);
+collision_sweep head skin 0.16 mm3 at yaw -60 pitch -30 -> 0 mm3 (0 poses, clearance 0.013 mm; clearance check 0.32 mm case, 0.59 mm cradle at +35), engagement 4.25 of 4.0 mm (screw hole offset 0.004), thread 4.6 deep, assembly step overlap 0 mm3,
+driver 0 mm3, connectivity by screw, fem_setup patches (bore 108 mm2, ridge 34 mm2, load 11 mm2), BOM findings for neck_collar.bom.yaml 0 (1 sleeve, 1 screw), connected to the core, heat no source in contact. Not cleared: fit pair collar x neck pitch case over its 120 s exact budget after 1 of 5 poses
+(472 s of exact work, no overlap seen; distance 0.32 mm in clearance); link own findings unchanged by this work (press support 69-76 % on its 8 other sleeves, 171 mm2 overhang beyond 70 deg, skin overlap 2.05 mm3 at yaw -60 pitch -30, two 0.29 mm edges at z 378).
+Renders: .cache/work/collar-renders/collar-single-screw-before-after.png, collar-ridge-groove-section-z396.6.png.
+
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
 2.6 mm, no thread). Past the stage-1 end there is no room for a nut: at the front pairs (cradle x +-17, z 271.5; stage 3
@@ -731,6 +772,54 @@ Found on the way, fixed: the owner six-side drawing (`render`) and leg_motion's 
 `R_thigh_roll_flip` changed 0 of 2.5 M pixels; keyed by the file's own sha256 (`hip-shell/kit.py mesh_tag`) the same shift
 changes 62-64 thousand, and a stored render is not served after the edit (`render-mesh-edit`). The scenarios that rewrite
 artifact files in place (`cache-stale-hunt`, `render-mesh-edit`) refuse to run in the main checkout.
+
+## Tool defects reported by the body sessions (2026-11-22, T-vftxyn)
+
+Seven sessions (hip, torso, whole-body triage, screws, floating parts, shoulder, BOM) sent about 50 tool defects; owner:
+tooling fixes go to one session. Each item was first reproduced on the selected body with run.py (or shown not to reproduce),
+then fixed and rerun; the reproductions are scenarios in `robot/body/checks/scenarios/` (runner, pairs, part_checks,
+fasteners, fem), run with `evaluate.py`. Before -> after, measured:
+
+| Item (task) | Measured |
+|---|---|
+| selected body stale against its upstream, nothing warned (torso; T-aprdsc) | the plan names each recorded source that changed and each upstream manifest written later: selected body 5 findings, a consistent roll-flip manifest 0, the regenerated shoulder-U manifest 0 |
+| stale recorded volume (triage) | injected 643.45 mm3 on the stage-1 sleeves: -7.0 % reported before, nothing after (fused STEP reference); the reported case no longer reproduced, the torso-screws merge had rewritten the volume |
+| STEP rejected silently (triage) | pitch C047 cases: "frame or manifold mismatch" -> "moved by [+-12.0, 0, 0] mm (all six box faces alike)", +25.1 % still listed |
+| a tool exception remembered as an unusable STEP | one part's STEP skipped since a `savez` bug: such entries no longer remembered; solid v3 re-evaluates the 35 earlier rejections once |
+| checks/data ignored by git (BOM) | a bare `data` line in .git/info/exclude (written by worktree.py): anchored, `git add` works again |
+| big shells pull the body in (shoulder; T-fdczae) | does not reproduce: the shoulder's scope (both torso shells, both upper-arm covers, 4 checks) 386 s complete; a surface-sample neighbour test trimmed neighbours 68 -> 50 / 94 -> 62 for no time gained (384 s, same results) and was dropped |
+| manifest outside the repository (floating parts) | refused -> measured (absolute path in the report, result cache off) |
+| voxel-filled overlap shown as real (floating parts) | fan bridge plate x fan 13.8 mm3: the line now says `[approximate: SameSky_4010_fan: voxel fill of an open mesh]` |
+| memguard: big jobs could starve under memory-only admission | a job starts ahead of the longest waiter only if that one still fits after it |
+| clearance kept cross-limb pairs (triage, T-xfkwv2; T-g72tnq) | whole body: 290 pairs with new overlap -> 37 (7764 cross-limb pairs left out, counted, listed); R palm x R shin 2403 mm3 -> left out |
+| D-15 hip range corners as design overlaps (hip) | thigh shells collision_sweep: worst design case 818 -> 57 mm3; the corner contacts (818, 791 mm3 vs Honeycomb_Cell_08) listed in `controller_limit_contacts` |
+| driver paths 200 mm away "closing in" (hip) | `closed_in_by` within the 40 mm reach, distances given; farther parts apart |
+| collision_sweep other limbs, fit_class seeded cross-link, fit progress (hip) | do not reproduce since 863102d49; fit prints per pose, stops pairs over budget, a killed run reads unfinished with its stack |
+| stale load-path slices (shoulder; T-r96hnj) | shoulder pitch-to-roll 3 severed / 0 mm2 -> 0 / 75.5 mm2 with 4 of 12 slabs counted as outside the part (the data is the shoulder session's) |
+| teardrop / slot bores as boss wall 0 (hip, shoulder) | walls at 0 mm: 8 -> 0 (1.15-3.20 mm, open share reported) |
+| mesh-only parts skipped silently (floating parts, hip) | geometry measures 4 shells from their mesh; press 3 parts (cradle sleeves 0-5 equal the STEP numbers); holes lists them as not measured |
+| sleeve overlap from coincident tessellation (hip yaw) | R / L hip yaw-to-pitch 0.42 / 1.13 -> 0.0 / 0.0 mm3 (exact OCC, matching an independent truth) |
+| bed 0 mm2 at -x, +-z crash, floating bridge at 0 mm, tapped bore as open support | do not reproduce on the current body (148.7 mm2 at -x, slicer prints it); bed now reports all six directions |
+| ROCK4D hole offsets (screws; T-vza9m4) | CS10_2 / CS10_3 / CS30_0 / CS30_1 0.118 / 0.244 / 0.795 / 0.224 -> 0.028 / 0.0 / 0.006 / 0.008 mm |
+| coplanar / board gaps, layer pairing, clamp stack (screws, torso stage 3, floating parts) | head-to-sleeve 0.44 -> 0.0 mm; Power_supervisor H2 1.595 -> 0.005 mm; fan plate 3.7 mm and H-cage shell posts 5.4 / 4.4 mm -> gone |
+| screw identity (T-fdvj93) | shoulder-U proxy screws seen by screws / driver_access / fastener_motion 0 -> 12; ISO 4762 screws PH0 -> 1.5 mm hex; H-cage shell obstruction 14.8-16.0 mm3 -> reported apart |
+| R ankle output registered as the horn (T-fbpzck) | rms 0.213 -> 0.048 mm, all 8 holes, all 16 ankle screws in defined holes |
+| bonded / co-printed edge (T-5ptw44) | `joined` edge from `joined_to` on a definition entry; waits for the schema property and the chest indicator's entry (BOM session's files) |
+| FEM released members, empty patch, progress, collars (T-r922sr) | two released idler members: 324 -> 654 nodes released (results = stored setup); singular matrix -> a named error in 0.2 s; 131 s silent -> a line at most every 13.5 s; collars from the bore (head carrier ratio 3.58 -> 3.57: its bores equal the sleeve OD) |
+
+Integrated run on the merged code (all 44 truth / robust scenarios of every area in two shards in a fresh worktree, under
+load 15-30 from other sessions' jobs): it found one real defect the per-area runs had not: `mass` took the solid centroid of any
+part another check had loaded in the same process, so mass alone and mass after gaps / clearance differed and the result cache
+served one for the other (cache-stale-hunt: 2 stale results); fixed (d37241152), then 0 stale and `check-context-independence`
+gives identical results for each light check alone and grouped. Three checks stalled for 970-1010 s once (geometry, clearance,
+screws on the fan plate) and took 4-16 s when rerun at once; the stack named plain computation each time; each check now
+reports its CPU seconds next to its wall seconds (`cpu_s`), so the next stall says whether it computed or waited. The first
+whole-body run after the solid v3 bump took 1547 s (scoped solids 804 s: the earlier rejections re-evaluated once); the next
+365 s (CPU equal to wall; geometry 56 -> 79 s for the mesh-only parts and the exact sleeve overlaps).
+
+Left with their owners: stale load-path slice ranges (shoulder), the `joined_to` schema property (BOM), shoulder_clevis._density
+still reading part_settings.json (shoulder: the selected body cannot be regenerated at HEAD), seeded single-horn assembly steps
+(BOM), the ankle-coupler hole stopgap (lower leg), the clamp width vs clamped part measurement (hip: proposed).
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 

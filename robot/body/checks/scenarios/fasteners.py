@@ -146,7 +146,7 @@ def s_ankle(sid):
           "breaks; once as the definitions are, once with the joining declared on the part's definition entry (worktree only)")
 def s_coprinted(sid):
     def measure(tag):
-        r = run_tool(f"{sid}-{tag}", ["--parts", f"{INDICATOR},{FRONT_SHELL}", "--checks", "connectivity"])
+        r = run_tool(f"{sid}-{tag}", ["--parts", f"{INDICATOR},{FRONT_SHELL}", "--checks", "connectivity"], limit_gb=6)   # loads every solid
         c = ((r["report"] or {}).get("checks", {}).get("connectivity") or {})
         pp = (c.get("per_part") or {}).get(INDICATOR) or {}
         return dict(rc=r["rc"], exec_s=r["exec_s"], indicator_edges=pp.get("edges"), indicator_chain=pp.get("chain_to_core"),

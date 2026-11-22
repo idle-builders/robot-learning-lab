@@ -17,6 +17,8 @@ generators:
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
   - robot/body/fastening/connector_screws.json
+  - robot/actuators/interfaces/standard-parts.json
+  - robot/body/leg/build_upper_hip_connectors.bom.yaml
   - robot/body/checks/data/part_settings.json
   - robot/body/checks/data/materials.json
   outputs:

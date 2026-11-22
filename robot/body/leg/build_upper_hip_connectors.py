@@ -731,6 +731,10 @@ RF_NUT_POCKET_H = 2.60
 RF_POST_NUT_SHIFT = (2.60, 1.60)      # rear 1.60 (was 2.00): the bore beyond the nut ends RF_POST_BORE_FREE past the nut face, and
                                      # its blind end then keeps 1.32 mm (was 0.5, under one line) over the rear key pocket floor
 RF_POST_BORE_FREE = 3.20             # bore beyond the nut's tip-side face: a full nut (2.4) + point (0.5) + tip margin (0.3)
+RF_POST_BORE_INTO_PLATE = 1.0        # front posts: the screw bore runs this far into the plate (was 0.2 short of its outer face):
+                                     # 5.02 mm beyond the nut, so the front shell screws stay M3x16 with the heads sunk wholly under
+                                     # the sloping skin (thigh_shell.post_fit; 1.95 mm of plate left to the case-ear face, the posts
+                                     # lie outside the ear-boss key pocket in x)
 RF_POSTS = [((45.75, 171.5), -18.35, -15.67 + RF_POST_NUT_SHIFT[0]), ((66.25, 171.5), -18.35, -15.67 + RF_POST_NUT_SHIFT[0])]  # front
 RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1]), ((66.25, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1])]   # rear
 # H-cage (owner 2026-11-19: the 0.15 mm plate-to-arm gaps will not hold for printed parts and hand assembly; the 4 upper
@@ -793,7 +797,9 @@ RF_IN_WALL_X = (40.4, 43.45)         # inboard wall (outer x = the case-envelope
                                      # 0.05 mm edges, at the flush top too since the plates and the wall share their top
 RF_IN_WINDOW = (22.0, 160.5, RF_OUT_WALL_TOP - 3.0)   # inboard wall window: y size, z from .. to (rounded 3.5)
 RF_OUT_WINDOW = (21.0, 13.0)         # outboard wall window (its lower edge 1 mm above the bridge, 3 mm under the wall top)
-RF_KEY_CORNER_R = 1.0               # pocket corner radius (the bosses' corners are rounded more)
+RF_KEY_CORNER_R = 1.0               # (history) pocket corner radius; the key pockets now have square corners with reliefs
+RF_BED_EDGE_CHAMFER = 0.45          # 45 deg chamfer on the plates' top inner edges (bed side, on the case-ear faces)
+RF_KEY_RELIEF_R = 0.45              # dog-bone relief radius at the key pockets' lower corners (about the corner point)
 RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
 # Stage 5 screw connections (Idle T-sgms6h, screw check hip-screws-s1). Every Stage 5 screw sits at its defined hole
@@ -836,9 +842,10 @@ RF5_RUN_FIT = 0.10                   # free-state gap per side between each arm 
                                      # step left on them). Closing it bends each arm about 0.1 mm: about 20-25 N per arm
                                      # (cantilever estimate, PETG/PAHT-CF E 2.5-4 GPa, neck 10.5 x 5 mm, 17 mm long) and about
                                      # 8-9 MPa at the neck root; 0.2 mm would double both.
-RF5_HUB_RECESS_R = 6.0               # hub recess of the plate's land: the hub (r 4.0) needs r 4.2, which left 0.53 mm webs to
-                                     # the four dia 4.5 sleeve bores (r 7); r 6.0 opens it into the bores over its depth
-                                     # (2.3 mm of the 8.5 mm sleeves lose a 110 deg sector), wedge angle at the joins 73 deg
+RF5_HUB_RECESS_R = 6.8               # hub recess of the plate's land: the hub (r 4.0) needs r 4.2, which left 0.53 mm webs to
+                                     # the four dia 4.5 sleeve bores (r 7); a larger recess opens into the bores over its depth.
+                                     # r 6.0 met them in 73 deg wedges (walls check 0.02 mm at the knife edge); from r 6.66 the
+                                     # wedge is >= 90 deg: r 6.8 gives 93.5 deg (2.3 mm of the 8.5 mm sleeves lose a 150 deg sector)
 RF5_HUB_FLAT_FILLET = 1.5            # inside corner of the front hub flat at the neck's inboard edge (x 60.5, z 201.45):
                                      # the flat cut it sharp (FEM peak 81-98 MPa there)
 # Rear top corner of the plate wing vs the torso's center_back_shell over hip pitch -58..45 x yaw -30..30 (pitch-link
@@ -847,7 +854,11 @@ RF5_HUB_FLAT_FILLET = 1.5            # inside corner of the front hub flat at th
 RF5_REAR_CHAMFER_YZ = [(31.5, 210.49), (22.0, 216.75), (19.5, 224.5)]
 RF5_PRINT_UP = (-1.0, 0.0, 0.0)       # Stage 5 print direction (part_settings process.up -x)
 RF5_ARM_CORNER_CHAMFER = 3.0        # lower outboard corner of each arm (x RF_PLATE_X[1], z RF_AZ + 2): 45 deg chamfer leg
-RF5_ARM_GUSSET = 2.5                 # 45 deg gusset leg between each arm's top and the plate's inner face (0 = none)
+RF5_ARM_GUSSET = 2.5                 # 45 deg gusset leg between each arm's top and the plate's inner face (0 = none); part of the
+                                     # arm's XZ profile, both ends rounded tangent (RF5_GUSSET_ENDS_R): a separate prism left a 135 deg
+                                     # concave edge ending on the outer face between two bevelled convex edges, whose corner patch
+                                     # (0.27 mm2 B-spline) OCC could not triangulate (STEP tessellation not closed at any tolerance)
+RF5_GUSSET_ENDS_R = (1.5, 2.0)       # 2D fillet radii at the gusset's foot (convex, x 60.5) and at the plate face (concave)
 RF5_TEAR_TOP = 0.4                   # horizontal sleeve bores: flat-topped teardrop, roof this far above the circle (print up)
 # Rear stub insertion slot (rf5_stub_slot, owner 2026-11-22): the turned case's rear stub is a disc r 3.0 about the roll
 # axis, y 25.55..25.80 (shell-pass case mesh), 0.45 mm past the rear arm's inner face (RF5_IDLER_FACE_Y + RF5_RUN_FIT).
@@ -981,18 +992,36 @@ def rf_ear_boss_outline(case: Shape, y_root: float) -> Face:
 
 def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow: float | None = None) -> Solid:
     """Pocket for an ear boss: the bounding rectangle (x, z) of its root outline grown by RF_KEY_CLEAR per side (or by
-    `grow`, negative = inside), corners rounded RF_KEY_CORNER_R (smaller than the boss's own corner rounding, so the
-    flat sides key and the corners stay clear), from y_in (inside the case envelope) to y_floor, open upward. A box, not
-    the outline offset: the offset outline's edges make the part unmeshable for gmsh."""
-    b = rf_ear_boss_outline(case, y_root).bounding_box()
+    `grow`, negative = inside; a lightening window, corners rounded 2.0), square with dog-bone reliefs RF_KEY_RELIEF_R at
+    the lower corners (the flat sides key, the corners stay clear), from y_in (inside the case envelope) to y_floor, open
+    upward. A box, not the outline offset: the offset outline's edges make the part unmeshable for gmsh."""
+    # bounding box over sections from the root out to past the boss tip: the root is not the largest section everywhere (the
+    # boss's lower face reaches 0.57 / 0.50 mm lower 0.0-0.8 mm out from the root: an exact 0.05 + 0.07 mm3 overlap with the
+    # pocket's lower wall, front and rear)
+    out = 1.0 if y_floor > y_root else -1.0
+    bbs = []
+    for t in np.concatenate([[-0.04, -0.02], np.linspace(0.0, 1.5, 16)]):   # from 0.01 mm off the ear face (the root fillet)
+        try:
+            bbs.append(rf_ear_boss_outline(case, y_root + out * t).bounding_box())
+        except ValueError:          # past the boss tip: no section
+            break
+    b = type("BB", (), {})()
+    b.min = Vector(min(q.min.X for q in bbs), 0.0, min(q.min.Z for q in bbs))
+    b.max = Vector(max(q.max.X for q in bbs), 0.0, max(q.max.Z for q in bbs))
     g = RF_KEY_CLEAR if grow is None else grow
     x0, x1, z0, z1 = b.min.X - g, b.max.X + g, b.min.Z - g, b.max.Z + g
     if grow is not None:     # a lightening window: stays 3 mm under the plates' upper edge (the hub keep-out arc)
         z1 = min(z1, RF_AZ - (RF_ROLL_HUB_R + RF_YELLOW_MARGIN) - 3.0)
     else:                    # the key pocket runs out through the plate's upper edge: the cage rises onto the hanging
         z1 = RF_AZ           # case from below (+z), so the bosses must pass up the pockets (a closed top blocked it)
-    f = Pos(0.5 * (x0 + x1), 0.5 * (z0 + z1)) * RectangleRounded(x1 - x0, z1 - z0, RF_KEY_CORNER_R if grow is None else 2.0)
-    return extrude_xy_to_y(f.faces()[0], min(y_in, y_floor), max(y_in, y_floor))
+    ya, yb = min(y_in, y_floor), max(y_in, y_floor)
+    if grow is not None:
+        f = Pos(0.5 * (x0 + x1), 0.5 * (z0 + z1)) * RectangleRounded(x1 - x0, z1 - z0, 2.0)
+        return extrude_xy_to_y(f.faces()[0], ya, yb)
+    # key pocket: square corners with dog-bone reliefs at the two lower ones. The bosses' lower corners are sharp at their
+    # tips and r < 1 at the root, so the old r 1.0 pocket corners cut into them (exact OCC common 0.05 + 0.07 mm3, front / rear)
+    box = occ_box(x0, x1, ya, yb, z0, z1)
+    return largest_solid(fuse_all([box] + [occ_cyl((xc, ya, z0), (xc, yb, z0), RF_KEY_RELIEF_R) for xc in (x0, x1)]))
 
 
 def rf_yellow_keepout_xz() -> Face:
@@ -1343,7 +1372,7 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     for (px, pz), tip, nut in RF_POSTS:
         nf = rf_post_nut_face(tip, nut)
         posts.append(bevel_3d_edges(occ_cyl((px, tip, pz), (px, yf_out + 0.3, pz), 4.8), r_outer=0.35, min_cyl_r=4.5))
-        post_cut += [occ_cyl((px, tip - 2.0, pz), (px, yf_out - 0.2, pz), 1.70),
+        post_cut += [occ_cyl((px, tip - 2.0, pz), (px, yf_out + RF_POST_BORE_INTO_PLATE, pz), 1.70),
                      occ_cyl((px, tip - 2.0, pz), (px, nf + 0.01, pz), RF5_SLEEVE_R),
                      rf_post_nut_pocket(px, pz, nf, yf_out - RF_RIB_F),
                      rf_post_notch(px, pz, yf_out - RF_RIB_F, nf)]
@@ -1373,7 +1402,12 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     #    is flat already, 2.98 mm proud of the seat)
     seat_m = rf_med_seat_x()
     spots = [rf_spot_face(RF_CHEEK_X0 - 5.0, seat_m, s["opening"][1], s["opening"][2]) for s in screws if s["group"] == "knee_case"]
-    res = rf_unify(largest_solid(cut_all(res, spots)))
+    # 45 deg chamfer along the plates' top inner edges (z RF_PLATE_TOP, on the case-ear faces): the top is the print bed
+    # (up -z) and the bevel left 5-6 mm of that bed outline square on the mating ear face (elephant foot)
+    c = RF_BED_EDGE_CHAMFER
+    bed = [poly_prism_x([(yf_in + 0.01, RF_PLATE_TOP - c), (yf_in + 0.01, RF_PLATE_TOP + 0.01), (yf_in - c, RF_PLATE_TOP + 0.01)], 30.0, 80.0),
+           poly_prism_x([(yr_in - 0.01, RF_PLATE_TOP - c), (yr_in + c, RF_PLATE_TOP + 0.01), (yr_in - 0.01, RF_PLATE_TOP + 0.01)], 30.0, 80.0)]
+    res = rf_unify(largest_solid(cut_all(res, spots + bed)))
     return res, sleeves
 
 
@@ -1415,10 +1449,22 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     # the lower outboard corner is a 45 deg chamfer RF5_ARM_CORNER_CHAMFER: square, the hub's r 5 inner fillet left a 0.4 mm
     # flat before it that the 3D bevel ate down to a 0.0014 mm edge and a 0.005 mm2 face (and the inner neck fillet fell back to r 2.2)
     cc = RF5_ARM_CORNER_CHAMFER
-    arm = Polygon((RF_AX + 10.5, RF_AZ + 2.0), (x1 - cc, RF_AZ + 2.0), (x1, RF_AZ + 2.0 + cc), (x1, top), (60.5, top), (60.5, RF_AZ + 9.0),
+    # the gusset (RF5_ARM_GUSSET) is the profile's top: a 45 deg slope from the neck's inboard edge (60.5, top) to the plate's inner
+    # face x0, then up that face (buried in the plate) so both ends take tangent 2D fillets
+    g = RF5_ARM_GUSSET
+    if g:
+        tops = [(x1, top + g + 2.0), (x0, top + g + 2.0), (x0, top + g), (x0 - g, top)]
+        assert abs((x0 - g) - 60.5) < 1e-6, "gusset foot off the neck's inboard edge"
+    else:
+        tops = [(x1, top), (60.5, top)]
+    arm = Polygon((RF_AX + 10.5, RF_AZ + 2.0), (x1 - cc, RF_AZ + 2.0), (x1, RF_AZ + 2.0 + cc), *tops, (60.5, RF_AZ + 9.0),
                   align=None)  # counter-clockwise, or the union with the hub stays 2 faces
     arm_face = fillet_2d_face((arm + Pos(RF_AX, RF_AZ) * Circle(RF_ROLL_HUB_R)).clean().faces()[0], 2.2, r_inner=5.0,
-                              skip_xy=[(60.5, top), (x1, top)])
+                              skip_xy=tops)
+    if g:
+        ends = [(x0, top + g), (x0 - g, top)]
+        keep = [(v.X, v.Y) for v in arm_face.vertices() if min((v.X - a) ** 2 + (v.Y - b) ** 2 for a, b in ends) > 0.05]
+        arm_face = fillet_2d_face(arm_face, RF5_GUSSET_ENDS_R[0], r_inner=RF5_GUSSET_ENDS_R[1], skip_xy=keep)
     # old arm faces outside the clamp discs (envelope); clamp disc on the horn / idler face; head-seat disc on the outer face
     efo, efi = max(RF_ARM_F[0] - RF_ARM_THICKEN, yfo), RF_ARM_F[2]
     eri, ero = RF_ARM_R[0], RF_ARM_R[2] + RF_ARM_THICKEN
@@ -1442,11 +1488,9 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     plate = largest_solid(cut_all(fuse_all([plate, land]), [occ_box(x_face - 1.0, x1 + 1.0, wfo - 1.0, wro + 1.0, z_low - 20.0, z_low)]))
     # front arm hub flattened at RF_FRONT_HUB_TOP where the yaw link's anterior column passes at hip pitch -90
     arm_f = largest_solid(cut_all(arm_f, [rf5_hub_flat(efo - 1.0, yfi + 1.0)]))
-    # gusset in the inside corner where each arm's top (z top, inboard of the plate) meets the plate's inner face x0
+    # the arm profile carries the gusset in the inside corner where each arm's top meets the plate's inner face x0
     # (FEM hot spot of the roll stall at [62.9, -12.2 / 25.2, 212])
-    gus = [] if not RF5_ARM_GUSSET else [poly_prism_y([(x0 - RF5_ARM_GUSSET, top), (x0 + 0.5, top), (x0 + 0.5, top + RF5_ARM_GUSSET + 0.5)], ya, yb)
-                                        for ya, yb in ((efo, efi), (eri, ero))]
-    body = fuse_all([plate, arm_f, arm_r, *gus])
+    body = fuse_all([plate, arm_f, arm_r])
     cutters = [
         occ_cyl((RF_AX, min(yfo, efo) - 2.0, RF_AZ), (RF_AX, yfi + 2.0, RF_AZ), RF_ROLL_CENTRE_R),
         occ_cyl((RF_AX, yri - 2.0, RF_AZ), (RF_AX, max(yro, ero) + 2.0, RF_AZ), RF_ROLL_CENTRE_R_REAR),
@@ -1524,18 +1568,28 @@ def rf_density(material: str) -> float:
     return json.loads((RF_CHECK_DATA / "materials.json").read_text())[material]["density_g_cm3"] * 1e-3
 
 
-def rf_polymer_density(pname: str) -> tuple[str, float]:
-    """(material, g/mm3) of a printed part from its `process.material` setting as the checks read it: the part's body
-    definition (this builder's .bom.yaml) over checks/data/part_settings.json (checks/ctx.overlay_definitions; the settings
-    moved into the definitions on 2026-11-22, part_settings.json no longer holds these parts)."""
+def rf_part_material(pname: str) -> str:
+    """`process.material` of a printed part from its body definition (robot/**/<builder>.bom.yaml, via robot/body/bom/
+    definitions.py), else checks/data/part_settings.json. No manifest is read: the roll-flip variant manifest is the output
+    of a later chain step (roll_flip_checks.py manifest), so a clean chain has none yet when this builder runs."""
     import json
     import sys
-    if str(ROOT / "robot/body") not in sys.path:
-        sys.path.insert(0, str(ROOT / "robot/body"))
-    from checks.ctx import overlay_definitions
-    s, _, _ = overlay_definitions(json.loads((RF_CHECK_DATA / "part_settings.json").read_text()),
-                                  ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json")
-    mat = s[pname]["process"]["material"]
+    bom = str(ROOT / "robot/body/bom")
+    if bom not in sys.path:
+        sys.path.insert(0, bom)
+    import definitions as DEF
+    e = DEF.load().claims([pname]).get(pname) or {}
+    mat = (e.get("process") or {}).get("material")
+    if not mat:
+        mat = ((json.loads((RF_CHECK_DATA / "part_settings.json").read_text()).get(pname) or {}).get("process") or {}).get("material")
+    if not mat:
+        raise SystemExit(f"{pname}: no process.material in its body definition or part_settings.json")
+    return mat
+
+
+def rf_polymer_density(pname: str) -> tuple[str, float]:
+    """(material, g/mm3) of a printed part from its `process.material` setting as the checks read it (rf_part_material)."""
+    mat = rf_part_material(pname)
     return mat, rf_density(mat)
 
 

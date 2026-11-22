@@ -552,6 +552,7 @@ def main():
     ap.add_argument("--group")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--keep", action="store_true", help="keep the mutated manifests and part files")
+    ap.add_argument("--results", help="results file (default .cache/work/cad-speed/eval/results.json); one per process when several run at once")
     a = ap.parse_args()
     if a.list:
         for k, s in SCENARIOS.items():
@@ -559,7 +560,7 @@ def main():
         return
     ids = [k for k in SCENARIOS if (not a.only or k in a.only.split(",")) and (not a.group or SCENARIOS[k]["group"] == a.group)]
     EVAL.mkdir(parents=True, exist_ok=True)
-    res_f = EVAL / "results.json"
+    res_f = Path(a.results).resolve() if a.results else EVAL / "results.json"
     allres = json.loads(res_f.read_text()) if res_f.exists() else {}
     for k in ids:
         t0 = time.time()
@@ -578,7 +579,7 @@ def main():
         print(json.dumps(out, indent=1, default=str), flush=True)
         if not a.keep:
             shutil.rmtree(EVAL / k, ignore_errors=True)
-    print(f"\n{res_f.relative_to(ROOT)}")
+    print(f"\n{res_f}")
 
 
 if __name__ == "__main__":

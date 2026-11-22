@@ -23,8 +23,8 @@ The ankle-pitch side (Idle T-kmcn4j): the plate clamps to the ST3025 output whee
 (ST3025.horn+z.1-4, through 3.0 thick, reference engagement 2.95) and 4 on the idler flange (ST3025.idler-z.1-4, through,
 reference 3.5), and had no screws. The horn side plate floated 2.0 mm above the flange face (the sleeves ended on the
 horn hub plane, not on the flange); the walls between sleeve and central hole were 0.25 mm. Same recipe as above, along x:
-  holes     the hole positions of the registered LEFT wheel (accurate: rms 0.05 mm) mirrored to the right, because the right
-            wheel instance is registered as the horn alone (fit_rms 0.21, no idler holes, mount_check interfaces.py).
+  holes     the hole positions of the registered right wheel (R_ankle_pitch_ST3025_output, horn and idler holes, rms 0.048),
+            through screw_plan.hole_positions like the left.
   screws    4 + 4 x ISO 7380-1 M3x6 (screw_plan standard lengths; stack = L - point - reference engagement: horn 2.55, idler
             2.0; the plate is not thickened, the longest length whose stack fits), connector entry ankle_coupler_combined groups ST3025_horn / ST3025_idler in connector_screws.json.
   bosses    printed boss of radius EAR_R from the measured wheel face to the head seat under every sleeve (horn side: 2.0 mm
@@ -175,36 +175,6 @@ WHEEL = "ankle_pitch_ST3025_output"
 WHEEL_GROUPS = (("ST3025_horn", "horn"), ("ST3025_idler", "idler"))
 
 
-def mirrored_left_holes(iface, labels):
-    """Holes of the registered left wheel instance mirrored to the right (x -> -x): same physical holes, accurate registration."""
-    import screw_plan as SP
-    out = []
-    for h in SP.hole_positions(iface, "L_" + WHEEL, labels):
-        q = dict(h)
-        q["opening"] = np.array([-h["opening"][0], h["opening"][1], h["opening"][2]], float)
-        q["axis_out"] = np.array([-h["axis_out"][0], h["axis_out"][1], h["axis_out"][2]], float)
-        q["hole_id"] = h["hole_id"].replace("L_", "R_", 1); q["part"] = "R_" + WHEEL
-        out.append(q)
-    return out
-
-
-def install_wheel_holes():
-    """screw_plan.hole_positions for R_ankle_pitch_ST3025_output: the mirrored left holes (the right instance is registered as the
-    horn alone, so its idler holes do not exist there). Idempotent; roll_flip_checks.build_manifest generates the right-side
-    screws through screw_plan, after importing this module."""
-    import screw_plan as SP
-    cur = SP.hole_positions
-    if getattr(cur, "_wheel_holes", False):
-        return
-
-    def hole_positions(iface, standard_part, labels):
-        if standard_part == "R_" + WHEEL:
-            return mirrored_left_holes(iface, labels)
-        return cur(iface, standard_part, labels)
-    hole_positions._wheel_holes = True
-    SP.hole_positions = hole_positions
-
-
 def shin_bore_r(shin, cy, cz, x0=72.0, x1=80.0):
     """Radius of the shin's bore about the ankle-pitch axis (cy, cz): the nearest shin section vertex over the wheel-side span."""
     r = []
@@ -240,7 +210,7 @@ def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh, shin_mesh):
     g = SP.connectors()[CONNECTOR]["groups"]
     pt = st["point_mm"]
     lens = st["head_types"]["ISO 7380-1"]["M3"]["lengths"]
-    grp = {name: mirrored_left_holes(iface, g[name]["holes"]) for name, _ in WHEEL_GROUPS}
+    grp = {name: SP.hole_positions(iface, "R_" + WHEEL, g[name]["holes"]) for name, _ in WHEEL_GROUPS}
     hh = [h for name, _ in WHEEL_GROUPS for h in grp[name] if name == "ST3025_horn"]
     cy = float(np.mean([h["opening"][1] for h in hh])); cz = float(np.mean([h["opening"][2] for h in hh]))
     add, pockets, bores, new_sleeves, plan, notch = [], [], [], [], {}, []
@@ -383,8 +353,6 @@ def build():
     (OUT / "records.json").write_text(json.dumps(dict(plan=r["plan"], records=recs), indent=1) + "\n")
     print("wrote", OUT / "records.json", flush=True)
 
-
-install_wheel_holes()
 
 
 def swap_parts(parts):

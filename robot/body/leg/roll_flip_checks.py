@@ -108,6 +108,29 @@ def _generated(name):
     return False
 
 
+def _mirrored_holes(spec, iface, conn, r_open, tol=0.2):
+    """The connector spec for the left side with each group's hole labels chosen as the mirror (x -> -x) of the right side's
+    screws: the mirrored standard parts number their holes differently, so the right labels (STS3250.idler-y.1 / .2 / .4,
+    the .3 dropped for the stub slot) put a left screw in the dropped site and left a sleeve without one. A right opening
+    with no left hole within tol keeps its label."""
+    import copy
+    spec = copy.deepcopy(spec)
+    for gname, g in spec["groups"].items():
+        ro = r_open.get((conn, gname))
+        if not ro:
+            continue
+        sp = g["standard_part"].replace("{S}", "L_")
+        cand = {h["hole_id"].split(":", 1)[1]: np.asarray(h["opening"], float) for h in iface["holes"]
+                if h["hole_id"].startswith(sp + ":")}
+        labels = []
+        for k, o in enumerate(ro):
+            t = o * [-1.0, 1.0, 1.0]
+            lb, d = min(((lb, float(np.linalg.norm(c - t))) for lb, c in cand.items()), key=lambda q: q[1], default=(None, np.inf))
+            labels.append(lb if d <= tol else g["holes"][k])
+        g["holes"] = labels
+    return spec
+
+
 def hip_screws(parts, man, only=None):
     """The hip / thigh screws of both sides, generated from the defined tapped holes they land in (robot/body/fastening/
     screw_plan.py, connector_screws.json): axis = the registered standard part's hole axis, head on the clamped parts'
@@ -119,9 +142,15 @@ def hip_screws(parts, man, only=None):
     body = F.Body(dict(man, parts=parts))
     iface = I.instances(body, man)
     rows, plans = [], []
+    r_open = {}                                    # (connector, group) -> R openings in plan order
     for side in ("R_", "L_"):
         for conn in (only or SP.connectors()):
-            for pl in SP.plan_connector(body, iface, conn, side):
+            spec = SP.connectors()[conn]
+            if side == "L_":
+                spec = _mirrored_holes(spec, iface, conn, r_open)
+            for pl in SP.plan_connector(body, iface, conn, side, spec=spec):
+                if side == "R_":
+                    r_open.setdefault((conn, pl["group"]), []).append(np.asarray(pl["opening"], float))
                 m = SP.screw_mesh(pl)
                 nm = pl["name"]
                 lbl = f"{pl['thread_label']}x{pl['length_mm']:g}"

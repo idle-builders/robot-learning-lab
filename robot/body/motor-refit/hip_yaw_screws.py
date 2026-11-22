@@ -1,16 +1,26 @@
-"""Hip yaw-to-pitch connector (R/L_hip_yaw_to_pitch_combined): mountable A14 screws and pressable sleeves (Idle T-v3kzs4).
+"""Hip yaw-to-pitch connector (R/L_hip_yaw_to_pitch_combined): mountable A14 screws and pressable sleeves.
 
 The part comes from the motor refit (motor_refit.py, truss-box stage 6 edited for the ST3025 hip pitch case). Its screws
 were drawn for the old C047 case and the horn reference of r1: 4 M3x14 reached 1.5 of the horn flange's 2.5 mm, the head
-seat of the sleeves sat 12.0 mm from the horn, the driver channel (dia 3.4) was narrower than the hex-key blade, and the
+seat of the sleeves sat 12.0 mm from the horn, and the
 4 front PA2x4 stood at C047 hole positions that the ST3025 case does not have (shank in solid print). This script edits the
 refit STEP with the same B-rep operations (cad_ops) and takes every hole position from the standard-part definitions
 (robot/actuators/interfaces/standard-parts.json, registered instances) through screw_plan.hole_positions:
 
   yaw horn   4 x ST3215.horn+y.n (aluminium, tapped through the 2.5 mm flange, reference engagement 2.5 mm): the head seat
              sits at opening - (L - point - reference engagement) of the standard length L (screw_plan.choose_length), the
-             sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it), the head
-             cavity ends at the seat, the driver channel is as wide as the driver blade plus clearance.
+             sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it). Driving: the
+             sleeve of the front screws z.1 / z.2 (y -6 / 10, Z 247) ends 0.09 mm short of the yaw axes (59,-5) / (59,9), whose hole
+             positions are fixed, so no straight tool passes (obstruction 62 mm3 part + 4.5 mm3 sleeve at r 1.45). The key is tilted
+             12-25 deg toward the free +x side (ISO 2936 ball-end hex key, 2.5 mm AF): nothing of the part or the sleeves is in that cone.
+             The window edges (y -7.85 / 11.85) stood 0.1 mm off the heads (R 2.75): a R 3.25 pocket in the wall gives 0.5 mm.
+  lattice    the front lattice's flat top (refit z 250.0012) is raised to 250.056, the crown of the outer front pads: one plane,
+             1.25 mm of print over the sleeves; the head pockets of those two screws are open to the top (no skin, no 0.05 mm breakout).
+  trim       the refit's plate ends left 0.0-0.65 mm tongues and a 0.4 mm ramp above the lattice top at x 57.2 (51 deg tips), a 0.4 mm proud rim
+             (x 58.91-59.3) round the front pockets and crescents at the bottom bar's old hole. Ramp and tongues are filled to a 1.6 mm step (x 57.2-58.8, up to
+             z 251.5, the fill carries the load the thin ramp did: FEM heavy 1.24 vs 1.20 when it is only cut) and cut above it, the rim is cut flush, the
+             crescents are cut at the old hole's centre plane. Left under one line: the 0.25 mm lip under the hub pocket floor (pre-existing).
+  ear        a 0.6 mm chamfer along the ear's outer vertical edge (55.8, 19.0) gives 0.5 mm to the spine chassis tab at standing (0.30 before).
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
   recreate:  .venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build   (parts + records.json in OUT)
@@ -39,16 +49,32 @@ PART, SLEEVES = "hip_yaw_to_pitch_combined", "hip_yaw_to_pitch_combined_steel_sl
 
 R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
 R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
-COLLAR_R = 5.0                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
-CBORE_R = 2.85                           # head cavity (M3 cap head dk 5.5)
-CBORE_Z0 = 251.0                         # head cavity floor (the refit had 251.5)
-DRIVER_R = 2.4                           # driver channel: hex-key blade 4.0 (data/tools.json) + 0.8 clearance; 2.2 grazed the wall face at x 56.79
-CHANNEL_Z0 = 215.0
+COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
 DECK_BOTTOM = 262.75
-FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
-BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path; they stay full height (see @lore below) and get a rib
-RIB_LEN, RIB_H = 7.0, 3.8         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
-POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
+FRONT_PAD_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
+LATTICE_TOP, FRONT_TOP = 250.0, 250.056   # the refit's flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves
+YAW_NOTCH_R, YAW_NOTCH_Z = 3.25, (258.25, 261.75)   # window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar's underside
+HUB_R, DECK_R = 3.45, 10.55              # deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis
+HUB = (59.0, 2.0)
+HUB_Z0 = 262.0
+HUB_TOOL = C.cylinder((59.0, 2.0, HUB_Z0), (59.0, 2.0, 264.0), HUB_R)
+YAW_TOP = 274.75
+FILL_TOP = 251.5   # the tongues' root: a 1.65 mm thick step up from the lattice top (x 57.2-58.8), the ramp of the refit's wall ends 0.4 mm thick at 251.5 is part of it
+# the refit's bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick
+# stay; a box per yaw axis takes them off in clean planes (y ranges keep 0.45 mm off the refit's own y steps at -7.45 / 11.85, so no new micro-edges)
+RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
+FOOT_CUTS = (((55.0, -8.25, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
+
+
+EAR_CORNER, EAR_CHAMFER = (55.8, 19.0), 0.6   # the ear's outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room
+
+
+def ear_chamfer_tool():
+    import numpy as np
+    a = EAR_CHAMFER * 2 ** 0.5
+    T = np.eye(4); c, s_ = np.cos(np.pi / 4), np.sin(np.pi / 4)
+    T[:2, :2] = [[c, -s_], [s_, c]]; T[0, 3], T[1, 3] = EAR_CORNER
+    return C.transform(C.box((-a / 2, -a / 2, 224.0), (a / 2, a / 2, 267.0)), T)
 
 
 def window_stack(length, point, ref):
@@ -81,12 +107,11 @@ def build_right():
     stack = window_stack(L, pt, ref)
     seat = round(h0["opening"][2] - stack, 2)
     print(f"yaw: M3x{L:g}, ref engagement {ref}, hole depth {depth}, stack {stack:.2f}, head seat z {seat:.2f}", flush=True)
-    chan, add, cut, new_sleeves = [], [], [], []
+    add, cut, new_sleeves = [], [], []
     for h in yaw:
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
-        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), POCKET))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
+        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), HUB_TOOL))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
-        chan += [C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R), C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
                                  C.cylinder((x, y, seat - 0.5), (x, y, z0 + 0.5), R_SLEEVE_YAW[1])))
@@ -103,30 +128,38 @@ def build_right():
     fpads, fcuts = [], []
     for h in front:
         _, y, z = h["opening"]
-        fpads.append(C.cylinder((x_face, y, z), (seat_f + 0.5, y, z), FRONT_PAD_R))
+        outer = z + FRONT_PAD_R > FRONT_TOP - 0.1          # the two outer bosses reach the lattice top
+        pr = FRONT_TOP - z if outer else FRONT_PAD_R       # crown exactly on the raised lattice top; the pocket takes the same radius (a 1 um shell of the pad would stay otherwise)
+        fpads.append(C.cylinder((x_face, y, z), (seat_f + 0.5, y, z), pr))
         fcuts += [C.cylinder((x_face - 1.0, y, z), (x_face + 8, y, z), R_SLEEVE_FRONT[0]),
-                  C.cylinder((seat_f, y, z), (seat_f + 6, y, z), FRONT_POCKET_R)]
+                  C.cylinder((seat_f, y, z), (seat_f + 6, y, z), pr)]
+        if outer:   # head pocket open to the top: a pocket crown 0.00-0.06 mm off the lattice top would leave a skin or a 0.05 mm breakout
+            fcuts.append(C.box((seat_f, y - pr, z), (seat_f + 6, y + pr, FRONT_TOP + 0.3)))
         new_sleeves.append(C.cut(C.cylinder((x_face, y, z), (seat_f, y, z), R_SLEEVE_FRONT[0]),
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
-    def reaches(h):   # the blade disc overlaps a front pad's x-y footprint (x_face..seat_f, y +- pad radius)
-        x, y, _ = h["opening"]
-        dx = max(0.0, x_face - x, x - seat_f)
-        return min(max(0.0, abs(y - f["opening"][1]) - FRONT_PAD_R) for f in front) ** 2 + dx ** 2 < BLADE_R ** 2
-    ribs = []                                     # a front boss in a yaw blade path gets a rib on the far side of the channel that carries the load around the channel
+    # deck walls: the refit's hub pocket (R 4.2) and disc (R 10.0) leave 0.55 / 0.75 mm round the yaw bores; this disc makes both 1.30
+    add.append(C.cut(C.cylinder((HUB[0], HUB[1], DECK_BOTTOM), (HUB[0], HUB[1], YAW_TOP), DECK_R), C.cylinder((HUB[0], HUB[1], DECK_BOTTOM - 1.0), (HUB[0], HUB[1], YAW_TOP + 1.0), HUB_R)))
+    P = C.cut_many(P, [C.box(lo, hi) for lo, hi in FOOT_CUTS])
     for h in front:
         _, y, z = h["opening"]
-        for yw in yaw:
-            if abs(y - yw["opening"][1]) < 2.0 and abs(z - 247.0) < 3.0 and reaches(yw):
-                sg = 1.0 if y > yw["opening"][1] else -1.0
-                # ends at the seat plane: the head pocket (cut from seat_f outward) only trims inside its radius, so a rib
-                # reaching seat_f + 0.5 like the pads left a 0.5 mm ledge round the sleeve end (press support 73 -> 45 %)
-                ribs.append(C.box((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f, max(y, y + sg * RIB_LEN), z + RIB_H)))
-    P = C.fuse(P, *ribs) if ribs else P
-    P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
+        if abs(y - HUB[1]) > 4.0 and RIB_LEN > 0:
+            sg = 1.0 if y > HUB[1] else -1.0
+            P = C.fuse(P, C.box((RIB_X[0], min(y, y + sg * RIB_LEN), RIB_Z[0]), (RIB_X[1], max(y, y + sg * RIB_LEN), RIB_Z[1])))
+    P, v_top = C.pad(P, "z", LATTICE_TOP, FRONT_TOP, ((56.6, -9.6, 0.0), (59.4, 12.0, 0.0)))   # region z is replaced by the slab; solids are counted below
+    print(f"lattice top raised to {FRONT_TOP}: {v_top:.2f} mm3, solids {C.n_solids(P)}", flush=True)
     P = C.fuse(P, *add, *fpads)
-    # @lore the front pads are not trimmed out of the yaw blade paths: the screw planner measures the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad reads 0.95 mm and picks M2x5 with the head 1.3 mm inside the sleeve; the steel sleeve end sits in that path anyway
-    P = C.cut_many(P, cut + fcuts)
+    # @lore no driver channel through the front bosses: the screw planner reads the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad picks M2x5 with the head 1.3 mm inside the sleeve; and the sleeve end sits 0.09 mm off the yaw axis, so a channel never makes a straight path. A tilted ball-end key does.
+    notch = [C.cylinder((x, y, YAW_NOTCH_Z[0]), (x, y, YAW_NOTCH_Z[1]), YAW_NOTCH_R) for x, y in ((59.0, -5.0), (59.0, 9.0))]
+    # @lore thin ramp/tongues of the refit wall (0.0-0.65 mm, 51 deg tips): cutting them alone costs FEM heavy 1.24 -> 1.20 (they carry load in the model), so fill to a 1.6 mm step and cut above; the 0.4 mm rim round the front pockets is cut flush
+    nz0, nz1 = YAW_NOTCH_Z
+    y_lo, y_hi = HUB[1] - 3.6, HUB[1] + 3.6                  # the plate between the outer bosses, y -1.6 .. 5.6
+    fill = [C.box((57.2, -7.85, FRONT_TOP - 0.1), (58.8, y_lo, FILL_TOP)), C.box((57.2, y_hi, FRONT_TOP - 0.1), (58.8, 11.85, FILL_TOP))]
+    P = C.fuse(P, *fill)
+    trim = [C.box((56.6, -7.85, FILL_TOP), (61.0, y_lo, nz0)), C.box((56.6, y_hi, FILL_TOP), (61.0, 11.85, nz0)),   # tongues above the fill, below the key windows
+            C.box((56.6, -3.0, nz0), (61.0, y_lo, nz1)), C.box((56.6, y_hi, nz0), (61.0, 7.0, nz1)),                   # tips of the plate ends beside them
+            C.box((seat_f, -10.5, 224.0), (59.6, 12.5, FRONT_TOP))]
+    P = C.cut_many(P, cut + fcuts + notch + trim + [ear_chamfer_tool()])
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
@@ -145,6 +178,10 @@ def build():
             sh = r[key] if side == "R" else C.mirror_x(r[key])
             nm = f"{side}_{base}"
             rec = MR.save(nm, sh, kind)
+            if kind == "printed":   # the refit writes 1.22 g/cm3; the printed material's density is in the checks' materials table (PAHT-CF 1.06)
+                rho = json.loads((ROOT / "robot/body/checks/data/materials.json").read_text())["Bambu PAHT-CF"]["density_g_cm3"]
+                rec["mass_kg"] = round(C.volume(sh) * rho * 1e-6, 6)
+                rec["mass_basis"] = f"native STEP volume x {rho} g/cm3 (Bambu PAHT-CF, checks/data/materials.json)"
             if kind == "purchased":
                 rec["mass_kg"] = round(C.volume(sh) * 7.85e-6, 6)
                 rec["mass_basis"] = "native STEP volume x 7.85 g/cm3 (304 SS)"
@@ -168,14 +205,14 @@ def swap_parts(parts):
     """The manifest part list with the yaw-to-pitch connector + sleeves of both sides replaced by the edited ones (offset 0)."""
     if not (OUT / "records.json").exists():   # derived output not built here: keep the manifest buildable, say so loudly
         print(f"WARNING hip yaw-to-pitch: {(OUT / 'records.json').relative_to(ROOT)} missing, the UNEDITED connector stays in the "
-              "manifest; run `.venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build` (T-v3kzs4) first")
+              "manifest; run `.venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build` first")
         return parts
     recs = json.loads((OUT / "records.json").read_text())["records"]
     res = []
     for p in parts:
         if p["name"] in recs:
             q = dict(p); q.update(recs[p["name"]]); q.pop("placement_offset_mm", None)
-            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py (T-v3kzs4)"
+            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py"
             res.append(q)
         else:
             res.append(p)
@@ -190,7 +227,7 @@ def patch_parts(parts, man):
         n = p["name"]
         if n in recs:
             q = dict(p); q.update({k: v for k, v in recs[n].items()}); q.pop("placement_offset_mm", None)
-            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py (T-v3kzs4)"
+            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py"
             res.append(q)
         elif n[2:].startswith(("A14_yaw_M3x14_", "A14_front_PA2x4_")):
             continue

@@ -666,6 +666,27 @@
     },
     "heat_source": {
      "type": "object"
+    },
+    "joined_to": {
+     "type": "array",
+     "description": "Parts this one is joined to without a screw (co-printed, bonded, pressed), as the connectivity check's `joined` edge.",
+     "items": {
+      "type": "object",
+      "required": [
+       "part",
+       "how"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "part": {
+        "type": "string"
+       },
+       "how": {
+        "type": "string",
+        "description": "co_printed | bonded | pressed | other, with a short note if needed"
+       }
+      }
+     }
     }
    }
   },
