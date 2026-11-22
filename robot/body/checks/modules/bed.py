@@ -5,7 +5,9 @@ contact area, islands (separate contact patches, the smallest), contact as a sha
 contact's longest extent and aspect (minimum rotated rectangle), contact area in strips narrower than THIN_MM (thin bed
 features curl first in CF nylon), sharp convex plan-view corners of the contact outline (interior angle under
 CORNER_DEG; corners lift), and stability: part height over the contact's hull size, and how far the centre of mass (of the
-solid) projects inside the contact hull (negative = outside: it tips without a brim or support). Measurements and counts."""
+solid) projects inside the contact hull (negative = outside: it tips without a brim or support). Next to the part's own direction,
+the first-layer contact it would have with each of the six axis directions up (contact_by_axis_mm2), so a seeded or chosen direction
+can be read against the others without a run per direction. Measurements and counts."""
 from __future__ import annotations
 
 import time
@@ -25,14 +27,38 @@ def _targets(ctx):
     return [n for n in ctx.scope if P.is_printed(ctx, n) and P.effective(ctx, n)["up"] is not None]
 
 
+AXES = ("+x", "-x", "+y", "-y", "+z", "-z")
+
+
+def _bed_faces(m, layer):
+    return (m.face_normals[:, 2] < -0.999) & (m.vertices[m.faces][:, :, 2].max(1) < layer)
+
+
+def contact_area(m, layer):
+    """First-layer contact area (mm2) of mesh m in its print frame, as measure() reads it (islands under 0.01 mm2 dropped)."""
+    from shapely import polygons, union_all
+    bed = _bed_faces(m, layer)
+    if not bed.any():
+        return 0.0
+    poly = union_all(polygons(m.triangles[bed][:, :, :2])).buffer(0.01, join_style="mitre").buffer(-0.01, join_style="mitre")
+    return round(float(sum(g.area for g in getattr(poly, "geoms", [poly]) if g.area > 0.01)), 1)
+
+
+def by_axis(ctx, n, e):
+    """{axis: first-layer contact mm2} with each of the six axis directions as the print direction (same plate yaw and layer)."""
+    out = {}
+    for ax in AXES:
+        m = P.print_mesh(ctx, n, dict(e, up=ax))
+        out[ax] = contact_area(m, e["layer_height_mm"] or 0.2)
+    return out
+
+
 def measure(m, layer):
     """Bed measurements of mesh m already in its print frame (bed at z 0)."""
     from scipy.ndimage import distance_transform_edt
     from shapely import contains_xy, polygons, union_all
     from shapely.geometry import MultiPolygon, Point
-    nz = m.face_normals[:, 2]
-    zmax_f = m.vertices[m.faces][:, :, 2].max(1)
-    bed = (nz < -0.999) & (zmax_f < layer)
+    bed = _bed_faces(m, layer)
     out = dict(layer_height_mm=layer, height_mm=round(float(m.bounds[1][2]), 2))
     if not bed.any():
         return dict(out, contact_mm2=0.0, islands=0)
@@ -99,6 +125,8 @@ def run(ctx):
         e = P.effective(ctx, n)
         m, T = P.print_mesh(ctx, n, e, with_transform=True)
         r = dict(material=e["material"], up=e["up"], up_source=e["source"]["up"], **measure(m, e["layer_height_mm"] or 0.2))
+        r["contact_by_axis_mm2"] = by_axis(ctx, n, e)
+        best = max(r["contact_by_axis_mm2"], key=r["contact_by_axis_mm2"].get)
         Ti = np.linalg.inv(T)
         for c in r.get("sharpest_corners", []):
             c["location_mm"] = np.round((Ti @ np.r_[c.pop("xy_mm"), 0.0, 1.0])[:3], 2).tolist()
@@ -106,7 +134,8 @@ def run(ctx):
         per[n] = r
         ev["parts"] += 1
         if not r["contact_mm2"]:
-            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=0.0, unit="mm2 bed contact", what="nothing on the bed in this direction"))
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=0.0, unit="mm2 bed contact",
+                              what=f"nothing on the bed in this direction ({r['up']}, {r['up_source']}); most contact with up {best}: {r['contact_by_axis_mm2'][best]} mm2"))
             continue
         ev["parts_with_small_islands"] += r["smallest_island_mm2"] < 10.0
         ev["sharp_contact_corners"] += r["sharp_corners"]
@@ -114,9 +143,10 @@ def run(ctx):
         cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["contact_mm2"], unit="mm2 bed contact",
                           what=f"{r['islands']} islands (smallest {r['smallest_island_mm2']} mm2), {round(100 * r['contact_share_of_footprint'])} % of the footprint, "
                                f"{r['contact_in_strips_under_thin_mm2']} mm2 in strips under {THIN_MM:g} mm, {r['sharp_corners']} corners under {CORNER_DEG:g} deg, "
-                               f"centre of mass {r['com_inside_contact_hull_mm']} mm inside the contact hull at {r['com_height_mm']} mm height ({r['up']}, {r['up_source']})"))
+                               f"centre of mass {r['com_inside_contact_hull_mm']} mm inside the contact hull at {r['com_height_mm']} mm height ({r['up']}, {r['up_source']}); "
+                               f"most contact with up {best}: {r['contact_by_axis_mm2'][best]} mm2"))
     cases.sort(key=lambda c: c["value"])
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
                 notes=f"contact = faces facing the bed (normal within 2.6 deg) entirely within one layer of z 0; thin strips = contact not covered by a {THIN_MM:g} mm disc inside it "
                       f"(raster {RES} mm; a square corner adds about 0.86 mm2); sharp corners = convex outline corners under {CORNER_DEG:g} deg with both sides >= 0.3 mm; small island = under 10 mm2; "
-                      f"locations in the manifest frame")
+                      f"locations in the manifest frame; contact_by_axis_mm2 = the same first-layer contact with each axis direction as up (plate yaw and layer of the part's setup)")

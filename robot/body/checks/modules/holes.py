@@ -2,13 +2,14 @@
 
 Holes = concave cylindrical faces of the B-rep grouped by axis line and radius, kept when they wrap at least HOLE_SPAN_DEG
 around the axis (fillets and slots are partial cylinders); a bore of 180-300 deg with a sleeve or screw in it is kept as a
-partial bore (it breaks out of the part: boss wall 0). Per hole: diameter, axis, depth, centre (manifest frame) and
+partial bore (a teardrop, a slot or a breakout). Per hole: diameter, axis, depth, centre (manifest frame) and
 the axis angle to the print direction (0 = vertical hole, printed as stacked rings; 90 = across the layers: the top sags,
 the hole prints oval unless teardropped or reamed). Hardware matched by coaxiality (axis within 3 deg, lines within
 0.3 mm): steel sleeves (press interference = sleeve outer diameter - hole diameter, also after the printer's hole offset
 when a coupon has set it) and screws (hole diameter as % of the thread's major diameter: a pilot for self-tapping screws,
 a clearance hole otherwise). Boss wall: around every sleeve and screw hole, the thinnest material from the hole surface
-outward (24 radial rays x 5 depths into the part's solid), on holes the hardware sits in; a coaxial hole at least 1.5 x the thread
+outward (24 radial rays x 5 depths into the part's solid; rays that start in air, in a teardrop tip, slot or breakout, are
+the open share), on holes the hardware sits in; a coaxial hole at least 1.5 x the thread
 major (or 90 % of the head) is the head's recess (counterbore / spot face), listed with no boss wall. Measurements and counts only."""
 from __future__ import annotations
 
@@ -30,8 +31,25 @@ BOSS_MIN_DEPTH_MM = 1.0       # shallower recesses (spot faces, counterbores) ha
 RECESS_OVER_MAJOR = 1.5       # a screw's coaxial hole this much wider than its thread (or 90 % of its head) is a head recess, not a clearance hole
 
 
+def _printed(ctx):
+    return [n for n in ctx.scope if P.is_printed(ctx, n)]
+
+
 def _targets(ctx):
-    return [n for n in ctx.scope if P.is_printed(ctx, n) and ctx.parts[n].get("native_step")]
+    return [n for n in _printed(ctx) if ctx.parts[n].get("native_step") and BL.src(ctx.parts[n]["native_step"]).exists()]
+
+
+def not_measured(ctx):
+    """{part: why} for the printed parts in scope this check cannot measure: holes come from the B-rep cylinders of the native STEP,
+    a mesh carries no cylinder axes or radii (mesh-only shells and covers; a STEP path that resolves nowhere)."""
+    out = {}
+    for n in _printed(ctx):
+        st = ctx.parts[n].get("native_step")
+        if not st:
+            out[n] = "no native STEP (mesh only): holes are read from B-rep cylinders"
+        elif not BL.src(st).exists():
+            out[n] = f"native STEP resolves nowhere ({st})"
+    return out
 
 
 def brep_holes(step, offset):
@@ -88,9 +106,12 @@ def _coaxial(c1, a1, c2, a2):
 
 
 def boss_wall(m, hole, window=None):
-    """Thinnest material (mm) from the hole surface radially outward: 24 angles x 5 depths over 90 % of the length, first exit hit. window
-    (centre, length) limits the depths to an axial stretch (a sleeve bore: where the sleeve sits, not where the bore runs
-    on past it into a slot)."""
+    """Thinnest material (mm) from the hole surface radially outward: 24 angles x 5 depths over 90 % of the length, first exit hit,
+    and the share of those rays (%) that start in air: the open sector of a teardrop, a slot or a bore that breaks out. A ray
+    whose first hit enters the part (or that hits nothing) started in air and measures no wall; the thinnest wall is over the
+    rays that leave the material, so a breakout still reads the thin edge beside its opening. window (centre, length) limits
+    the depths to an axial stretch (a sleeve bore: where the sleeve sits, not where the bore runs on past it into a slot).
+    Returns (wall mm or None, location, open %)."""
     a = np.asarray(hole["axis"], float); r = hole["d_mm"] / 2
     c, depth = (np.asarray(window[0], float), window[1]) if window else (np.asarray(hole["centre_mm"], float), hole["depth_mm"])
     c = np.asarray(hole["centre_mm"], float) + float((c - np.asarray(hole["centre_mm"], float)) @ a) * a   # on the hole's axis
@@ -99,12 +120,17 @@ def boss_wall(m, hole, window=None):
     dirs = np.array([math.cos(t) * u + math.sin(t) * w for t in ang])
     org = np.vstack([c + s * depth * a + (r + 0.02) * dirs for s in (-0.45, -0.225, 0.0, 0.225, 0.45)])
     dd = np.vstack([dirs] * 5)
-    loc, ir, _ = m.ray.intersects_location(org, dd, multiple_hits=False)
-    if not len(ir):
-        return None, None
-    dist = np.full(len(org), np.inf); dist[ir] = np.linalg.norm(loc - org[ir], axis=1) + 0.02
+    loc, ir, it = m.ray.intersects_location(org, dd, multiple_hits=False)
+    leaves = np.zeros(len(org), bool)
+    leaves[ir] = np.einsum("ij,ij->i", m.face_normals[it], dd[ir]) > 0      # the first hit exits the material: the ray started in it
+    open_pct = round(100.0 * float((~leaves).mean()), 1)
+    if not leaves.any():
+        return None, None, open_pct
+    dist = np.full(len(org), np.inf)
+    k = leaves[ir]
+    dist[ir[k]] = np.linalg.norm(loc[k] - org[ir[k]], axis=1) + 0.02
     i = int(np.argmin(dist))
-    return round(float(dist[i]), 3), np.round(org[i], 2).tolist()
+    return round(float(dist[i]), 3), np.round(org[i], 2).tolist(), open_pct
 
 
 def check_part(ctx, n, hw, prn):
@@ -155,7 +181,7 @@ def check_part(ctx, n, hw, prn):
         if best is not None:
             ov, od, idd, sc, sL = best
             if ov > 0.2 and abs(od - h["d_mm"]) < 1.0:
-                r.update(role="sleeve bore" + (" (partial: breaks out of the part)" if h["partial"] else ""), sleeve_window=(sc, sL), sleeve_od_mm=round(od, 3), sleeve_id_mm=round(idd, 3), press_interference_mm=round(od - h["d_mm"], 3),
+                r.update(role="sleeve bore" + (" (partial: teardrop, slot or breakout)" if h["partial"] else ""), sleeve_window=(sc, sL), sleeve_od_mm=round(od, 3), sleeve_id_mm=round(idd, 3), press_interference_mm=round(od - h["d_mm"], 3),
                          press_interference_printed_mm=None if off is None else round(od - (h["d_mm"] + off), 3))
             elif ov > 0.2:
                 r["role"] = "around a sleeve (counterbore / access)"
@@ -187,10 +213,9 @@ def check_part(ctx, n, hw, prn):
         # boss wall only where the hardware itself sits (sleeve bore, pilot, clearance hole); a head recess or a counterbore around a
         # sleeve is a seat for the head, and one cut into a curved surface breaks out without that being a missing wall
         carries = "sleeve_od_mm" in r or r.get("role") in ("pilot", "thread-forming hole", "clearance hole")
-        if carries and (win[1] if win else h["depth_mm"]) >= BOSS_MIN_DEPTH_MM and not h["partial"]:
-            r["boss_wall_mm"], r["boss_wall_location_mm"] = boss_wall(m, h, win)
-        elif h["partial"] and carries:
-            r["boss_wall_mm"], r["boss_wall_location_mm"] = 0.0, np.round(hc, 2).tolist()      # the bore breaks out: no wall on one side
+        # a partial bore (teardrop, slot, breakout) is measured the same way: its open sector starts in air and reads as open_pct
+        if carries and (win[1] if win else h["depth_mm"]) >= BOSS_MIN_DEPTH_MM:
+            r["boss_wall_mm"], r["boss_wall_location_mm"], r["boss_wall_open_pct"] = boss_wall(m, h, win)
         if h["partial"] and "sleeve_od_mm" not in r and "screw" not in r:
             continue                                                                          # an arc of a slot or fillet, not a hole
         rows.append(r)
@@ -206,7 +231,7 @@ def check_part(ctx, n, hw, prn):
     return out
 
 
-@register("holes", lambda ctx: bool(_targets(ctx)))
+@register("holes", lambda ctx: bool(_printed(ctx)))
 def run(ctx):
     """Per printed part: holes from the B-rep (diameter, depth, axis vs print direction), sleeve press interference, screw hole vs thread (pilot / clearance), boss wall around hardware holes."""
     hw = json.loads((DATA / "hardware.json").read_text())
@@ -215,6 +240,8 @@ def run(ctx):
     ev = dict(parts=0, holes=0, horizontal_holes=0, horizontal_holes_with_hardware=0, sleeves_without_matching_hole=0, partial_sleeve_bores=0,
               pilots_outside_reference_band=0, boss_walls_under_2_lines=0)
     band = hw["pilot_pct_of_major"]
+    skipped = not_measured(ctx)
+    ev["parts_not_measured"] = len(skipped)
     for n in _targets(ctx):
         r = check_part(ctx, n, hw, prn)
         per[n] = r
@@ -236,7 +263,8 @@ def run(ctx):
             w = min(hw_holes, key=lambda h: h["boss_wall_mm"])
             cases.append(dict(part=n, mating_part=w.get("screw") or f"{n}_steel_sleeves", pose=None, location_mm=w["boss_wall_location_mm"],
                               value=w["boss_wall_mm"], unit="mm thinnest boss wall",
-                              what=f"around a {w['d_mm']} mm {w.get('role', 'hole')} ({w.get('thread') or 'sleeve'}); line width {lw} mm"))
+                              what=f"around a {w['d_mm']} mm {w.get('role', 'hole')} ({w.get('thread') or 'sleeve'}); line width {lw} mm"
+                                   + (f"; {w['boss_wall_open_pct']} % of the rays open (teardrop / slot / breakout)" if w.get("boss_wall_open_pct") else "")))
         sl = [h for h in r["hole_list"] if "press_interference_mm" in h]
         if sl:
             v = [h["press_interference_mm"] for h in sl]
@@ -251,8 +279,10 @@ def run(ctx):
         if r["horizontal_holes_with_hardware"]:
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=float(r["horizontal_holes_with_hardware"]),
                               unit="hardware holes across the layers", what=f"of {r['horizontal_holes']} horizontal holes (up {r['up']}): sag / oval unless teardropped or reamed"))
-    return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
-                notes=f"holes = concave B-rep cylinders wrapping >= {HOLE_SPAN_DEG:g} deg (180-300 deg kept as partial when hardware sits in them: the bore breaks out, wall 0); "
+    cases[:0] = [dict(part=n, mating_part=None, pose=None, location_mm=None, value=0.0, unit="holes measured", what=f"not measured: {why}")
+                 for n, why in skipped.items()]
+    return dict(per_part=per, worst_cases=cases, bad_events=ev, not_measured=skipped, evidence=[],
+                notes=f"holes = concave B-rep cylinders wrapping >= {HOLE_SPAN_DEG:g} deg (180-300 deg kept as partial when hardware sits in them: teardrop, slot or breakout); "
                       f"sleeve boss walls are measured over the sleeve's length only; head recesses (screw-coaxial holes >= {RECESS_OVER_MAJOR:g} x thread major or 90 % of the head) and counterbores around sleeves get no boss wall; coaxial = axis within {AX_TOL_DEG:g} deg and lines within {LINE_TOL_MM} mm; "
-                      "horizontal = axis more than 60 deg from the print direction; boss wall = shortest of 72 radial rays from the hole surface to the part's "
-                      f"outer surface, holes at least {BOSS_MIN_DEPTH_MM:g} mm deep; thread data and pilot reference band from data/hardware.json; printer hole offset from printers.json (null = not measured)")
+                      "horizontal = axis more than 60 deg from the print direction; boss wall = shortest of 120 radial rays from the hole surface to the part's "
+                      f"outer surface over the rays that start in material (boss_wall_open_pct = the rays that start in air: the open sector of a teardrop, slot or breakout), holes at least {BOSS_MIN_DEPTH_MM:g} mm deep; thread data and pilot reference band from data/hardware.json; printer hole offset from printers.json (null = not measured)")
