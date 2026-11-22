@@ -1013,7 +1013,8 @@ tenths, walls of two print lines). Post sites are measured live on the supplier 
 3.2 mm; assumption, no supplier data in the repo), modelled as a tube of the 3.2 mm hole with the ISO 724 minor diameter as bore;
 reference engagement 1 d (2.0 mm) for a steel screw in brass (standard-parts.json lists 1.5 d = 3.0 mm, the insert's length).
 
-Camera (8): the supplier F-F standoffs become printed columns (r 3.2, 4.97 mm, clearance bore 2.4) on the plate; the insert is pushed
+Camera (8): the supplier F-F standoffs become printed columns (r 3.0, 4.97 mm, clearance bore 2.4) on the plate: a 1.4 mm rim round the
+3.2 mm hole (r 3.2 overlapped components on the back of both camera boards, 3.06-3.14 mm from four post axes, fit 0.035 mm3); the insert is pushed
 from the plate's rear face up to the column ledge on the bench; the ribs behind keep a square window of 8.8 mm round each axis for an
 8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). The insert's rear end is flush with the plate's
 rear face: placed for 2.5 mm engagement it sat 0.17-0.24 mm inside the plate, and the 8 mm tip met 4.7-8.1 mm3 of plate before seating it.
@@ -1040,3 +1041,14 @@ Both options with the same measurements (mm; scratch script, board at its suppli
 and a cable that rides with the skin. The board sits at its supplier position (back face 46.77, the wing face 0.03 behind it, so the
 STEP and the mesh agree); a pan head (k 1.6) would leave 0.1-0.2 mm to ROCK4D, the button head leaves 0.54. A printed pin (2.2 x 1.3)
 on the wing face goes into the board's second mounting hole (2.5) and keeps it from turning; a 2.5 mm relief clears the bottom port.
+
+Checks on the rebuilt selected body (run.py, 2026-11-22): press tool tip obstruction 0.0 mm3 at the 8 camera inserts (0.002 at one) and
+the mic insert (was 3.9-32.3 at the camera inserts); boss wall round the insert holes 1.40 mm at 7 camera posts (1.80 in the column
+bore) and 1.69 / 2.10 at the mic boss, but 1.14 mm at B0410 post 1 (x -36, z 471) against the 6.11 mm bore of the compute collar next to
+it (axes 5.78 mm apart, both supplier positions; open with the compute collars, defect head-carrier-steel-rings); thinnest wall 0.007 mm
+at the rib1 bottom where the two neck-root bore circles meet (0.005 on main), none under two lines at the camera posts or on the mic wing
+(area under two lines 121 mm2, was 141.5); fit (fit poses) 0 overlaps, ROCK4D 0.43 mm from the carrier and 0.755 from the mic board,
+camera boards 0.03 from the columns; screws: engagement 2.5 (camera) / 2.75 (mic) by mount_check, heads bear on the board pads (gap 0.0 /
+-0.009); driver access: camera 0 mm3, mic 29.7 % of the standing path behind ROCK4D (0.38 mm), 0 mm3 at its assembly step (before
+ROCK4D); FEM (stored setup) p99 strength ratio Bambu PAHT-CF 4.40 adverse neck stall, 3.97 fall 6 g. FEM gives the brass inserts the
+"Steel 304 sleeve" collar material (no brass entry in data/materials.json; one material per sleeve part).
