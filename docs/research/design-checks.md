@@ -576,8 +576,10 @@ fixed in `1599e4209`:
 | clearance (`--poses key`) | 200 (184 check) | 3.9 | 82 poses (leg key + arm / neck / torso region), 23029 pairs: 290 pairs with new overlap, 393 pose-pair events over 20 mm3 | R palm lower vs R shin 2404 mm3 (key: leg out), L sensor pocket pad vs R foot roll case 1475 mm3; clearance keeps cross-limb pairs, the sweeps leave them out |
 | render | 12 | 0.5 | 0 render errors | six-side drawing written |
 
-Screening solids more than 5 % off their reference in every batch: upper L / R pitch C047 case +25.1 % (STEP frame mismatch, closed
-mesh used), stage1 chassis sleeves -7.0 % (decimated mesh). Data items sent on: the 31 dangling `native_step` paths of the manifest
+Screening solids more than 5 % off their reference in every batch: upper L / R pitch C047 case +25.1 % (the native STEP is the same
+shape 12.0 mm off in x, so it is rejected and the open mesh, 41252 vs 32983 mm3, is screened; needs `native_step_offset_mm` +-12 mm in
+the manifest), stage1 chassis sleeves -7.0 % (STEP 31 solids 603.6 mm3 and mesh agree; the recorded `volume_mm3` 643.45 predates the
+removed sleeves). Both sent to the BOM session. Data items sent on: the 31 dangling `native_step` paths of the manifest
 (foot sensor stack 18, cut actuators 5, forearm cover nuts 8), the legacy-density masses and the palm STEPs to the BOM session
 (T-ghvncz); part / sleeve overlaps to the screws and fittings work. Seeded in `part_settings.json` (`e5c670637`): Bambu PETG-CF on
 the 10 arm and shin covers whose manifest text names PETG, marked seeded; print directions left to the designers. Reports:
