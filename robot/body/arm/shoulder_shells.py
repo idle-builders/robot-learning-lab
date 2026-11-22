@@ -6,22 +6,23 @@ closely" and "Make use of gently and simple parametric functions to define the s
 here is a few smooth parametric functions (the thigh-shell pattern, robot/body/leg/thigh_shell.py); nothing follows a swept
 volume, and the openings are simple shapes about the joint axes:
 
-  upper-arm cover (roll link)  outer skin of horizontal superellipse rings about a straight centre line (cx, cy linear in z):
-                               per ring four half-widths (a_in / a_out in x, b_front / b_back in y) and two exponents
-                               (front / back half), each ONE natural cubic spline in z through a few control values (COVER),
-                               closed at the top by a superellipse dome (CAP); fitted (fit-cover) as the skin closest to
-                               today's cover. Where the green U's inboard corners reach through it, two smooth C2 bumps
-                               (BUMPS) grow the skin locally so the green U, its sleeves and screws sit inside with GAP + WALL:
-                               the cover encloses the green U instead of being cut around it. Constant WALL inward along the
-                               surface normal; the bottom keeps today's elbow cut (plane normal to the yaw axis, BOTTOM_S).
-  cover top opening (TRIM)     the top end trimmed by two planes along y: one square to the arm (like the elbow cut) just
-                               above the roll axis, one on the inboard side whose offset dips smoothly over the middle of the
-                               width; their corner rounded. The blue U (stage 1, sleeves, roll horn / idler screws, the roll
-                               idler) clears every cut face by BLUE_CLEAR + TRIM_MARGIN over shoulder roll -15..95, the inboard
-                               edge stays TRIM_MARGIN above the green U's enclosure.
-  torso shells (torso link)    one round opening about the shoulder pitch axis (TORSO_OPENING): a cylinder of radius R_mm
-                               (the blue U's largest radius about the pitch axis + BLUE_CLEAR) that narrows inward in a cone
-                               below x_mm, where the torso curves away from the blue U; outer edge rounded (round_mm).
+  upper-arm cover (roll link)  outer skin of horizontal superellipse rings about a centre line (cx, cy): per ring four
+                               half-widths (a_in / a_out in x, b_front / b_back in y) and two exponents (front / back half),
+                               each ONE natural cubic spline in z through a few control values (COVER), continued smoothly
+                               into a dome (CAP: x half-widths rounded with p about a line along y, y half-widths with p_y).
+                               Below 352 the stations are today's fit (fit-cover); two smooth C2 bumps (BUMPS) grow the skin
+                               where the green U's inboard corners reach through it, so the green U sits inside with GAP +
+                               WALL. Owner 2026-11-22 ("scoping closely inward towards the rotation point", "smarted slopes
+                               on the existing shell"): the upper stations converge on the roll servo and the roll axis, the
+                               dome rounds over the roll axis, the front / back walls rise beside the blue U's arms (ears).
+                               Constant WALL inward along the surface normal; the bottom keeps today's elbow cut (BOTTOM_S).
+  cover rim (RIM)              the surface ends at a closed curve in the roll axis' own coordinates (psi about the axis, y
+                               along it): a superellipse over the sector the blue U (plate, arms) sweeps between roll -15 and
+                               95 and over its width between the arms' outer faces; nothing else is open.
+  torso shells (torso link)    the skin slopes in toward each shoulder pitch axis as a dish of revolution about the axis
+                               (TORSO_SLOPE: floor x, floor radius, rise angle, end radius): each skin point moves along x
+                               (with the wall under it) to the dish where it lay outboard of it; the dish ends at R_end,
+                               the opening, just around the pitch horn's coupling. Fitted for RUN_CLEAR to the whole arm.
   cover mount                  two pads on the green U at the cover's screw wells (positions as today's cover): a boss with
                                a pressed 304 sleeve (4.5 x 3.2, the M3 sleeve of the U) and a captive ISO 4032 M3 nut in a
                                slot (front open to +z, rear to +x); ISO 7380-1 M3 button head from outside through the
@@ -32,11 +33,13 @@ here), takes the shell meshes from the roll-flip source manifest and the green U
 and writes its own candidate shells/assembly-parts-shoulder-u-shells.json plus meshes / STEP under
 artifacts/robot/body/arm/shoulder-clevis/shells/. Deterministic: a rerun gives the same files.
 
-  .venv/bin/python -B robot/body/arm/shoulder_shells.py fit-cover      # re-fit COVER / CAP (prints the table), TRIM, R_mm
+  .venv/bin/python -B robot/body/arm/shoulder_shells.py fit-cover [keep-upper]   # re-fit (prints COVER / CAP / BUMPS / RIM / TORSO_SLOPE)
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/arm/shoulder_shells.py apply
   python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python -B robot/body/arm/shoulder_shells.py views
 Check the candidate with robot/body/checks/run.py --manifest artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json
-Every result is a measurement (mm, mm3); nothing accepts or rejects.
+  python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python -B robot/body/arm/shoulder_shells.py mount-views
+`views` also measures the visible open area of the right shoulder from outside (front, side, the owner's camera) before /
+after (BEFORE: the previous candidate, if a copy is kept). Every result is a measurement (mm, mm2, mm3); nothing accepts or rejects.
 """
 from __future__ import annotations
 
@@ -76,16 +79,18 @@ BOTTOM_S = 246.75          # today's elbow cut, kept: the cover is the part with
 # curvature. Each value is one natural cubic spline in z through the control values (2 heights = a straight line), constant
 # beyond the end heights. fit-cover fits them (cx, cy: least squares through today's section centres).
 COVER = {                  # parameter: (heights, control values), mm (exponents unitless)
-    "cx": ((282.0, 366.0), (133.360, 114.569)),
-    "cy": ((282.0, 366.0), (0.882, 5.886)),
-    "a_in": ((282.0, 310.0, 338.0, 366.0), (29.889, 27.264, 26.796, 31.765)),
-    "a_out": ((282.0, 310.0, 338.0, 366.0), (25.717, 29.102, 25.715, 18.062)),
-    "b_front": ((282.0, 310.0, 338.0, 366.0), (26.933, 31.527, 34.422, 30.793)),
-    "b_back": ((282.0, 310.0, 338.0, 366.0), (26.517, 31.700, 33.886, 32.317)),
-    "n_front": ((282.0, 324.0, 366.0), (2.003, 2.005, 2.000)),
-    "n_back": ((282.0, 324.0, 366.0), (2.099, 2.000, 2.000)),
+    "cx": ((282.0, 310.0, 338.0, 352.0, 366.0), (133.360, 127.096, 120.833, 113.416, 106.000,)),
+    "cy": ((282.0, 310.0, 338.0, 352.0, 366.0), (0.882, 2.550, 4.218, 4.997, 5.775,)),
+    "a_in": ((282.0, 310.0, 338.0, 352.0, 366.0), (29.889, 27.264, 26.796, 20.898, 15.000,)),
+    "a_out": ((282.0, 310.0, 338.0, 352.0, 366.0), (25.717, 29.102, 25.715, 23.358, 21.000,)),
+    "b_front": ((282.0, 310.0, 338.0, 352.0, 366.0), (26.933, 31.527, 34.422, 32.214, 30.006,)),
+    "b_back": ((282.0, 310.0, 338.0, 352.0, 366.0), (26.517, 31.700, 33.886, 31.946, 30.006,)),
+    "n_front": ((282.0, 324.0, 366.0), (2.003, 2.005, 4.000,)),
+    "n_back": ((282.0, 324.0, 366.0), (2.099, 2.000, 4.000,)),
 }
-CAP = dict(z0=364.103, z_top=377.0, p=1.855)   # dome above z0: the z0 ring scaled by g = (1 - ((z - z0) / (z_top - z0))^p)^(1/p)
+CAP = dict(z0=360.0, z_top=379.0, p=2.0, p_y=6.0)   # dome above z0: the z0 ring's x half-widths scaled by
+# g(p), its y half-widths by g(p_y), g(q) = (1 - ((z - z0) / (z_top - z0))^q)^(1/q): p ~ 2 rounds the top about a line
+# along y (the roll axis' direction), a larger p_y keeps the front / back walls up to near the crest
 RING = ("a_in", "a_out", "b_front", "b_back", "n_front", "n_back")
 FIT_N = (2.0, 4.5)         # exponent range in the fit
 CAP_START = (364.0, 377.0, 2.0)   # the fit's start for z0, z_top, p (fixed, so a re-fit is reproducible)
@@ -95,28 +100,46 @@ CAP_START = (364.0, 377.0, 2.0)   # the fit's start for z0, z_top, p (fixed, so 
 # (value, slope and curvature vanish at the bump's edge: it blends into the skin with continuous curvature). theta / th in deg
 # about the ring centre from +x (outboard) toward +y (back). fit-cover fits A, z, th; the half-widths are chosen gentle
 # (slope A / w <= about 0.25).
-BUMPS = (dict(A=4.688, z=327.88, w_z=24.0, th=-132.022, w_th=45.0),    # front-inboard corner of the green U
-         dict(A=6.369, z=326.099, w_z=24.0, th=129.269, w_th=45.0))    # back-inboard corner
+BUMPS = (dict(A=3.914, z=324.545, w_z=24.0, th=-132.766, w_th=45.0),    # front-inboard corner of the green U
+         dict(A=5.754, z=323.538, w_z=24.0, th=129.736, w_th=45.0))    # back-inboard corner
 BUMP_W = dict(w_z=24.0, w_th=45.0)
 GROW_MARGIN = 0.35         # extra radial margin in the fit (radial vs normal distance); the exact distance is reported
 
-# Top opening: two planes along y, angles in deg from +z toward +x (outboard) in the x-z plane, offsets in mm from the
-# shoulder roll axis toward the removed side (+ keeps more). The top plane is square to the arm, like the elbow cut (its
-# normal is the yaw axis): `top` = the yaw axis' angle + 90, at `top_offset`. The inboard plane runs at `inboard`, at
-# `inboard_offset`; over the middle of the width, where the blue U's plate passes the inboard wall lower than at the ends
-# (there the green U's arms are enclosed), its offset dips smoothly:
-#   offset(y) = inboard_offset - dip * w((y - dip_y) / dip_w),   w as for the bumps
-# The cover keeps what lies below both planes; their corner is rounded with round_mm. fit-cover places them: the blue U
-# clears every cut face by BLUE_CLEAR + TRIM_MARGIN over the roll range, the inboard edge keeps TRIM_MARGIN to the green U's
-# enclosure, and the least cover is removed.
-TRIM = dict(inboard=-144.5, inboard_offset=-7.75, dip=2.25, dip_y=9.0, dip_w=16.0, top=76.93, top_offset=4.0, round_mm=10.0)
-TOP_OFFSET_LOOK = 4.0      # the top plane at most this far above the roll axis (look: a level rim over the outboard
-                           # shoulder, obtuse corners; higher, the inboard cut meets the dome's crest in a peak)
-TRIM_MARGIN = 1.0          # the trim edges' margin beyond the blue set (BLUE_CLEAR + 0.3) and beyond the green enclosure
-NEAR_AXIS = 14.0           # mm from the roll axis: inside it the blue U (horn / idler screw heads) only turns in place
-# Torso opening about the shoulder pitch axis (along x): cylinder radius R_mm for x >= x_mm, narrowing inward in a cone of
-# cone_deg (from the axis) below x_mm; the outer edge rounded with a quarter circle of round_mm (along x).
-TORSO_OPENING = dict(R_mm=34.63, x_mm=79.62, cone_deg=45.0, round_mm=1.5)
+# Upper end of the cover (owner 2026-11-22: "The shell should be scoping closely inward towards the rotation point to leave
+# as minimal open space as possible", "smarted slopes on the existing shell"). The upper stations of COVER / CAP converge on
+# the roll servo and the roll axis (upper_stations(): the dome centred on the roll axis, just over the blue U's turning parts
+# with RUN_CLEAR + WALL; TOP below); the front and back walls rise beside the blue U's arms and reach inboard to EAR_X_IN. The surface ends at its rim, a closed curve in the roll axis' own coordinates (psi = angle about the roll axis
+# from +z toward +x, deg; y along the axis, mm): the skin is kept where
+#   F(psi, y) = |(psi - psi_c) / psi_h|^m + |(y - y_c) / y_h|^m >= 1
+# (a superellipse in (psi, y), corners rounded by m), measured radially from the roll axis between r0 and r1. Its sector
+# psi_c +- psi_h is where the blue U (stage 1 plate and arms) passes over the roll servo between roll -15 and 95; its width
+# y_c +- y_h spans the blue U between its arms' outer faces. fit-cover places it: the least skin removed, every skin point
+# within RUN_CLEAR + 0.3 of the swept blue U beyond NEAR_AXIS inside the rim with RIM_MARGIN (in mm along the skin), every
+# skin point of the green U's enclosure outside it with RIM_MARGIN.
+RIM = dict(psi_c=-50.2, psi_h=110.9, y_c=6.18, y_h=26.04, m=16.0, r0=4.0, r1=38.0)
+RIM_MARGIN = 0.6           # rim edge beyond the swept blue set and beyond the green U's enclosure, mm along the skin
+NEAR_AXIS = 14.0           # mm from the roll axis: inside it the blue U (horn / idler, their screws) only turns in place
+EAR_X_IN = 91.0            # the front / back walls ("ears") rise beside the opening and reach inboard to this x at the top
+                           # station: they cover the blue U's arms, the roll horn and idler and their screws seen from the
+                           # front and the back (further inboard they would swing into the torso at roll -15)
+RUN_CLEAR = 1.75           # running clearance of a moving part to a shell over the joint ranges (owner: about 1.5-2 mm)
+TOP = dict(crest=19.0, p=2.0, p_y=6.0, n=4.0, ear_over=2.6, psi_out=40.0)   # upper_stations(): the crest above the roll
+                           # axis (the arm ends need 18.7 + RUN_CLEAR), the dome round about a line along y (p = 2) with
+                           # its front / back walls kept up to near the crest (p_y), squarer top rings (n), the walls
+                           # ear_over mm beyond the opening's y-edges; the outboard radius from the turning parts past
+                           # psi_out (the blue plate reaches psi 40 at roll 95); the stations below 352 keep today's fit
+# Torso shells: the skin slopes in toward each shoulder pitch axis (along x) as a dish of revolution about the axis, outer
+# skin at x_dish(rho) where it lay outboard of it (rho = distance from the pitch axis in y-z):
+#   x_dish(rho) = x_floor + tan(slope_deg) * ease(rho - R_floor),  ease(u) = 0 (u <= -k), (u + k)^2 / 4k (|u| < k), u (u >= k)
+# with k = ease_mm; the skin follows min(own x, x_dish) blended over blend_mm (C1), each skin point and the wall under it
+# moved along x by the same amount (constant wall along x). The dish ends at R_end: the opening, as deep and as small as the
+# blue U's pitch coupling allows (inside R_end the pitch horn turns at the servo face). fit-cover: x_floor / R_floor /
+# slope_deg the shallowest dish that keeps RUN_CLEAR to every part of the arm (the pitch-link, roll-link and upper-arm parts,
+# the covers) over roll -15..95 and yaw -60..60 (pitch turns about the axis itself, so it leaves x and rho unchanged).
+TORSO_SLOPE = dict(R_end=20.75, x_floor=84.24, R_floor=55.25, slope_deg=60.0, ease_mm=6.0, blend_mm=1.5)
+TORSO_R_WIN = 50.0         # the slope is fitted against the arm out to this rho (beyond: the upper arm's lower end at roll
+                           # -15 and the chest / back joint screws at rho 56-62; reported, not fitted)
+TORSO_WALL_BLEND = (4.0, 22.0)   # the move fades from full (within wall + 4 mm under the outer skin) to none 22 mm deeper
 
 
 def _side(n, s):
@@ -155,8 +178,22 @@ def _pts(body, names, n=20000, seed=0):
 
 
 # ---------------------------------------------------------------------------------------------- parametric cover skin
+_BASIS_CACHE = {}
+
+
 def _basis(zk, z):
-    """B with B @ values = the natural cubic spline through (zk, values) at z (2 heights: straight line, 1: constant)."""
+    """B with B @ values = the natural cubic spline through (zk, values) at z (2 heights: straight line, 1: constant).
+    Cached by knots and heights (the fits evaluate the same heights many times)."""
+    z = np.asarray(z, float)
+    key = (tuple(float(v) for v in zk), z.shape, hash(z.tobytes()))
+    if key not in _BASIS_CACHE:
+        if len(_BASIS_CACHE) > 64:
+            _BASIS_CACHE.clear()
+        _BASIS_CACHE[key] = _basis_eval(zk, z)
+    return _BASIS_CACHE[key]
+
+
+def _basis_eval(zk, z):
     from scipy.interpolate import CubicSpline
     zk = np.asarray(zk, float); z = np.clip(np.asarray(z, float), zk[0], zk[-1]); k = len(zk)
     if k == 1:
@@ -164,16 +201,48 @@ def _basis(zk, z):
     if k == 2:
         t = (z - zk[0]) / (zk[1] - zk[0])
         return np.c_[1 - t, t]
-    return np.stack([CubicSpline(zk, np.eye(k)[i], bc_type="natural")(z) for i in range(k)], -1)
+    out = []
+    for i in range(k):
+        cs = CubicSpline(zk, np.eye(k)[i], bc_type="natural")
+        out.append(cs(z))
+    return np.stack(out, -1)
+
+
+def _basis_up(zk, z):
+    """As _basis, but continued above the top knot along the spline's end tangent (its curvature is zero there: C2)."""
+    z = np.asarray(z, float)
+    key = ("up", tuple(float(v) for v in zk), z.shape, hash(z.tobytes()))
+    if key not in _BASIS_CACHE:
+        if len(_BASIS_CACHE) > 64:
+            _BASIS_CACHE.clear()
+        _BASIS_CACHE[key] = _basis_up_eval(zk, z)
+    return _BASIS_CACHE[key]
+
+
+def _basis_up_eval(zk, z):
+    from scipy.interpolate import CubicSpline
+    zk = np.asarray(zk, float)
+    B = _basis(zk, z)
+    over = z > zk[-1]
+    if over.any() and len(zk) > 2:
+        d = np.array([CubicSpline(zk, np.eye(len(zk))[i], bc_type="natural")(zk[-1], 1) for i in range(len(zk))])
+        B = B.copy(); B[over] = _basis(zk, np.full(int(over.sum()), zk[-1])) + (z[over] - zk[-1])[:, None] * d[None, :]
+    elif over.any() and len(zk) == 2:
+        t = (z[over] - zk[0]) / (zk[1] - zk[0]); B = B.copy(); B[over] = np.c_[1 - t, t]
+    return B
+
+
+def _dome(h, p):
+    return np.clip(1.0 - np.clip(h, 0.0, 1.0) ** p, 0.0, 1.0) ** (1.0 / p)
 
 
 def ring(z, cov=None, cap=None):
-    """Centre (cx, cy), ring parameters (columns RING) and dome scale g at heights z."""
+    """Centre (cx, cy), ring parameters (columns RING) and dome scales g (n, 2): (x half-widths, y half-widths) at heights z."""
     cov = cov or COVER; cap = cap or CAP
-    z = np.atleast_1d(np.asarray(z, float)); zr = np.minimum(z, cap["z0"])
-    ev = {k: _basis(cov[k][0], zr) @ np.asarray(cov[k][1], float) for k in cov}
-    h = np.clip((z - cap["z0"]) / (cap["z_top"] - cap["z0"]), 0.0, 1.0)
-    g = np.clip(1.0 - h ** cap["p"], 0.0, 1.0) ** (1.0 / cap["p"])
+    z = np.atleast_1d(np.asarray(z, float))
+    ev = {k: _basis_up(cov[k][0], z) @ np.asarray(cov[k][1], float) for k in cov}   # the rings continue into the dome
+    h = (z - cap["z0"]) / (cap["z_top"] - cap["z0"])
+    g = np.stack([_dome(h, cap["p"]), _dome(h, cap.get("p_y", cap["p"]))], -1)
     return ev["cx"], ev["cy"], np.stack([ev[k] for k in RING], -1), g
 
 
@@ -194,16 +263,21 @@ def skin_radius(z, th, cov=None, cap=None, bumps=None):
     """Outer skin radius about the ring centre at height z, angle th (rad); z and th broadcast."""
     z, th = np.broadcast_arrays(np.asarray(z, float), np.asarray(th, float))
     _, _, prm, g = ring(z.ravel(), cov, cap)
-    r = (radius(th.ravel(), prm, 1.0) + bump(np.minimum(z.ravel(), (cap or CAP)["z0"]), th.ravel(), bumps)) * g
+    r = radius(th.ravel(), prm, g) + bump(np.minimum(z.ravel(), (cap or CAP)["z0"]), th.ravel(), bumps) * g[:, 0]
     return r.reshape(z.shape)
 
 
 def radius(th, prm, g):
-    """Outer radius about the ring centre at angle th (from +x toward +y); prm (..., 6) broadcast against th."""
+    """Outer radius about the ring centre at angle th (from +x toward +y); prm (..., 6) broadcast against th; g the dome
+    scales (..., 2) of the x and the y half-widths (or a scalar)."""
     a_in, a_out, bf, bb, nf, nb = (prm[..., i] for i in range(6))
+    g = np.asarray(g, float)
+    gx, gy = (g[..., 0], g[..., 1]) if g.ndim and g.shape[-1] == 2 else (g, g)
     c, s = np.cos(th), np.sin(th)
-    a = np.where(c > 0, a_out, a_in); b = np.where(s > 0, bb, bf); e = np.where(s > 0, nb, nf)
-    return g * (np.abs(c / a) ** e + np.abs(s / b) ** e) ** (-1.0 / e)
+    a = np.where(c > 0, a_out, a_in) * gx; b = np.where(s > 0, bb, bf) * gy; e = np.where(s > 0, nb, nf)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        r = (np.abs(c / a) ** e + np.abs(s / b) ** e) ** (-1.0 / e)
+    return np.nan_to_num(r, nan=0.0, posinf=0.0)
 
 
 def _grid(cov, cap, z_lo, nth=240, dz=0.75, ncap=60, bumps=None):
@@ -211,11 +285,13 @@ def _grid(cov, cap, z_lo, nth=240, dz=0.75, ncap=60, bumps=None):
     th = np.linspace(-np.pi, np.pi, nth, endpoint=False)
     zs = np.arange(z_lo, cap["z0"], dz)
     phi = np.linspace(0.0, np.pi / 2, ncap)[:-1]                 # dome rows; the last one (phi = pi / 2) is the pole
+    phi = np.concatenate([phi, np.linspace(phi[-1], np.pi / 2, 12)[1:-1]])   # finer under the pole (the y-ridge closes there)
     zc = cap["z0"] + (cap["z_top"] - cap["z0"]) * np.sin(phi) ** (2.0 / cap["p"])
     z = np.concatenate([zs, zc])
     cx, cy, prm, g = ring(z, cov, cap)
-    g[len(zs):] = np.cos(phi) ** (2.0 / cap["p"])
-    R = (radius(th[None, :], prm[:, None, :], 1.0) + bump(np.minimum(z, cap["z0"])[:, None], th[None, :], bumps)) * g[:, None]
+    g[len(zs):, 0] = np.cos(phi) ** (2.0 / cap["p"])
+    R = (radius(th[None, :], prm[:, None, :], g[:, None, :])
+         + bump(np.minimum(z, cap["z0"])[:, None], th[None, :], bumps) * g[:, None, 0])
     V = np.stack([cx[:, None] + R * np.cos(th), cy[:, None] + R * np.sin(th), np.broadcast_to(z[:, None], R.shape)], -1)
     pole = np.array([cx[-1], cy[-1], cap["z_top"]])
     dth = np.roll(V, -1, 1) - np.roll(V, 1, 1)
@@ -257,7 +333,7 @@ def cover_skin(cov=None, cap=None):
     return sh, outer
 
 
-# ---------------------------------------------------------------------------------------------- wells, top trim, torso opening
+# ---------------------------------------------------------------------------------------------- wells, rim of the cover
 WELL_R = (3.25, 4.75)      # today's cover wells: recess radius (button head 5.7 dia), tube outer radius
 WELL_HOLE_R = 1.7          # M3 clearance through the pad
 
@@ -278,121 +354,101 @@ def add_wells(shell, outer, design):
     return shell
 
 
-def _dir(psi):
-    p = np.radians(psi)
-    return np.stack([np.sin(p), np.cos(p)], -1)                 # (x, z): psi from +z toward +x
+def roll_polar(P, axis_xz):
+    """psi (deg, about the roll axis from +z toward +x) and rho (mm from the roll axis) of points P (x, y, z)."""
+    q = np.asarray(P, float)[:, [0, 2]] - np.asarray(axis_xz, float)
+    return np.degrees(np.arctan2(q[:, 0], q[:, 1])), np.hypot(q[:, 0], q[:, 1])
 
 
-def _trim_frame(y, t):
-    """Per y: unit normals n_a, n_b (toward the removed side), plane offsets from the roll axis, and the rounding centre O
-    relative to the roll axis (the apex of both planes moved in by round_mm)."""
-    y = np.atleast_1d(np.asarray(y, float))
-    na, nb = _dir(t["inboard"] + 90.0), _dir(t["top"] - 90.0)
-    da = t["inboard_offset"] - t["dip"] * _w((y - t["dip_y"]) / t["dip_w"])
-    r = t["round_mm"]
-    M = np.array([na, nb])
-    O = np.linalg.solve(M, np.stack([da - r, np.full_like(da, t["top_offset"] - r)]))      # (2, len(y))
-    return na, nb, da, O.T
+def rim_F(psi, y, rim=None):
+    """The rim function: < 1 inside the opening (psi wrapped about psi_c)."""
+    r = rim or RIM
+    u = np.degrees(np.angle(np.exp(1j * np.radians(np.asarray(psi, float) - r["psi_c"])))) / r["psi_h"]
+    v = (np.asarray(y, float) - r["y_c"]) / r["y_h"]
+    return np.abs(u) ** r["m"] + np.abs(v) ** r["m"]
 
 
-def _edge_dirs(na, nb):
-    """Directions along each plane away from the corner, into the kept side of the other plane."""
-    ta, tb = np.array([-na[1], na[0]]), np.array([-nb[1], nb[0]])
-    return (ta if ta @ nb < 0 else -ta), (tb if tb @ na < 0 else -tb)
+def rim_open(P, axis_xz, rim=None):
+    """True for points P inside the opening (the cover's surface does not reach there)."""
+    r = rim or RIM
+    psi, rho = roll_polar(P, axis_xz)
+    return (rim_F(psi, P[:, 1], r) < 1.0) & (rho > r["r0"]) & (rho < r["r1"])
 
 
-def trim_kept(P, axis_xz, trim=None):
-    """True for points P (x, y, z) the top trim keeps: within round_mm of the two planes' kept wedge moved in by round_mm
-    (= the wedge with its corner rounded)."""
-    t = trim or TRIM
-    na, nb, da, O = _trim_frame(P[:, 1], t)
-    ta, tb = _edge_dirs(na, nb)
-    q = P[:, [0, 2]] - np.asarray(axis_xz, float) - O
-    sa, sb = q @ na, q @ nb
-    apex = (q @ ta <= 0) & (q @ tb <= 0)
-    return np.where(apex, np.hypot(q[:, 0], q[:, 1]) <= t["round_mm"], (sa <= t["round_mm"]) & (sb <= t["round_mm"]))
-
-
-def trim_removed(P, axis_xz, trim=None):
-    return ~trim_kept(P, axis_xz, trim)
-
-
-def _ang(v):
-    return np.degrees(np.arctan2(v[..., 0], v[..., 1]))
-
-
-def _arc(a0, a1, through):
-    """Angles (deg) from a0 to a1 the way that passes `through`."""
-    up = (a1 - a0) % 360.0
-    return (a0, a0 + up) if (through - a0) % 360.0 <= up else (a0, a0 - (360.0 - up))
-
-
-def _trim_slice(c, y, t, L=150.0, n_ray=24, n_out=72, n_arc=24):
-    """Boundary (x, z) of the removed region in one y slice: out along the top plane, the outer arc over the removed side,
-    in along the inboard plane, the rounded corner (fixed point counts, so slices loft)."""
-    na, nb, da, O = _trim_frame(y, t)
-    O = c + O[0]; r = t["round_mm"]
-    ta, tb = _edge_dirs(na, nb)
-    TA, TB = O + r * na, O + r * nb
-    s = np.linspace(0.0, L, n_ray)[:, None]
-    a0, a1 = _arc(_ang(TB + L * tb - O), _ang(TA + L * ta - O), _ang(nb))
-    big = O + np.hypot(L, r) * _dir(np.linspace(a0, a1, n_out + 2)[1:-1])
-    b0, b1 = _arc(_ang(na), _ang(nb), _ang(na + nb))
-    corner = O + r * _dir(np.linspace(b0, b1, n_arc + 2)[1:-1])
-    return np.vstack([TB + s * tb, big, TA + s[::-1] * ta, corner])
-
-
-def trim_cutter(axis_xz, trim=None, y_lo=-70.0, y_hi=70.0, dy=0.5):
-    """The removed region lofted over y (the inboard plane's offset follows the dip)."""
-    import mapbox_earcut as ec
-    t = trim or TRIM
+def rim_cutter(axis_xz, rim=None, nt=720, ns=40, nr=12):
+    """The opening as a solid in the roll axis' coordinates: (psi, y) inside the rim curve, r0 < rho < r1. Rings of the
+    superellipse (s = 0..1 of its size) at r0, its side from r0 to r1, rings back at r1; closed with _solid."""
+    r = rim or RIM
+    t = np.linspace(-np.pi, np.pi, nt, endpoint=False)
+    cu = np.sign(np.cos(t)) * np.abs(np.cos(t)) ** (2.0 / r["m"]); sv = np.sign(np.sin(t)) * np.abs(np.sin(t)) ** (2.0 / r["m"])
     c = np.asarray(axis_xz, float)
-    ys = np.arange(y_lo, y_hi + 1e-6, dy)
-    rings = [_trim_slice(c, y, t) for y in ys]
-    V = np.stack([np.c_[r[:, 0], np.full(len(r), y), r[:, 1]] for r, y in zip(rings, ys)])
-    nz, n = V.shape[:2]
-    i, j = np.meshgrid(np.arange(nz - 1), np.arange(n), indexing="ij")
-    a, b = i * n + j, i * n + (j + 1) % n
-    Fs = [np.c_[a.ravel(), b.ravel(), (b + n).ravel()], np.c_[a.ravel(), (b + n).ravel(), (a + n).ravel()]]
-    for k, flip in ((0, True), (nz - 1, False)):
-        tri = ec.triangulate_float64(rings[k], np.array([n], np.uint32)).reshape(-1, 3).astype(np.int64) + k * n
-        Fs.append(tri[:, ::-1] if flip else tri)
-    m = trimesh.Trimesh(V.reshape(-1, 3), np.vstack(Fs), process=True)
-    if m.volume < 0:
-        m.invert()
-    return m
+
+    def ring_at(s, rho):
+        psi = np.radians(r["psi_c"] + s * r["psi_h"] * cu); y = r["y_c"] + s * r["y_h"] * sv
+        return np.c_[c[0] + rho * np.sin(psi), y, c[1] + rho * np.cos(psi)]
+    ss = np.linspace(0.0, 1.0, ns + 1)[1:]
+    rr = np.linspace(r["r0"], r["r1"], nr + 1)
+    V = np.stack([ring_at(s, r["r0"]) for s in ss] + [ring_at(1.0, q) for q in rr[1:-1]] + [ring_at(s, r["r1"]) for s in ss[::-1]])
+    ctr = lambda rho: np.array([c[0] + rho * np.sin(np.radians(r["psi_c"])), r["y_c"], c[1] + rho * np.cos(np.radians(r["psi_c"]))])  # noqa: E731
+    return _solid(V, ctr(r["r1"]), ctr(r["r0"]))
 
 
-def torso_cutter(shells, axis_yz, op=None, sx=1.0, nphi=180, nx=240):
-    """Opening cutter about the pitch axis (R side, x > 0; sx = -1 mirrors it): per angle phi a radius profile over x,
-    cylinder R above x_mm, cone below, plus a quarter-circle flare of round_mm ending at the shell's outer surface (found by
-    rays along the profile), so the outer edge is rounded."""
-    op = op or TORSO_OPENING
-    R, x1, rf = op["R_mm"], op["x_mm"], op["round_mm"]
-    tb = np.tan(np.radians(op["cone_deg"]))
-    xs = np.linspace(40.0, 112.0, nx); phi = np.linspace(0, 2 * np.pi, nphi, endpoint=False)
-    base = np.where(xs >= x1, R, np.maximum(R - (x1 - xs) / tb, 4.0))
+# ---------------------------------------------------------------------------------------------- torso slope
+def _ease(u, k):
+    return np.where(u <= -k, 0.0, np.where(u >= k, u, (u + k) ** 2 / (4.0 * k)))
+
+
+def dish_x(rho, ts=None):
+    """Outer skin x of the dish at distance rho from the pitch axis (R side)."""
+    t = ts or TORSO_SLOPE
+    return t["x_floor"] + np.tan(np.radians(t["slope_deg"])) * _ease(np.asarray(rho, float) - t["R_floor"], t["ease_mm"])
+
+
+def skin_x_map(shells, dy=0.5):
+    """Today's outer skin x of the torso shells on the R side seen along -x, on a (y, z) grid: (ys, zs, X); NaN where the
+    ray meets nothing outboard of x 40 (the old opening), filled from the nearest hit."""
+    from scipy.interpolate import NearestNDInterpolator
     cat = trimesh.util.concatenate(shells)
     rx = trimesh.ray.ray_pyembree.RayMeshIntersector(cat)
-    xo = np.full(nphi, np.nan)
-    for k, f in enumerate(phi):                                   # walk the profile from outside: first hit = outer surface
-        d = np.array([0.0, np.cos(f), np.sin(f)])
-        P = np.c_[xs[::-1], axis_yz[0] + base[::-1, None] * d[1], axis_yz[1] + base[::-1, None] * d[2]]
-        P[:, 0] *= sx
-        seg = P[1:] - P[:-1]; L = np.linalg.norm(seg, axis=1)
-        loc, ir, _ = rx.intersects_location(P[:-1], seg / L[:, None], multiple_hits=False)
-        ok = np.linalg.norm(loc - P[:-1][ir], axis=1) <= L[ir] + 1e-9
-        if ok.any():
-            xo[k] = abs(loc[ok][np.argmin(ir[ok])][0])
-    good = np.isfinite(xo)
-    xo = np.interp(phi, phi[good], xo[good], period=2 * np.pi) if good.any() else np.full(nphi, x1)
-    u = xs[None, :] - (xo[:, None] - rf)
-    fl = np.where(u <= 0, 0.0, np.where(u < rf, rf - np.sqrt(np.clip(rf ** 2 - u ** 2, 0, None)), rf + 4.0 * (u - rf)))
-    rho = base[None, :] + fl
-    V = np.stack([np.broadcast_to(xs, rho.shape) * sx, axis_yz[0] + rho * np.cos(phi)[:, None],
-                  axis_yz[1] + rho * np.sin(phi)[:, None]], -1).transpose(1, 0, 2)        # (nx, nphi, 3): rings along x
-    m = _solid(V, np.array([xs[-1] * sx, *axis_yz]), np.array([xs[0] * sx, *axis_yz]))
-    return m, dict(outer_x_at_edge_mm=[round(float(xo.min()), 2), round(float(xo.max()), 2)])
+    ys, zs = np.arange(-80.0, 100.0 + 1e-6, dy), np.arange(250.0, 420.0 + 1e-6, dy)
+    Y, Z = np.meshgrid(ys, zs, indexing="ij")
+    O = np.c_[np.full(Y.size, 250.0), Y.ravel(), Z.ravel()]
+    loc, ir, _ = rx.intersects_location(O, np.tile([-1.0, 0.0, 0.0], (len(O), 1)), multiple_hits=False)
+    X = np.full(Y.size, np.nan); X[ir] = loc[:, 0]
+    X[X < 40.0] = np.nan
+    ok = np.isfinite(X)
+    X[~ok] = NearestNDInterpolator(np.c_[Y.ravel()[ok], Z.ravel()[ok]], X[ok])(Y.ravel()[~ok], Z.ravel()[~ok])
+    return ys, zs, X.reshape(Y.shape), ok.reshape(Y.shape)
+
+
+def torso_slope_mesh(m, xmap, axis_yz, ts=None, wall=2.7):
+    """The torso shell with its skin sloped in toward both pitch axes (R as given, L the mirror): every vertex near the
+    outer skin moves along x by D = blend(x_skin - x_dish) (vertices deeper than the wall fade out), then the dish ends at
+    R_end (vertices inside it removed by a cylinder about the pitch axis). A shear along x: one-to-one for any D."""
+    from scipy.interpolate import RegularGridInterpolator
+    t = ts or TORSO_SLOPE
+    ys, zs, X, _ = xmap
+    xo_at = RegularGridInterpolator((ys, zs), X, bounds_error=False, fill_value=None)
+    V = np.asarray(m.vertices, float).copy()
+    e, (f0, f1) = t["blend_mm"], TORSO_WALL_BLEND
+    moved = np.zeros(len(V))
+    for sx in (1.0, -1.0):
+        side = sx * V[:, 0] > 0.0
+        y, z, x = V[side, 1], V[side, 2], sx * V[side, 0]
+        rho = np.hypot(y - axis_yz[0], z - axis_yz[1])
+        xo = xo_at(np.c_[y, z])
+        u = xo - dish_x(rho, t)
+        D = np.where(u <= -e, 0.0, np.where(u >= e, u, (u + e) ** 2 / (4.0 * e)))
+        depth = xo - x                                              # below the outer skin
+        w = np.clip(1.0 - (depth - (wall + f0)) / (f1 - f0), 0.0, 1.0)
+        w = w * w * (3.0 - 2.0 * w)
+        V[side, 0] -= sx * D * w
+        moved[side] = D * w
+    out = trimesh.Trimesh(V, np.asarray(m.faces), process=False)
+    for sx in (1.0, -1.0):
+        cyl = trimesh.creation.cylinder(radius=t["R_end"], segment=[[sx * 40.0, *axis_yz], [sx * 110.0, *axis_yz]], sections=180)
+        out = _tm(_mf(out) - _mf(cyl))
+    return out, float(moved.max())
 
 
 # ---------------------------------------------------------------------------------------------- fitting (fit-cover)
@@ -499,8 +555,20 @@ def fit_cover(body, src, design, verbose=True):
     if verbose:
         print(f"base skin: {r.message}; rms normal deviation from today {np.sqrt(r.fun):.3f} mm", flush=True)
     # (2) bumps
+    bumps, mb, Q, need, hit = fit_bumps(body, design, cv, cp, verbose)
+    dev = skin_deviation(P, N, cv, cp, bumps)
+    return cv, cp, bumps, dict(rms_normal_deviation_base_mm=round(float(np.sqrt(r.fun)), 3),
+                               rms_normal_deviation_with_bumps_mm=round(float(np.sqrt(np.mean(dev ** 2))), 3),
+                               worst_requirement_margin_mm=round(float(mb.min()), 3), samples=int(len(P)),
+                               requirement_points=int(len(Q)), deepest_need_mm=round(float(need.max()), 2))
+
+
+def fit_bumps(body, design, cv, cp, verbose=True):
+    """The enclosure bumps (A, z, th each; half-widths BUMP_W) of the least squared height that hold the requirement (green
+    U + GAP + WALL + GROW_MARGIN, radial) on the base skin cv / cp."""
+    from scipy.optimize import minimize
     Q = requirement(body, design)
-    thq, rhoq, _ = _polar(Q)
+    thq, rhoq = _polar_cov(Q, cv, cp)
     need = rhoq + GAP + WALL + GROW_MARGIN - skin_radius(Q[:, 2], thq, cv, cp, ())
     hit = need > -6.0
     Qz, Qt, Qn = Q[hit, 2], thq[hit], need[hit]
@@ -526,141 +594,246 @@ def fit_cover(body, src, design, verbose=True):
     mb = margin(np.ravel([[b["A"], b["z"], b["th"]] for b in bumps]))
     if verbose:
         print(f"bumps: {rb.message}; {bumps}; worst requirement margin {mb.min():.3f} mm ({int(hit.sum())} points near)", flush=True)
-    dev = skin_deviation(P, N, cv, cp, bumps)
-    return cv, cp, bumps, dict(rms_normal_deviation_base_mm=round(float(np.sqrt(r.fun)), 3),
-                               rms_normal_deviation_with_bumps_mm=round(float(np.sqrt(np.mean(dev ** 2))), 3),
-                               worst_requirement_margin_mm=round(float(mb.min()), 3), samples=int(len(P)),
-                               requirement_points=int(len(Q)), deepest_need_mm=round(float(need.max()), 2))
+    return bumps, mb, Q, need, hit
 
 
-def blue_roll_sweep(body, step=1.0, n=25000):
-    """The blue group at every shoulder roll angle (step deg) in the roll-link neutral frame, as one point cloud."""
-    B = _pts(body, blue_group(body, "R_"), n=n)
+def turning_group(body, s="R_"):
+    """Every part on the pitch link (the blue U, its sleeves, the roll horn and idler with their screws, the pitch horn):
+    relative to the cover they turn about the roll axis."""
+    return [_side(n, s) for n, p in body.parts.items() if p["owning_link"] == "R_shoulder_pitch_link"]
+
+
+def blue_roll_sweep(body, step=1.0, n=25000, names=None):
+    """The turning group at every shoulder roll angle (step deg) in the roll-link neutral frame, as one point cloud."""
+    ax = _roll_axis_xz(body)
+    B = _thin(_pts(body, names or turning_group(body, "R_"), n=n), 0.35)
+    B = B[roll_polar(B, ax)[1] < 60.0]                         # the part near the shoulder (not the pitch servo's far idler)
     lo, hi = body.joints["R_shoulder_roll"]["range_deg"]
     out = [trimesh.transform_points(B, np.linalg.inv(body.link_T("R_shoulder_roll_link", {"R_shoulder_roll": float(q)})))
            for q in np.arange(lo, hi + 1e-6, step)]
     return np.vstack(out)
 
 
-def _psi(P, c):
-    return np.degrees(np.arctan2(P[:, 0] - c[0], P[:, 2] - c[1]))
+def enclosed_static(body, design):
+    """Roll-link points the cover keeps inside with GAP + WALL: the green U set (requirement) and the roll servo case."""
+    return np.vstack([requirement(body, design), _pts(body, ["upper__R_roll_C047_case"], n=30000)])
 
 
-def fit_trim(body, skin_mesh, green_pts, sweep):
-    """Place the trim: every skin point within BLUE_CLEAR (+0.3 sampling) of the swept blue U and beyond NEAR_AXIS of the
-    roll axis removed (`rm`), the skin within GAP + WALL + 1 of the green U kept (`keep`, its enclosure). The top plane is square
-    to the arm; (1) the inboard plane's direction and offset, with the top plane as high as the rm points it leaves allow,
-    that remove the least cover with TRIM_MARGIN to rm (where the green U's arms are: keep within 3 mm in y) and to keep;
-    (2) the smallest dip that removes the rest of rm with the same margin, without lowering the top plane; (3) the top plane
-    no higher than TOP_OFFSET_LOOK."""
+def _thin(P, cell=0.8):
+    """One point per cell (the first), for the fits."""
+    k = np.floor(P / cell).astype(np.int64)
+    _, i = np.unique(k, axis=0, return_index=True)
+    return P[np.sort(i)]
+
+
+def _polar_cov(P, cov, cap):
+    cx, cy, _, _ = ring(P[:, 2], cov, cap)
+    dx, dy = P[:, 0] - cx, P[:, 1] - cy
+    return np.arctan2(dy, dx), np.hypot(dx, dy)
+
+
+def upper_stations(body, sweep):
+    """The cover's upper stations by rule (owner: converge on the rotation point): the dome centred on the shoulder roll
+    axis at its height (cx, cy at the top = the axis and the walls' middle; z0 = the axis' z); its outboard half-width = the
+    largest distance from the roll axis of a turning part between psi_out and 90 deg (the arm ends round the horn, past
+    the plate's reach) + RUN_CLEAR + WALL, rounded up to 0.5; the crest TOP["crest"] above the axis; the walls TOP["ear_over"]
+    beyond the opening's y-edges (the turning parts' y extent + RUN_CLEAR + RIM_MARGIN + WALL); the inboard reach EAR_X_IN;
+    the 352 station halfway between 338 (today's fit) and the top. Returns (cov, cap, info)."""
+    ax = _roll_axis_xz(body)
+    psi, rho = roll_polar(sweep, ax)
+    quad = (psi >= TOP["psi_out"]) & (psi <= 90.0) & (rho < 30.0)   # the upper outboard quadrant past the plate's reach
+    r_out = float(np.ceil((rho[quad].max() + RUN_CLEAR + WALL) * 2.0) / 2.0)
+    near = sweep[rho < 30.0]
+    y_lo = float(near[:, 1].min()) - RUN_CLEAR - RIM_MARGIN - WALL - TOP["ear_over"]
+    y_hi = float(near[:, 1].max()) + RUN_CLEAR + RIM_MARGIN + WALL + TOP["ear_over"]
+    cy = round(0.5 * (y_lo + y_hi), 3); b = round(0.5 * (y_hi - y_lo), 3)
+    top = dict(cx=float(ax[0]), cy=cy, a_in=round(float(ax[0]) - EAR_X_IN, 3), a_out=r_out, b_front=b, b_back=b)
+    cov = {}
+    for k, z in COVER.items():
+        zz, vv = z[0], list(z[1])
+        if k in top:
+            i338, i352, i366 = zz.index(338.0), zz.index(352.0), zz.index(366.0)
+            vv[i366] = top[k]; vv[i352] = round(0.5 * (vv[i338] + top[k]), 3)
+        if k in ("n_front", "n_back"):
+            vv[-1] = TOP["n"]
+        cov[k] = (zz, tuple(vv))
+    cap = dict(z0=float(ax[1]), z_top=float(ax[1]) + TOP["crest"], p=TOP["p"], p_y=TOP["p_y"])
+    return cov, cap, dict(r_out_mm=r_out, walls_y_mm=[round(y_lo, 2), round(y_hi, 2)])
+
+
+def body_src_cover():
+    return F.Body(json.loads(SC.MANIFEST.read_text())).mesh("R_upper_arm_hard_cover")
+
+
+def fit_rim(body, skin_mesh, design, sweep, m_set=(4.0, 6.0, 8.0)):
+    """Place the rim: rm = skin points within RUN_CLEAR + 0.3 of the swept turning group beyond NEAR_AXIS (they must be
+    inside, RIM_MARGIN along the skin), keep = skin points within GAP + WALL + 0.5 of the green U set (outside, RIM_MARGIN);
+    the least skin inside. Nelder-Mead on (psi_c, psi_h, y_c, y_h) per exponent m, from the box around rm."""
+    from scipy.optimize import minimize
     from scipy.spatial import cKDTree
-    c = _roll_axis_xz(body)
+    ax = _roll_axis_xz(body)
     S = np.vstack([skin_mesh.vertices, trimesh.sample.sample_surface(skin_mesh, 300000, seed=2)[0]])
-    dB = cKDTree(sweep).query(S, distance_upper_bound=BLUE_CLEAR + 1.0)[0]
-    dG = cKDTree(green_pts).query(S, distance_upper_bound=GAP + WALL + 2.0)[0]
-    rho = np.hypot(S[:, 0] - c[0], S[:, 2] - c[1])
-    # near the roll axis the side walls face the roll horn / idler screw heads, which turn in place: no trim plane reaches
-    # them (apply reports their clearance), so the planes are placed against the blue set beyond NEAR_AXIS
-    rm, keep = S[(dB < BLUE_CLEAR + 0.3) & (rho >= NEAR_AXIS)], S[dG < GAP + WALL + 1.0]
-    top = round(float(np.degrees(np.arctan2(YAW_AXIS[0], YAW_AXIS[2]))) + 90.0, 2)     # square to the arm
-    nb = _dir(top - 90.0)
-    qr, qk = rm[:, [0, 2]] - c, keep[:, [0, 2]] - c
-    sB, kB = qr @ nb, qk @ nb
-    ends = np.zeros(len(rm), bool)
-    for yk in np.unique(np.round(keep[:, 1])):
-        ends |= np.abs(rm[:, 1] - yk) < 3.0
-    Ssub = S[np.random.default_rng(5).choice(len(S), 30000, replace=False)]
-    qs = Ssub[:, [0, 2]] - c
-    ssB = qs @ nb
+    psi, rho = roll_polar(S, ax)
+    dB = cKDTree(sweep).query(S, distance_upper_bound=RUN_CLEAR + 2.0)[0]
+    dG = cKDTree(requirement(body, design)).query(S, distance_upper_bound=GAP + WALL + 2.0)[0]    # the green U set
+    band = (rho > RIM["r0"]) & (rho < RIM["r1"])
+    rm = band & (dB < RUN_CLEAR + 0.3) & (rho >= NEAR_AXIS)
+    keep = band & (dG < GAP + WALL + 0.5)
+    cand = band & ~keep
+    sub = np.random.default_rng(5).choice(np.flatnonzero(band), min(60000, int(band.sum())), replace=False)
+    dps = np.degrees(RIM_MARGIN / np.maximum(rho, 5.0))
 
-    def top_off(sr, off, sel):
-        """The top plane's offset: as high as the rm points the inboard plane leaves (within TRIM_MARGIN) allow."""
-        need = sel & (sr - off < TRIM_MARGIN)
-        return float(np.min(sB[need]) - TRIM_MARGIN) if need.any() else 40.0
-    # (1) inboard direction and offset (+ the top offset they leave): margins >= TRIM_MARGIN where the green U's arms are,
-    #     least cover removed
+    def uv(r, idx):
+        u = np.abs(np.degrees(np.angle(np.exp(1j * np.radians(psi[idx] - r["psi_c"]))))) / r["psi_h"]
+        return u, np.abs(S[idx, 1] - r["y_c"]) / r["y_h"], dps[idx] / r["psi_h"], RIM_MARGIN / r["y_h"]
+
+    def margins(r):
+        u, v, du, dv = uv(r, np.flatnonzero(rm))
+        mr = 1.0 - ((u + du) ** r["m"] + (v + dv) ** r["m"])                       # >= 0: inside with margin
+        u, v, du, dv = uv(r, np.flatnonzero(keep))
+        mk = (np.maximum(u - du, 0) ** r["m"] + np.maximum(v - dv, 0) ** r["m"]) - 1.0   # >= 0: outside with margin
+        return mr, mk
+    P_rm = np.c_[psi[rm], S[rm, 1]]
     best = None
-    for psi in np.arange(-178.0, -100.0, 0.5):
-        na = _dir(psi + 90.0)
-        sr, sk, ss = qr @ na, qk @ na, qs @ na
-        for off in np.arange(-24.0, 16.01, 0.25):
-            if float(np.min(off - sk)) < TRIM_MARGIN:
-                continue
-            db = top_off(sr, off, ends)
-            if float(np.max(kB)) > db - TRIM_MARGIN:
-                continue
-            gone = int(np.count_nonzero((ss > off) | (ssB > db)))
-            if best is None or gone < best[0]:
-                best = (gone, float(psi), float(off), db)
-    if best is None:
-        raise SystemExit(f"fit_trim: no inboard plane keeps {TRIM_MARGIN} mm to both sets")
-    _, psi, off, db = best
-    na = _dir(psi + 90.0); sr, sk = qr @ na, qk @ na
-    # (2) the dip: the smallest that removes the rest of rm with the same margin (the top plane as high as it then allows)
-    dip_best = None
-    for w in (16.0, 20.0, 24.0, 28.0, 32.0):
-        for yc in np.arange(-8.0, 14.1, 1.0):
-            for dip in np.arange(0.0, 14.01, 0.25):
-                dr = off - dip * _w((rm[:, 1] - yc) / w); dk = off - dip * _w((keep[:, 1] - yc) / w)
-                need = sr - dr < TRIM_MARGIN
-                db2 = min(db, float(np.min(sB[need]) - TRIM_MARGIN)) if need.any() else db
-                mr = float(np.min(np.maximum(sr - dr, sB - db2))); mk = float(min(np.min(dk - sk), db2 - np.max(kB)))
-                if min(mr, mk) >= TRIM_MARGIN - 1e-9 and db2 >= db - 0.5 and (dip_best is None or dip * w < dip_best[0]):
-                    dip_best = (dip * w, dict(dip=float(dip), dip_y=float(yc), dip_w=w, top_offset=round(db2, 2)), mr, mk)
-                    break
-    if dip_best is None:                               # no dip keeps the margin: the best compromise
-        raise SystemExit(f"fit_trim: no dip keeps the {TRIM_MARGIN} mm margin")
-    _, dp, mr, mk = dip_best
-    # (3) the look: the top plane no higher than TOP_OFFSET_LOOK (clearance alone would leave a peak where the inboard cut
-    #     meets the dome's crest)
-    dp["top_offset"] = round(min(dp["top_offset"], TOP_OFFSET_LOOK), 2)
-    trim = dict(inboard=psi, inboard_offset=off, dip=dp["dip"], dip_y=dp["dip_y"], dip_w=dp["dip_w"], top=top,
-                top_offset=dp["top_offset"], round_mm=TRIM["round_mm"])
-    kept = trim_kept(S, c, trim)
-    sel_rm = (dB < BLUE_CLEAR + 0.3) & (rho >= NEAR_AXIS)
-    return trim, dict(rm_points=int(len(rm)), keep_points=int(len(keep)),
-                      margin_to_blue_set_mm=round(mr, 2), margin_to_green_enclosure_mm=round(mk, 2),
-                      rm_left_by_trim=int(kept[sel_rm].sum()), keep_cut_by_trim=int((~kept[dG < GAP + WALL + 1.0]).sum()),
-                      near_axis_kept_blue_min_distance_mm=round(float(np.min(dB[(rho < NEAR_AXIS) & kept], initial=99.0)), 2))
+    for m in m_set:
+        v0 = [float(np.mean(P_rm[:, 0].min() + P_rm[:, 0].max()) / 1.0) / 2.0, float(np.ptp(P_rm[:, 0])) / 2.0 + 8.0,
+              float(P_rm[:, 1].min() + P_rm[:, 1].max()) / 2.0, float(np.ptp(P_rm[:, 1])) / 2.0 + 2.0]
+
+        bnd = [(-140.0, 20.0), (40.0, 150.0), (-10.0, 20.0), (12.0, 40.0)]
+
+        def obj(v):
+            v = [min(max(x, lo), hi) for x, (lo, hi) in zip(v, bnd)]
+            r = dict(RIM, psi_c=v[0], psi_h=v[1], y_c=v[2], y_h=v[3], m=m)
+            mr, mk = margins(r)
+            area = float(np.mean(rim_F(psi[sub], S[sub, 1], r) < 1.0))
+            return area * 100.0 + 1e3 * float(np.mean(np.minimum(mr - 0.01, 0) ** 2)) * 100 + 1e3 * float(np.mean(np.minimum(mk - 0.01, 0) ** 2)) * 100
+        v0 = [min(max(x, lo), hi) for x, (lo, hi) in zip(v0, bnd)]
+        res = minimize(obj, np.array(v0), method="Powell", bounds=bnd, options=dict(maxiter=6000, xtol=0.01, ftol=1e-7))
+        r = dict(RIM, psi_c=round(float(res.x[0]), 2), psi_h=round(float(res.x[1]), 2), y_c=round(float(res.x[2]), 2),
+                 y_h=round(float(res.x[3]), 2), m=m)
+        mr, mk = margins(r)
+        area = float(np.mean(rim_F(psi[sub], S[sub, 1], r) < 1.0))
+        bad = int((mr < 0).sum() + (mk < 0).sum())
+        print(f"  rim m={m}: {r}  skin share inside {area:.4f}, rm out {int((mr < 0).sum())}, keep in {int((mk < 0).sum())}", flush=True)
+        if best is None or (bad, area) < (best[0], best[1]):
+            best = (bad, area, r, dict(rm_points=int(rm.sum()), keep_points=int(keep.sum()), rm_outside=int((mr < 0).sum()),
+                                       keep_inside=int((mk < 0).sum()), skin_share_open=round(area, 4)))
+    return best[2], best[3]
 
 
-def torso_radius(body):
-    """R_mm: largest distance of the blue U from the pitch axis where it is within BLUE_CLEAR of the shells' x, + BLUE_CLEAR;
-    x_mm: the blue U's smallest x - BLUE_CLEAR (below it the cone narrows the cut)."""
-    B = _pts(body, blue_group(body, "R_"), n=25000)
-    yz = _pitch_axis_yz(body)
-    xmax = max(body.mesh(n).bounds[1][0] for n in TORSO_SHELLS)
-    near = B[:, 0] < xmax + BLUE_CLEAR
-    r = np.hypot(B[near, 1] - yz[0], B[near, 2] - yz[1])
-    return dict(R_mm=round(float(r.max() + BLUE_CLEAR), 2), x_mm=round(float(B[:, 0].min() - BLUE_CLEAR), 2),
-                cone_deg=TORSO_OPENING["cone_deg"], round_mm=TORSO_OPENING["round_mm"])
+def arm_envelope(body, cover_R, step=2.5, rho_max=64.0):
+    """Smallest x of every part of the right arm at each distance rho from the pitch axis (1 mm bins), over shoulder roll
+    -15..95 (step) and shoulder yaw -60..60 (pitch turns about the axis itself and leaves x and rho unchanged)."""
+    ay, az = _pitch_axis_yz(body)
+    by = {}
+    for n, p in body.parts.items():
+        lk = p["owning_link"]
+        if lk in ("R_shoulder_pitch_link", "R_shoulder_roll_link", "R_upper_arm") and n != "R_upper_arm_hard_cover":
+            by.setdefault(lk, []).append(n)
+    pts = {lk: _pts(body, ns, n=1500) for lk, ns in by.items()}
+    pts["R_shoulder_roll_link"] = np.vstack([pts["R_shoulder_roll_link"], cover_R.vertices,
+                                             trimesh.sample.sample_surface(cover_R, 60000, seed=3)[0]])
+    env = np.full(int(rho_max) + 1, np.inf)
+
+    def add(X):
+        r = np.hypot(X[:, 1] - ay, X[:, 2] - az); k = r < rho_max
+        np.minimum.at(env, np.floor(r[k]).astype(int), X[k, 0])
+    add(pts["R_shoulder_pitch_link"])
+    lo, hi = body.joints["R_shoulder_roll"]["range_deg"]
+    for q in np.arange(lo, hi + 1e-6, step):
+        add(trimesh.transform_points(pts["R_shoulder_roll_link"], body.link_T("R_shoulder_roll_link", {"R_shoulder_roll": q})))
+        for qy in (-60.0, -30.0, 0.0, 30.0, 60.0):
+            add(trimesh.transform_points(pts["R_upper_arm"], body.link_T("R_upper_arm", {"R_shoulder_roll": q, "R_shoulder_yaw": qy})))
+    return env
+
+
+def torso_internals_xmax(body, rho_max=64.0):
+    """Largest x of the torso's own parts (no shells, no shell nuts) at each rho from the R pitch axis, x > 40."""
+    ay, az = _pitch_axis_yz(body)
+    names = [n for n, p in body.parts.items() if p["owning_link"] == "torso" and n not in TORSO_SHELLS and p.get("role") != "body_shell"
+             and body.mesh(n).bounds[1][0] > 40.0]
+    X = _pts(body, names, n=2000)
+    r = np.hypot(X[:, 1] - ay, X[:, 2] - az); k = (r < rho_max) & (X[:, 0] > 40.0)
+    out = np.full(int(rho_max) + 1, -np.inf)
+    np.maximum.at(out, np.floor(r[k]).astype(int), X[k, 0])
+    return out
+
+
+def fit_torso_slope(body, env, xmap, ts=None, tint=None, wall=2.7, gap=0.5):
+    """R_end: the old opening's largest radius + 1.5 (its wall and inner flange then lie inside the new round one). x_floor, R_floor,
+    slope_deg: the shallowest dish (least skin moved, weighted by rho) with x_dish <= env - RUN_CLEAR from R_end out to
+    TORSO_R_WIN, and its inner face (x_dish - wall) at least `gap` outboard of the torso's own parts (tint, the pitch servo);
+    where both cannot hold, the clearance to the arm gives way (reported as the margins)."""
+    t = dict(ts or TORSO_SLOPE)
+    ay, az = _pitch_axis_yz(body)
+    ys, zs, X, ok = xmap
+    Y, Z = np.meshgrid(ys, zs, indexing="ij")
+    R = np.hypot(Y - ay, Z - az)
+    from scipy import ndimage
+    hole = ndimage.binary_opening((~ok) & (R < 28.0), iterations=3)   # the old opening (no seam slits, no rays above)
+    t["R_end"] = round(float(np.ceil((R[hole].max() + 1.5) * 4.0) / 4.0), 2) if hole.any() else t["R_end"]
+    rr = np.arange(len(env)) + 0.5
+    use = (rr >= t["R_end"] - 1.0) & (rr <= TORSO_R_WIN) & np.isfinite(env)
+    lim = env[use] - RUN_CLEAR
+    sk = (R >= t["R_end"]) & (R < TORSO_R_WIN + 15.0) & ok
+    Rs, Xs = R[sk], X[sk]
+    best = None
+    for sd in np.arange(10.0, 60.01, 1.0):
+        tn = np.tan(np.radians(sd))
+        for Rf in np.arange(t["R_end"], 62.0, 0.5):
+            xf = float(np.min(lim - tn * _ease(rr[use] - Rf, t["ease_mm"])))
+            short = 0.0
+            if tint is not None:
+                lo_ = np.where(np.isfinite(tint[use]), tint[use] + wall + gap - tn * _ease(rr[use] - Rf, t["ease_mm"]), -np.inf)
+                short = max(float(np.max(lo_)) - xf, 0.0)                # > 0: both limits cannot hold
+                xf = max(xf, float(np.max(lo_)))
+            cand = dict(t, x_floor=round(xf - 0.005, 2), R_floor=float(Rf), slope_deg=float(sd))
+            cost = float(np.sum(np.maximum(Xs - dish_x(Rs, cand), 0.0) * Rs)) + 1e9 * short
+            if best is None or cost < best[0]:
+                best = (cost, cand)
+    t = best[1]
+    g_arm = env - dish_x(rr, t)
+    out = dict(moved_area_weighted=round(best[0], 1), min_clearance_to_arm_envelope_mm=round(float(np.min(g_arm[use])), 3),
+               at_rho_mm=float(rr[use][int(np.argmin(g_arm[use]))]))
+    if tint is not None:
+        g_in = dish_x(rr, t) - wall - tint
+        out["min_inner_face_to_torso_parts_mm"] = round(float(np.min(np.where(use & np.isfinite(g_in), g_in, np.inf))), 3)
+    return t, out
 
 
 def fit_all():
-    """fit-cover: prints COVER, CAP, TRIM and TORSO_OPENING to paste above (the build uses the values in the script)."""
+    """fit-cover: prints COVER, CAP, BUMPS, RIM and TORSO_SLOPE to paste above (the build uses the values in the script).
+    (1) the upper stations by rule (upper_stations; `fit-cover keep-upper` keeps the table's), (2) the enclosure
+    bumps on that skin, (3) the rim on the skin with its wells, (4) the torso slope against the arm with that cover."""
+    global RIM, BUMPS
     t0 = time.time()
     man = json.loads(SC.CANDIDATE.read_text()); body = F.Body(man)
     src = F.Body(json.loads(SC.MANIFEST.read_text()))
     design = mount_design(src.mesh("R_upper_arm_hard_cover"))
-    cov, cap, bumps, st = fit_cover(body, src, design)
-    print(json.dumps(st), f"({time.time() - t0:.0f} s)", flush=True)
-    COVER.update(cov); CAP.update(cap)
-    global BUMPS
-    BUMPS = bumps
+    sweep = blue_roll_sweep(body, step=1.0, n=12000)
+    if "keep-upper" not in sys.argv:
+        cov, cap, st = upper_stations(body, sweep)
+        COVER.update(cov); CAP.update(cap)
+        print("upper stations:", json.dumps(st), flush=True)
+    BUMPS, mb, _, _, _ = fit_bumps(body, design, COVER, CAP)
     sh, outer = cover_skin()
     sh = add_wells(sh, outer, design)
-    sweep = blue_roll_sweep(body)
-    trim, tst = fit_trim(body, _tm(sh), requirement(body, design), sweep)
-    print(json.dumps(tst), f"({time.time() - t0:.0f} s)", flush=True)
-    top = torso_radius(body)
+    RIM, rst = fit_rim(body, _tm(sh), design, sweep, m_set=(8.0, 12.0, 16.0))
+    print(f"rim {RIM} {json.dumps(rst)} ({time.time() - t0:.0f} s)", flush=True)
+    cov_R = _tm(sh - _mf(rim_cutter(_roll_axis_xz(body))))
+    env = arm_envelope(body, cov_R)
+    xmap = skin_x_map([src.mesh(n) for n in TORSO_SHELLS])
+    ts, tst = fit_torso_slope(body, env, xmap, tint=torso_internals_xmax(body))
+    print("torso slope:", ts, json.dumps(tst), f"({time.time() - t0:.0f} s)", flush=True)
+    print("arm envelope x by rho:", {i: round(float(v), 2) for i, v in enumerate(env) if np.isfinite(v) and i % 2 == 0})
     print("COVER = {")
     for k in ("cx", "cy") + RING:
-        print(f'    "{k}": ({tuple(cov[k][0])}, ({", ".join(f"{x:.3f}" for x in cov[k][1])},)),')
+        print(f'    "{k}": ({tuple(COVER[k][0])}, ({", ".join(f"{x:.3f}" for x in COVER[k][1])},)),')
     print("}")
-    print(f"CAP = dict(z0={cap['z0']}, z_top={cap['z_top']}, p={cap['p']})")
-    print("BUMPS = (" + ", ".join(f"dict(A={b['A']}, z={b['z']}, w_z={b['w_z']}, th={b['th']}, w_th={b['w_th']})" for b in bumps) + ")")
-    print("TRIM = dict(" + ", ".join(f"{k}={v}" for k, v in trim.items()) + ")")
-    print(f"TORSO_OPENING = dict(R_mm={top['R_mm']}, x_mm={top['x_mm']}, cone_deg={top['cone_deg']}, round_mm={top['round_mm']})")
+    print(f"CAP = dict(z0={CAP['z0']}, z_top={CAP['z_top']}, p={CAP['p']}, p_y={CAP['p_y']})")
+    print("BUMPS = (" + ", ".join(f"dict(A={b['A']}, z={b['z']}, w_z={b['w_z']}, th={b['th']}, w_th={b['w_th']})" for b in BUMPS) + ")")
+    print("RIM = dict(" + ", ".join(f"{k}={v}" for k, v in RIM.items()) + ")")
+    print("TORSO_SLOPE = dict(" + ", ".join(f"{k}={v}" for k, v in ts.items()) + ")")
 
 
 # ---------------------------------------------------------------------------------------------- cover mount (B-rep)
@@ -910,9 +1083,11 @@ def apply():
                candidate=SC._rel(CANDIDATE), input_manifest=SC._rel(SC.CANDIDATE),
                input_manifest_sha256=SC._sha(SC.CANDIDATE), source_manifest=SC._rel(SC.MANIFEST),
                source_manifest_sha256=SC._sha(SC.MANIFEST), cad_manifest=SC._rel(SC.OUT / "cad-manifest.json"),
-               method=dict(wall_mm=WALL, gap_green_mm=GAP, blue_clearance_mm=BLUE_CLEAR, bottom_cut=dict(normal=YAW_AXIS.tolist(), s=BOTTOM_S),
-                           cover=COVER, cap=CAP, trim=TRIM, torso_opening=TORSO_OPENING,
-                           note="parametric skin (superellipse rings, one spline per ring value) + analytic openings; no sweeps"),
+               method=dict(wall_mm=WALL, gap_green_mm=GAP, running_clearance_mm=RUN_CLEAR, bottom_cut=dict(normal=YAW_AXIS.tolist(), s=BOTTOM_S),
+                           cover=COVER, cap=CAP, bumps=BUMPS, rim=RIM, ear_x_in=EAR_X_IN, torso_slope=TORSO_SLOPE,
+                           note="parametric skin (superellipse rings, one spline per ring value) converging on the roll servo, ending at "
+                                "a superellipse rim in the roll axis' coordinates; torso skin sloped in toward the pitch axis (dish of "
+                                "revolution), ending at R_end; no sweeps"),
                source=dict(path=SC._rel(__file__), sha256=SC._sha(__file__)))
     # 1. mounts (R designed against the source cover's wells; L = mirror x)
     design = mount_design(src.mesh("R_upper_arm_hard_cover"))
@@ -943,28 +1118,32 @@ def apply():
     P = {p["name"]: p for p in man["parts"]}
     body = F.Body(man)
     print(f"hardware: {[r['name'] for r in hw]} ({time.time() - t0:.0f} s)", flush=True)
-    # 3. covers: the parametric skin with the wells and the top trim on the right arm; the left cover is its exact mirror
+    # 3. covers: the parametric skin with the wells, ending at the rim; the left cover is its exact mirror
     from scipy.spatial import cKDTree
     covers, torso = {}, {}
+    ax = _roll_axis_xz(body)
     sh, outer = cover_skin()
     sh = add_wells(sh, outer, design)
     pre = _tm(sh)
-    cut = _mf(trim_cutter(_roll_axis_xz(body)))
-    cov_R = _tm(sh - cut)
+    cov_R = _tm(sh - _mf(rim_cutter(ax)))
     cov_R = trimesh.util.concatenate([q for q in cov_R.split(only_watertight=False) if abs(q.volume) > 20.0])
     c_src = src.mesh("R_upper_arm_hard_cover")
     Ps, Ns = today_samples(c_src, design)
     dev = skin_deviation(Ps, Ns)
-    kept = ~trim_removed(Ps, _roll_axis_xz(body)) & (Ps @ YAW_AXIS >= BOTTOM_S + 0.5)
+    kept = ~rim_open(Ps, ax) & (Ps @ YAW_AXIS >= BOTTOM_S + 0.5)
     G = requirement(body, design)
     Sc = np.vstack([cov_R.vertices, trimesh.sample.sample_surface(cov_R, 800000, seed=4)[0]])   # ~0.1 mm spacing
     Gs = G[::3]
     dG = cKDTree(Sc).query(Gs)[0] * np.where(cov_R.contains(Gs), -1.0, 1.0)      # < 0: inside the cover material
-    inside = cover_outer().contains(Gs); trimmed = trim_removed(Gs, _roll_axis_xz(body))
+    inside = cover_outer().contains(Gs); opened = rim_open(Gs, ax)
+    case = _pts(body, ["upper__R_roll_C047_case"], n=40000)
+    dC = cKDTree(Sc).query(case)[0]
     sweep = blue_roll_sweep(body, n=12000)
     S_ = Sc[::4]
     dB = cKDTree(sweep).query(S_)[0]
     del sweep
+    psi_s, rho_s = roll_polar(S_, ax)
+    edge = (np.abs(rim_F(psi_s, S_[:, 1]) - 1.0) < 0.08) & (rho_s < RIM["r1"]) & (rho_s > RIM["r0"])
 
     def where(mask, v, f):
         i = int(f(np.where(mask, v, np.nan)))
@@ -977,36 +1156,45 @@ def apply():
                 max_outward_elsewhere=where(kept & ~green_zone, dev, np.nanargmax))
     enc = dict(points=int(len(dG)), min_distance_to_cover_mm=round(float(dG.min()), 3),
                p01_distance_mm=round(float(np.percentile(dG, 1)), 3), inside_outer_skin_pct=round(100.0 * inside.mean(), 2),
-               under_the_trim_pct=round(100.0 * trimmed.mean(), 2),
+               under_the_opening_pct=round(100.0 * opened.mean(), 2), roll_case_min_distance_to_cover_mm=round(float(dC.min()), 3),
                note="green U + sleeves + roll-case screws (bosses at the wells left out) to the cover's material")
-    trimrep = dict(removed_by_trim_mm3=round(float(pre.volume - cov_R.volume), 1), skin_with_wells_mm3=round(float(pre.volume), 1),
-                   blue_swept_min_distance_mm=round(float(dB.min()), 2), blue_swept_min_at_mm=np.round(S_[int(dB.argmin())], 1).tolist(),
-                   cover_points_within_3mm_of_blue=int((dB < BLUE_CLEAR).sum()))
+    rimrep = dict(removed_by_rim_mm3=round(float(pre.volume - cov_R.volume), 1), skin_with_wells_mm3=round(float(pre.volume), 1),
+                  turning_swept_min_distance_mm=round(float(dB.min()), 2), turning_swept_min_at_mm=np.round(S_[int(dB.argmin())], 1).tolist(),
+                  cover_points_within_1p5mm_of_turning=int((dB < 1.5).sum()),
+                  rim_edge_rho_from_roll_axis_mm=dict(min=round(float(rho_s[edge].min()), 2), p50=round(float(np.median(rho_s[edge])), 2),
+                                                      max=round(float(rho_s[edge].max()), 2)) if edge.any() else None)
     print(f"cover: {cov_R.volume:.0f} mm3 (today {c_src.volume:.0f}); skin vs today {json.dumps(skin)}", flush=True)
-    print(f"green enclosure {json.dumps(enc)}; trim {json.dumps(trimrep)} ({time.time() - t0:.0f} s)", flush=True)
+    print(f"green enclosure {json.dumps(enc)}; rim {json.dumps(rimrep)} ({time.time() - t0:.0f} s)", flush=True)
     for s in ("R_", "L_"):
         cn = f"{s}upper_arm_hard_cover"
         out = cov_R if s == "R_" else _mirror(cov_R)
         covers[cn] = dict(volume_mm3=round(float(out.volume), 1), today_volume_mm3=round(float(src.mesh(cn).volume), 1),
-                          watertight=bool(out.is_watertight), skin_vs_today=skin, green_enclosure=enc, top_trim=trimrep,
+                          watertight=bool(out.is_watertight), skin_vs_today=skin, green_enclosure=enc, rim=rimrep,
                           built="parametric R cover" if s == "R_" else "mirror of the R cover")
         _update_shell(P[cn], SP_[cn], src.mesh(cn), out, cn,
-                      "parametric upper-arm cover (superellipse rings, splines in z, dome; constant wall) enclosing the green U, "
-                      "top trimmed by two planes through the roll axis, screw wells at the green U mounts")
-    # 4. torso shells: one round opening about each shoulder pitch axis (the left one mirrors the right)
+                      "parametric upper-arm cover (superellipse rings, splines in z, dome; constant wall) enclosing the green U and "
+                      "converging on the roll servo, ending at a superellipse rim about the roll axis; screw wells at the green U mounts")
+    # 4. torso shells: the skin sloped in toward each pitch axis, ending at R_end (the left side mirrors the right)
     sh_t = {n: src.mesh(n) for n in TORSO_SHELLS}
-    cuts = {}
-    for sx in (1.0, -1.0):
-        cuts[sx] = torso_cutter(list(sh_t.values()), _pitch_axis_yz(body), sx=sx)
+    xmap = skin_x_map(list(sh_t.values()))
+    ayz = _pitch_axis_yz(body)
+    inner_pts = []
     for n in TORSO_SHELLS:
-        cur = _tm(_mf(sh_t[n]) - _mf(cuts[1.0][0]) - _mf(cuts[-1.0][0]))
+        cur, dmax = torso_slope_mesh(sh_t[n], xmap, ayz)
         cur = trimesh.util.concatenate([q for q in cur.split(only_watertight=False) if abs(q.volume) > 20.0])
-        torso[n] = dict(opening=dict(TORSO_OPENING, axis_yz=_pitch_axis_yz(body).tolist(), **cuts[1.0][1]), **openings(sh_t[n], cur))
+        torso[n] = dict(slope=dict(TORSO_SLOPE, axis_yz=ayz.tolist()), largest_move_mm=round(dmax, 2),
+                        opening_area_per_side_mm2=round(float(np.pi * TORSO_SLOPE["R_end"] ** 2), 1),
+                        watertight=bool(cur.is_watertight), **openings(sh_t[n], cur))
         _update_shell(P[n], SP_[n], sh_t[n], cur, n,
-                      f"shoulder openings: round about each pitch axis, R {TORSO_OPENING['R_mm']} mm, cone below |x| {TORSO_OPENING['x_mm']}, "
-                      f"outer edge rounded {TORSO_OPENING['round_mm']} mm")
-        print(f"{n}: {torso[n]['before_mm3']} -> {torso[n]['after_mm3']} mm3, pieces "
-              f"{[(r['volume_mm3'], r['extent_xyz_mm'], r['centre_mm']) for r in torso[n]['pieces']]}", flush=True)
+                      f"shoulder: skin sloped in toward each pitch axis (dish floor x {TORSO_SLOPE['x_floor']} to rho {TORSO_SLOPE['R_floor']}, "
+                      f"{TORSO_SLOPE['slope_deg']} deg rise), ending at R {TORSO_SLOPE['R_end']} mm")
+        inner_pts.append(trimesh.sample.sample_surface(cur, 400000, seed=6)[0])
+        print(f"{n}: {torso[n]['before_mm3']} -> {torso[n]['after_mm3']} mm3, largest move {dmax:.2f} mm, watertight {cur.is_watertight}", flush=True)
+    T_int = _pts(body, [n for n, p in body.parts.items() if p["owning_link"] == "torso" and n not in TORSO_SHELLS
+                        and p.get("role") != "body_shell" and body.mesh(n).bounds[1][0] > 40.0], n=4000)
+    Ti = T_int[np.hypot(T_int[:, 1] - ayz[0], T_int[:, 2] - ayz[1]) < 64.0]
+    dT = cKDTree(np.vstack(inner_pts)).query(Ti)[0]
+    torso["static_gap_to_torso_parts_near_shoulder_mm"] = dict(min=round(float(dT.min()), 3), at_mm=np.round(Ti[int(dT.argmin())], 1).tolist())
     rep.update(covers=covers, torso_shells=torso, seconds=round(time.time() - t0, 1))
     man["shoulder_shells"] = dict(idle_task=rep["idle_task"], report=SC._rel(REPORT), source=rep["source"], method=rep["method"],
                                   changes=sorted([n for n in P if P[n].get("shoulder_shells")]),
@@ -1064,13 +1252,124 @@ def _posed(body, rows, q):
     return out
 
 
+# before / after: the previous shoulder shells (the committed candidate, kept by hand as a copy for the comparison) when
+# present, else the input body
+BEFORE = ROOT / ".cache/work/shoulder-shells-before/assembly-parts-shoulder-u-shells.json"
+OWNER_CAM = (np.array([-0.4637, 0.4637, -0.7547]), (0.0, 0.0, 1.0))   # view direction of the owner's screenshot: from the
+                                                                        # front (-y) and outside (+x), 49 deg above
+EXPO_LO, EXPO_HI = np.array([58.0, -45.0, 300.0]), np.array([165.0, 62.0, 402.0])   # right shoulder window (open-area measure)
+EXPO_VIEWS = (("FRONT (-y)", np.array([0.0, 1.0, 0.0]), (0.0, 0.0, 1.0)), ("SIDE (+x)", np.array([-1.0, 0.0, 0.0]), (0.0, 0.0, 1.0)),
+              ("OWNER CAMERA (front + outside, 49 deg above)",) + OWNER_CAM)
+EXPO_LINKS = ("torso", "R_shoulder_pitch_link", "R_shoulder_roll_link", "R_upper_arm")
+
+
+def _is_shell(n, p):
+    """Shell outer skin for the open-area measure: the body shells and the cover's own screw heads in its wells."""
+    return (p.get("role") == "body_shell" and not n.endswith("_nut")) or ("upper_arm_shell_" in n and "_M3x" in n)
+
+
+def _near_scene(body, q, lo=EXPO_LO, hi=EXPO_HI, pad=30.0):
+    """(name, posed mesh) of every part on the torso and the right shoulder / upper arm near the window at pose q."""
+    out = []
+    for n, p in body.parts.items():
+        lk = p["owning_link"]
+        if lk not in EXPO_LINKS:
+            continue
+        T = body.link_T(lk, q)
+        b = body.mesh(n).bounds
+        C = trimesh.transform_points(np.array([[x, y, z] for x in b[:, 0] for y in b[:, 1] for z in b[:, 2]]), T)
+        if np.all(C.max(0) > lo - pad) and np.all(C.min(0) < hi + pad):
+            m = body.mesh(n).copy(); m.apply_transform(T); out.append((n, m))
+    return out
+
+
+def _cast(ms, d, up, lo, hi, px):
+    """First hit per pixel of an orthographic view of the box lo..hi: (part index or -1, hit points, face normals, grid)."""
+    d = np.asarray(d, float); d /= np.linalg.norm(d)
+    u = np.cross(d, up); u /= np.linalg.norm(u); v = np.cross(u, d)
+    C = np.array([[x, y, z] for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])])
+    pu, pv = C @ u, C @ v
+    W, H = int((pu.max() - pu.min()) / px), int((pv.max() - pv.min()) / px)
+    GU, GV = np.meshgrid(pu.min() + (np.arange(W) + 0.5) * px, pv.max() - (np.arange(H) + 0.5) * px)
+    c = 0.5 * (lo + hi); R = 0.5 * float(np.abs(d) @ (hi - lo)) + 60.0
+    org = GU.reshape(-1, 1) * u + GV.reshape(-1, 1) * v + (float(c @ d) - R) * d
+    cat = trimesh.util.concatenate(ms); fid = np.concatenate([np.full(len(m.faces), i) for i, m in enumerate(ms)])
+    rx = trimesh.ray.ray_pyembree.RayMeshIntersector(cat)
+    tri, ray, loc = rx.intersects_id(org, np.tile(d, (len(org), 1)), multiple_hits=False, return_locations=True)
+    pid = -np.ones(H * W, int); pid[ray] = fid[tri]
+    P = np.full((H * W, 3), np.nan); P[ray] = loc
+    N = np.zeros((H * W, 3)); N[ray] = cat.face_normals[tri]
+    # inside the window only (projected box of the window seen along d: points beyond it are not the shoulder)
+    inwin = np.all((P >= lo - 1e-6) & (P <= hi + 1e-6), axis=1)
+    pid[~inwin] = -1
+    return pid.reshape(H, W), P.reshape(H, W, 3), N.reshape(H, W, 3), (pu.min(), pu.max(), pv.min(), pv.max()), (u, v, d)
+
+
+def exposure(body, q, d, up, px=0.25):
+    """Visible open area of the right shoulder from direction d at pose q: pixels whose first hit in the window is not a
+    shell's outer skin (a part inside, or a shell's inner face seen through an opening). mm2 by class, the largest open gap
+    (diameter of the largest circle inside the open region, mm), the pixel classes for the picture."""
+    from scipy import ndimage
+    sc = _near_scene(body, q)
+    names = [n for n, _ in sc]; ms = [m for _, m in sc]
+    pid, P, N, ext, frame = _cast(ms, d, up, EXPO_LO, EXPO_HI, px)
+    shell = np.array([_is_shell(n, body.parts[n]) for n in names])
+    hit = pid >= 0
+    cls = np.zeros(pid.shape, int)                                   # 0 none, 1 shell outer, 2 shell inner, 3 turning, 4 roll servo, 5 other
+    groups = {}
+    for i, n in enumerate(names):
+        g = "torso_shells" if n in TORSO_SHELLS else n
+        groups.setdefault(g, []).append(i)
+    # a shell hit is its outer skin when the ray along its normal leaves the shell's own group without meeting it again
+    sh_px = hit & shell[np.maximum(pid, 0)]
+    for g, idx in groups.items():
+        if not shell[idx[0]]:
+            continue
+        sel = sh_px & np.isin(pid, idx)
+        if not sel.any():
+            continue
+        grp = trimesh.util.concatenate([ms[i] for i in idx])
+        rx = trimesh.ray.ray_pyembree.RayMeshIntersector(grp)
+        o = P[sel] + N[sel] * 0.05
+        again = rx.intersects_any(o, N[sel])
+        c2 = np.where(again, 2, 1); cls[sel] = c2
+    turn = {i for i, n in enumerate(names) if body.parts[n]["owning_link"] == "R_shoulder_pitch_link"}
+    roll = {i for i, n in enumerate(names) if n.startswith("upper__R_roll_C047")}
+    ns = hit & ~shell[np.maximum(pid, 0)]
+    cls[ns & np.isin(pid, list(turn))] = 3
+    cls[ns & np.isin(pid, list(roll))] = 4
+    cls[ns & (cls == 0)] = 5
+    openm = cls >= 2
+    a = px * px
+    edt = ndimage.distance_transform_edt(openm) * px
+    lab, nl = ndimage.label(openm)
+    big = float(np.bincount(lab.ravel())[1:].max() * a) if nl else 0.0
+    out = dict(open_mm2=round(float(openm.sum() * a), 0), shell_inner_faces_mm2=round(float((cls == 2).sum() * a), 0),
+               turning_parts_mm2=round(float((cls == 3).sum() * a), 0), roll_servo_mm2=round(float((cls == 4).sum() * a), 0),
+               other_parts_mm2=round(float((cls == 5).sum() * a), 0), largest_open_region_mm2=round(big, 0),
+               largest_open_gap_mm=round(float(2.0 * edt.max()), 2), regions=int(nl))
+    return out, cls, ext
+
+
+EXPO_COL = {0: (1.0, 1.0, 1.0), 1: (0.86, 0.86, 0.88), 2: (0.35, 0.33, 0.33), 3: SC.COL["blue"], 4: SC.COL["case"], 5: (0.55, 0.57, 0.60)}
+
+
+def _expo_image(cls):
+    img = np.array([EXPO_COL[k] for k in range(6)])[cls]
+    edge = np.zeros(cls.shape, bool)
+    o = cls >= 2
+    edge[1:] |= o[1:] != o[:-1]; edge[:-1] |= o[1:] != o[:-1]; edge[:, 1:] |= o[:, 1:] != o[:, :-1]; edge[:, :-1] |= o[:, 1:] != o[:, :-1]
+    img[edge] = (0.9, 0.05, 0.05)
+    return img
+
+
 def views():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
     man = json.loads(CANDIDATE.read_text()); body = F.Body(man)
-    old = json.loads(SC.CANDIDATE.read_text()); ob = F.Body(old)     # before = the selected body (input of apply)
+    old = json.loads((BEFORE if BEFORE.exists() else SC.CANDIDATE).read_text()); ob = F.Body(old)
     rows = _scene_rows(man)
     legend = [("torso shells", LIGHT["shell"]), ("upper-arm cover", LIGHT["cover"]), ("blue U (pitch link)", SC.COL["blue"]),
               ("green U (roll link)", SC.COL["green"]), ("roll servo case", SC.COL["case"]), ("horns", SC.COL["horn"]),
@@ -1078,10 +1377,12 @@ def views():
               ("cover-mount nuts", LIGHT["nut"])]
     lo, hi = np.array([62.0, -52.0, 296.0]), np.array([166.0, 60.0, 396.0])
     VIEWS.mkdir(parents=True, exist_ok=True)
-    # (a) before / after, 4 views
+    v4 = list(SC.VIEWS4[:3]) + [("OWNER CAMERA (front + outside, 49 deg above)", tuple(OWNER_CAM[0]), OWNER_CAM[1], None, None)]
+    # (a) before / after, 4 views + the open-area measure
+    expo = {}
     fig, axs = plt.subplots(2, 4, figsize=(28, 14.5), dpi=80)
     for r, (lab, b, rr) in enumerate((("BEFORE", ob, _scene_rows(old)), ("AFTER", body, rows))):
-        for c, (t, d, up, xl, yl) in enumerate(SC.VIEWS4):
+        for c, (t, d, up, xl, yl) in enumerate(v4):
             img, ext = SC._render(_posed(b, rr, {}), d, up, lo, hi, px_mm=0.16)
             ax = axs[r, c]; ax.imshow(img, extent=ext, interpolation="bilinear"); ax.set_title(f"{lab}: {t}", fontsize=12)
             if xl:
@@ -1089,26 +1390,76 @@ def views():
             else:
                 ax.axis("off")
     fig.legend(handles=[Patch(facecolor=c, edgecolor="#444444", label=l) for l, c in legend], loc="lower center", ncol=5, fontsize=12, frameon=False)
-    fig.suptitle("Right shoulder at standing, before / after: parametric upper-arm cover enclosing the green U, top trimmed about the roll axis, "
-                 "round torso opening about the pitch axis", fontsize=14)
+    fig.suptitle("Right shoulder at standing, before / after: upper-arm cover converging on the roll servo and ending at a rim about the roll "
+                 "axis; torso skin sloped in toward the pitch axis, opening R %.1f mm" % TORSO_SLOPE["R_end"], fontsize=14)
     fig.tight_layout(rect=(0, 0.05, 1, 0.97)); f1 = VIEWS / "shoulder-shells-before-after.png"; fig.savefig(f1, facecolor="white"); plt.close(fig)
-    print(f"wrote {SC._rel(f1)}")
-    # (b) range poses
+    print(f"wrote {SC._rel(f1)}", flush=True)
+    # (b) open area from outside at standing: before / after x front / side / owner camera
+    fig, axs = plt.subplots(2, 3, figsize=(27, 17), dpi=80)
+    for r, (lab, b) in enumerate((("BEFORE", ob), ("AFTER", body))):
+        for c, (t, d, up) in enumerate(EXPO_VIEWS):
+            st, cls, ext = exposure(b, {}, d, up)
+            expo[f"{lab.lower()} / {t}"] = st
+            ax = axs[r, c]; ax.imshow(_expo_image(cls), extent=ext, interpolation="nearest"); ax.axis("off")
+            ax.set_title(f"{lab}: {t}\nopen {st['open_mm2']:.0f} mm2 (blue U etc. {st['turning_parts_mm2']:.0f}, roll servo "
+                         f"{st['roll_servo_mm2']:.0f}, shell insides {st['shell_inner_faces_mm2']:.0f}, other {st['other_parts_mm2']:.0f}); "
+                         f"largest gap {st['largest_open_gap_mm']:.1f} mm", fontsize=11)
+    lg = [("shell outer skin", EXPO_COL[1]), ("shell inner face (through an opening)", EXPO_COL[2]), ("pitch-link parts (blue U, horns)", EXPO_COL[3]),
+          ("roll servo", EXPO_COL[4]), ("other inner parts", EXPO_COL[5]), ("edge of the open area", (0.9, 0.05, 0.05))]
+    fig.legend(handles=[Patch(facecolor=c, edgecolor="#444444", label=l) for l, c in lg], loc="lower center", ncol=6, fontsize=12, frameon=False)
+    fig.suptitle("Visible open area at the right shoulder, standing (window x 58..165, y -45..62, z 300..402): every pixel whose first hit is not "
+                 "a shell's outer skin", fontsize=14)
+    fig.tight_layout(rect=(0, 0.04, 1, 0.97)); f4 = VIEWS / "shoulder-shells-open-area.png"; fig.savefig(f4, facecolor="white"); plt.close(fig)
+    (VIEWS / "shoulder-shells-open-area.json").write_text(json.dumps(expo, indent=1) + "\n")
+    print(f"wrote {SC._rel(f4)}", json.dumps(expo), flush=True)
+    # (c) the owner's camera alone, before / after, opaque
+    fig, axs = plt.subplots(1, 2, figsize=(26, 13), dpi=80)
+    lo5, hi5 = np.array([20.0, -70.0, 250.0]), np.array([175.0, 75.0, 405.0])
+    for c, (lab, b, rr) in enumerate((("BEFORE", ob, _scene_rows(old) + _torso_rows(old)), ("AFTER", body, rows + _torso_rows(man)))):
+        img, ext = SC._render(_posed(b, rr, {}), OWNER_CAM[0], OWNER_CAM[1], lo5, hi5, px_mm=0.14)
+        axs[c].imshow(img, extent=ext, interpolation="bilinear"); axs[c].axis("off"); axs[c].set_title(f"{lab}: owner camera (front + outside, 49 deg above), standing", fontsize=14)
+    fig.legend(handles=[Patch(facecolor=c, edgecolor="#444444", label=l) for l, c in legend], loc="lower center", ncol=5, fontsize=12, frameon=False)
+    fig.tight_layout(rect=(0, 0.05, 1, 1)); f5 = VIEWS / "shoulder-shells-owner-camera.png"; fig.savefig(f5, facecolor="white"); plt.close(fig)
+    print(f"wrote {SC._rel(f5)}", flush=True)
+    # (d) range poses
     poses = [("pitch -60", {"R_shoulder_pitch": -60.0}), ("pitch +150", {"R_shoulder_pitch": 150.0}),
-             ("roll -15", {"R_shoulder_roll": -15.0}), ("roll +95", {"R_shoulder_roll": 95.0})]
-    vv = [("3/4 (front, outside, above)", (-0.75, 0.9, -0.55), (0, 0, 1)), ("FRONT (-y)", (0, 1, 0), (0, 0, 1)),
-          ("SIDE (+x)", (-1, 0, 0), (0, 0, 1))]
-    lo2, hi2 = np.array([55.0, -75.0, 270.0]), np.array([200.0, 80.0, 430.0])
-    fig, axs = plt.subplots(len(vv), len(poses), figsize=(28, 21), dpi=80)
+             ("roll -15", {"R_shoulder_roll": -15.0}), ("roll +95", {"R_shoulder_roll": 95.0}),
+             ("pitch +150, roll +95", {"R_shoulder_pitch": 150.0, "R_shoulder_roll": 95.0})]
+    vv = [("owner camera", tuple(OWNER_CAM[0]), OWNER_CAM[1]), ("FRONT (-y)", (0, 1, 0), (0, 0, 1)), ("SIDE (+x)", (-1, 0, 0), (0, 0, 1))]
+    lo2, hi2 = np.array([45.0, -80.0, 265.0]), np.array([200.0, 85.0, 440.0])
+    allrows = rows + _torso_rows(man)
+    fig, axs = plt.subplots(len(vv), len(poses), figsize=(34, 21), dpi=80)
     for c, (pl, q) in enumerate(poses):
-        sc = _posed(body, rows, q)
+        sc = _posed(body, allrows, q)
         for r, (t, d, up) in enumerate(vv):
             img, ext = SC._render(sc, d, up, lo2, hi2, px_mm=0.2)
             ax = axs[r, c]; ax.imshow(img, extent=ext, interpolation="bilinear"); ax.set_title(f"{pl}: {t}", fontsize=12); ax.axis("off")
     fig.legend(handles=[Patch(facecolor=c, edgecolor="#444444", label=l) for l, c in legend], loc="lower center", ncol=5, fontsize=12, frameon=False)
-    fig.suptitle(f"Right shoulder at the range ends (after): blue U >= {BLUE_CLEAR:g} mm from the cover trim (roll -15..95) and the torso opening (pitch -60..150)", fontsize=14)
+    fig.suptitle(f"Right shoulder at the range ends (after): the cover and the torso slope fitted for >= {RUN_CLEAR:g} mm running clearance "
+                 "(roll -15..95, pitch -60..150)", fontsize=14)
     fig.tight_layout(rect=(0, 0.04, 1, 0.97)); f2 = VIEWS / "shoulder-shells-range-poses.png"; fig.savefig(f2, facecolor="white"); plt.close(fig)
     print(f"wrote {SC._rel(f2)}")
+
+
+def _torso_rows(man):
+    """Torso-link parts near the right shoulder that show through its openings (pitch servo, chassis), mid grey."""
+    names = {p["name"]: p for p in man["parts"]}
+    keep = ("upper__R_pitch_C047_case", "upper__R_pitch_C047_rear_idler", "combined__stage1_center_torso_spine_chassis",
+            "combined__stage3_front_power_electronics_carrier")
+    return [(n, SC.COL["pitchcase"]) for n in keep if n in names and names[n].get("mesh")]
+
+
+def mount_views():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+    man = json.loads(CANDIDATE.read_text()); body = F.Body(man)
+    rows = _scene_rows(man)
+    legend = [("torso shells", LIGHT["shell"]), ("upper-arm cover", LIGHT["cover"]), ("blue U (pitch link)", SC.COL["blue"]),
+              ("green U (roll link)", SC.COL["green"]), ("roll servo case", SC.COL["case"]), ("horns", SC.COL["horn"]),
+              ("roll idler", SC.COL["idler"]), ("yaw servo case", SC.COL["pitchcase"]), ("sleeves / screws", SC.COL["sleeve"]),
+              ("cover-mount nuts", LIGHT["nut"])]
     # (c) the cover mount: green U with bosses, sleeves, nuts, screws (cover off), and sections through both mount axes
     rep = json.loads(REPORT.read_text()); dsg = rep["mounts"]
     mrows = [(n, c) for n, c in rows if n not in TORSO_SHELLS and not n.endswith("hard_cover")]
@@ -1159,4 +1510,4 @@ def views():
 
 
 if __name__ == "__main__":
-    {"fit-cover": fit_all, "apply": apply, "views": views}[sys.argv[1] if len(sys.argv) > 1 else "apply"]()
+    {"fit-cover": fit_all, "apply": apply, "views": views, "mount-views": mount_views}[sys.argv[1] if len(sys.argv) > 1 else "apply"]()
