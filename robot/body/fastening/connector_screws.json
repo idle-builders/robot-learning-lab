@@ -8,7 +8,7 @@
                        "owning_link": "{S}pitch_link", "name": "{S}A13_pitch_horn_M3x12_{i}", "head": "ISO 7380-1"},
     "A9_roll_horn": {"standard_part": "{S}roll_upper_horn_reference", "holes": ["STS3250.horn+y.1", "STS3250.horn+y.2", "STS3250.horn+y.3", "STS3250.horn+y.4"],
                      "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_0_{i}", "head": "ISO 7380-1"},
-    "A9_roll_idler": {"standard_part": "{S}roll_passive_idler_reference", "holes": ["STS3250.idler-y.1", "STS3250.idler-y.2", "STS3250.idler-y.3", "STS3250.idler-y.4"],
+    "A9_roll_idler": {"standard_part": "{S}roll_passive_idler_reference", "holes": ["STS3250.idler-y.1", "STS3250.idler-y.2", "STS3250.idler-y.4"],
                       "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_1_{i}", "head": "ISO 7380-1"}
    }
   },

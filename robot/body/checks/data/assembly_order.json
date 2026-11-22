@@ -128,18 +128,17 @@
       0.0,
       1.0
      ],
-     "derived": "hip order (lead 2026-11-20, roll-flip designer): the roll servo with its horn and idler as one unit rises into the Stage 5 U from below (+z): the arms' inner faces are 0.10 mm clear of the horn / idler faces per side (running fit), the screws close it"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): the roll servo with its horn and idler as one unit rises into the Stage 5 U from below (+z): the arms' inner faces are 0.10 mm clear of the horn / idler faces per side (running fit), the screws close it; the case's rear stub (r 3.0, 0.45 proud of the rear arm face) runs up a 0.6 mm insertion slot in the rear arm (2026-11-22)"
     },
     {
      "id": "s10",
      "screw": [
       "R_A9_hip_M3x4_1_0",
       "R_A9_hip_M3x4_1_1",
-      "R_A9_hip_M3x4_1_2",
-      "R_A9_hip_M3x4_1_3"
+      "R_A9_hip_M3x4_1_2"
      ],
      "direction": "screw axis",
-     "derived": "hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (4 screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference; driver path vs placed parts)"
+     "derived": "hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (3 idler screws since 2026-11-22: the (56, 183) one gave way to the stub's insertion slot; screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference; driver path vs placed parts)"
     },
     {
      "id": "s12",

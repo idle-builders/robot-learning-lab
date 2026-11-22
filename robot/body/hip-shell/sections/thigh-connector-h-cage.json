@@ -1,6 +1,6 @@
 {
  "title": "H-cage (built)",
- "suptitle": "R_thigh_roll_flip H-cage (owner 2026-11-19 / 11-20): roll case on its 2 lower ear screws per face, plates trimmed to z 177 above them; knee case on 2 medial + 2 lateral screws, the two wings mirrored about the knee case mid-plane; lateral cheek trimmed to the blue thigh shell",
+ "suptitle": "R_thigh_roll_flip H-cage (owner 2026-11-19 / 11-20 / 11-22): roll case on its 2 lower ear screws per face, plates trimmed to z 177 above them; knee case on 2 medial + 2 lateral screws, the two wings mirrored about the knee case mid-plane; lateral cheek flat (no shell-following slope)",
  "screws_used": {
   "roll_front": [
    [
@@ -95,11 +95,11 @@
   ]
  },
  "head_faces": {},
- "body": "mass 15.79 g PAHT-CF + 8 steel sleeves 1.05 g (was 15.85 g + 1.05 g)\nprint up -z (plate tops on the bed, brim): bed 94 mm2, centre of mass 17.6 mm\n  inside; support 1.95 g, 42.7 min (was up +x: 5.97 g, 58.7 min, COM outside)\nscrews: 4 x M2x8 roll ears (sleeve bores teardropped to -z); 4 x M2x5 knee,\n  mirrored, y -3 / 11, z 143, stack 1.17; dia 8 spot faces cut back through\n  the cheeks' lower and near edges (no 31.6 deg knife edges / 0.08 slivers)\nknee wings: rear-lower chamfer 2.4 (was 3.0): sleeve boss walls 1.46 / 1.26\n  medial / lateral (were 1.03 / 0.84)\nshell posts: tops flat-cut over the nut slot (walls 0.6, were 0.01 mm)\ngaps:\n  plate -> swept Stage 5 arm: 1.45 mm (roll -45..25; was 1.29)\n  cage -> swept shin, knee 0..110: 1.27 mm medial corner (was 1.69)\nFEM (roll_flip_checks fem, layer normal z):\n  min p99 strength ratio Bambu PAHT-CF 9.70 (layer x: 9.51),\n    legacy PETG-CF 7.39 (x: 7.08); across-layer 12.5 / 6.36 (x: 36 / 17)\n  peak 64 MPa (lateral cheek corner, knee stall)",
+ "body": "mass 15.11 g PAHT-CF + 8 steel sleeves 1.05 g (was 15.79 g + 1.05 g)\nprint up -z: bed 89 mm2, support 1.71 g, 40.9 min (was 1.95 g, 42.7)\nlateral cheek (owner 2026-11-22): outer face = head-seat plane x 74.33\n  (1.18 mm, heads on the face), 45 deg chamfer at z 147.5 to a 1.8 mm\n  band (x 76.13), 45 deg into the outboard wall at z 159; 0.28 mm\n  inside skin - 2.1 - 0.5 at its tightest\nscrews: 4 x M2x8 roll ears; 4 x M2x5 knee (y -3 / 11, z 143, stack 1.17)\ngaps: swept Stage 5 arm 1.45 mm; swept shin (knee 0..110) 1.25 mm;\n  thigh shells 0.80 mm (was 0.46)\nFEM 6 kg x 1.5 g, min p99 strength ratio (layer normal z):\n  PAHT-CF 8.92 (was 9.70), PETG-CF 6.84 (was 7.39); peak 50.7 MPa\n  at the cheek / bridge inner corner (x 73.1, z 153.2)",
  "callouts": {
   "secz": [
    {
-    "text": "lateral cheek trimmed to\nshell skin - 2.1 - 0.5\nM2x5 in dia 8 spot faces",
+    "text": "lateral cheek flat at the\nhead seat x 74.33 (1.18 mm),\nM2x5 heads on the face",
     "xy": [
      74.6,
      -3.0

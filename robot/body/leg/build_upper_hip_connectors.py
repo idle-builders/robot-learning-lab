@@ -743,11 +743,19 @@ RF_OUT_WALL_TOP = RF_PLATE_TOP - 1.0  # both end walls stop 1 mm under the plate
                                      # (plate inner face, wall face, shared top) under the 3D bevel, which crashed OCC
 RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
 RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
-RF_LAT_CHEEK_X1 = 79.4               # lateral cheek block before the shell trim: its outer face becomes the shell envelope
-RF_SHELL_CLEAR = 0.5                 # cage to the blue thigh shell's inner wall (same link, static; lead 2026-11-20):
-                                     # the lateral cheek is trimmed to the committed shell skin (thigh_shell.SURF) minus
-                                     # WALL + this (no flare at the knee end: the cage gives way, not the shell)
-RF_SHELL_TRIM_Z = (136.0, 166.0)     # heights of the trim envelope (lateral knee-cheek zone, x > 72)
+RF_LAT_CHEEK_X1 = 79.4               # lateral cheek block before rf_lat_cheek_section() cuts its outer side
+RF_SHELL_CLEAR = 0.5                 # cage to the blue thigh shell's inner wall (same link, static; lead 2026-11-20): the
+                                     # lateral cheek stays inside the committed shell skin (thigh_shell.SURF) minus WALL + this
+                                     # (no flare at the knee end: the cage gives way, not the shell)
+# Lateral knee cheek, flat (owner 2026-11-22: "the outside has a weird sloped part, what is the reason for that?"; it was
+# the cheek trimmed to the shell envelope, which narrows toward the knee). Now a constant XZ section along y: the outer
+# face is the vertical plane of the head seats (rf_lat_seat_x()) up to RF_LAT_BAND[0], a straight 45 deg chamfer out by
+# RF_LAT_BAND[1] (a band of constant section stiffening the cheek's top, where it hangs from the bridge), vertical again,
+# and a straight 45 deg chamfer back in to the outboard wall's outer face (RF_OUT_WALL_X[1]) at the bridge top
+# RF_BRIDGE_Z1 (self-supporting for print up -z; it stays under the outboard window, z 160). Every corner of the section
+# stays inside the shell envelope (rf_lat_cheek_envelope_margin()); no lateral spot faces (the face is the seat).
+RF_LAT_BAND = (147.5, 1.8)           # (z where the outward chamfer starts: above the dia 8 press-tip landing about the
+                                     # screws at z 143; chamfer leg / band thickness over the seat plane, mm; FEM-sized)
 RF_LAT_HEAD_K = 1.3                  # head height of the lateral screws (ISO 7380-1-style M2 button head, assumption):
                                      # the head seats in a dia RF_SPOT_D spot face so its top stays inside the envelope
 RF_SPOT_D = 8.0                      # = the press tool's heated tip (press_lib TIP_D): flat landing for pressing the sleeve
@@ -817,6 +825,11 @@ RF5_REAR_CHAMFER_YZ = [(31.5, 210.49), (22.0, 216.75), (19.5, 224.5)]
 RF5_PRINT_UP = (-1.0, 0.0, 0.0)       # Stage 5 print direction (part_settings process.up -x)
 RF5_ARM_GUSSET = 2.5                 # 45 deg gusset leg between each arm's top and the plate's inner face (0 = none)
 RF5_TEAR_TOP = 0.4                   # horizontal sleeve bores: flat-topped teardrop, roof this far above the circle (print up)
+# Rear stub insertion slot (rf5_stub_slot, owner 2026-11-22): the turned case's rear stub is a disc r 3.0 about the roll
+# axis, y 25.55..25.80 (shell-pass case mesh), 0.45 mm past the rear arm's inner face (RF5_IDLER_FACE_Y + RF5_RUN_FIT).
+RF5_STUB_R, RF5_STUB_Y = 3.0, 25.80
+RF5_STUB_CLEAR = (0.2, 0.15)         # slot half width = stub r + [0]; floor [1] beyond the stub tip (0.60 mm deep)
+RF5_SLOT_FLARE = 0.6                 # lead-in at the arm's lower edge: the slot widens this much per side
 
 
 def rf5_screws() -> dict:
@@ -1079,27 +1092,32 @@ def rf_med_seat_x() -> float:
     return round(xm - (rf_lat_seat_x() - xl), 3)
 
 
-def rf_shell_trim_cutter() -> Solid:
-    """Everything outside the committed shell skin minus WALL + RF_SHELL_CLEAR in the lateral knee-cheek zone (x > 72,
-    z RF_SHELL_TRIM_Z): the skin rings (thigh_shell.SURF) offset inward, lofted through smooth closed splines."""
-    from shapely.geometry import Polygon as SPoly
-    from build123d import Spline, Wire, Solid as BSolid
+def rf_lat_cheek_section_xz() -> list[tuple[float, float]]:
+    """XZ outline (x lateral, z up) of the region the lateral cheek and the bridge may fill (RF_LAT_BAND): seat plane, 45 deg
+    chamfer out, band face, 45 deg chamfer in to the outboard wall face at the bridge top; everything inboard of x 60 kept."""
+    xf = rf_lat_seat_x()
+    zc, c = RF_LAT_BAND
+    xw = RF_OUT_WALL_X[1]
+    zu = RF_BRIDGE_Z1 - (xf + c - xw)
+    assert zu > zc + c + 1.0, "lateral cheek band: the two chamfers meet"
+    return [(60.0, 120.0), (xf, 120.0), (xf, zc), (xf + c, zc + c), (xf + c, zu), (xw, RF_BRIDGE_Z1), (xw, 175.0), (60.0, 175.0)]
+
+
+def rf_lat_cheek_envelope_margin() -> dict:
+    """Smallest distance (mm, along x) from the lateral cheek's section corners to the shell envelope (skin - WALL -
+    RF_SHELL_CLEAR) over the cheek's y span, and where; > 0 = inside."""
     T = _thigh_shell()
-    d = T.WALL + RF_SHELL_CLEAR
-    th = np.linspace(-math.pi, math.pi, 360, endpoint=False)
-    wires = []
-    for z in np.arange(RF_SHELL_TRIM_Z[0], RF_SHELL_TRIM_Z[1] + 0.01, 2.0):
-        cx, cy, a, bf, bk, n, nk = T.surface(np.array([z]))[0]
-        b = np.where(np.sin(th) > 0, bk, bf); e = np.where(np.sin(th) > 0, nk, n)
-        c, s_ = np.cos(th), np.sin(th)
-        rr = 1.0 / (np.abs(c / a) ** e + np.abs(s_ / b) ** e) ** (1.0 / e)
-        ring = SPoly(np.c_[cx + rr * c, cy + rr * s_]).buffer(-d, join_style=1, resolution=32)
-        xy = np.asarray(ring.exterior.coords)[:-1]
-        k = np.linspace(0, len(xy), 120, endpoint=False).astype(int)
-        wires.append(Wire([Spline(*[(float(x), float(y), float(z)) for x, y in xy[k]], periodic=True)]))
-    env = BSolid.make_loft(wires)
-    zone = occ_box(72.0, 95.0, -25.0, 35.0, RF_SHELL_TRIM_Z[0] + 0.5, RF_SHELL_TRIM_Z[1] - 0.5)
-    return largest_solid(cut_all(zone, [env]))
+    r = T.WALL + RF_SHELL_CLEAR
+    sec = rf_lat_cheek_section_xz()[1:6]
+    worst = (1e9, None)
+    for (xa, za), (xb, zb) in zip(sec[:-1], sec[1:]):
+        for s in np.linspace(0.0, 1.0, 6):
+            x, z = xa + s * (xb - xa), max(RF_CHEEK_Z0, za + s * (zb - za))
+            for y in np.linspace(RF_CHEEK_Y[0], RF_CHEEK_Y[1], 8):
+                m = rf_shell_xmax(float(y), float(z), r) - x
+                if m < worst[0]:
+                    worst = (m, [round(x, 2), round(float(y), 2), round(z, 2)])
+    return {"min_mm": round(float(worst[0]), 3), "at_mm": worst[1]}
 
 
 def rf_defined_holes_cached(connector: str = "thigh_roll_flip") -> dict:
@@ -1233,8 +1251,10 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
             # the bridge is 0.5 mm narrower than the cheek and ends inside it (no coplanar side / end faces to fillet)
             extrude_xy_to_x(Polygon((cy0 + 0.5, z0), (cy1 - 0.5, z0), (cy1 - 0.5, RF_BRIDGE_Z1), (cy0 + 0.5, RF_BRIDGE_Z1),
                                     align=None).faces()[0], xw0, RF_KNEE_LAT_FACE_X + 2.15),
-            # lateral knee cheek on the case's lateral face (x 73.15 .. 77.3), hung from the bridge
+            # lateral knee cheek on the case's lateral face, hung from the bridge
             extrude_xy_to_x(rf_cheek_face(cy0, cy1, RF_CHEEK_Z0, RF_BRIDGE_Z1), RF_KNEE_LAT_FACE_X, RF_LAT_CHEEK_X1)]
+    # bridge + cheek cut to the flat section (RF_LAT_BAND) as one piece, so its outer faces are single planes
+    late = [late[0], largest_solid(occ_common(fuse_all(late[1:]), poly_prism_y(rf_lat_cheek_section_xz(), -40.0, 50.0)))]
     new_sol = bevel_3d_edges(largest_solid(fuse_all([new_sol, *late])), r_outer=0.40, r_inner=0.75)
 
     # 5. Knee interface. Medial: the end of the current (motor-refit) thigh's end block (above z 155.5) and the medial
@@ -1275,13 +1295,12 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
         post_cut.append(occ_cyl((ax_ - 1.5 * d, ay_, az_), (bx_ + 1.0 * d, by_, bz_), RF_SLEEVE_R))
         sleeves.append(rf_sleeve(s["sleeve"][0], s["sleeve"][1]))
     res = largest_solid(cut_all(fuse_all([new_sol, knee, *posts]), post_cut))
-    # 7. The lateral cheek gives way to the shell (owner 2026-11-20: no flare at the knee end): trimmed to the shell skin
-    #    minus WALL + RF_SHELL_CLEAR; the lateral screw heads seat in press-tip-wide spot faces at rf_lat_seat_x(), the
-    #    medial ones in the mirrored spot faces at rf_med_seat_x()
-    seat, seat_m = rf_lat_seat_x(), rf_med_seat_x()
-    spots = [rf_spot_face(seat, 95.0, s["opening"][1], s["opening"][2]) for s in screws if s["group"] == "knee_case_lateral"]
-    spots += [rf_spot_face(RF_CHEEK_X0 - 5.0, seat_m, s["opening"][1], s["opening"][2]) for s in screws if s["group"] == "knee_case"]
-    res = largest_solid(cut_all(res, [rf_shell_trim_cutter(), *spots]))
+    # 7. The lateral screw heads seat on the lateral cheek's flat outer face (the plane rf_lat_seat_x(), step 4); the medial
+    #    ones in press-tip-wide spot faces at rf_med_seat_x(), the mirror of that plane (the medial cheek's outer face x 29.0
+    #    is flat already, 2.98 mm proud of the seat)
+    seat_m = rf_med_seat_x()
+    spots = [rf_spot_face(RF_CHEEK_X0 - 5.0, seat_m, s["opening"][1], s["opening"][2]) for s in screws if s["group"] == "knee_case"]
+    res = largest_solid(cut_all(res, spots))
     return res, sleeves
 
 
@@ -1368,12 +1387,14 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
         cutters.append(occ_cyl((x_seat, by_c, bz_c), (x1 + 28.0, by_c, bz_c), RF5_CBORE_R))
         sleeves.append(largest_solid(cut_all(occ_cyl((x_face, by_c, bz_c), (x_seat, by_c, bz_c), RF5_SLEEVE_R),
                                              [occ_cyl((x_face - 0.5, by_c, bz_c), (x_seat + 0.5, by_c, bz_c), RF5_SLEEVE_BORE_R)])))
-    for hf, hr in zip(horn, idler):   # 4 roll horn M3 (front, -Y drivers) + 4 roll idler M3 (rear, +Y drivers)
-        # sleeves through the whole arm, flush with both faces (flat press-tip landing, heads on the outer face)
+    # 4 roll horn M3 (front, -Y drivers) + 3 roll idler M3 (rear, +Y drivers; connector_screws.json): sleeves through the
+    # whole arm, flush with both faces (flat press-tip landing, heads on the outer face)
+    for hf in horn:
         bx_c, _, bz_c = hf["opening"]
         cutters.append(rf_teardrop((bx_c, yfo - 2.0, bz_c), (bx_c, yfi + 1.0, bz_c), RF5_SLEEVE_R, RF5_PRINT_UP))
         sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yfo, bz_c), (bx_c, yfi, bz_c), RF5_SLEEVE_R),
                                              [occ_cyl((bx_c, yfo - 0.5, bz_c), (bx_c, yfi + 0.5, bz_c), RF5_SLEEVE_BORE_R)])))
+    for hr in idler:
         bx_c, _, bz_c = hr["opening"]
         cutters.append(rf_teardrop((bx_c, yri - 1.0, bz_c), (bx_c, yro + 2.0, bz_c), RF5_SLEEVE_R, RF5_PRINT_UP))
         sleeves.append(largest_solid(cut_all(occ_cyl((bx_c, yri, bz_c), (bx_c, yro, bz_c), RF5_SLEEVE_R),
@@ -1381,8 +1402,23 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     res = bevel_3d_edges(largest_solid(cut_all(body, cutters)), r_outer=0.40, r_inner=0.75)
     # the front hub flat (RF_FRONT_HUB_TOP, yaw-link column at hip pitch -90) also trims the front clamp disc
     hub_flat = rf5_hub_flat(efo - 1.0, yfi + 1.0)
-    res = largest_solid(cut_all(fuse_all([res, *steps_add]), steps_cut + cutters + [hub_flat]))
+    res = largest_solid(cut_all(fuse_all([res, *steps_add]), steps_cut + cutters + [hub_flat, rf5_stub_slot(yri)]))
     return res, sleeves
+
+
+def rf5_stub_slot(y_face: float) -> Solid:
+    """Insertion slot for the roll case's rear stub in the rear arm's inner face (owner 2026-11-22 "Yeah fix that", lead
+    option 1): the stub (r RF5_STUB_R about the roll axis, out to y RF5_STUB_Y) stands past the arm face y_face, so the
+    servo unit rising along +z met the arm's lower edge 15.3 mm before its seat. The slot runs straight up from below the
+    arm to the axis (it ends inside the centre hole, r RF_ROLL_CENTRE_R_REAR > the slot half width), floor RF5_STUB_CLEAR[1]
+    beyond the stub, half width r + RF5_STUB_CLEAR[0]; its entry at the arm's lower edge flares out RF5_SLOT_FLARE per side
+    (lead-in). The idler screw that sat on this path ((56, 183), STS3250.idler-y.3) is dropped (connector_screws.json)."""
+    w = RF5_STUB_R + RF5_STUB_CLEAR[0]
+    z_edge = RF_AZ - RF_ROLL_HUB_R                       # arm hub's lowest point
+    f = RF5_SLOT_FLARE
+    xz = [(RF_AX - w - f, z_edge - 2.0), (RF_AX - w - f, z_edge - f), (RF_AX - w, z_edge + 2.0 * f), (RF_AX - w, RF_AZ),
+          (RF_AX + w, RF_AZ), (RF_AX + w, z_edge + 2.0 * f), (RF_AX + w + f, z_edge - f), (RF_AX + w + f, z_edge - 2.0)]
+    return poly_prism_y(xz, y_face - 1.0, RF5_STUB_Y + RF5_STUB_CLEAR[1])
 
 
 def rf5_screw_rows() -> list[dict]:
@@ -1520,7 +1556,9 @@ def build_roll_flip(stage5_only: bool = False):
                    "post_nut_pockets": {"shift_front_rear_mm": list(RF_POST_NUT_SHIFT), "pocket_h_mm": RF_NUT_POCKET_H,
                                         "tip_wall_mm": [round(abs(rf_post_nut_face(t, n) - t), 3) for _, t, n in (RF_POSTS[0], RF_POSTS_R[0])],
                                         "insertion": "slot open +z through the post top"}, "outboard_wall_x": list(RF_OUT_WALL_X), "bridge_z": [RF_PLATE_Z0, RF_BRIDGE_Z1],
-                   "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "shell envelope"], "lateral_seat_x": rf_lat_seat_x(),
+                   "lateral_cheek_x": [RF_KNEE_LAT_FACE_X, "flat section"], "lateral_cheek_section_xz": [[round(a, 3), round(b, 3)] for a, b in rf_lat_cheek_section_xz()[1:6]],
+                   "lateral_cheek_band_z_c_mm": list(RF_LAT_BAND), "lateral_cheek_envelope_margin": rf_lat_cheek_envelope_margin(),
+                   "lateral_seat_x": rf_lat_seat_x(),
                    "medial_cheek_x": [RF_CHEEK_X0, RF_KNEE_FACE_X], "medial_seat_x": rf_med_seat_x(),
                    "shell_clear_mm": RF_SHELL_CLEAR, "shin_chamfer_mm": RF_SHIN_CHAMFER,
                    "key_pocket_clearance_mm": RF_KEY_CLEAR, "roll_sweep_deg": list(RF_ROLL_SWEEP),

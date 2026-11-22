@@ -303,7 +303,7 @@
       "steel_sleeves": null
     },
     "fem": {
-      "_doc": "Roll-flip Stage 5 (hip pitch to roll). Support: the 4 pitch-horn screws; load: the roll horn / idler screws (A9 hip M3x4, 2 x 4). Migrated from roll_flip_checks.fem_specs stage5_roll_flip.",
+      "_doc": "Roll-flip Stage 5 (hip pitch to roll). Support: the 4 pitch-horn screws; load: the roll horn / idler screws (A9 hip M3x4, 4 horn + 3 idler since 2026-11-22: the (56, 183) idler screw gave way to the case stub's insertion slot). Migrated from roll_flip_checks.fem_specs stage5_roll_flip.",
       "mesh_h_mm": 2.2,
       "bonded": [
         {
@@ -344,8 +344,7 @@
           "R_A9_hip_M3x4_0_3",
           "R_A9_hip_M3x4_1_0",
           "R_A9_hip_M3x4_1_1",
-          "R_A9_hip_M3x4_1_2",
-          "R_A9_hip_M3x4_1_3"
+          "R_A9_hip_M3x4_1_2"
         ],
         "gap_mm": 2.0,
         "rigid": true
@@ -513,8 +512,7 @@
               "R_A9_hip_M3x4_0_3",
               "R_A9_hip_M3x4_1_0",
               "R_A9_hip_M3x4_1_1",
-              "R_A9_hip_M3x4_1_2",
-              "R_A9_hip_M3x4_1_3"
+              "R_A9_hip_M3x4_1_2"
             ],
             "gap_mm": 2.0
           }
