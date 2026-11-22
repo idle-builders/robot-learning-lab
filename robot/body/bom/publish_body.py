@@ -355,6 +355,9 @@ def main():
     if a.publish:
         if not main_checkout() or a.definitions:
             raise SystemExit("publish runs from the main checkout on its own definitions; this copy writes the record with --out only")
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", *sources(D, study)], cwd=ROOT, capture_output=True, text=True).stdout
+        if dirty:
+            raise SystemExit("the record's sources have uncommitted changes (their last commit is the version); commit them first:\n" + dirty)
         if not glb_state(sha_file(ROOT / mp))[1]:
             print("display GLB is stale: packaging it under memguard", flush=True)
             subprocess.run(["python3", "infra/tools/memguard.py", "--limit-gb", "6", "--timeout-s", "1800", "--",
