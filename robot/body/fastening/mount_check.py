@@ -54,13 +54,45 @@ R_MAX = 8.0          # radial probe range (mm)
 RECESS_MM = 0.5      # a station this much wider than the narrowest is a pocket on the screw axis (nut trap, counterbore), not the bore
 N_ANG = 16           # axial rays per ring
 SEARCH = 5.0         # parts whose box comes within this of the screw's box are probed (mm)
+RAY_CLEAR_MM = 0.1   # axial layer rays keep this far from the bore / recess wall radius of every part in the clamp chain
 
 
 # ------------------------------------------------------------------------------------------------ classification
+_DEFS: list | None = None
+_SPEC: dict = {}
+
+
+def definition_spec(name: str) -> dict:
+    """The hardware spec (kind, thread, family, length_mm, standard ...) that the body definition claiming part `name`
+    declares (robot/**/<builder>.bom.yaml via robot/body/bom/definitions.py, first claim wins as in its claims()); {}
+    when no definition claims it as hardware or the definitions cannot be read."""
+    global _DEFS
+    if name in _SPEC:
+        return _SPEC[name]
+    if _DEFS is None:
+        try:
+            sys.path.insert(0, str(ROOT / "robot/body/bom"))
+            import definitions as DEF
+            _DEFS = [(DEF.names_of(e["match"]), e) for e in DEF.load().entries]
+        except Exception:  # noqa: BLE001  (no definitions readable: the screw_plan and the name alone)
+            _DEFS = []
+    import fnmatch
+    e = next((e for pats, e in _DEFS if any(fnmatch.fnmatchcase(name, p) for p in pats)), None)
+    _SPEC[name] = (e.get("spec") or {}) if e and e.get("kind") == "hardware" else {}
+    return _SPEC[name]
+
+
 def kind(p) -> str | None:
-    """screw / washer / nut / spacer / None (not hardware) from role and name."""
+    """screw / washer / nut / spacer / other_hardware / None (not hardware). Hardware by role; which hardware: the kind
+    its body definition declares, else a screw_plan (a builder placed it as a screw), else the name (a thread token, with
+    or without length, or a `screw` token make a screw)."""
     if p["role"] not in HARDWARE_ROLES:
         return None
+    sk = definition_spec(p["name"]).get("kind")
+    if sk:
+        return sk if sk in ("screw", "washer", "nut", "spacer") else "other_hardware"
+    if p.get("screw_plan"):
+        return "screw"
     n = p["name"].lower()
     if "washer" in n:
         return "washer"
@@ -68,13 +100,14 @@ def kind(p) -> str | None:
         return "nut"
     if "spacer" in n or "standoff" in n:
         return "spacer"
-    if SCREW_RE.search(p["name"]):
+    if SCREW_RE.search(p["name"]) or nominal(p["name"]).get("thread") or re.search(r"(^|_)screw(_|\d|$)", n):
         return "screw"
     return "other_hardware"
 
 
 def nominal(name: str) -> dict:
-    """Thread family and nominal length from a name such as R_knee_ST3025_PA2x8_0 or compute_M2p5_CS30_1."""
+    """Thread family and nominal length from a name such as R_knee_ST3025_PA2x8_0 or compute_M2p5_CS30_1 (the name
+    token only; screw_spec() says what the screw is)."""
     m = NOMINAL_RE.search(name)
     if not m:
         return {}
@@ -84,6 +117,29 @@ def nominal(name: str) -> dict:
     if m.group(2):
         d["nominal_length_mm"] = float(m.group(2).replace("p", "."))
     return d
+
+
+def screw_spec(p) -> dict:
+    """Thread family (M2 / M2.5 / M3 / PA2 ...), nominal length and head standard of a screw part: its screw_plan (written by
+    the builder that placed it), else the spec of its body definition, else the name token (names can carry stale
+    lengths). spec_source says which; name_length_mm is the name's length where it differs."""
+    pl = p.get("screw_plan") or {}
+    sp = definition_spec(p["name"])
+    nm = nominal(p["name"])
+    if pl.get("thread_label"):
+        out = dict(thread=pl["thread_label"], nominal_length_mm=pl.get("length_mm"), head_standard=pl.get("head_standard"), spec_source="screw_plan")
+    elif sp.get("kind") == "screw" and sp.get("thread"):
+        th = ("PA" + sp["thread"].lstrip("M")) if sp.get("family") == "PA" else sp["thread"]
+        out = dict(thread=th, nominal_length_mm=sp.get("length_mm"), head_standard=sp.get("standard"), spec_source="definition")
+    elif nm:
+        return dict(nm, spec_source="name")
+    else:
+        return {}
+    if out["nominal_length_mm"] is None:
+        out.pop("nominal_length_mm")
+    if nm.get("nominal_length_mm") is not None and nm["nominal_length_mm"] != out.get("nominal_length_mm"):
+        out["name_length_mm"] = nm["nominal_length_mm"]
+    return out
 
 
 # ------------------------------------------------------------------------------------------------ screw geometry
@@ -149,8 +205,55 @@ def rays_for(mesh):
 
 
 # ------------------------------------------------------------------------------------------------ probes
+FIT_TOL_MM = 0.02     # a ray lies on the fitted bore circle within this, or within FIT_TOL_REL x its radius (a bore tessellated
+FIT_TOL_REL = 0.02    # as a 12-gon deviates +-0.017 r; ROCK4D's stray wedges stand 0.1-0.25 mm into its 1.35 mm bores)
+
+
+def _circle(p):
+    A = np.c_[2 * p, np.ones(len(p))]
+    sol, *_ = np.linalg.lstsq(A, (p ** 2).sum(1), rcond=None)
+    cx, cy = sol[:2]
+    return cx, cy, math.sqrt(max(sol[2] + cx * cx + cy * cy, 0.0))
+
+
+def robust_circle(p, tol=FIT_TOL_MM, rel=FIT_TOL_REL, min_share=1 / 3):
+    """Circle through the ray hits p (2D, mm) of one depth that most hits lie on: the circumcircle of every triple of hits
+    is a candidate, the one with the most hits within max(tol, rel x r) wins (then the smaller rms), refitted by least
+    squares to those hits. Stray triangle wedges inside a mount hole and rays escaping through gaps of an open supplier
+    mesh (ROCK4D: 1.1-1.2 mm wedges and 3-24 mm escapes around a 1.35 mm bore) no longer move the centre.
+    Returns (cx, cy, r, hits on the circle), or None when fewer than min_share of N_DIR hits lie on one circle."""
+    import itertools
+    n = len(p)
+    if n < 3 or n < N_DIR * min_share:
+        return None
+    tri = np.array(list(itertools.combinations(range(n), 3)))
+    A, B, C = p[tri[:, 0]], p[tri[:, 1]], p[tri[:, 2]]
+    dd = 2 * (A[:, 0] * (B[:, 1] - C[:, 1]) + B[:, 0] * (C[:, 1] - A[:, 1]) + C[:, 0] * (A[:, 1] - B[:, 1]))
+    ok = np.abs(dd) > 1e-9
+    a2, b2, c2 = (A ** 2).sum(1), (B ** 2).sum(1), (C ** 2).sum(1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ux = (a2 * (B[:, 1] - C[:, 1]) + b2 * (C[:, 1] - A[:, 1]) + c2 * (A[:, 1] - B[:, 1])) / dd
+        uy = (a2 * (C[:, 0] - B[:, 0]) + b2 * (A[:, 0] - C[:, 0]) + c2 * (B[:, 0] - A[:, 0])) / dd
+    rr = np.hypot(A[:, 0] - ux, A[:, 1] - uy)
+    ok &= rr < R_MAX
+    if not ok.any():
+        return None
+    ux, uy, rr = ux[ok], uy[ok], rr[ok]
+    res = np.abs(np.hypot(p[None, :, 0] - ux[:, None], p[None, :, 1] - uy[:, None]) - rr[:, None])
+    inl = res <= np.maximum(tol, rel * rr)[:, None]
+    cnt = inl.sum(1)
+    rms = np.sqrt((np.where(inl, res, 0.0) ** 2).sum(1) / np.maximum(cnt, 1))
+    best = int(np.lexsort((rms, -cnt))[0])
+    keep = inl[best]
+    if keep.sum() < N_DIR * min_share:
+        return None
+    cx, cy, r = _circle(p[keep])
+    return cx, cy, r, int(keep.sum())
+
+
 def radial_probe(mesh, rays, head, d, t_lo, t_hi):
-    """Per depth: state (free / solid / none), fitted hole radius and centre offset from the axis."""
+    """Per depth: state (hole / pocket / solid / partial / none); for a hole the fitted bore radius, its centre offset from
+    the axis and the number of rays on the fitted circle (robust_circle); a pocket is a wide opening with no round bore."""
     u, w = basis(d)
     ang = np.linspace(0, 2 * np.pi, N_DIR, endpoint=False)
     dirs = np.outer(np.cos(ang), u) + np.outer(np.sin(ang), w)
@@ -176,12 +279,13 @@ def radial_probe(mesh, rays, head, d, t_lo, t_hi):
             row["state"] = "solid"
         elif enter.sum() >= N_DIR * 0.5:
             p = dist[i, enter, None] * (np.cos(ang[enter])[:, None] * [1, 0] + np.sin(ang[enter])[:, None] * [0, 1])
-            A = np.c_[2 * p, np.ones(len(p))]
-            sol, *_ = np.linalg.lstsq(A, (p ** 2).sum(1), rcond=None)
-            cx, cy = sol[:2]
-            rad = math.sqrt(max(sol[2] + cx * cx + cy * cy, 0.0))
-            row.update(state="hole", hole_r=rad, offset=math.hypot(cx, cy), r_min=float(dist[i, enter].min()),
-                       offset_vec=(cx * u + cy * w))
+            fit = robust_circle(p)
+            row["r_min"] = float(dist[i, enter].min())
+            if fit is None:              # no round bore at this depth: a hex nut trap, a slot, a pocket wall seen through gaps
+                row["state"] = "pocket"
+            else:
+                cx, cy, rad, n_fit = fit
+                row.update(state="hole", hole_r=rad, offset=math.hypot(cx, cy), n_fit=n_fit, offset_vec=(cx * u + cy * w))
         else:
             row["state"] = "none" if hit.sum() == 0 else "partial"
             if enter.any():
@@ -279,7 +383,7 @@ DRIVER_L = 40.0     # mm of straight access behind the head for a screwdriver / 
 
 def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, scenes):
     p = body.parts[name]
-    nom = nominal(name)
+    nom = screw_spec(p)
     g = screw_geometry(meshes[name])
     head, d, L = g.pop("_head"), g.pop("_d"), g["length_mm"]
     rh, hh = g["r_head_mm"], g["head_height_mm"]
@@ -291,15 +395,18 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
         rad = radial_probe(meshes[c], rayss[c], head, d, t_lo, t_hi)
         on_shank = [x for x in rad if shank[0] + 0.1 <= x["t"] <= shank[1] - 0.3]
         holes = [x for x in on_shank if x["state"] == "hole" and x["hole_r"] < rs + 3.0]
+        pockets = [x for x in on_shank if x["state"] == "pocket" and x["r_min"] < rs + 3.0]
         solid = [x for x in on_shank if x["state"] == "solid"]
-        if not holes and not solid:
+        if not holes and not solid and not pockets:
             continue
         thread = [x for x in holes if x["hole_r"] < rs - 0.05]
         clear = [x for x in holes if x["hole_r"] >= rs - 0.05]
+        span = holes + pockets + solid
         pr = dict(role=body.parts[c]["role"], hardware=kinds.get(c),
-                  t_range_mm=[round(min(x["t"] for x in holes + solid), 2), round(max(x["t"] for x in holes + solid) + DT, 2)],
+                  t_range_mm=[round(min(x["t"] for x in span), 2), round(max(x["t"] for x in span) + DT, 2)],
                   solid_on_axis_mm=round(len(solid) * DT, 2), thread_overlap_mm=round(len(thread) * DT, 2),
                   clearance_len_mm=round(len(clear) * DT, 2))
+        recess = []
         if holes:
             # the bore is the narrowest stretch; stations wider by more than RECESS_MM are a pocket on the same axis (nut trap,
             # counterbore, head recess): their circle fit says nothing about where the bore sits, so they are reported apart
@@ -308,13 +415,19 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
             recess = [x for x in holes if x["hole_r"] > rmin + RECESS_MM]
             hr = np.array([x["hole_r"] for x in bore]); of = np.array([x["offset"] for x in bore])
             pr.update(hole_dia_mm=round(2 * float(np.median(hr)), 3), axis_offset_mm=round(float(np.median(of)), 3),
-                      axis_offset_max_mm=round(float(of.max()), 3), radial_clearance_mm=round(float(np.median(hr)) - rs, 3))
+                      axis_offset_max_mm=round(float(of.max()), 3), radial_clearance_mm=round(float(np.median(hr)) - rs, 3),
+                      bore_stations=len(bore), bore_rays_on_circle_min=min(x["n_fit"] for x in bore))
             if recess:
-                pr.update(recess_len_mm=round(len(recess) * DT, 2), recess_dia_mm=round(2 * float(np.median([x["hole_r"] for x in recess])), 3))
+                pr.update(recess_dia_mm=round(2 * float(np.median([x["hole_r"] for x in recess])), 3))
             if len(bore) >= 4 and bore[-1]["t"] - bore[0]["t"] > 0.4:
                 tt = np.array([x["t"] for x in bore]); ov = np.array([x["offset_vec"] for x in bore])
                 slope = np.polyfit(tt, ov, 1)[0]                 # least-squares drift of the bore centre per mm of depth (3 components)
                 pr["axis_tilt_deg"] = round(math.degrees(math.atan(float(np.linalg.norm(slope)))), 2)
+        if recess or pockets:          # pockets: wide openings with no round bore (hex nut traps); r_min is their narrowest
+            pr["recess_len_mm"] = round((len(recess) + len(pockets)) * DT, 2)
+            if pockets:
+                pr["pocket_len_mm"] = round(len(pockets) * DT, 2)
+                pr["pocket_r_min_mm"] = round(min(x["r_min"] for x in pockets), 3)
         parts[c] = pr
     stack = sorted(parts, key=lambda c: parts[c]["t_range_mm"][0])
 
@@ -372,6 +485,12 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     if tpart:
         level_of[tpart] = len(levels) + 1
     radii = sorted({round(x, 2) for x in (rs + 0.3, rs + 0.7, (rs + rh) / 2 + 0.2, rh - 0.1, rh + 0.6, rh + 1.5) if x > rs + 0.2})
+    # no ray within RAY_CLEAR_MM of a chain part's bore or recess wall: a ray grazing the bore a sleeve sits in reads the
+    # sleeve's outer skin as 0-0.44 mm segments (M2.5 ISO 4762: (rs + rh) / 2 + 0.2 = 1.95 against a 3.96 mm bore); moved
+    # inward first, then outward
+    wall_r = [v / 2 for c in chain if c in parts for v in (parts[c].get("hole_dia_mm"), parts[c].get("recess_dia_mm")) if v]
+    radii = sorted({round(next((y for y in (x, x - RAY_CLEAR_MM, x + RAY_CLEAR_MM, x - 2 * RAY_CLEAR_MM, x + 2 * RAY_CLEAR_MM)
+                                if y > rs + 0.2 and all(abs(y - wr) >= RAY_CLEAR_MM - 1e-9 for wr in wall_r)), x), 2) for x in radii})
     seg = {c: axial_segments(meshes[c], rayss[c], head, d, radii, t_lo - 2.0, t_hi) for c in chain if c in meshes}
     contacts, overlaps = {}, {}
     for r in radii:
@@ -387,7 +506,10 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                     if (np.isfinite(a0) and np.isfinite(a1) and np.isfinite(b0) and np.isfinite(b1)   # closed segments only
                             and b0 < a1 - 1e-3 and (ca, cb) != (name, tpart)):
                         overlaps.setdefault((ca, cb), []).append(-(min(a1, b1) - max(a0, b0)))   # -overlap length
-                    if level_of[cb] == level_of[ca] + 1 and np.isfinite(a1) and np.isfinite(b0):
+                    # a layer pair is the upper part's segment that ends last among those starting before the lower part: an
+                    # earlier segment of the same part (a component on a board, the far face of a flange) is not the face that bears
+                    if (level_of[cb] == level_of[ca] + 1 and np.isfinite(a1) and np.isfinite(b0)
+                            and a1 >= max((e1 for e0, e1, ce in evs if ce == ca and e0 < b0 and np.isfinite(e1)), default=a1) - 1e-6):
                         contacts.setdefault((ca, cb), []).append(b0 - a1)
     pairs = []
     for (a, b), v in contacts.items():
@@ -402,6 +524,18 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
         servo = I.MOTOR_ROLES
         pairs.append(dict(upper=a, lower=b, interface=False, min_gap_mm=round(float(gaps.min()), 3), rays=len(v),
                           same_servo=body.parts[a]["role"] in servo and body.parts[b]["role"] in servo))   # spline fit
+    # a level is a part with the sleeves pressed into it: the stack clamps where any of them bears on the next level, so each
+    # interface also carries the level's gap (the smallest of its parts' gaps) and whether it is the part that bears (a sleeve
+    # end over a counterbore reads +3.7 mm while the plate around it sits on the fan face)
+    lv_gap = {}
+    for x in pairs:
+        if x["interface"]:
+            k = (level_of[x["upper"]], level_of[x["lower"]])
+            lv_gap[k] = min(lv_gap.get(k, np.inf), x["min_gap_mm"])
+    for x in pairs:
+        if x["interface"]:
+            g_ = lv_gap[(level_of[x["upper"]], level_of[x["lower"]])]
+            x.update(level_gap_mm=g_, bears=x["min_gap_mm"] == g_)
     pairs.sort(key=lambda x: (level_of.get(x["upper"], 99), level_of.get(x["lower"], 99)))
     seat = [x for x in pairs if x["upper"] == name and x["interface"]]
     seat = min(seat, key=lambda x: abs(x["min_gap_mm"])) if seat else None
@@ -488,8 +622,8 @@ def findings(r) -> list[dict]:
             continue                                   # the head seat, above
         if c["min_gap_mm"] < -REF["gap_mm"] and not c.get("same_servo"):
             add("layers_interpenetrate_mm", c["min_gap_mm"], f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")
-        elif c["interface"] and c["min_gap_mm"] > REF["gap_mm"]:
-            add("layers_gap_mm", c["min_gap_mm"], f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")
+        elif c["interface"] and c.get("bears", True) and c.get("level_gap_mm", c["min_gap_mm"]) > REF["gap_mm"]:
+            add("layers_gap_mm", c["min_gap_mm"], f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")   # once per level pair: its bearing part
     for sl in r["sleeves"]:
         if sl["sleeve"] is None:
             add("clamped_printed_hole_without_sleeve", sl["clamped_len_mm"], "a steel sleeve", sl["printed_part"])
