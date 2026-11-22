@@ -271,6 +271,8 @@ def build(manifest_path, hardware_json=None, assembly_report_path=None, definiti
                 contains_per_part[n][c["line"]] += c["quantity"]
         if e["kind"] == "hardware" and e.get("make_buy") == "buy" and not e.get("spec"):
             D.find("hardware_without_spec", e["file"], f"parts[{e['index']}] line {e['line']}", f"{len(hit)} hardware part(s) with no declared spec")
+    if not any(g.get("manifest_out") == manifest_path for g in D.generators):
+        D.find("manifest_without_generator", None, None, f"{manifest_path}: no definition declares a generator with this manifest_out (the rebuild cannot recreate it)")
     for g, inp, exists in D.external_inputs():
         if not exists:
             D.find("input_missing", g["file"], g["id"], f"input {inp} is written by no generator and not on disk")
