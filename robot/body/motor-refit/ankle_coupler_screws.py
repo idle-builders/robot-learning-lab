@@ -1,4 +1,4 @@
-"""Ankle coupler (R/L_ankle_coupler_combined): the four foot-roll horn screws mountable, the sleeves pressable (Idle T-9wpegg).
+"""Ankle coupler (R/L_ankle_coupler_combined): the four foot-roll horn screws and the eight ankle-pitch wheel screws mountable, the sleeves pressable (Idle T-9wpegg, T-kmcn4j).
 
 The part comes from the motor refit (motor_refit.py: r1 coupler, roll-horn plate padded 3 mm at the back). Its four
 NBK M3x4 screws were modelled with the head underside 0.8 mm inside the steel sleeve (head top on the sleeve end), reached
@@ -18,7 +18,21 @@ registered horn (robot/actuators/interfaces/standard-parts.json, ST3215.horn+y.1
             on the thin side of the plate (no pad) gets a boss up to the plane.
   walls     the horn centre pocket is closed from r 4.5 to CENTRE_R between the floor and the horn face, so the printed
             wall between pocket and sleeve is 7 - CENTRE_R - 2.25 (two line widths = 0.84 at the 0.4 nozzle).
-The eight ankle-pitch (ST3025 wheel) sleeves of the part and their cavity are not touched.
+
+The ankle-pitch side (Idle T-kmcn4j): the plate clamps to the ST3025 output wheel with 8 sleeves, 4 on the horn flange
+(ST3025.horn+z.1-4, through 3.0 thick, reference engagement 2.95) and 4 on the idler flange (ST3025.idler-z.1-4, through,
+reference 3.5), and had no screws. The horn side plate floated 2.0 mm above the flange face (the sleeves ended on the
+horn hub plane, not on the flange); the walls between sleeve and central hole were 0.25 mm. Same recipe as above, along x:
+  holes     the hole positions of the registered LEFT wheel (accurate: rms 0.05 mm) mirrored to the right, because the right
+            wheel instance is registered as the horn alone (fit_rms 0.21, no idler holes, mount_check interfaces.py).
+  screws    4 + 4 x ISO 7380-1 M3x6 (screw_plan standard lengths; stack = L - point - reference engagement: horn 2.55, idler
+            2.0; the plate is not thickened, the longest length whose stack fits), connector entry ankle_coupler_combined groups ST3025_horn / ST3025_idler in connector_screws.json.
+  bosses    printed boss of radius EAR_R from the measured wheel face to the head seat under every sleeve (horn side: 2.0 mm
+            long, clipped to the horn hub's radius + clearance; both clipped to a cylinder about the wheel axis SHIN_CLEAR inside the
+            own shin's bore, measured from the shin mesh), so the sleeves end on the flange face (0.00 contact); the
+            plate above is pocketed to the head seat as for the horn-roll side.
+  rim       the plate's 0.6 mm locating rim is notched where the anvil annulus stands (it ended 0.4 / 3 mm beyond the wheel face).
+  centre    the plate's central hole is closed to WHEEL_CENTRE_R (the shaft screws stay reachable).
 
   recreate:  .venv/bin/python -B robot/body/motor-refit/ankle_coupler_screws.py build   (parts + records.json in OUT)
              .venv/bin/python -B robot/body/motor-refit/ankle_coupler_screws.py apply   (patch the roll-flip variant manifest)
@@ -56,6 +70,11 @@ EAR_R = 10.0 / 2 + 0.1              # printed ear around each sleeve from the ho
                                     # annulus (press_lib ANVIL_D) rests on, where the 19.8 mm horn disc outline ends before it
 CENTRE_R = 3.2                      # horn centre pocket after closing (was 4.5; centre of the bolt circle 7 mm from each hole)
 CENTRE_OLD_R = 4.5
+WHEEL_CENTRE_R = 3.4                # wheel side: central hole after closing: 7 - 2.25 - 3.4 = 1.35 mm wall = 2 lines of the 0.62 mm line (0.6 nozzle)
+ANVIL_R = 10.0 / 2 + 0.3           # anvil annulus radius of checks/press_lib.py (ANVIL_D / 2) + clearance
+RIM_NOTCH_L = 4.0                   # notch depth below the wheel face (the rim ends 0.4 mm below it on the horn side, 3 mm on the idler side)
+SHIN_CLEAR = 0.39                   # boss stays this far inside the own shin's bore (the old coupler cleared it by 0.48 / 0.39 mm)
+HUB_CLEAR = 0.05                    # horn hub: printed boss stays this far from the hub
 POCKET_TOP = 3.0                    # pocket cut runs this far above the pad's outer face
 BACK_PAD_TOP = 23.8                 # outer face of the motor-refit pad (motor_refit.py: pad 20.8 -> 23.8)
 
@@ -131,6 +150,156 @@ def fillet_ear_junctions(P, holes, y_face, y_seat, centre):
     return P
 
 
+def pocket_along_x(x_seat, s, y, z, x_end, r, fr):
+    """Pocket cutter along the x axis: cylinder r from the head seat x_seat outward (direction s) to x_end, the edge at the seat rounded by fr."""
+    from OCP.BRepAdaptor import BRepAdaptor_Curve
+    from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
+    from OCP.TopAbs import TopAbs_EDGE
+    from OCP.TopExp import TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    cyl = C.cylinder((x_seat, y, z), (x_end, y, z), r)
+    mk = BRepFilletAPI_MakeFillet(cyl)
+    ex = TopExp_Explorer(cyl, TopAbs_EDGE)
+    while ex.More():
+        e = TopoDS.Edge_s(ex.Current()); c = BRepAdaptor_Curve(e)
+        mid = c.Value(0.5 * (c.FirstParameter() + c.LastParameter()))
+        if abs(c.Value(c.FirstParameter()).X() - x_seat) < 1e-6 and abs(mid.X() - x_seat) < 1e-6:
+            mk.Add(fr, e)
+        ex.Next()
+    mk.Build()
+    assert mk.IsDone()
+    return mk.Shape()
+
+
+WHEEL = "ankle_pitch_ST3025_output"
+WHEEL_GROUPS = (("ST3025_horn", "horn"), ("ST3025_idler", "idler"))
+
+
+def mirrored_left_holes(iface, labels):
+    """Holes of the registered left wheel instance mirrored to the right (x -> -x): same physical holes, accurate registration."""
+    import screw_plan as SP
+    out = []
+    for h in SP.hole_positions(iface, "L_" + WHEEL, labels):
+        q = dict(h)
+        q["opening"] = np.array([-h["opening"][0], h["opening"][1], h["opening"][2]], float)
+        q["axis_out"] = np.array([-h["axis_out"][0], h["axis_out"][1], h["axis_out"][2]], float)
+        q["hole_id"] = h["hole_id"].replace("L_", "R_", 1); q["part"] = "R_" + WHEEL
+        out.append(q)
+    return out
+
+
+def install_wheel_holes():
+    """screw_plan.hole_positions for R_ankle_pitch_ST3025_output: the mirrored left holes (the right instance is registered as the
+    horn alone, so its idler holes do not exist there). Idempotent; roll_flip_checks.build_manifest generates the right-side
+    screws through screw_plan, after importing this module."""
+    import screw_plan as SP
+    cur = SP.hole_positions
+    if getattr(cur, "_wheel_holes", False):
+        return
+
+    def hole_positions(iface, standard_part, labels):
+        if standard_part == "R_" + WHEEL:
+            return mirrored_left_holes(iface, labels)
+        return cur(iface, standard_part, labels)
+    hole_positions._wheel_holes = True
+    SP.hole_positions = hole_positions
+
+
+def shin_bore_r(shin, cy, cz, x0=72.0, x1=80.0):
+    """Radius of the shin's bore about the ankle-pitch axis (cy, cz): the nearest shin section vertex over the wheel-side span."""
+    r = []
+    for x in np.arange(x0, x1 + 1e-9, 1.0):
+        sec = shin.section(plane_origin=[x, 0, 0], plane_normal=[1, 0, 0])
+        if sec is not None:
+            d = np.linalg.norm(np.asarray(sec.vertices)[:, 1:3] - np.array([cy, cz]), axis=1)
+            d = d[(d > 8.0) & (d < 14.0)]
+            if len(d):
+                r.append(d.min())
+    return float(min(r))
+
+
+def axis_cylinder(xa, xb, cy, cz, r):
+    """Cylinder about the wheel axis (along x) with its seam at 45 deg between the hole axes: a clip or hub cutter whose seam ran through
+    a boss face left an unorientable face (BRepCheck) and unreliable booleans and distances on the right coupler."""
+    from OCP.BRepPrimAPI import BRepPrimAPI_MakeCylinder
+    from OCP.gp import gp_Ax2, gp_Dir, gp_Pnt
+    return BRepPrimAPI_MakeCylinder(gp_Ax2(gp_Pnt(xa, cy, cz), gp_Dir(1, 0, 0), gp_Dir(0, 1, 1)), float(r), float(xb - xa)).Shape()
+
+
+def wheel_face(mesh, h, ring=3.0, n=8):
+    """x of the wheel flange face around a hole: median of the first hit of axial rays on a ring around the hole opening."""
+    a = np.asarray(h["axis_out"], float); o = np.asarray(h["opening"], float)
+    pts = [o + np.array([0.0, ring * np.cos(t), ring * np.sin(t)]) + a * 8.0 for t in np.linspace(0, 2 * np.pi, n, endpoint=False)]
+    loc, ray, _ = mesh.ray.intersects_location(pts, [-a] * n, multiple_hits=False)
+    return float(np.median(loc[:, 0])) if len(loc) else None
+
+
+def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh, shin_mesh):
+    """Boss, head-seat pocket and closed centre for the 8 ankle-pitch sleeves of the right coupler; returns (part, new sleeves, plan)."""
+    import screw_plan as SP
+    g = SP.connectors()[CONNECTOR]["groups"]
+    pt = st["point_mm"]
+    lens = st["head_types"]["ISO 7380-1"]["M3"]["lengths"]
+    grp = {name: mirrored_left_holes(iface, g[name]["holes"]) for name, _ in WHEEL_GROUPS}
+    hh = [h for name, _ in WHEEL_GROUPS for h in grp[name] if name == "ST3025_horn"]
+    cy = float(np.mean([h["opening"][1] for h in hh])); cz = float(np.mean([h["opening"][2] for h in hh]))
+    add, pockets, bores, new_sleeves, plan, notch = [], [], [], [], {}, []
+    bore_r = shin_bore_r(shin_mesh, cy, cz)
+    print(f"shin bore r {bore_r:.3f} about the ankle-pitch axis -> bosses clipped to r {bore_r - SHIN_CLEAR:.3f}", flush=True)
+    for name, member in WHEEL_GROUPS:
+        holes = grp[name]; h0 = holes[0]
+        s = float(np.sign(h0["axis_out"][0]))
+        ref, depth = h0["reference_engagement_mm"], h0["depth_mm"]
+        x_open = float(h0["opening"][0])
+        base = float(np.median([wheel_face(mesh, h) for h in holes]))                    # the printed boss stands on the real face
+        mine = [b for b in (bbox(x) for x in old_sleeves)
+                if any(abs((b[1] + b[4]) / 2 - h["opening"][1]) < 0.5 and abs((b[2] + b[5]) / 2 - h["opening"][2]) < 0.5 for h in holes)
+                and abs((b[0] + b[3]) / 2 - base) < 6.0]
+        assert len(mine) == 4, (name, len(mine))
+        x_in = min(b[0] for b in mine) if s > 0 else max(b[3] for b in mine)             # plate face toward the wheel
+        x_out = max(b[3] for b in mine) if s > 0 else min(b[0] for b in mine)            # plate face away from the wheel
+        # the plate is not thickened: the longest standard length whose clamped stack fits between the wheel face and the plate's outer face
+        L = max(l for l in lens if 1.0 <= window_stack(l, pt, ref) <= abs(x_out - base) + 1e-6)
+        stack = window_stack(L, pt, ref)
+        x_seat = x_open + s * stack
+        print(f"{name}: M3x{L:g} stack {stack:.2f} (ref {ref}, depth {depth}); opening x {x_open:.2f}, wheel face {base:.2f}, "
+              f"plate {x_in:.2f}..{x_out:.2f}, head seat {x_seat:.2f}", flush=True)
+        hub_r = None
+        if member == "horn":                     # the wheel's hub stands proud of the flange face under the plate: clip the boss to it
+            sec = mesh.section(plane_origin=[base + s * 1.0, 0, 0], plane_normal=[1, 0, 0])
+            v = np.asarray(sec.vertices)[:, 1:3] - np.array([cy, cz])
+            d = np.linalg.norm(v, axis=1)
+            hub_r = float(d[d < 6.0].max())
+        for h in holes:
+            y, z = float(h["opening"][1]), float(h["opening"][2])
+            boss = C.cylinder((base, y, z), (x_seat + s * EAR_LIP, y, z), EAR_R)
+            # inside the own shin's bore about the ankle-pitch axis, minus clearance: the flat box at outline_r + 0.3 left the boss
+            # corners at r ~ 11.3 into the bore (r 10.98), 23 of 23 poses; a cylinder about the axis keeps every point of the boss under it
+            xa, xb = sorted((base - s * 1.0, x_seat + s * (EAR_LIP + 1.0)))
+            boss = C.common(boss, axis_cylinder(xa, xb, cy, cz, bore_r - SHIN_CLEAR))
+            if hub_r:
+                boss = C.cut(boss, axis_cylinder(*sorted((x_in, base - s * 1.0)), cy, cz, hub_r + HUB_CLEAR))
+            add.append(boss)
+            # the plate's thin locating rim ends beyond the wheel face: notch it where the anvil annulus stands (press_lib ANVIL_D)
+            notch.append(C.cylinder((base, y, z), (base - s * RIM_NOTCH_L, y, z), ANVIL_R))
+            pockets.append(pocket_along_x(x_seat, s, y, z, x_out + s * POCKET_TOP, TIP_R, FILLET_R))
+            bores.append(C.cylinder((base - s * 0.5, y, z), (x_seat + s * 0.5, y, z), R_SLEEVE[0]))
+            new_sleeves.append(C.cut(C.cylinder((base, y, z), (x_seat, y, z), R_SLEEVE[0]),
+                                     C.cylinder((base - s * 0.5, y, z), (x_seat + s * 0.5, y, z), R_SLEEVE[1])))
+        add.append(C.cut(C.cylinder((x_in, cy, cz), (x_out, cy, cz), CENTRE_OLD_R + 0.3),
+                         C.cylinder((x_in - 1, cy, cz), (x_out + s * 1, cy, cz), WHEEL_CENTRE_R)))
+        pockets.append(C.cylinder((x_in - s * 1, cy, cz), (x_out + s * 1, cy, cz), WHEEL_CENTRE_R))
+        plan[name] = dict(length_mm=L, stack_mm=stack, head_seat_x=x_seat, wheel_face_x=base, plate_in_x=x_in, plate_out_x=x_out,
+                          hub_r_mm=hub_r)
+    v0 = C.volume(P)
+    P = C.fuse(P, *add)
+    P = C.cut_many(P, pockets + bores + notch)
+    P = C.largest_solid(P)
+    assert C.valid(P), "edited coupler is not a valid solid"
+    print(f"wheel side: printed volume {v0:.0f} -> {C.volume(P):.0f} mm3, solids {C.n_solids(P)}", flush=True)
+    return P, new_sleeves, plan
+
+
 def build_right():
     import interfaces as I
     import screw_plan as SP
@@ -142,7 +311,8 @@ def build_right():
     pt = st["point_mm"]
     g = SP.connectors()[CONNECTOR]["groups"]["B13_horn"]
     holes = SP.hole_positions(iface, "R_" + HORN, g["holes"])
-    by = {p["name"]: p for p in man["parts"]}
+    # the refit originals (shell-pass manifest), not the variant: the variant already carries this script's output, a rebuild must not stack on it
+    by = {p["name"]: p for p in json.loads(SHELL_PASS.read_text())["parts"]}
 
     def load(name):                       # body frame: the manifest's native offset applied once, saved with offset 0
         s = MR.load_step(by[name]["native_step"])
@@ -189,8 +359,9 @@ def build_right():
     P = fillet_ear_junctions(P, holes, y_face, y_seat, (cx, cz))
     assert C.valid(P), "edited coupler is not a valid solid"
     print(f"printed volume {v0:.0f} -> {C.volume(P):.0f} mm3, solids {C.n_solids(P)}", flush=True)
-    return dict(part=P, sleeves=MR.compound(keep + new_sleeves),
-                plan=dict(length_mm=L, stack_mm=stack, head_seat_y=y_seat, plate_floor_before_mm=floor_now,
+    P, wheel_sleeves, wheel_plan = wheel_side(P, keep, iface, st, body.mesh("R_" + WHEEL), body.mesh("R_" + PART), body.mesh("R_shin_combined"))
+    return dict(part=P, sleeves=MR.compound(new_sleeves + wheel_sleeves),
+                plan=dict(wheel=wheel_plan, length_mm=L, stack_mm=stack, head_seat_y=y_seat, plate_floor_before_mm=floor_now,
                           centre_pocket_r_mm=CENTRE_R, pocket_r_mm=TIP_R, volume_before_mm3=v0, volume_after_mm3=C.volume(P)))
 
 
@@ -213,6 +384,9 @@ def build():
     print("wrote", OUT / "records.json", flush=True)
 
 
+install_wheel_holes()
+
+
 def swap_parts(parts):
     """The manifest part list with the ankle coupler + sleeves of both sides replaced by the edited ones (offset 0)."""
     if not (OUT / "records.json").exists():   # derived output not built here: keep the manifest buildable, say so loudly
@@ -224,7 +398,7 @@ def swap_parts(parts):
     for p in parts:
         if p["name"] in recs:
             q = dict(p); q.update(recs[p["name"]]); q.pop("native_step_offset_mm", None); q.pop("placement_offset_mm", None)
-            q["ankle_coupler_screws"] = "edited by robot/body/motor-refit/ankle_coupler_screws.py (T-9wpegg)"
+            q["ankle_coupler_screws"] = "edited by robot/body/motor-refit/ankle_coupler_screws.py (T-9wpegg, T-kmcn4j)"
             res.append(q)
         else:
             res.append(p)
