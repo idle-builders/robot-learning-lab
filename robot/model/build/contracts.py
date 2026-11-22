@@ -89,8 +89,10 @@ def main():
         nominal_rate_Hz=200,rate_basis='200Hz/channel simulation acquisition choice, not demonstrated serial scan timing',calibration_status='Raw voltage/counts only; FSR force curve not calibrated')
     # Native microphone port shifted with V23; board bottom-port points +CAD X.
     mic_rotation=np.column_stack([[0,1.,0],[0,0,1.],[1.,0,0]])
-    sensor('microphone_port','head',[46.7,0.,464.],mic_rotation,part_name='microphone_6049_v23',kind='microphone',
-        placement_basis='Source acoustic port[49.5,0,464]mm minusV23X2.8mm; entrance/shell diffraction unmeasured',
+    # x = the board's back face (bottom port) where it rests on the carrier's mic wing: 46.77 mm, the board-side face of the supplier shim
+    # robot/body/neck-head/head_holes.py measures (T-5bqc3m); was 46.7 (source port 49.5 minus the V23 shift 2.8)
+    sensor('microphone_port','head',[46.77,0.,464.],mic_rotation,part_name='microphone_6049_v23',kind='microphone',
+        placement_basis='Board back face (bottom port) on the carrier mic wing, 46.77 mm (head_holes.py, T-5bqc3m); entrance/shell diffraction unmeasured',
         nominal_rate_Hz=48000,rate_basis='Simulation audio interface choice; real ALSA/I2S tuple unverified',
         audio_buffer_latency_ms=[10,40],calibration_status='No acoustic or motor-noise calibration; one microphone does not establish sound-source direction')
     for s in ['R','L']:

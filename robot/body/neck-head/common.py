@@ -624,6 +624,8 @@ def stage_interface_specs() -> dict:
     cs, cm = HH.POSTS["compute"]["sleeve"], HH.sleeve("camera")
     plate_t = HH.plate_faces()[1] - HH.plate_faces()[0]
     cam_lens, cam_starts = HH.sleeve_lens("camera"), HH.sleeve_starts("camera")
+    mic_rows = HH.threaded_posts()["mic"]
+    mic_pts = [np.asarray(r["plan"]["opening"], float) for r in mic_rows]
 
     return {
         "stage1_neck_root_cradle": {
@@ -733,6 +735,26 @@ def stage_interface_specs() -> dict:
                 "sleeve_starts": cam_starts,
                 "threaded": True,
                 "column": HH.POSTS["camera"]["column"],
+                "press_clear_mm": float(HH.POSTS["camera"]["press_clear_mm"]),
+                "plate_rear": float(HH.plate_faces()[1]),
+                "patch_r": 2.3,
+            },
+            "mic": {        # one insert in the wing's boss, pushed from the boss end (+x) up to the floor; the screw comes from the board side
+                "name": "microphone_post",
+                "normal": np.array([1.0, 0.0, 0.0]),
+                "normals": [np.array([1.0, 0.0, 0.0])] * len(mic_pts),
+                "centres": mic_pts,
+                "sleeve_ro": HH.sleeve("mic")["ro"],
+                "sleeve_ri": HH.sleeve("mic")["ri"],
+                "sleeve_len": max(HH.sleeve_lens("mic")),
+                "sleeve_lens": HH.sleeve_lens("mic"),
+                "sleeve_starts": HH.sleeve_starts("mic"),
+                "threaded": True,
+                "wing_face": float(mic_rows[0]["face"]),
+                "wing": HH.POSTS["mic"]["wing"],
+                "boss": HH.POSTS["mic"]["boss"],
+                "pin": dict(HH.POSTS["mic"]["pin"], centre=HH.pin_site()),
+                "port": HH.POSTS["mic"]["port"],
                 "patch_r": 2.3,
             },
             "aux_bores": [

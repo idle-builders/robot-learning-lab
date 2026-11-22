@@ -7,6 +7,7 @@ Everything is a measurement in mm; nothing here accepts or rejects.
 
   posts(manifest)         per post: spacer / terminal bore centre and axis, their coaxiality (mm), plate faces
   plate_faces(manifest)   (front, rear) coordinate of the carrier plate along Y
+  threaded_posts(manifest) camera / mic inserts (start, length) and their screw plans
   screw_plans(manifest)   per screw of the carrier: the plan dict screw_plan.screw_mesh draws
 """
 from __future__ import annotations
@@ -62,30 +63,18 @@ def bore(mesh) -> dict:
     return dict(axis=int(k), centre=w, radius_mm=r, extent=(float(lo[k]), float(hi[k])))
 
 
-def _man_parts(manifest=None):
-    return _body(manifest)[1]["parts"]
-
-
 def _body(manifest=None):
     body, man, _ = DH.registered(manifest)
     return body, man
 
 
-MEASURED = HERE / "head_carrier_measured.json"
-
-
 def _measure(body, part: str) -> dict:
-    """Bore of a supplier part on its mesh; a part the manifest no longer has (the camera standoffs and mic shims are replaced by
-    printed bosses, T-5bqc3m) is read from head_carrier_measured.json, which stores what its bore measured while it was there."""
-    cache = json.loads(MEASURED.read_text()) if MEASURED.exists() else {}
-    if part in body.parts:
-        b = bore(body.mesh(part))
-        cache[part] = dict(axis=b["axis"], centre=[round(float(x), 4) for x in b["centre"]], radius_mm=round(b["radius_mm"], 4),
-                           extent=[round(x, 4) for x in b["extent"]])
-        MEASURED.write_text(json.dumps(cache, indent=1, sort_keys=True) + "\n")
-        return b
-    c = cache[part]
-    return dict(axis=c["axis"], centre=np.array(c["centre"], float), radius_mm=c["radius_mm"], extent=tuple(c["extent"]))
+    """Bore of a supplier part on its mesh, measured live (the shell-pass manifest, defined_holes.SHELL_PASS, holds every supplier
+    spacer / washer / shim the printed posts replace)."""
+    if part not in body.parts:
+        raise KeyError(f"{part}: not in the manifest head_holes reads; its bore places a head-carrier post (use the shell-pass manifest, "
+                       f"defined_holes.SHELL_PASS)")
+    return bore(body.mesh(part))
 
 
 def posts(manifest: Path | None = None) -> dict:
@@ -205,28 +194,34 @@ def threaded_posts(manifest: Path | None = None) -> dict:
         rows.append(dict(plan=_plan_dict(spec["screws"][i], "camera", spec, std, r, c, -ax, stack, sl["length"], pick, "brass", f"camera_insert_{i}"),
                          sleeve_len=sl["length"], start=float(start)))
     out["camera"] = rows
-    # mic: head on the board side, through the board into the insert in the skin boss; the board rests on the boss end (no shim)
+    # mic: head on the board's front face (PCB pad), through the PCB and the wing's floor into the insert in the boss behind it; the board's
+    # back face is where the supplier shim's board-side face was (it rests on the wing, face_gap_mm off)
     spec = POSTS["mic"]
     sl = sleeve("mic")
     th = thread(sl["thread"])
     ref = sl["engagement_x_d"] * th["major"]
     std = st["head_types"][spec["head"]["standard"]][spec["head"]["thread"]]
+    wing = spec["wing"]
     rows = []
-    shift = float(spec["boss"].get("board_shift_mm", 0.0))     # the board sits deeper on its bosses (neck_parts.skin_mic_bosses moves its mesh)
-    recess = float(sl.get("recess_mm", 0.0))                   # the insert's front end below the boss face the board rests on (hand-set depth +-0.2)
-    applied = float(next(p for p in _man_parts(manifest) if p["name"] == spec["clamped"][0]).get("mic_board_shift_mm", 0.0))
     for i, r in enumerate(P["mic"]):
         b = r["spacer_bore"]
         ax = np.zeros(3); ax[b["axis"]] = 1.0
-        c = np.array(b["centre"], float); c[b["axis"]] = b["extent"][0] + applied    # the shim's board-side face = the board's back face (where the mesh is now)
+        back = float(b["extent"][0])                                   # the board's back face
+        c = np.array(b["centre"], float); c[b["axis"]] = back
         stk = SP.stack_along_axis([body.mesh(n) for n in spec["clamped"]], c, -ax, radii=(1.5, 2.0))
-        stack = float(stk["stack_mm"]) + recess
-        c[b["axis"]] = b["extent"][0] + shift + recess
-        fixed = spec["head"].get("fixed_lengths")
-        pick = SP.choose_length(stack, sl["length"], ref, [float(fixed[i])] if fixed else spec["head"]["lengths"], st["point_mm"])
-        pick.update(ref_mm=ref, head_seat=round(float(c[b["axis"]] - stack), 3), insert_start=round(float(c[b["axis"]]), 3))
+        seat = back - float(stk["stack_mm"])                          # the PCB's front face under the head
+        face = back + float(wing["face_gap_mm"])                      # the wing face the board rests on
+        # the insert's front end where the screw reaches engagement_target_mm: start = seat + L - point - target, for the smallest standard
+        # length that leaves the floor (wing face to insert) at least floor_min_mm thick
+        L_pick, start = next((L, float(seat + L - st["point_mm"] - sl["engagement_target_mm"])) for L in sorted(std["lengths"])
+                             if seat + L - st["point_mm"] - sl["engagement_target_mm"] - face >= float(wing["floor_min_mm"]) - 1e-6)
+        stack = float(start - seat)
+        c[b["axis"]] = start
+        pick = SP.choose_length(stack, sl["length"], ref, [float(L_pick)], st["point_mm"])
+        pick.update(ref_mm=ref, head_seat=round(float(seat), 3), insert_start=round(start, 3), board_back=round(back, 3), wing_face=round(face, 3),
+                    floor_mm=round(start - face, 3))
         rows.append(dict(plan=_plan_dict(spec["screws"][i], "mic", spec, std, r, c, -ax, stack, sl["length"], pick, "brass", f"mic_insert_{i}"),
-                         sleeve_len=sl["length"], start=float(c[b["axis"]])))
+                         sleeve_len=sl["length"], start=start, back=back, face=face, seat=seat))
     out["mic"] = rows
     _CACHE[key] = out
     return out
@@ -234,6 +229,14 @@ def threaded_posts(manifest: Path | None = None) -> dict:
 
 def sleeve_lens(group: str, manifest: Path | None = None) -> list[float]:
     return [float(r["sleeve_len"]) for r in threaded_posts(manifest)[group]]
+
+
+def pin_site(manifest: Path | None = None) -> np.ndarray:
+    """Centre of the mic board's second mounting hole on its back face (the bore of the dropped upper shim): the locating pin's root."""
+    body, _ = _body(manifest)
+    b = _measure(body, POSTS["mic"]["drop"][1])
+    c = np.array(b["centre"], float); c[b["axis"]] = b["extent"][0]
+    return c
 
 
 def sleeve_starts(group: str, manifest: Path | None = None) -> list[float]:
