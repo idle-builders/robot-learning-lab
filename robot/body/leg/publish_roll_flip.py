@@ -61,7 +61,8 @@ def record():
         d = fem[part]["by_layer_normal"][normal]["PAHT_CF_dry"][case]
         return round(d["p99_vm_MPa"], 1), round(d["p99_strength_ratio"], 2)
 
-    s4n = {c: p99("stage4_roll_flip", c, "x") for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
+    n4 = next(iter(fem["stage4_roll_flip"]["by_layer_normal"]))   # the H-cage print direction the FEM ran along
+    s4n = {c: p99("stage4_roll_flip", c, n4) for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     s4o = {c: p99("stage4_selected", c, "x") for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     # print orientation of the new Stage 5: the layer normal with the best worst-case of strength and layer ratios
     def governing(part, case="heavy_6kg_1p5g"):
@@ -114,11 +115,11 @@ def record():
                          "(cells clear the realistic poses only, owner decision T-jbe85r).",
              source_refs=[report_ref]),
         dict(id="fem", title="Static FEM, new vs today", kind="simulation",
-             observation="The H-cage thigh connector holds the knee motor from both sides and carries the loads at far "
-                         "lower stress than today's U (roll stall: strength ratio about 21 instead of about 2). The strengthened "
-                         "pitch-to-roll plate (thicker arms, taller wings, held from the pitch output side only: there is "
-                         "no pitch idler) is a little stronger than today's in the heavy landing case and stronger under "
-                         "roll-motor stall.",
+             observation=f"The H-cage thigh connector holds the knee motor from both sides and carries the loads at far "
+                         f"lower stress than today's U (roll stall p99 {s4n['roll_stall'][0]} MPa against {s4o['roll_stall'][0]}). "
+                         f"The strengthened pitch-to-roll plate (thicker arms, taller wings, held from the pitch output side "
+                         f"only: there is no pitch idler) is stronger than today's in the heavy landing case (strength ratio "
+                         f"{s5n['heavy_6kg_1p5g'][1]} against {s5o['heavy_6kg_1p5g'][1]}) and under roll-motor stall.",
              measurements=[
                  m("Stage 4 p99 von Mises, recovery 4 kg 1.5 g", s4n["recovery_4kg_1p5g"][0], "MPa", f"today {s4o['recovery_4kg_1p5g'][0]}"),
                  m("Stage 4 p99 von Mises, roll stall", s4n["roll_stall"][0], "MPa", f"today {s4o['roll_stall'][0]}"),
@@ -128,7 +129,7 @@ def record():
                  m("Stage 5 p99 von Mises, roll stall", s5n["roll_stall"][0], "MPa", f"today {s5o['roll_stall'][0]}"),
              ],
              conditions={"material": "PAHT-CF dry, orthotropic, bonded 304 SS sleeves", "mesh": fem["method"],
-                         "print_layer_normal": f"Stage 4 x (as today); Stage 5 new {n5} (best worst-case of strength and "
+                         "print_layer_normal": f"Stage 4 new {n4}, today x; Stage 5 new {n5} (best worst-case of strength and "
                                                "layer ratios), today z",
                          "patches": fem["patches"]},
              limitations="Linear static, p99 von Mises of the tetra field; no fatigue, bolt preload or contact. Today's "
