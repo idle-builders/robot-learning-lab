@@ -16,6 +16,10 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
              The window edges (y -7.85 / 11.85) stood 0.1 mm off the heads (R 2.75): a R 3.25 pocket in the wall gives 0.5 mm.
   lattice    the front lattice's flat top (refit z 250.0012) is raised to 250.056, the crown of the outer front pads: one plane,
              1.25 mm of print over the sleeves; the head pockets of those two screws are open to the top (no skin, no 0.05 mm breakout).
+  trim       the refit's plate ends left 0.0-0.65 mm tongues and a 0.4 mm ramp above the lattice top at x 57.2 (51 deg tips), a 0.4 mm proud rim
+             (x 58.91-59.3) round the front pockets and crescents at the bottom bar's old hole. Ramp and tongues are filled to a 1.6 mm step (x 57.2-58.8, up to
+             z 251.5, the fill carries the load the thin ramp did: FEM heavy 1.24 vs 1.20 when it is only cut) and cut above it, the rim is cut flush, the
+             crescents are cut at the old hole's centre plane. Left under one line: the 0.25 mm lip under the hub pocket floor (pre-existing).
   ear        a 0.6 mm chamfer along the ear's outer vertical edge (55.8, 19.0) gives 0.5 mm to the spine chassis tab at standing (0.30 before).
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
@@ -55,10 +59,11 @@ HUB = (59.0, 2.0)
 HUB_Z0 = 262.0
 HUB_TOOL = C.cylinder((59.0, 2.0, HUB_Z0), (59.0, 2.0, 264.0), HUB_R)
 YAW_TOP = 274.75
+FILL_TOP = 251.5   # the tongues' root: a 1.65 mm thick step up from the lattice top (x 57.2-58.8), the ramp of the refit's wall ends 0.4 mm thick at 251.5 is part of it
 # the refit's bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick
 # stay; a box per yaw axis takes them off in clean planes (y ranges keep 0.45 mm off the refit's own y steps at -7.45 / 11.85, so no new micro-edges)
 RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
-FOOT_CUTS = (((56.0, -7.0, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
+FOOT_CUTS = (((55.0, -8.25, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
 
 
 EAR_CORNER, EAR_CHAMFER = (55.8, 19.0), 0.6   # the ear's outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room
@@ -146,7 +151,15 @@ def build_right():
     P = C.fuse(P, *add, *fpads)
     # @lore no driver channel through the front bosses: the screw planner reads the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad picks M2x5 with the head 1.3 mm inside the sleeve; and the sleeve end sits 0.09 mm off the yaw axis, so a channel never makes a straight path. A tilted ball-end key does.
     notch = [C.cylinder((x, y, YAW_NOTCH_Z[0]), (x, y, YAW_NOTCH_Z[1]), YAW_NOTCH_R) for x, y in ((59.0, -5.0), (59.0, 9.0))]
-    P = C.cut_many(P, cut + fcuts + notch + [ear_chamfer_tool()])
+    # @lore thin ramp/tongues of the refit wall (0.0-0.65 mm, 51 deg tips): cutting them alone costs FEM heavy 1.24 -> 1.20 (they carry load in the model), so fill to a 1.6 mm step and cut above; the 0.4 mm rim round the front pockets is cut flush
+    nz0, nz1 = YAW_NOTCH_Z
+    y_lo, y_hi = HUB[1] - 3.6, HUB[1] + 3.6                  # the plate between the outer bosses, y -1.6 .. 5.6
+    fill = [C.box((57.2, -7.85, FRONT_TOP - 0.1), (58.8, y_lo, FILL_TOP)), C.box((57.2, y_hi, FRONT_TOP - 0.1), (58.8, 11.85, FILL_TOP))]
+    P = C.fuse(P, *fill)
+    trim = [C.box((56.6, -7.85, FILL_TOP), (61.0, y_lo, nz0)), C.box((56.6, y_hi, FILL_TOP), (61.0, 11.85, nz0)),   # tongues above the fill, below the key windows
+            C.box((56.6, -3.0, nz0), (61.0, y_lo, nz1)), C.box((56.6, y_hi, nz0), (61.0, 7.0, nz1)),                   # tips of the plate ends beside them
+            C.box((seat_f, -10.5, 224.0), (59.6, 12.5, FRONT_TOP))]
+    P = C.cut_many(P, cut + fcuts + notch + trim + [ear_chamfer_tool()])
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
