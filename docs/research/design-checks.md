@@ -1015,8 +1015,10 @@ reference engagement 1 d (2.0 mm) for a steel screw in brass (standard-parts.jso
 
 Camera (8): the supplier F-F standoffs become printed columns (r 3.2, 4.97 mm, clearance bore 2.4) on the plate; the insert is pushed
 from the plate's rear face up to the column ledge on the bench; the ribs behind keep a square window of 8.8 mm round each axis for an
-8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). ISO 4762 M2x8 from the camera front through
-board and column: engagement 2.5 mm, 0.5 mm of insert left before the point; the insert's rear end 0.17-0.24 mm inside the plate.
+8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). The insert's rear end is flush with the plate's
+rear face: placed for 2.5 mm engagement it sat 0.17-0.24 mm inside the plate, and the 8 mm tip met 4.7-8.1 mm3 of plate before seating it.
+ISO 4762 M2x8 from the camera front through board and column: engagement 2.33 (B0410) / 2.26 (B0196) mm against the 1 d reference
+2.0, point 0.67 / 0.74 mm short of the insert's end.
 
 Mic (1, owner: one screw and a printed retention): the review measured the earlier skin-boss insert 99.4 mm from the far inner wall of
 the closed dome (an insert iron is 170-190 mm), so it moved back onto a printed wing of the carrier, where every step is a bench step.

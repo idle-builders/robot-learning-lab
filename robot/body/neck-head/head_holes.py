@@ -178,14 +178,11 @@ def threaded_posts(manifest: Path | None = None) -> dict:
         b = r["spacer_bore"]
         wb = _measure(body, spec["washers"][i])       # the 0.3 mm washer is gone (owner 2026-11-22): its board-side face is the board's front face
         seat = wb["extent"][1]                          # the board's mount pad: the ISO 4762 head bears on it directly
-        # the ledge (the insert's front end) goes where the screw reaches engagement_target_mm of thread: start = seat + L - point - target,
-        # for the standard length L whose insert rear end (start + length) lies nearest behind the plate's rear face (nothing protrudes)
-        cands = []
-        for L in std["lengths"]:
-            st_ = float(seat + L - st["point_mm"] - sl["engagement_target_mm"])
-            if st_ + sl["length"] <= rear + 1e-6:
-                cands.append((rear - (st_ + sl["length"]), L, st_))
-        _, L_pick, start = min(cands)
+        # the insert's rear end is flush with the plate's rear face (an iron tip ends on a face: a recessed end left 0.17-0.24 mm of plate
+        # in the 8 mm tip's way), its front end on the column bore's ledge; the screw is the smallest standard length that reaches the
+        # 1 d reference with its point inside the insert
+        start = float(rear - sl["length"])
+        L_pick = next(L for L in sorted(std["lengths"]) if L - st["point_mm"] - (start - seat) >= ref - 1e-6 and L - (start - seat) <= sl["length"] + 1e-6)
         stack = float(start - seat)
         ax = np.zeros(3); ax[b["axis"]] = 1.0
         c = np.array(b["centre"], float); c[b["axis"]] = start

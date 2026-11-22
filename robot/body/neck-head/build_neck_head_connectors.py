@@ -477,11 +477,14 @@ def build_stage4(family: str) -> Solid:
     xf = float(gm["wing_face"])
     xt = xf + float(w["t_mm"])
     z_top = float(w["top_z_mm"])
-    f_mic_br = fillet_2d_face(Pos((43.0 + xt) / 2, 458.8) * Rectangle(xt - 43.0, 7.2), r_default=1.2, r_inner=1.6)
+    # bottom edge below the boss (r 3.3 round z 458.3) and into the skin lug's top (454.8): the old 455.2 left the boss 0.2 mm past the
+    # edge (sliver faces) and a 0.4 mm slot over the lug
+    z_bot = float(w["bottom_z_mm"])
+    f_mic_br = fillet_2d_face(Pos((43.0 + xt) / 2, (z_bot + 462.4) / 2) * Rectangle(xt - 43.0, 462.4 - z_bot), r_default=1.2, r_inner=1.6)
     s_mic_br = extrude_xy_to_y(f_mic_br, y_front, y_rear)
     y_diag = -7.80 + (z_top - 462.4) * (6.3 / 10.0)        # the wing's upper-left edge (parallel to the skin's taper, as before)
-    pts_mic_side = [(y_front, 455.2), (4.50, 455.2), (4.50, z_top), (y_diag, z_top), (-7.80, 462.4), (y_front, 462.4)]
-    f_mic_side = fillet_2d_face(Polygon(*pts_mic_side, align=None), r_default=1.2, r_inner=1.8, skip_xy=[(y_front, 455.2), (y_front, 462.4)])
+    pts_mic_side = [(y_front, z_bot), (4.50, z_bot), (4.50, z_top), (y_diag, z_top), (-7.80, 462.4), (y_front, 462.4)]
+    f_mic_side = fillet_2d_face(Polygon(*pts_mic_side, align=None), r_default=1.2, r_inner=1.8, skip_xy=[(y_front, z_bot), (y_front, 462.4)])
     s_mic_side = extrude_xy_to_x(f_mic_side, xf, xt)
     zt0 = float(w["taper_z_mm"])
     s_mic_side = Solid((s_mic_side - Pos(xt, 0.0, (zt0 + z_top + 2.0) / 2) * Box(2 * (xt - xf - float(w["taper_t_mm"])), 30.0, z_top + 2.0 - zt0)).wrapped)
