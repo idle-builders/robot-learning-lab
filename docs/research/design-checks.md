@@ -692,7 +692,7 @@ run.py: exact OpenCascade common volume and distance of the native STEP solids a
 | one of two scoped parts with a missing STEP | `holes`, `press` lost for the healthy part too | healthy part measured by all 7 checks; the bad part listed per check with cause and code line |
 | scoped STEP truncated | `geometry`, `press` fail with a traceback | the same two fail, one line each naming cause and code line |
 | memguard timeout during `fit` | killed at 40 s, nothing printed | stops at 20 s before the deadline, exit 124, finished checks kept, the stopped one with its stack (`import_step` <- `brep` <- `fit._shape`), summary printed |
-| two runs on one label at once | one report silently lost | the second stops at once naming the holder (pid, command) |
+| two runs on one label at once | both exit 0 and print the same report path; the file holds only the second run's part | the second stops at once naming the holder (pid, command); the first's report intact |
 | labels differing in case, one after the other | the second replaces the first silently | lower-cased, the second says which report it replaces |
 | `--changed-since last-run`, nothing changed | exit 1, "selects no part" | exit 0, "nothing changed ... not an error" |
 | typos (part, check, section) | exit 1 in 4.2 s with the known names | the same |
