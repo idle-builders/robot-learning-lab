@@ -287,6 +287,12 @@ def build(manifest_path, hardware_json=None, assembly_report_path=None, definiti
     for n in settings:
         if not n.startswith("_") and n not in parts and not settings[n].get("_kept"):
             D.find("setting_for_absent_part", "robot/body/checks/data/part_settings.json", n, f"{n}: settings for a part the manifest does not hold")
+    for n, r in rowmap.items():         # the manifest as a consistent snapshot: its files still hash as it recorded them
+        for field, path in FILES.hash_mismatch(parts[n], r):
+            e = claims.get(n)
+            D.find("file_changed_since_manifest", e and e["file"], e and f"parts[{e['index']}] line {e['line']}",
+                   f"{n}: {field} {path} no longer matches the sha256 the manifest recorded (rerun its generator)", part=n)
+    FILES.save_sha_cache()
     if not any(g.get("manifest_out") == manifest_path for g in D.generators):
         D.find("manifest_without_generator", None, None, f"{manifest_path}: no definition declares a generator with this manifest_out (the rebuild cannot recreate it)")
     for g, inp, exists in D.external_inputs():

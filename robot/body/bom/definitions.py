@@ -48,7 +48,7 @@ def match(names, spec):
 
 
 class Definitions:
-    def __init__(self, paths=None):
+    def __init__(self, paths=None, strip=None):
         import yaml
         import jsonschema
         schema = json.loads(SCHEMA_FILE.read_text())
@@ -58,6 +58,8 @@ class Definitions:
         self.studies = {}                # study_id -> dict(study block, file, definition): dashboard metadata (publish_body.py)
         for rank, p in enumerate(paths if paths is not None else discover()):
             f = rel(p)
+            if strip and f.startswith(strip):
+                f = f[len(strip):].lstrip("/")      # a snapshot copy is named by the repository path it came from
             try:
                 doc = yaml.safe_load(Path(p).read_text()) or {}
             except Exception as e:  # noqa: BLE001

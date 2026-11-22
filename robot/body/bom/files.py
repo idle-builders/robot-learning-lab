@@ -80,6 +80,48 @@ def resolve(path):
     return "missing", path
 
 
+_SHA_CACHE = ROOT / ".cache/work/bom/file-sha256.json"
+
+
+def sha256_cached(path):
+    """sha256 of a repository file, cached by path, size and mtime (.cache, derived)."""
+    import hashlib
+    import os
+    f = ROOT / path
+    st = os.stat(f)
+    key = f"{path}|{st.st_size}|{int(st.st_mtime)}"
+    cache = sha256_cached.__dict__.setdefault("c", json.loads(_SHA_CACHE.read_text()) if _SHA_CACHE.exists() else {})
+    if key not in cache:
+        h = hashlib.sha256()
+        with open(f, "rb") as fh:
+            for b in iter(lambda: fh.read(1 << 20), b""):
+                h.update(b)
+        cache[key] = h.hexdigest()
+        sha256_cached.dirty = True
+    return cache[key]
+
+
+def save_sha_cache():
+    if getattr(sha256_cached, "dirty", False):
+        _SHA_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        _SHA_CACHE.write_text(json.dumps(sha256_cached.c))
+        sha256_cached.dirty = False
+
+
+def hash_mismatch(p, r):
+    """[(field, path)] of a part's files on disk whose sha256 differs from the one the manifest recorded for them."""
+    out = []
+    for field, status, resolved, rec in (("native_step", r["step_status"], r["step_resolved"], p.get("native_step_sha256")),
+                                         ("mesh", r["mesh_status"], r["mesh_resolved"], p.get("mesh_sha256"))):
+        if rec and status in ("disk", "moved_disk") and resolved:
+            try:
+                if sha256_cached(resolved) != rec:
+                    out.append((field, resolved))
+            except OSError:
+                pass
+    return out
+
+
 def part_files(p):
     """Per manifest part: how its STEP and mesh resolve, bucket records of missing ones, and file flags
     (file_missing, file_in_bucket_not_indexed, mesh_only, no_geometry, mesh_npz_not_stl)."""

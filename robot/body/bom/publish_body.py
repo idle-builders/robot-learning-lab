@@ -333,6 +333,26 @@ def package(manifest_path):
     print("packaged", GLB, round(out.stat().st_size / 1e6, 1), "MB")
 
 
+def committed_definitions(D, study):
+    """(Definitions as committed at HEAD, snapshot info): every tracked definition file's HEAD content, written under
+    .cache/work/publish-snapshot/<commit>/ and named by its repository path; untracked definitions and uncommitted edits
+    of sources are listed, not used."""
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    base = ROOT / ".cache/work/publish-snapshot" / head
+    paths, untracked = [], []
+    for f in DEF.discover():
+        r = rel(f)
+        got = subprocess.run(["git", "show", f"HEAD:{r}"], cwd=ROOT, capture_output=True)
+        if got.returncode:
+            untracked.append(r); continue
+        q = base / r; q.parent.mkdir(parents=True, exist_ok=True); q.write_bytes(got.stdout)
+        paths.append(q)
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", *sources(D, study)], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
+    snapD = DEF.Definitions(paths, strip=rel(base))
+    return snapD, dict(commit=head, definitions_from="HEAD", untracked_definitions_not_included=untracked,
+                       working_tree_edits_not_included=[l[3:] for l in dirty])
+
+
 def main_checkout():
     return (ROOT / ".git").exists() and "/.cache/work/" not in str(ROOT)
 
@@ -355,14 +375,18 @@ def main():
     if a.publish:
         if not main_checkout() or a.definitions:
             raise SystemExit("publish runs from the main checkout on its own definitions; this copy writes the record with --out only")
-        dirty = subprocess.run(["git", "status", "--porcelain", "--", *sources(D, study)], cwd=ROOT, capture_output=True, text=True).stdout
-        if dirty:
-            raise SystemExit("the record's sources have uncommitted changes (their last commit is the version); commit them first:\n" + dirty)
+        # a consistent snapshot, never main's working tree: the definitions as committed at HEAD; work in progress in other
+        # sessions stays out until they commit (the dashboard keeps its last committed state); never blocks the publish
+        D, snap = committed_definitions(D, study)
+        study = pick_study(D, a.study)
         if not glb_state(sha_file(ROOT / mp))[1]:
             print("display GLB is stale: packaging it under memguard", flush=True)
             subprocess.run(["python3", "infra/tools/memguard.py", "--limit-gb", "6", "--timeout-s", "1800", "--",
                             sys.executable, "-B", rel(Path(__file__)), "package", "--study", study["study_id"], "--manifest", mp], cwd=ROOT, check=True)
     rec = record(study, D, mp, a.checks_dir)
+    if a.publish:
+        rec["snapshot"] = dict(snap, manifest=mp, manifest_sha256=sha_file(ROOT / mp))
+        rec["sections"][0]["payload"]["snapshot"] = rec["snapshot"]
     out = Path(a.out) if a.out else OUT / f"{study['study_id']}-record.json"; out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=1, default=str) + "\n")
     v = rec["sections"][0]["payload"]

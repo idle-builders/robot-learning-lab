@@ -5,7 +5,7 @@ inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed
 check of the target (robot/design.json body_manifest) and the design-dashboard record written to a file
 (robot/body/bom/publish_body.py; the main checkout publishes it with `publish_body.py --publish`). This script
 
-  setup      makes WORK/repo: a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
+  setup [--commit REV]  makes WORK/repo (code from REV via git archive when given, else the working tree): a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
              .tools, ...), with .venv, .tools, data and .artifact-store linked from the main checkout, and an artifacts/
              tree in which every top-level folder and every artifacts/robot/* folder except body is a link to the main
              checkout's, the outputs of the section builders (generators with rebuild false) are links (read-only
@@ -156,10 +156,16 @@ def link_except(rel: str, produced: list[str], copied: list[str] = ()):
             (REPO / q).mkdir(parents=True, exist_ok=True)
 
 
-def setup():
+def setup(commit=None):
     WORK.mkdir(parents=True, exist_ok=True)
     REPO.mkdir(parents=True, exist_ok=True)
-    cmd = ["rsync", "-a", "--delete"] + [f"--exclude={e}" for e in RSYNC_EXCLUDE] + [f"{ROOT}/", f"{REPO}/"]
+    src = ROOT
+    if commit:      # the copy's code and data from a git commit, not from the working tree (other sessions' edits stay out)
+        src = WORK / "commit-export"
+        shutil.rmtree(src, ignore_errors=True); src.mkdir(parents=True)
+        arch = subprocess.run(["git", "-C", str(ROOT), "archive", "--format=tar", commit], capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-x", "-C", str(src)], input=arch, check=True)
+    cmd = ["rsync", "-a", "--delete"] + [f"--exclude={e}" for e in RSYNC_EXCLUDE] + [f"{src}/", f"{REPO}/"]
     # keep the artifacts tree and caches made inside the copy across re-syncs
     cmd[3:3] = ["--filter=P /artifacts/", "--filter=P /.cache/"] + [f"--filter=P /{n}" for n in LINK_TOP]
     sh(cmd)
@@ -182,7 +188,7 @@ def setup():
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     if not SNAPSHOT.exists():
         shutil.copy2(ROOT / CHAIN["target_manifest"], SNAPSHOT)
-    rec = dict(time=time.strftime("%Y-%m-%dT%H:%M:%S%z"), git_head=sh(["git", "-C", str(ROOT), "rev-parse", "HEAD"]).strip(),
+    rec = dict(time=time.strftime("%Y-%m-%dT%H:%M:%S%z"), code_from=commit or "working tree", git_head=sh(["git", "-C", str(ROOT), "rev-parse", "HEAD"]).strip(),
                git_status_lines=len(sh(["git", "-C", str(ROOT), "status", "--porcelain"]).splitlines()),
                selected_snapshot=str(SNAPSHOT.relative_to(ROOT)), selected_snapshot_sha256=sha(SNAPSHOT),
                definitions_sha256={str(f.relative_to(ROOT)): sha(f) for f in __import__("definitions").discover()},
@@ -463,13 +469,14 @@ if __name__ == "__main__":
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--step")
     ap.add_argument("--from", dest="start")
+    ap.add_argument("--commit", help="setup: take the copy's code and definitions from this git commit (e.g. HEAD), not the working tree")
     a = ap.parse_args()
     if a.dry_run:
         sys.exit(1 if dry_run() else 0)
     if a.step:
         sys.exit(run_step(a.step))
     if a.action == "setup":
-        setup()
+        setup(a.commit)
     elif a.action == "run":
         sys.exit(run_all(a.start))
     elif a.action == "compare":
