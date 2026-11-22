@@ -48,8 +48,7 @@ DECK_BOTTOM = 262.75
 FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
 BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path: they get a rib (nothing is trimmed, see @lore below)
 RIB_LEN, RIB_H = 7.0, 3.5         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
-CBORE_FILLET = 0.3                       # round at the floor of the head pocket of yaw screw (59,9) where it steps down to the driver channel (floor annulus 0.45 wide): the heavy-case stress peak (the others stay sharp: a fillet on all four adds 8 micro-edges)
-FILLET_AT = (59.0, 9.0)
+CBORE_FILLET = 0.3                       # round at the floor of each yaw head pocket where it steps down to the driver channel (floor annulus 0.45 wide): the heavy-case stress peak sat at (59,9), and with only that one rounded it moved to the twin (59,-5)
 POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
 
 
@@ -111,7 +110,7 @@ def build_right():
         add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), POCKET))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
         cb = C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R)
-        chan += [rounded_bottom(cb, CBORE_FILLET) if CBORE_FILLET and abs(x - FILLET_AT[0]) < 0.1 and abs(y - FILLET_AT[1]) < 0.1 else cb, C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
+        chan += [rounded_bottom(cb, CBORE_FILLET) if CBORE_FILLET else cb, C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
                                  C.cylinder((x, y, seat - 0.5), (x, y, z0 + 0.5), R_SLEEVE_YAW[1])))
