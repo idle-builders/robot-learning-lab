@@ -1,12 +1,10 @@
-"""bom: the robot BOM (robot/body/bom/build.py: the manifest joined with the hand-maintained robot/body/bom/lines.json)
-against the CAD, and the variety of hardware.
-
-Per line: quantity (lines.json override) vs the count in the CAD, make / buy, supplier. Counts: lines, lines whose
-quantity differs from the CAD, buy lines without a supplier or part number, lines with make / buy unknown, parts excluded
-in lines.json, and per part what a builder cannot get from a script (mesh only, file missing, no geometry, no print
-settings for a printed part, no assembly step). Variety: screw kinds (thread x length x head standard), nut / washer /
-spacer kinds, steel sleeve sizes (outer x inner x length, 0.05 mm, from each <part>_steel_sleeves STEP; solids over 5 mm
-outer or under 1.8 mm long are not sleeves). Manifest-wide (the scope does not filter it). Measurements and counts only."""
+"""bom: the robot BOM assembled from the body definitions (robot/body/bom/build.py over robot/**/<builder>.bom.yaml)
+against the CAD. Reports what the definitions do not say yet, each finding naming the definition file to fix: manifest
+parts no definition claims, entries / globs matching nothing, parts claimed twice, declared quantity vs manifest count,
+declared files that resolve nowhere, hardware without a declared spec, printed parts without a print setup, generator
+inputs no generator writes, parts without an assembly step, stale steps, declared sleeve contents vs the sleeves in each
+sleeve STEP (one solid per sleeve; solids over 5 mm outer or under 1.8 mm long are not sleeves). Plus supplier coverage and
+hardware variety by declared spec kind. Manifest-wide (the scope does not filter it). Measurements and counts only."""
 from __future__ import annotations
 
 import sys
@@ -59,46 +57,46 @@ def _is_sleeve(x):
 
 @register("bom", lambda ctx: bool(ctx.body.parts))
 def run(ctx):
-    """The generated BOM against the CAD: quantity differences, open make / buy and supplier fields, hardware variety."""
+    """The BOM assembled from the body definitions against the CAD: every definition finding (part no definition claims,
+    entries / globs matching nothing, parts claimed twice, quantity differences, declared files missing, hardware without a
+    spec, printed parts without a print setup, generator inputs nobody writes, parts without an assembly step, stale steps),
+    declared sleeve contents against the solids of each sleeve STEP, supplier coverage and hardware variety. Each finding
+    names the definition file to fix."""
     sys.path.insert(0, str(ROOT / "robot/body/bom"))
     import build as BOM
     mp = Path(str(ctx.manifest)).resolve()
     bom = BOM.build(str(mp.relative_to(ROOT)) if mp.is_relative_to(ROOT) else str(mp))
-    lines = bom["lines"]
-    cases = []
+    lines, c = bom["lines"], bom["counts"]
+    findings = list(bom["findings"])
+    # declared contents of sleeve-set parts vs the sleeves in their STEP (one solid per sleeve)
     for l in lines:
-        if l.get("quantity") is not None and l.get("quantity_cad") is not None and l["quantity"] != l["quantity_cad"]:
-            cases.append(dict(part=l["id"], mating_part=None, pose=None, location_mm=None, value=float(l["quantity"] - l["quantity_cad"]),
-                              unit="BOM - CAD count", what=f"lines.json {l['quantity']}, CAD {l['quantity_cad']}"))
-        if l.get("quantity_cad") is None and l["parts"]:
-            cases.append(dict(part=l["id"], mating_part=None, pose=None, location_mm=None, value=float(len(l["parts"])),
-                              unit="parts on a line the CAD could not count", what="sleeve STEP not readable"))
-    hw = [l for l in lines if l["id"].startswith("hw:")]
-    kinds = Counter((l.get("spec") or {}).get("kind") for l in hw)
-    sleeves = [l for l in lines if l["id"].startswith("sleeve:") and not l["id"].startswith("sleeve:uncounted:")]
-    c = bom["counts"]
-    ev = dict(lines=len(lines), lines_quantity_differs_from_cad=sum(1 for x in cases if x["unit"] == "BOM - CAD count"),
-              lines_make_buy_unknown=sum(1 for l in lines if l["make_buy"] not in ("make", "buy", "included", "context")),
-              buy_lines_without_supplier=sum(1 for l in lines if l["make_buy"] == "buy" and not (l.get("supplier") or l.get("part_number"))),
-              buy_lines_supplier_and_part_number_unknown=sum(1 for l in lines if l["make_buy"] == "buy" and all((l.get(k) or "unknown") == "unknown" for k in ("supplier", "part_number"))),
-              buy_lines_with_supplier=sum(1 for l in lines if l["make_buy"] == "buy" and (l.get("supplier") or "unknown") != "unknown"),
-              buy_lines_with_part_number=sum(1 for l in lines if l["make_buy"] == "buy" and (l.get("part_number") or "unknown") != "unknown"),
-              parts_file_in_bucket_not_indexed=c.get("parts_file_in_bucket_not_indexed", 0),
-              dangling_references_unexplained=len(bom["defects"].get("dangling_unexplained", [])),
-              parts_excluded=len(bom["excluded"]), screw_kinds=kinds.get("screw", 0), nut_kinds=kinds.get("nut", 0),
-              washer_kinds=kinds.get("washer", 0), spacer_kinds=kinds.get("spacer", 0), sleeve_sizes=len(sleeves),
-              sleeves_in_cad=sum(l["quantity_cad"] or 0 for l in sleeves),
-              printed_without_native_step=c["printed_parts"] - c["printed_with_native_step"],
-              printed_without_print_settings=c["printed_parts"] - c["printed_with_print_settings_entry"],
-              parts_without_assembly_step=c["parts"] - c["parts_with_assembly_step"], parts_mesh_only=c["parts_mesh_only"],
-              parts_file_missing=c["parts_file_missing"], parts_without_geometry=c["parts_without_geometry"])
-    out = dict(counts=c, lines=[{k: l.get(k) for k in ("id", "name", "make_buy", "quantity", "quantity_cad", "sections", "supplier", "part_number")}
-                                for l in lines],
-               hardware_by_spec={l["name"]: l["quantity"] for l in hw}, sleeve_sizes={l["name"]: l["quantity_cad"] for l in sleeves},
-               hardware_specs=bom["hardware_specs"], excluded=bom["excluded"])
-    cases.append(dict(part="manifest", mating_part=None, pose=None, location_mm=None, value=float(ev["buy_lines_without_supplier"]),
-                      unit="buy lines without supplier or part number", what=f"{len(lines)} lines; {len(hw)} hardware kinds, {len(sleeves)} sleeve sizes"))
-    cases.sort(key=lambda x: -abs(x["value"]))
-    return dict(per_part={"manifest": out}, worst_cases=cases, bad_events=ev, evidence=[],
-                notes="BOM = robot/body/bom/build.py (manifest + robot/body/bom/lines.json + robot/body/bom/hardware.py specs); "
-                      "hardware specs come from .cache/work/bom-hardware/hardware.json when it matches the manifest, else they are measured now (adds about a minute)")
+        for p in l["parts"]:
+            decl = sum(x["quantity"] for x in l.get("contains_per_part", {}).get(p["part"], []))
+            if not decl:
+                continue
+            try:
+                cad = sum(1 for x in sleeve_sizes(ctx.body.parts[p["part"]]) if _is_sleeve(x))
+            except Exception as e:  # noqa: BLE001
+                findings.append(dict(kind="contains_not_counted", file=p["definition"], entry=l["id"], what=f"{p['part']}: STEP not read ({e})", part=p["part"])); continue
+            if cad != decl:
+                findings.append(dict(kind="contains_differs_from_cad", file=p["definition"], entry=l["id"], what=f"{p['part']}: declared {decl} sleeves, STEP holds {cad}", part=p["part"], declared=decl, cad=cad))
+    kinds = Counter(f["kind"] for f in findings)
+    hw = [l for l in lines if l["kinds"] == ["hardware"] and l["make_buy"] == "buy"]
+    spec_kinds = Counter((l.get("spec") or {}).get("kind") for l in hw)
+    ev = dict(lines=len(lines), findings=len(findings), **{f"findings_{k}": v for k, v in sorted(kinds.items())},
+              parts=c["parts"], parts_claimed=c["parts_claimed"], parts_with_assembly_step=c["parts_with_assembly_step"],
+              lines_quantity_differs_from_declared=c["lines_quantity_differs_from_declared"],
+              buy_lines=c["buy_lines"], buy_lines_supplier_known=c["buy_lines_supplier_known"], buy_lines_part_number_known=c["buy_lines_part_number_known"],
+              buy_lines_supplier_empty=c["buy_lines_supplier_empty"],
+              screw_kinds=spec_kinds.get("screw", 0), nut_kinds=spec_kinds.get("nut", 0), washer_kinds=spec_kinds.get("washer", 0),
+              spacer_kinds=spec_kinds.get("spacer", 0), sleeve_sizes=spec_kinds.get("sleeve", 0),
+              printed_without_native_step=c["printed_parts"] - c["printed_with_native_step"], printed_without_print_setup=c["printed_parts"] - c["printed_with_print_setup"],
+              parts_mesh_only=c["parts_mesh_only"], parts_file_missing=c["parts_file_missing"], parts_file_in_bucket_not_indexed=c["parts_file_in_bucket_not_indexed"],
+              parts_without_geometry=c["parts_without_geometry"], definitions=len(bom["definitions"]), generators=len(bom["generators"]))
+    cases = [dict(part=f.get("part") or f.get("entry"), mating_part=None, pose=None, location_mm=None,
+                  value=float(f["cad"] - f["declared"]) if "cad" in f and "declared" in f else 1.0, unit=f["kind"],
+                  what=f"{f['file'] or '(no definition)'}: {f['what']}") for f in findings]
+    out = dict(counts=c, findings=findings, definitions=bom["definitions"], generators=bom["generators"],
+               lines=[{k: l.get(k) for k in ("id", "name", "make_buy", "quantity", "quantity_declared", "sections", "supplier", "part_number", "origin")} for l in lines])
+    return dict(per_part={"manifest": out}, worst_cases=cases[:60], bad_events=ev, evidence=[],
+                notes="BOM = robot/body/bom/build.py over the body definitions (robot/**/<builder>.bom.yaml); every finding names the definition file to fix")

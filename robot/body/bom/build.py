@@ -1,33 +1,25 @@
-"""The robot BOM: one place that says, per line, what to make or buy, how many, from which files and scripts, with which
-print setup, and where it goes in the assembly order.
+"""The robot BOM and build sequence, assembled from the body definitions (robot/**/<builder>.bom.yaml, schema
+robot/body/bom/schema.json). This script has no knowledge of any part: the agents who own a builder declare in its
+definition what it generates, which manifest parts it owns and what each is (line, make / buy, spec, supplier or
+unknown), and how they go together. build.py resolves those declarations against the selected manifest, adds what it can
+read from files (whether each STEP / mesh resolves and how, sha256, volume and mass from the manifest, the print setup
+through checks/process.py), and writes the BOM and the per-subassembly sequence. What it cannot resolve is a finding that
+names the definition file to fix (findings.json, and the bom check); nothing is filled in.
 
-Inputs (source of truth): the selected body manifest (`body_manifest` in robot/design.json), the hand-maintained line
-data robot/body/bom/lines.json (agents edit it: grouping, supplier, part numbers, prices, notes, manual lines,
-per-part overrides), the hardware specs (robot/body/bom/hardware.py), the per-part print settings
-(robot/body/checks/data/part_settings.json via checks/process.py), the assembly order (checks/data/assembly_order.json),
-the builder chain (robot/body/bom/chain.json) and the producer table / file resolution of robot/body/bom/inventory.py.
+Output (derived, default .cache/work/bom/): bom.json, bom.csv, BOM.md (the builder's page), assembly.json and ASSEMBLY.md
+(build sequence), findings.json, dashboard-bom.json.
 
-Output (derived, recreated by this script; default .cache/work/bom/):
-  bom.json      lines with parts, quantity (CAD count and any lines.json override), make / buy, files per part (STEP,
-                mesh, how each resolves, producer script, regenerate command), print setup, hardware spec, assembly steps,
-                flags; plus the build chain and the defect counts
-  bom.csv       one row per line (buy / print list)
-  BOM.md        the builder's page: print list, buy list, hardware, assembly order, how to regenerate, open defects
-  dashboard-bom.json   rows for the CAD BOM panel (infra/dashboard/ui/cad-bom.js)
-
-  .venv/bin/python -B robot/body/bom/build.py [--manifest PATH] [--out DIR] [--hardware-json PATH] [--publish]
+  .venv/bin/python -B robot/body/bom/build.py [--manifest PATH] [--out DIR] [--assembly-report PATH] [--publish]
 
 --publish writes the design-dashboard BOM of the selected complete body (data/results.sqlite design_boms) and points the
-robot planning BOM at it (robot_bom), replacing the stale plan (owner 2026-11-20).
+robot planning BOM at it (robot_bom).
 """
 from __future__ import annotations
 
 import argparse
 import csv
-import fnmatch
 import hashlib
 import json
-import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -35,8 +27,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "robot/body")); sys.path.insert(0, str(HERE))
-import inventory as INV  # noqa: E402
-import hardware as HW  # noqa: E402
+import definitions as DEF  # noqa: E402
+import files as FILES  # noqa: E402   (generic file resolution: disk, regenerable, blob index, path moves, bucket records)
 
 DATA = ROOT / "robot/body/checks/data"
 
@@ -62,82 +54,14 @@ def print_setup(ctx, n):
                 material_alternatives=e.get("material_alternatives") or [])
 
 
-def stem(name):
-    s = re.sub(r"^(upper__|lower__|combined__)", "", name)
-    s = re.sub(r"^[LR]_", "", s)
-    s = re.sub(r"(_\d+)+$", "", s)
-    return s
-
-
-def sleeve_count(p):
-    """Steel sleeves in a <part>_steel_sleeves STEP: (count, {size: count}) of its solids that are sleeves
-    (checks/modules/bom.py rule), or (None, {}) when the STEP cannot be read."""
-    try:
-        from checks.modules.bom import _is_sleeve, sleeve_sizes
-        ok = [s for s in sleeve_sizes(p) if _is_sleeve(s)]
-        out = defaultdict(int)
-        for a, b, c in ok:
-            out[f"{a:g} x {b:g} x {c:g}"] += 1
-        return len(ok), dict(out)
-    except Exception:  # noqa: BLE001
-        return None, {}
-
-
-def chain_commands():
-    f = HERE / "chain.json"
-    if f.exists():
-        try:
-            return json.loads(f.read_text())
-        except json.JSONDecodeError:
-            return None
-    return None
-
-
-def regenerate_command(producer, chain):
-    """The command that rewrites a producer's outputs: from chain.json when it names the script, else the script itself."""
-    if not producer or producer.startswith("none") or producer == "unknown" or "@" in producer or producer.startswith("pinned"):
-        return None
-    script = producer.split(" ")[0]
-    for st in (chain or {}).get("steps", []):
-        cmd = st.get("command") or ""
-        cmd = " ".join(cmd) if isinstance(cmd, list) else cmd
-        if script in cmd:
-            return cmd
-    return f".venv/bin/python -B {script}"
-
-
-def hardware_specs(man, manifest_path, path=None):
-    sha = hashlib.sha256((ROOT / manifest_path).read_bytes()).hexdigest()
-    f = Path(path) if path else ROOT / ".cache/work/bom-hardware/hardware.json"
-    if f.exists():
-        d = json.loads(f.read_text())
-        if d["summary"].get("manifest_sha256") in (None, sha) and d["summary"].get("manifest") == manifest_path:
-            names = {p["name"] for p in man["parts"]}
-            if set(d["parts"]) <= names:
-                return d["parts"], f"{f.relative_to(ROOT)} (manifest sha {'matches' if d['summary'].get('manifest_sha256') == sha else 'not recorded'})"
-    sp = HW.specs(man)
-    sp.pop("_errors", None)
-    for s in sp.values():
-        s.pop("_mesh", None)
-    return sp, "computed now (no geometry)"
-
-
-ORDER_FILE = DATA / "assembly_order.json"
 ASSEMBLY_REPORT = ROOT / ".cache/work/cad-speed/checks/assembly/report.json"
 HEAD_TYPE = {"ISO 4762": "socket_cap", "ISO 7380-1": "button", "ISO 7380-2": "flange_button", "ISO 10642": "countersunk",
              "ISO 7045": "pan_phillips", "ISO 7049": "pan_phillips", "DIN 7981": "pan_phillips"}
 
 
-def _order_module():
+def assembly_index(names, order):
+    """{part name: [{assembly, step (id), number (1-based within the assembly), as: base | part | screw | with}]}."""
     from checks.modules import assembly as A
-    return A
-
-
-def assembly_index(names, order=None):
-    """{part name: [{assembly, step (id), number (1-based within the assembly), as: base | part | screw | with}]} from the
-    assembly order, for every manifest part the order names."""
-    A = _order_module()
-    order = order or json.loads(ORDER_FILE.read_text())
     out = defaultdict(list)
     for an in A.build_order(order):
         a = order["assemblies"][an]
@@ -155,7 +79,7 @@ def tool_of(spec):
     if not spec or spec.get("kind") != "screw":
         return None
     from checks import screwlib as SL
-    ht = HEAD_TYPE.get(spec.get("head_standard"))
+    ht = HEAD_TYPE.get(spec.get("standard") or spec.get("head_standard"))
     if ht is None:
         return None
     th = (spec.get("thread") or "")
@@ -210,189 +134,185 @@ def measured(row):
     return s
 
 
-def assembly_sequence(bom, parts, hw, report_path=None):
-    """Per-subassembly build sequence from the assembly order: for each step its parts and hardware with their BOM line,
-    the tool, the direction, the status (seeded / confirmed / designer) and the check's measurement; per assembly the
-    parts and hardware it consumes (per BOM line) and the tools."""
-    A = _order_module()
-    order = json.loads(ORDER_FILE.read_text())
-    line_of = {p["part"]: l["id"] for l in bom["lines"] for p in l["parts"]}
-    line_name = {l["id"]: l["name"] for l in bom["lines"]}
+def assembly_sequence(bom, parts, order, report_path=None):
+    """Per-subassembly build sequence from the declared order: per step its parts and hardware with their BOM line, the tool,
+    the direction, the declared status (designer / seeded), the definition file, and the assembly check's measurement (a
+    step the check measured clear is check-supported); per assembly the parts and hardware it consumes and the tools."""
+    from checks.modules import assembly as A
+    line_of = {p["part"]: l for l in bom["lines"] for p in l["parts"]}
     meas, rep_src = assembly_report(bom["manifest_sha256"], report_path)
     names = list(parts)
-    seq = A.build_order(order)
     out = []
-    for no, an in enumerate(seq, 1):
+    for no, an in enumerate(A.build_order(order), 1):
         a = order["assemblies"][an]
         consumed, tools, steps = defaultdict(int), defaultdict(int), []
 
         def item(n):
-            lid = line_of.get(n)
-            consumed[lid or "(no BOM line)"] += 1
-            sp = hw.get(n) or {}
-            t = tool_of(sp)
+            l = line_of.get(n)
+            consumed[l["id"] if l else "(no BOM line)"] += 1
+            for c in (l or {}).get("contains_per_part", {}).get(n, []):
+                consumed[c["line"]] += c["quantity"]
+            t = tool_of((l or {}).get("spec"))
             if t:
                 tools[t] += 1
-            return dict(part=n, line=lid, line_name=line_name.get(lid), role=parts[n].get("role"), tool=t)
+            return dict(part=n, line=l and l["id"], line_name=l and l["name"], role=parts[n].get("role"), tool=t)
         base = [item(n) for n in A.resolve(names, a.get("base", []))]
         for i, st in enumerate(a.get("steps", [])):
             kind = "part" if "part" in st else "screw"
             row = meas.get((an, st.get("id")))
-            steps.append(dict(number=i + 1, id=st.get("id"), kind=kind,
+            m = measured(row)
+            supported = bool(row) and not row.get("error") and (
+                (kind == "part" and row.get("path_first_contact_mm") is None and (row.get("seat_parts_released_at_mm") or 0) < (row.get("path_mm") or 60))
+                or (kind == "screw" and not row.get("screw_errors") and row.get("obstruction_mm3", 1) == 0))
+            steps.append(dict(number=i + 1, id=st.get("id"), kind=kind, file=st.get("file"),
                               items=[item(n) for n in A.resolve(names, st.get(kind))],
                               with_items=[item(n) for n in A.resolve(names, st.get("with"))],
                               direction=st.get("direction"),
-                              status="confirmed" if st.get("confirmed") else "seeded" if st.get("seeded") else "designer",
-                              confirmed=st.get("confirmed"), derived=st.get("derived"), measured=measured(row)))
-        out.append(dict(number=no, name=an, doc=a.get("doc"), after=a.get("after", []), base=base, steps=steps,
-                        counts=dict(steps=len(steps), seeded=sum(1 for s in steps if s["status"] == "seeded"),
-                                    confirmed=sum(1 for s in steps if s["status"] == "confirmed"),
-                                    designer=sum(1 for s in steps if s["status"] == "designer"),
-                                    parts=sum(len(s["items"]) for s in steps if s["kind"] == "part"),
-                                    screws=sum(len(s["items"]) for s in steps if s["kind"] == "screw"),
-                                    with_items=sum(len(s["with_items"]) for s in steps)),
-                        consumes=[dict(line=k, name=line_name.get(k, k), quantity=v) for k, v in sorted(consumed.items(), key=lambda kv: str(kv[0]))],
-                        tools=[dict(tool=k, screws=v) for k, v in sorted(tools.items())]))
+                              status="designer" if st.get("designer") else "seeded" if st.get("seeded") else "declared",
+                              check_supported=supported if row else None, derived=st.get("derived"), measured=m))
+        k = dict(steps=len(steps), check_supported=sum(1 for s in steps if s["check_supported"]),
+                 not_supported=sum(1 for s in steps if s["check_supported"] is False), not_measured=sum(1 for s in steps if s["check_supported"] is None),
+                 designer=sum(1 for s in steps if s["status"] == "designer"), seeded=sum(1 for s in steps if s["status"] == "seeded"),
+                 parts=sum(len(s["items"]) for s in steps if s["kind"] == "part"), screws=sum(len(s["items"]) for s in steps if s["kind"] == "screw"),
+                 with_items=sum(len(s["with_items"]) for s in steps))
+        out.append(dict(number=no, name=an, file=a.get("file"), doc=a.get("doc"), after=a.get("after", []), base=base, steps=steps, counts=k,
+                        consumes=[dict(line=x, name=(next((l["name"] for l in bom["lines"] if l["id"] == x), x)), quantity=v) for x, v in sorted(consumed.items(), key=lambda kv: str(kv[0]))],
+                        tools=[dict(tool=t, screws=v) for t, v in sorted(tools.items())]))
     idx = assembly_index(names, order)
     missing = sorted(n for n in names if n not in idx)
-    return dict(order_file=str(ORDER_FILE.relative_to(ROOT)), check_report=rep_src, manifest=bom["manifest"], manifest_sha256=bom["manifest_sha256"],
-                assemblies=out, parts_in_no_step=missing,
-                counts=dict(assemblies=len(out), steps=sum(x["counts"]["steps"] for x in out),
-                            seeded=sum(x["counts"]["seeded"] for x in out), confirmed=sum(x["counts"]["confirmed"] for x in out),
-                            designer=sum(x["counts"]["designer"] for x in out), parts_in_no_step=len(missing), parts=len(names)))
+    tot = lambda key: sum(x["counts"][key] for x in out)  # noqa: E731
+    return dict(source="the assembly sections of the body definitions (*.bom.yaml)", check_report=rep_src, manifest=bom["manifest"],
+                manifest_sha256=bom["manifest_sha256"], assemblies=out, parts_in_no_step=missing,
+                counts=dict(assemblies=len(out), steps=tot("steps"), check_supported=tot("check_supported"), not_supported=tot("not_supported"),
+                            not_measured=tot("not_measured"), designer=tot("designer"), seeded=tot("seeded"), parts_in_no_step=len(missing), parts=len(names)))
 
 
-def build(manifest_path, hardware_json=None, assembly_report_path=None):
-    man, items, rows, settings, order = INV.build(manifest_path)
+FILE_FLAGS = ("file_missing", "file_in_bucket_not_indexed", "mesh_only", "no_geometry", "mesh_npz_not_stl")
+
+
+def build(manifest_path, hardware_json=None, assembly_report_path=None, definitions=None):
+    """The BOM of a manifest from the definitions. Returns the bom dict (lines, counts, findings, assembly_sequence, ...)."""
+    man = json.loads((ROOT / manifest_path).read_text())
+    if isinstance(man.get("parts"), dict):
+        man["parts"] = [{"name": k, **v} for k, v in man["parts"].items()]
     parts = {p["name"]: p for p in man["parts"]}
-    aidx = assembly_index(list(parts))
-    for r in rows:      # the order's own resolution (base, part, screw and `with` lists), not inventory's older one
-        r["assembly_steps"] = [f"{x['assembly']}:{x['step']}" for x in aidx.get(r["name"], [])]
-        r["flags"] = [f for f in r["flags"] if f != "no_assembly_step"] + ([] if r["assembly_steps"] else ["no_assembly_step"])
-    lines_doc = json.loads((HERE / "lines.json").read_text())
-    hw, hw_source = hardware_specs(man, manifest_path, hardware_json)
-    chain = chain_commands()
-    ctx = _Ctx(parts, settings)
-    overrides = lines_doc.get("part_overrides", {})
+    settings = json.loads((DATA / "part_settings.json").read_text())
+    sections = {k: v for k, v in json.loads((DATA / "sections.json").read_text()).items() if not k.startswith("_")}   # phase 2: from the definitions
+    rows = []
+    for p in man["parts"]:
+        r = FILES.part_files(p)
+        lk = (p.get("owning_link") or "")
+        lk = lk[2:] if lk[:2] in ("R_", "L_") else lk
+        r["section"] = next((sn for sn, v in sections.items() if lk in v.get("links", []) or any(__import__("fnmatch").fnmatchcase(p["name"], g) for g in v.get("parts", []))), None)
+        rows.append(r)
+    names = list(parts)
     rowmap = {r["name"]: r for r in rows}
+    D = definitions or DEF.load()
+    claims = D.claims(names)
+    order = D.order(names)
+    gen_order = D.generator_order()
+    aidx = assembly_index(names, order)
+    ctx = _Ctx(parts, settings)
+    lines, contains_per_part = {}, defaultdict(dict)
+    AGREE = ("name", "make_buy", "kind", "spec", "supplier", "part_number", "unit_cost", "currency")
 
-    def hand_line(n):
-        p = parts[n]
-        ov = overrides.get(n, {})
-        if ov.get("line"):
-            return next((l for l in lines_doc["lines"] if l["id"] == ov["line"]), None)
-        for l in lines_doc.get("lines", []):
-            if l.get("match") and any(fnmatch.fnmatchcase(n, g) for g in l["match"]):
-                return l
-            if l.get("roles") and p["role"] in l["roles"]:
-                return l
-            if l.get("motor") and p.get("motor") == l["motor"]:
-                return l
-        return None
-
-    groups = defaultdict(list)       # line id -> part names
-    sleeve_parts, sleeve_qty = {}, defaultdict(int)
-    meta = {}
-    excluded = {}
-    for n, r in rowmap.items():
-        p = parts[n]
-        if overrides.get(n, {}).get("exclude"):
-            excluded[n] = overrides[n]["exclude"]; continue
-        hl = hand_line(n)
-        if hl:
-            lid = hl["id"]; meta.setdefault(lid, dict(hl, _from="lines.json"))
-        elif r["kind"] == "printed":
-            lid = f"print:{n}"
-            meta.setdefault(lid, dict(id=lid, name=n, make_buy="make", _from="generated: printed part"))
-        elif p["role"] == "compression_limit_sleeves":
-            # bought by size: one line per sleeve size (outer x inner x length), the part listed on each of its sizes
-            c, sizes = sleeve_count(parts[n])
-            sleeve_parts[n] = (c, sizes)
-            for sz, k in (sizes or {}).items():
-                lid = "sleeve:" + sz.replace(" ", "")
-                meta.setdefault(lid, dict(id=lid, name=f"304 steel compression sleeve {sz} mm (outer x inner x length)", make_buy="buy",
-                                          _from="generated: sleeve size from the connector's sleeve STEP"))
-                groups[lid].append(n); sleeve_qty[lid] += k
-            if not sizes:
-                lid = f"sleeve:uncounted:{n}"
-                meta.setdefault(lid, dict(id=lid, name=f"steel sleeves of {n} (not counted)", make_buy="buy", _from="generated: sleeve STEP not read"))
-                groups[lid].append(n)
-            continue
-        elif n in hw and hw[n].get("label"):
-            lab = hw[n]["label"]
-            lid = "hw:" + re.sub(r"[^A-Za-z0-9.]+", "-", lab).strip("-")
-            meta.setdefault(lid, dict(id=lid, name=lab, make_buy="buy", spec={k: v for k, v in hw[n].items() if k not in ("measured", "source_of_spec", "step", "stl", "fit_to_old_mesh")},
-                                      _from="generated: hardware spec (robot/body/bom/hardware.py)"))
-        elif p.get("motor"):
-            lid = "servo:" + re.sub(r"[^A-Za-z0-9]+", "-", p["motor"]).strip("-")
-            meta.setdefault(lid, dict(id=lid, name=p["motor"], make_buy="buy", _from="generated: manifest motor field"))
+    def add_line(lid, e, file, qty_declared, kinds):
+        l = lines.get(lid)
+        if l is None:
+            l = lines[lid] = dict(id=lid, name=e.get("name", lid), kinds=set(), make_buy=e.get("make_buy", "unknown"), quantity=0, quantity_declared=0,
+                                  unit=e.get("unit", "ea"), spec=e.get("spec"), supplier=e.get("supplier"), part_number=e.get("part_number"),
+                                  unit_cost=e.get("unit_cost"), currency=e.get("currency"), url=e.get("url"), notes=[], definitions=[], parts=[], material=e.get("material"))
         else:
-            lid = f"{r['kind']}:{stem(n)}"
-            meta.setdefault(lid, dict(id=lid, name=stem(n), make_buy="buy" if r["kind"] in ("purchased", "hardware") else "unknown",
-                                      _from=f"generated: {r['kind']} part, name stem"))
-        groups[lid].append(n)
-
-    rules = (lines_doc.get("generated_line_defaults") or {}).get("rules", [])
-    for lid, m in meta.items():         # supplier / part number / notes for generated lines (lines.json generated_line_defaults)
-        if not str(m.get("_from", "")).startswith("generated"):
-            continue
-        rule = next((r for r in rules if fnmatch.fnmatchcase(lid, r["id"])), None)
-        if rule:
-            for k in ("supplier", "part_number", "notes"):
-                if rule.get(k) and not m.get(k):
-                    m[k] = rule[k].replace("{name}", str(m.get("name", lid)))
-            m["_from"] += f"; supplier fields: lines.json generated_line_defaults {rule['id']}"
-    out_lines = []
-    for lid, names in groups.items():
-        m = meta[lid]
-        first = rowmap[names[0]]
-        kinds = sorted({rowmap[n]["kind"] for n in names})
-        qty_cad = len(names)
-        sizes = None
-        if lid.startswith("sleeve:"):
-            qty_cad = sleeve_qty.get(lid) if not lid.startswith("sleeve:uncounted:") else None
-        files = []
-        for n in names:
+            for k in AGREE:
+                if e.get(k) is not None and l.get(k if k != "kind" else "kind_first") not in (None, e.get(k)) and k != "kind":
+                    D.find("line_disagrees", file, f"line {lid}", f"{k} {e.get(k)!r} differs from {l.get(k)!r} declared in {', '.join(l['definitions'])}")
+                if k != "kind" and l.get(k) is None and e.get(k) is not None:
+                    l[k] = e.get(k)
+        l["kinds"] |= set(kinds)
+        if e.get("notes") and e["notes"] not in l["notes"]:
+            l["notes"].append(e["notes"])
+        if file not in l["definitions"]:
+            l["definitions"].append(file)
+        l["quantity_declared"] += qty_declared or 0
+        return l
+    for e in D.entries:
+        hit = [n for n in DEF.match(names, e["match"]) if claims.get(n) is e]
+        g = D.generator(e.get("generator")) if e.get("generator") else None
+        if e.get("generator") and g is None:
+            D.find("generator_unknown", e["file"], f"parts[{e['index']}] line {e['line']}", f"generator {e['generator']!r} is declared nowhere")
+        l = add_line(e["line"], e, e["file"], e.get("quantity"), [e["kind"]])
+        l["quantity"] += len(hit)
+        for n in hit:
             r = rowmap[n]
-            f = dict(part=n, owning_link=r["owning_link"], section=r["section"], role=r["role"],
-                     step=r["step_resolved"] or r["native_step"], step_status=r["step_status"],
-                     mesh=r["mesh_resolved"] or r["mesh"], mesh_status=r["mesh_status"],
-                     producer=r["producer"], producer_class=r["producer_class"], regenerate=regenerate_command(r["producer"], chain),
-                     first_geometry=r["first_geometry"], assembly_steps=r["assembly_steps"],
+            f = dict(part=n, definition=e["file"], owning_link=r["owning_link"], section=e.get("section") or r["section"], role=r["role"],
+                     step=r["step_resolved"] or r["native_step"], step_status=r["step_status"], step_sha256=parts[n].get("native_step_sha256"),
+                     mesh=r["mesh_resolved"] or r["mesh"], mesh_status=r["mesh_status"], mesh_sha256=parts[n].get("mesh_sha256"),
                      step_cold_record=r.get("step_cold_record"), mesh_cold_record=r.get("mesh_cold_record"),
-                     flags=r["flags"])
-            if n in hw and hw[n].get("step"):
-                f["generated_hardware"] = dict(step=hw[n]["step"], stl=hw[n].get("stl"), fit_to_old_mesh=hw[n].get("fit_to_old_mesh"),
-                                               regenerate=".venv/bin/python -B robot/body/bom/hardware.py")
-            if r["kind"] == "printed":
-                f["print"] = print_setup(ctx, n)
-                f["print_settings_entry"] = n in settings
-            if overrides.get(n, {}).get("notes"):
-                f["notes"] = overrides[n]["notes"]
-            files.append(f)
-        qty = m.get("quantity", qty_cad)
-        masses = [parts[n].get("mass_kg") for n in names if parts[n].get("mass_kg") is not None]
-        line = dict(id=lid, name=m.get("name", lid), kinds=kinds, make_buy=m.get("make_buy", "unknown"),
-                    quantity=qty, quantity_cad=qty_cad, quantity_source="lines.json" if "quantity" in m else "CAD count",
-                    unit=m.get("unit", "ea"), sections=sorted({rowmap[n]["section"] or "unassigned" for n in names}),
-                    material=first["material"] if first["material"] else (files[0].get("print") or {}).get("material"),
-                    unit_mass_g=round(1000 * masses[0], 3) if masses and len(set(masses)) == 1 else None,
-                    total_mass_g=round(1000 * sum(masses), 2) if len(masses) == len(names) else None,
-                    supplier=m.get("supplier"), part_number=m.get("part_number"), unit_cost=m.get("unit_cost"),
-                    currency=m.get("currency"), url=m.get("url"), notes=m.get("notes"),
-                    spec=m.get("spec"), origin=m["_from"], parts=files, assembly=line_assembly(names, aidx),
-                    flags=sorted({f for x in files for f in x["flags"]}))
-        out_lines.append(line)
-    for ml in lines_doc.get("manual_lines", []):
-        out_lines.append(dict(ml, kinds=["manual"], quantity_source="lines.json", origin="lines.json manual line", parts=[], flags=[]))
-    order_key = {"printed": 0, "purchased": 1, "hardware": 2, "other": 3, "manual": 4}
-    out_lines.sort(key=lambda l: (order_key.get(l["kinds"][0], 9), l["sections"][0] if l["sections"] else "", l["id"]))
-    bom = dict(manifest=manifest_path, manifest_sha256=hashlib.sha256((ROOT / manifest_path).read_bytes()).hexdigest(),
-                hardware_specs=hw_source, lines_file="robot/body/bom/lines.json", chain=chain or {"steps": [dict(command=a, output=b) for a, b in INV.MANIFEST_CHAIN],
-                                                                                                    "note": "robot/body/bom/chain.json not written yet; chain from inventory.py"},
-                assembly_order="robot/body/checks/data/assembly_order.json",
-                defects=defects(rows), excluded=excluded, lines=out_lines, counts=counts(out_lines, rows))
-    bom["assembly_sequence"] = assembly_sequence(bom, parts, hw, assembly_report_path)
+                     volume_mm3=parts[n].get("volume_mm3"), mass_kg=parts[n].get("mass_kg"),
+                     generator=g and dict(id=g["id"], file=g["file"], command=" ".join(g["command"]), rebuild=g.get("rebuild", True)),
+                     assembly_steps=[f"{x['assembly']}:{x['step']}" for x in aidx.get(n, [])],
+                     flags=[x for x in r["flags"] if x in FILE_FLAGS] + ([] if aidx.get(n) else ["no_assembly_step"]))
+            if e["kind"] == "printed":
+                f["print"] = dict(e["process"], source="definition") if e.get("process") else print_setup(ctx, n)
+                f["print_settings_entry"] = bool(e.get("process")) or n in settings
+            l["parts"].append(f)
+            if e["kind"] == "printed" and not f["print_settings_entry"]:
+                D.find("printed_without_process", e["file"], f"parts[{e['index']}] line {e['line']}", f"{n}: no print setup (definition process or part_settings.json)", part=n)
+            if "file_missing" in f["flags"]:
+                D.find("declared_file_missing", e["file"], f"parts[{e['index']}] line {e['line']}", f"{n}: {r['native_step'] if r['step_status'] == 'missing' else r['mesh']} resolves nowhere", part=n)
+        for c in e.get("contains", []):
+            for n in hit:
+                if c.get("part") and c["part"] != n:
+                    continue
+                cl = add_line(c["line"], c, e["file"], c["quantity"], ["hardware"])
+                cl["quantity"] += c["quantity"]
+                cl.setdefault("in_parts", []).append(n)
+                contains_per_part[n].setdefault(c["line"], 0)
+                contains_per_part[n][c["line"]] += c["quantity"]
+        if e["kind"] == "hardware" and e.get("make_buy") == "buy" and not e.get("spec"):
+            D.find("hardware_without_spec", e["file"], f"parts[{e['index']}] line {e['line']}", f"{len(hit)} hardware part(s) with no declared spec")
+    for g, inp, exists in D.external_inputs():
+        if not exists:
+            D.find("input_missing", g["file"], g["id"], f"input {inp} is written by no generator and not on disk")
+    for n in names:
+        if n not in aidx:
+            e = claims.get(n)
+            D.find("no_assembly_step", e and e["file"], e and f"parts[{e['index']}] line {e['line']}", f"{n}: no assembly step names it", part=n)
+    out_lines = []
+    for l in lines.values():
+        l["kinds"] = sorted(l["kinds"])
+        l["notes"] = " | ".join(l["notes"]) or None
+        l["sections"] = sorted({p["section"] or "unassigned" for p in l["parts"]}) or sorted({p["section"] or "unassigned" for n in l.get("in_parts", []) for p in [rowmap[n]]})
+        masses = [parts[p["part"]].get("mass_kg") for p in l["parts"]]
+        l["unit_mass_g"] = round(1000 * masses[0], 3) if masses and None not in masses and len(set(masses)) == 1 else None
+        l["total_mass_g"] = round(1000 * sum(masses), 2) if masses and None not in masses else None
+        if l["parts"] and not l.get("material"):
+            l["material"] = rowmap[l["parts"][0]["part"]]["material"] or (l["parts"][0].get("print") or {}).get("material")
+        l["assembly"] = line_assembly([p["part"] for p in l["parts"]] + l.get("in_parts", []), aidx)
+        l["flags"] = sorted({x for p in l["parts"] for x in p["flags"]})
+        l["origin"] = ", ".join(l["definitions"])
+        out_lines.append(l)
+    rank = {"printed": 0, "purchased": 1, "included": 2, "hardware": 3, "made": 4, "other": 5}
+    out_lines.sort(key=lambda l: (min(rank.get(k, 9) for k in l["kinds"]), l["sections"][0] if l["sections"] else "", l["id"]))
+    for l in out_lines:
+        if l.get("in_parts"):
+            for n in l["in_parts"]:
+                line_of_part = next((x for x in out_lines for p in x["parts"] if p["part"] == n), None)
+                if line_of_part is not None:
+                    line_of_part.setdefault("contains_per_part", {}).setdefault(n, []).append(dict(line=l["id"], quantity=contains_per_part[n][l["id"]]))
+    sha = hashlib.sha256((ROOT / manifest_path).read_bytes()).hexdigest()
+    gens = [dict(id=i, file=D.generator(i)["file"], command=" ".join(D.generator(i)["command"]), manifest_out=D.generator(i).get("manifest_out")) for i in gen_order]
+    defects = [dict(d, file=f["file"], matched=DEF.match(names, d["parts"])) for f in D.files for d in f["doc"].get("defects", [])]
+    for d in defects:
+        if not d["matched"]:
+            D.find("defect_matches_nothing", d["file"], d["id"], "defect names no part of the manifest (fixed or renamed?)")
+    flagged = sorted(n for n, r in rowmap.items() if {"file_missing", "file_in_bucket_not_indexed"} & set(r["flags"]))
+    explained = {n for d in defects for n in d["matched"]}
+    bom = dict(manifest=manifest_path, manifest_sha256=sha, definitions=[f["file"] for f in D.files], generators=gens,
+               defects=dict(listed=defects, file_flagged=len(flagged), file_flagged_unexplained=[n for n in flagged if n not in explained]),
+               lines=out_lines, findings=D.findings)
+    bom["counts"] = counts(out_lines, rows, D.findings, claims, names, aidx)
+    bom["assembly_sequence"] = assembly_sequence(bom, parts, order, assembly_report_path)
     return bom
 
 
@@ -411,155 +331,146 @@ def assembly_text(l, limit=6):
     return "; ".join(f"{a['assembly']} {', '.join(a['steps'][:limit])}{' ...' if len(a['steps']) > limit else ''}" for a in l.get("assembly") or []) or "-"
 
 
-def defects(rows):
-    """robot/body/bom/defects.json groups with the manifest parts each still matches; printed parts that lack a scripted
-    native STEP and no group covers are listed under `unlisted`."""
-    doc = json.loads((HERE / "defects.json").read_text())
-    names = [r["name"] for r in rows]
-    out, covered = [], set()
-    for g in doc["groups"]:
-        hit = [n for n in names if any(fnmatch.fnmatchcase(n, pat) for pat in g["parts"])]
-        covered |= set(hit)
-        out.append(dict(g, matched=hit))
-    dang = []
-    for g in doc.get("dangling", []):
-        hit = [n for n in names if any(fnmatch.fnmatchcase(n, pat) for pat in g["parts"])]
-        dang.append(dict(g, matched=hit))
-    flagged = [r["name"] for r in rows if {"file_missing", "file_in_bucket_not_indexed"} & set(r["flags"])]
-    explained = {n for g in dang for n in g["matched"]}
-    open_printed = [r["name"] for r in rows if r["kind"] == "printed" and r["name"] not in covered
-                    and (r["producer_class"] != "script" or r["step_status"] in ("none", "missing"))]
-    return dict(groups=out, unlisted=open_printed, dangling=dang, dangling_flagged=len(flagged),
-                dangling_unexplained=sorted(n for n in flagged if n not in explained))
-
-
-def counts(lines, rows):
-    by = defaultdict(int)
+def counts(lines, rows, findings, claims, names, aidx):
+    by, fk = defaultdict(int), defaultdict(int)
     for l in lines:
         by[l["make_buy"]] += 1
-    pr = [r for r in rows if r["kind"] == "printed"]
-    return dict(lines=len(lines), lines_by_make_buy=dict(by), parts=len(rows),
-                printed_parts=len(pr), printed_with_native_step=sum(1 for r in pr if r["step_status"] not in ("none", "missing")),
-                printed_with_print_settings_entry=sum(1 for r in pr if r["print_settings"]),
-                parts_with_assembly_step=sum(1 for r in rows if r["assembly_steps"]),
-                parts_from_script_in_tree=sum(1 for r in rows if r["producer_class"] == "script"),
-                parts_mesh_only=sum(1 for r in rows if "mesh_only" in r["flags"]),
-                parts_file_missing=sum(1 for r in rows if "file_missing" in r["flags"]),
+    for f in findings:
+        fk[f["kind"]] += 1
+    buy = [l for l in lines if l["make_buy"] == "buy"]
+    pr = [p for l in lines if "printed" in l["kinds"] for p in l["parts"]]
+    return dict(lines=len(lines), lines_by_make_buy=dict(by), parts=len(names), parts_claimed=len(claims), parts_with_assembly_step=sum(1 for n in names if aidx.get(n)),
+                printed_parts=len(pr), printed_with_native_step=sum(1 for p in pr if p["step_status"] not in ("none", "missing")),
+                printed_with_print_setup=sum(1 for p in pr if p.get("print_settings_entry")),
+                buy_lines=len(buy), buy_lines_supplier_known=sum(1 for l in buy if (l.get("supplier") or "unknown") != "unknown"),
+                buy_lines_part_number_known=sum(1 for l in buy if (l.get("part_number") or "unknown") != "unknown"),
+                buy_lines_supplier_empty=sum(1 for l in buy if not l.get("supplier")),
+                lines_quantity_differs_from_declared=sum(1 for l in lines if l["quantity_declared"] and l["quantity"] != l["quantity_declared"]),
+                parts_mesh_only=sum(1 for r in rows if "mesh_only" in r["flags"]), parts_file_missing=sum(1 for r in rows if "file_missing" in r["flags"]),
                 parts_file_in_bucket_not_indexed=sum(1 for r in rows if "file_in_bucket_not_indexed" in r["flags"]),
                 parts_without_geometry=sum(1 for r in rows if "no_geometry" in r["flags"]),
-                hardware_kinds_to_buy=sum(1 for l in lines if l["id"].startswith("hw:")))
+                hardware_kinds_to_buy=sum(1 for l in lines if "hardware" in l["kinds"] and l["make_buy"] == "buy"),
+                findings=len(findings), findings_by_kind=dict(fk))
 
 
 def write_csv(bom, path):
     with open(path, "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["id", "name", "make_buy", "quantity", "quantity_cad", "unit", "sections", "material", "printer", "nozzle_mm",
-                    "layer_height_mm", "up", "supplier", "part_number", "unit_cost", "currency", "parts", "step_files", "producer", "assembly_steps", "flags"])
+        w.writerow(["id", "name", "make_buy", "quantity", "quantity_declared", "unit", "sections", "material", "printer", "nozzle_mm", "layer_height_mm", "up",
+                    "supplier", "part_number", "unit_cost", "currency", "parts", "step_files", "generator", "definition", "assembly_steps", "flags"])
         for l in bom["lines"]:
             pr = next((p["print"] for p in l["parts"] if p.get("print")), {}) or {}
-            w.writerow([l["id"], l["name"], l["make_buy"], l["quantity"], l["quantity_cad"], l.get("unit", "ea"), "; ".join(l.get("sections") or []),
+            w.writerow([l["id"], l["name"], l["make_buy"], l["quantity"], l["quantity_declared"], l.get("unit", "ea"), "; ".join(l.get("sections") or []),
                         l.get("material") or "", pr.get("printer") or "", pr.get("nozzle_mm") or "", pr.get("layer_height_mm") or "", pr.get("up") or "",
                         l.get("supplier") or "", l.get("part_number") or "", l.get("unit_cost") or "", l.get("currency") or "",
-                        "; ".join(p["part"] for p in l["parts"]),
-                        "; ".join((p.get("generated_hardware") or {}).get("step") or p.get("step") or "" for p in l["parts"]),
-                        "; ".join(sorted({p.get("producer") or "" for p in l["parts"]})),
+                        "; ".join(p["part"] for p in l["parts"]) or "; ".join(l.get("in_parts", [])),
+                        "; ".join(p.get("step") or "" for p in l["parts"]),
+                        "; ".join(sorted({(p.get("generator") or {}).get("command") or "" for p in l["parts"]})), l["origin"],
                         "; ".join(sorted({s for p in l["parts"] for s in p["assembly_steps"]})), "; ".join(l["flags"])])
+
+
+def findings_table(findings, limit=None):
+    L = ["| kind | definition file | entry | what |", "|---|---|---|---|"]
+    for f in findings[:limit]:
+        L.append(f"| {f['kind']} | {f['file'] or '(none claims it)'} | {f['entry'] or ''} | {f['what']} |")
+    if limit and len(findings) > limit:
+        L.append(f"| ... | | | {len(findings) - limit} more in findings.json |")
+    return L
 
 
 def markdown(bom):
     c = bom["counts"]
     L = ["# Cove-50 robot BOM", "",
-         f"Generated by `robot/body/bom/build.py` from `{bom['manifest']}` (sha256 {bom['manifest_sha256'][:12]}) and the hand-maintained "
-         f"`robot/body/bom/lines.json`. Do not edit this page; edit lines.json or the part's script and rerun.", "",
-         f"{c['lines']} lines over {c['parts']} CAD parts: " + ", ".join(f"{v} {k}" for k, v in c["lines_by_make_buy"].items()) + ". "
-         f"Printed parts {c['printed_parts']}: with a native STEP {c['printed_with_native_step']}, with a print-settings entry "
-         f"{c['printed_with_print_settings_entry']}. Parts with an assembly step: {c['parts_with_assembly_step']}. Parts written by a script "
-         f"in the tree: {c['parts_from_script_in_tree']}; mesh only {c['parts_mesh_only']}; file missing {c['parts_file_missing']}, in the bucket but not in the local blob index {c['parts_file_in_bucket_not_indexed']}; "
-         f"no geometry {c['parts_without_geometry']}. Hardware kinds to buy: {c['hardware_kinds_to_buy']}.", "",
-         "## How to rebuild the body files", ""]
-    for i, s in enumerate(bom["chain"].get("steps", [])):
-        cmd = " ".join(s["command"]) if isinstance(s.get("command"), list) else s.get("command")
-        L.append(f"{i + 1}. `{cmd}` -> `{s.get('manifest_out') or s.get('output') or ', '.join(s.get('outputs', []) or [])}`")
-    L += ["", "Rerun the chain in an isolated copy and compare it with the selected body: `.venv/bin/python -B robot/body/bom/rebuild_chain.py run` then `compare`.",
-          "Standard hardware STEP/STL: `.venv/bin/python -B robot/body/bom/hardware.py`. This page: `.venv/bin/python -B robot/body/bom/build.py`.", ""]
+         f"Generated by `robot/body/bom/build.py` from `{bom['manifest']}` (sha256 {bom['manifest_sha256'][:12]}) and the "
+         f"{len(bom['definitions'])} body definitions (`*.bom.yaml` next to each builder). Do not edit this page: edit the definition "
+         "file a line or finding names and rerun.", "",
+         f"{c['lines']} lines over {c['parts']} CAD parts ({c['parts_claimed']} claimed by a definition): "
+         + ", ".join(f"{v} {k}" for k, v in c["lines_by_make_buy"].items()) + ". "
+         f"Printed parts {c['printed_parts']}: with a native STEP {c['printed_with_native_step']}, with a print setup {c['printed_with_print_setup']}. "
+         f"Parts with an assembly step: {c['parts_with_assembly_step']}. Buy lines {c['buy_lines']}: supplier known {c['buy_lines_supplier_known']}, "
+         f"part number known {c['buy_lines_part_number_known']}, supplier empty {c['buy_lines_supplier_empty']}. Mesh only {c['parts_mesh_only']}; "
+         f"file missing {c['parts_file_missing']}, in the bucket but not in the local blob index {c['parts_file_in_bucket_not_indexed']}; "
+         f"no geometry {c['parts_without_geometry']}. Hardware kinds to buy: {c['hardware_kinds_to_buy']}. Findings: {c['findings']}.", ""]
+    L += [f"## Findings ({c['findings']}): what the definitions do not say yet", "",
+          "Each names the definition file to fix; " + ", ".join(f"{k} {v}" for k, v in sorted(c["findings_by_kind"].items())) + ".", ""]
+    L += findings_table(bom["findings"], 60) + [""]
+    L += ["## How to rebuild the body files", "", "Generator order derived from the declared inputs and outputs (`robot/body/bom/rebuild_chain.py`):", ""]
+    for i, g in enumerate(bom["generators"]):
+        L.append(f"{i + 1}. `{g['command']}` ({g['id']}, {g['file']})" + (f" -> `{g['manifest_out']}`" if g.get("manifest_out") else ""))
+    L += ["", "Rerun in an isolated copy and compare with the selected body: `.venv/bin/python -B robot/body/bom/rebuild_chain.py setup`, `run`, `compare`; "
+          "it ends with the assembly check, this BOM and the bom check.", ""]
     d = bom["defects"]
-    L += ["## Open defects: printed parts without a scripted native STEP (robot/body/bom/defects.json)", "",
-          "| group | parts | state | fix | effort |", "|---|---|---|---|---|"]
-    for g in d["groups"]:
-        if g["matched"]:
-            L.append(f"| {g['id']} | {', '.join(g['matched'])} | {g['state']} | {g['fix']} | {g['effort']} |")
-    if d["unlisted"]:
-        L.append(f"| (not yet listed) | {', '.join(d['unlisted'])} | no entry in defects.json | | |")
-    L += ["", f"## Dangling file references (defects.json `dangling`): {d['dangling_flagged']} parts flagged, {len(d['dangling_unexplained'])} unexplained", "",
-          "| group | parts | field | why | producer | task |", "|---|---|---|---|---|---|"]
-    for g in d["dangling"]:
-        if g["matched"]:
-            L.append(f"| {g['id']} | {len(g['matched'])}: {', '.join(g['matched'][:6])}{' ...' if len(g['matched']) > 6 else ''} | {g.get('field', '')} | {g.get('why', '')} | {g.get('producer', '')} | {g.get('task') or g.get('idle') or ''} |")
-    if d["dangling_unexplained"]:
-        L.append(f"| (not explained) | {', '.join(d['dangling_unexplained'])} | | | | |")
-    L += [""]
-    L += ["## Print list", "", "| line | qty | section | material | printer / nozzle / layer | up | STEP | producer | assembly | flags |",
+    L += [f"## Open defects (declared in the definitions): {len(d['listed'])} groups; files flagged missing or only in the bucket {d['file_flagged']}, "
+          f"not explained by a defect {len(d['file_flagged_unexplained'])}", "", "| defect | definition | parts | why / state | fix | task |", "|---|---|---|---|---|---|"]
+    for g in d["listed"]:
+        L.append(f"| {g['id']} | {g['file']} | {len(g['matched'])}: {', '.join(g['matched'][:5])}{' ...' if len(g['matched']) > 5 else ''} | "
+                 f"{g.get('why') or g.get('state') or ''} | {g.get('fix') or ''} | {g.get('task') or ''} |")
+    if d["file_flagged_unexplained"]:
+        L.append(f"| (not explained) | | {', '.join(d['file_flagged_unexplained'])} | | | |")
+    L += ["", "## Print list", "", "| line | qty | section | material | printer / nozzle / layer | up | STEP | generator | assembly | definition |",
           "|---|---|---|---|---|---|---|---|---|---|"]
     for l in bom["lines"]:
-        if "printed" not in l["kinds"]:
+        if "printed" not in l["kinds"] or not l["parts"]:
             continue
         p = l["parts"][0]; pr = p.get("print") or {}
         L.append(f"| {l['name']} | {l['quantity']} | {', '.join(l['sections'])} | {pr.get('material') or '-'} | {pr.get('printer') or '-'} / "
                  f"{pr.get('nozzle_mm') or '-'} / {pr.get('layer_height_mm') or '-'} | {pr.get('up') or '-'} | {p['step_status']} | "
-                 f"{(p['producer'] or '-')} | {assembly_text(l)} | {', '.join(f for f in l['flags'] if f not in ('mesh_npz_not_stl', 'inspection_reference'))} |")
+                 f"{(p.get('generator') or {}).get('id') or '-'} | {assembly_text(l)} | {l['origin']} |")
     L += ["", "## Buy list (servos, electronics, cells, other bought parts)", "", "| line | qty | make / buy | sections | supplier / part no. | assembly | notes |", "|---|---|---|---|---|---|---|"]
     for l in bom["lines"]:
-        if l["kinds"][0] in ("purchased", "other", "manual") and "printed" not in l["kinds"]:
-            L.append(f"| {l['name']} | {l['quantity']} | {l['make_buy']} | {', '.join(l.get('sections') or [])} | "
-                     f"{' '.join(x for x in (l.get('supplier'), l.get('part_number')) if x) or '-'} | {assembly_text(l)} | {l.get('notes') or ''} |")
-    L += ["", "## Hardware", "", "| spec | qty | sections | tool | assembly |", "|---|---|---|---|---|"]
+        if not ({"purchased", "included", "made", "other"} & set(l["kinds"])) or "printed" in l["kinds"]:
+            continue
+        L.append(f"| {l['name']} | {l['quantity']} | {l['make_buy']} | {', '.join(l.get('sections') or [])} | "
+                 f"{' '.join(x for x in (l.get('supplier'), l.get('part_number')) if x) or '-'} | {assembly_text(l)} | {l.get('notes') or ''} |")
+    L += ["", "## Hardware", "", "| spec | qty | make / buy | sections | tool | assembly |", "|---|---|---|---|---|---|"]
     for l in bom["lines"]:
         if l["kinds"] == ["hardware"]:
-            q = l["quantity"] if l["quantity"] is not None else "not counted"
-            L.append(f"| {l['name']} | {q} | {', '.join(l['sections'])} | {tool_of(l.get('spec')) or '-'} | {assembly_text(l, 3)} |")
-    L += ["", "## Assembly order", "", f"`{bom['assembly_order']}` (checked by `robot/body/checks/run.py --checks assembly`); the build sequence per "
-          f"subassembly is `ASSEMBLY.md` / `assembly.json` next to this page. Parts with a step: {c['parts_with_assembly_step']} of {c['parts']}.", ""]
+            L.append(f"| {l['name']} | {l['quantity']} | {l['make_buy']} | {', '.join(l['sections'])} | {tool_of(l.get('spec')) or '-'} | {assembly_text(l, 3)} |")
     seq = bom.get("assembly_sequence")
+    L += ["", "## Assembly order", "", "Declared in the definitions' `assembly` sections; the build sequence per subassembly is `ASSEMBLY.md` / `assembly.json` "
+          f"next to this page. Parts with a step: {c['parts_with_assembly_step']} of {c['parts']}.", ""]
     if seq:
-        L += ["| # | assembly | steps | seeded | confirmed | designer | parts | screws | carried (with) |", "|---|---|---|---|---|---|---|---|---|"]
+        L += ["| # | assembly | steps | check-supported | not supported | not measured | designer | seeded | parts | screws | carried (with) |", "|---|---|---|---|---|---|---|---|---|---|---|"]
         for a in seq["assemblies"]:
             k = a["counts"]
-            L.append(f"| {a['number']} | {a['name']} | {k['steps']} | {k['seeded']} | {k['confirmed']} | {k['designer']} | {k['parts']} | {k['screws']} | {k['with_items']} |")
+            L.append(f"| {a['number']} | {a['name']} | {k['steps']} | {k['check_supported']} | {k['not_supported']} | {k['not_measured']} | {k['designer']} | {k['seeded']} | {k['parts']} | {k['screws']} | {k['with_items']} |")
     return "\n".join(L) + "\n"
 
 
 def assembly_markdown(seq):
-    """ASSEMBLY.md: the build sequence per subassembly (generated from the assembly order, never hand-written)."""
+    """ASSEMBLY.md: the build sequence per subassembly (generated from the definitions, never hand-written)."""
     k = seq["counts"]
     L = ["# Cove-50 assembly sequence", "",
-         f"Generated by `robot/body/bom/build.py` from `{seq['order_file']}` and the BOM of `{seq['manifest']}` (sha256 {seq['manifest_sha256'][:12]}). "
-         "Do not edit this page: edit the assembly order (or reseed it with `robot/body/checks/assembly_seed.py seed`) and rerun the BOM.", "",
-         f"{k['assemblies']} subassemblies, {k['steps']} steps: {k['confirmed']} confirmed by the assembly check, {k['designer']} ordered by a designer, "
-         f"{k['seeded']} seeded drafts. Manifest parts in no step: {k['parts_in_no_step']} of {k['parts']}"
+         f"Generated by `robot/body/bom/build.py` from {seq['source']} and the BOM of `{seq['manifest']}` (sha256 {seq['manifest_sha256'][:12]}). "
+         "Do not edit this page: edit the `assembly` section of the definition file each step names (draft new steps with "
+         "`robot/body/checks/assembly_seed.py propose`) and rerun the BOM.", "",
+         f"{k['assemblies']} subassemblies, {k['steps']} steps: {k['check_supported']} supported by the assembly check, {k['not_supported']} not, "
+         f"{k['not_measured']} not measured; declared: {k['designer']} by a designer, {k['seeded']} seeded drafts. "
+         f"Manifest parts in no step: {k['parts_in_no_step']} of {k['parts']}"
          + (f" ({', '.join(seq['parts_in_no_step'][:20])}{' ...' if len(seq['parts_in_no_step']) > 20 else ''})" if seq["parts_in_no_step"] else "") + ".",
          f"Measurements: {seq['check_report'] or 'no assembly check report on this manifest; run `robot/body/checks/run.py --checks assembly --label assembly`'}. "
          "Direction = the manifest-frame vector the part travels as it goes in (+X the R_ side, -Y the face, +Z up).", "",
-         "Status: **confirmed** = the check measured the insertion path clear over its range (part) or the driver path free and not closed in later (screw); "
-         "**designer** = ordered by the part's designer; **seeded** = drafted from the connection graph, not yet supported.", ""]
+         "Check-supported: the insertion path touches nothing over its range (parts already overlapping at the seat let go), or the driver path is free. "
+         "Status is what the definition declares: **designer** (the owner's order) or **seeded** (a draft).", ""]
     for a in seq["assemblies"]:
         c = a["counts"]
-        L += [f"## {a['number']}. {a['name']}", "", a.get("doc") or "", "",
+        L += [f"## {a['number']}. {a['name']} ({a.get('file')})", "", a.get("doc") or "", "",
               f"After: {', '.join(a['after']) or 'nothing (first)'}. Present at the start: {', '.join(x['part'] for x in a['base']) or 'only what the earlier assemblies built'}. "
-              f"{c['steps']} steps ({c['confirmed']} confirmed, {c['designer']} designer, {c['seeded']} seeded), {c['parts']} parts, {c['screws']} screws, {c['with_items']} carried items.", "",
+              f"{c['steps']} steps ({c['check_supported']} check-supported, {c['designer']} designer, {c['seeded']} seeded), {c['parts']} parts, {c['screws']} screws, {c['with_items']} carried items.", "",
               "Consumes (per BOM line): " + "; ".join(f"{x['name']} x{x['quantity']}" for x in a["consumes"]) + ".", "",
               "Tools: " + ("; ".join(f"{t['tool']} ({t['screws']} screws)" for t in a["tools"]) or "none recorded") + ".", "",
-              "| step | kind | parts / screws (BOM line) | with | direction | tool | status | measured |", "|---|---|---|---|---|---|---|---|"]
+              "| step | kind | parts / screws (BOM line) | with | direction | tool | status | check | measured | definition |", "|---|---|---|---|---|---|---|---|---|---|"]
         for s in a["steps"]:
             its = s["items"]
             if s["kind"] == "screw" and len(its) > 1:
-                lines = sorted({x["line_name"] or "-" for x in its})
-                what = f"{len(its)} x {', '.join(lines)}: {', '.join(x['part'] for x in its)}"
+                what = f"{len(its)} x {', '.join(sorted({x['line_name'] or '-' for x in its}))}: {', '.join(x['part'] for x in its)}"
             else:
                 what = "; ".join(f"{x['part']} ({x['line_name'] or '-'})" for x in its) or "-"
             w = ", ".join(x["part"] for x in s["with_items"]) or ""
             d = s["direction"] if isinstance(s["direction"], str) else (str([round(v, 3) for v in s["direction"]]) if s["direction"] else "-")
             tool = ", ".join(sorted({x["tool"] for x in its + s["with_items"] if x["tool"]})) or ""
-            L.append(f"| {s['id']} | {s['kind']} | {what} | {w} | {d} | {tool} | {s['status']} | {s['measured'] or '-'} |")
+            chk = {True: "supported", False: "not supported", None: "-"}[s["check_supported"]]
+            L.append(f"| {s['id']} | {s['kind']} | {what} | {w} | {d} | {tool} | {s['status']} | {chk} | {s['measured'] or '-'} | {s['file']} |")
         L.append("")
     return "\n".join(L) + "\n"
 
@@ -570,8 +481,8 @@ def dashboard_rows(bom):
     for l in bom["lines"]:
         pr = next((p["print"] for p in l["parts"] if p.get("print")), None)
         rows.append(dict(id=l["id"], name=l["name"], category=cat.get(l["make_buy"], "unresolved"), quantity=l["quantity"],
-                         part_names=[p["part"] for p in l["parts"]], material=l.get("material"), manufacturer=l.get("supplier"),
-                         part_number=l.get("part_number"), unit_mass_g=l.get("unit_mass_g"),
+                         part_names=[p["part"] for p in l["parts"]] or l.get("in_parts", []), material=l.get("material"), manufacturer=l.get("supplier"),
+                         part_number=l.get("part_number"), unit_mass_g=l.get("unit_mass_g"), definition=l["origin"],
                          process=pr and {k: pr[k] for k in ("printer", "nozzle_mm", "layer_height_mm", "up") if pr.get(k) is not None},
                          notes=[x for x in [l.get("notes"), ("flags: " + ", ".join(l["flags"])) if l["flags"] else None] if x]))
     return rows
@@ -582,15 +493,17 @@ def design_bom_payload(bom):
     items = []
     for l in bom["lines"]:
         pr = next((p["print"] for p in l["parts"] if p.get("print")), None)
+        names = [p["part"] for p in l["parts"]] or l.get("in_parts", [])
         items.append(dict(id=l["id"], name=l["name"], category=cat.get(l["make_buy"], "To specify"), quantity=l["quantity"],
                           unit=l.get("unit", "ea"), material=str(l.get("material") or ""), supplier=l.get("supplier") or "",
                           part_number=l.get("part_number") or "", unit_mass_g=l.get("unit_mass_g"),
                           unit_cost=l.get("unit_cost"), currency=l.get("currency") or "",
                           notes=" | ".join(x for x in [l.get("notes") or "", f"print: {pr.get('printer')} {pr.get('material')} {pr.get('nozzle_mm')} mm, up {pr.get('up')}" if pr else "",
-                                                       f"CAD parts: {', '.join(p['part'] for p in l['parts'][:12])}{' ...' if len(l['parts']) > 12 else ''}"] if x)))
-    return dict(scope=f"Generated from {bom['manifest']} by robot/body/bom/build.py with robot/body/bom/lines.json (sha256 {bom['manifest_sha256'][:12]}).",
-                completeness="partial", notes="Prices and suppliers are filled in lines.json; lines without them are uncounted, not zero.",
-                exclusions=[f"{k}: {v}" for k, v in bom["excluded"].items()], items=items)
+                                                       f"definition: {l['origin']}",
+                                                       f"CAD parts: {', '.join(names[:12])}{' ...' if len(names) > 12 else ''}"] if x)))
+    return dict(scope=f"Generated from {bom['manifest']} by robot/body/bom/build.py from the body definitions (*.bom.yaml; sha256 {bom['manifest_sha256'][:12]}).",
+                completeness="partial", notes="Suppliers and part numbers as the definitions declare them ('unknown' where no repo source names one); prices are not recorded.",
+                exclusions=[], items=items)
 
 
 def design_bom_for(manifest_path=None):
@@ -626,17 +539,17 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--manifest", default=json.loads((ROOT / "robot/design.json").read_text())["body_manifest"])
     ap.add_argument("--out", default=str(ROOT / ".cache/work/bom"))
-    ap.add_argument("--hardware-json")
     ap.add_argument("--assembly-report", help=f"assembly check report to show per step (default {ASSEMBLY_REPORT.relative_to(ROOT)}, used when complete and on this manifest)")
     ap.add_argument("--publish", action="store_true")
     a = ap.parse_args()
-    bom = build(a.manifest, a.hardware_json, a.assembly_report)
+    bom = build(a.manifest, assembly_report_path=a.assembly_report)
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     (out / "assembly.json").write_text(json.dumps(bom["assembly_sequence"], indent=1, default=str) + "\n")
     (out / "ASSEMBLY.md").write_text(assembly_markdown(bom["assembly_sequence"]))
     (out / "bom.json").write_text(json.dumps(bom, indent=1, default=str) + "\n")
     write_csv(bom, out / "bom.csv")
     (out / "BOM.md").write_text(markdown(bom))
+    (out / "findings.json").write_text(json.dumps(bom["findings"], indent=1, default=str) + "\n")
     (out / "dashboard-bom.json").write_text(json.dumps(dashboard_rows(bom), indent=1, default=str) + "\n")
     print(json.dumps(dict(bom["counts"], assembly=bom["assembly_sequence"]["counts"]), indent=1))
     if a.publish:

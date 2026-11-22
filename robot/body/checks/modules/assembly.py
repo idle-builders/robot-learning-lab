@@ -1,7 +1,8 @@
-"""assembly: walk the assembly order (data/assembly_order.json) and measure, step by step, whether each part can be inserted
+"""assembly: walk the declared assembly order (the `assembly` sections of the body definitions) and measure, step by step, whether each part can be inserted
 along its direction and each screw reached by its driver, given only what is already assembled at that step.
 
-Order file: `assemblies` -> {name: {after: [assemblies built before this one; all their parts are present at its start],
+Order: the `assembly` sections of the body definitions (robot/**/<builder>.bom.yaml, robot/body/bom/definitions.py), as
+`assemblies` -> {name: {after: [assemblies built before this one; all their parts are present at its start],
 base: [parts present at the start], steps: [...]}}, listed in build order. A step names a `part` (name, glob or list; several
 parts move together as one rigid group, e.g. a part with the steel sleeves pressed into it) or a `screw` (name, glob or list),
 optionally `with` (hardware and mesh-less parts that go in with the step and are not measured: the nuts, washers and spacers on
@@ -24,8 +25,7 @@ Screw step: driver path (driver_access.measure_screw: tool blade cylinder from t
 parts assembled at that step only; `closed_in_by` lists parts named later (this assembly's later steps and every later
 assembly) that would block the same path (body shells going on later over it are listed apart, `covered_later_by`: covering
 screws is what a cover does). Also per screw the parts it touches that are not assembled yet at its step.
-Screws are what the BOM calls screws (robot/body/bom/hardware.kind_of: mount_check's screws plus the `*_screw_<i>` proxies and
-fan screws named without a length). Coverage, whole body (every manifest part, the raw manifest including parts without a
+Screws are the parts a definition declares as hardware with spec kind screw. Coverage, whole body (every manifest part, the raw manifest including parts without a
 mesh): parts (non-hardware solids, sleeves included), screws, and other hardware (nuts, washers, spacers, inserts) that no
 assembly names; per assembly the same on its own links. Measurements and counts only."""
 from __future__ import annotations
@@ -42,13 +42,23 @@ from checks import screwlib as SL
 from checks.core import DATA, ROOT, tick
 from checks.registry import register
 
-ORDER_FILE = DATA / "assembly_order.json"
 EPS_MM3 = 1e-3
 COVER_ROLE = "body_shell"
 
 
-def load_order(path=None):
-    return json.loads((path or ORDER_FILE).read_text())
+def definitions():
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import definitions as DEF
+    return DEF
+
+
+def load_order(names, defs=None):
+    """The declared assembly order (the `assembly` sections of the body definitions, robot/body/bom/definitions.py) resolved
+    against the manifest part names, plus the definition findings about it."""
+    D = defs or definitions().load()
+    order = D.order(list(names))
+    order["definition_findings"] = [f for f in D.findings if f["kind"].startswith(("step_", "subassembly_"))]
+    return order
 
 
 def names_of(spec):
@@ -104,11 +114,22 @@ def named_in(parts, a):
     return out
 
 
+_CLAIMS = {}
+
+
+def use_claims(names, defs=None):
+    """Resolve the definitions' part entries once for these manifest names (hardware_kind / BomThread read them)."""
+    D = defs or definitions().load()
+    _CLAIMS.clear(); _CLAIMS.update(D.claims(list(names)))
+    return D
+
+
 def hardware_kind(p):
-    """The BOM's kind of a part (robot/body/bom/hardware.kind_of): screw / nut / washer / spacer / other_hardware / None."""
-    sys.path.insert(0, str(ROOT / "robot/body/bom"))
-    import hardware as HW
-    return HW.kind_of(p)
+    """The kind a part's definition declares: its spec kind (screw / nut / washer / spacer / ...) for hardware, else None."""
+    e = _CLAIMS.get(p["name"])
+    if not e or e["kind"] != "hardware":
+        return None
+    return (e.get("spec") or {}).get("kind") or "other_hardware"
 
 
 def coverage_class(p, node_names):
@@ -226,7 +247,7 @@ class Coarse:
 
 class BomThread:
     """While measuring a screw whose name carries no thread (the `*_screw_<i>` proxies), mount_check.nominal answers with the
-    thread and family of its BOM spec (robot/body/bom/hardware.spec_of, measured from its mesh), so driver_access finds its tool."""
+    thread and family its definition declares, so driver_access finds its tool."""
 
     def __init__(self, ctx, k):
         self.ctx, self.k = ctx, k
@@ -236,18 +257,13 @@ class BomThread:
         self.orig = MC.nominal
         if self.orig(self.k).get("thread"):
             return self
-        sys.path.insert(0, str(ROOT / "robot/body/bom"))
-        import hardware as HW
-        try:
-            sp = HW.spec_of(self.ctx.body.parts[self.k])
-        except Exception:  # noqa: BLE001
-            return self
+        sp = (_CLAIMS.get(self.k) or {}).get("spec") or {}
         th = sp.get("thread")
         if not th:
             return self
         fam = ("PA" + th.lstrip("M")) if sp.get("family") == "PA" else th
         orig, k = self.orig, self.k
-        MC.nominal = lambda n: dict(orig(n), thread=fam, length_mm=sp.get("nominal_length_mm")) if n == k else orig(n)
+        MC.nominal = lambda n: dict(orig(n), thread=fam, length_mm=sp.get("length_mm")) if n == k else orig(n)
         return self
 
     def __exit__(self, *exc):
@@ -345,7 +361,7 @@ class Walker:
         out = []
         for i, (st, (kind, ns, w)) in enumerate(zip(asm["steps"], res)):
             t0 = time.time()
-            row = dict(step=i + 1, id=st.get("id"), kind=kind, names=ns, with_parts=w, direction=st.get("direction"),
+            row = dict(step=i + 1, id=st.get("id"), file=st.get("file"), kind=kind, names=ns, with_parts=w, direction=st.get("direction"),
                        seeded=bool(st.get("seeded")), confirmed=st.get("confirmed"), derived=st.get("derived"), assembled_before=len(assembled))
             if not ns:
                 row["error"] = "step names nothing measurable in this manifest" + (f" (carries {len(w)} part(s) without geometry or hardware)" if w else "")
@@ -442,11 +458,14 @@ def _selected(ctx, order, scope):
     return sel
 
 
-@register("assembly", lambda ctx: ORDER_FILE.exists() and bool(ctx.body.parts))
+@register("assembly", lambda ctx: bool(ctx.body.parts))
 def run(ctx):
-    """Assembly order walk (data/assembly_order.json): per step the insertion path of a part (first contact mm, overlap mm3 vs what is assembled) or the driver path of a screw at that step, plus whole-body coverage (parts, screws, hardware no step names)."""
+    """Assembly order walk (the definitions' `assembly` sections): per step the insertion path of a part (first contact mm, overlap mm3 vs what is assembled) or the driver path of a screw at that step, plus whole-body coverage (parts, screws, hardware no step names)."""
     t0 = time.time()
-    order = load_order()
+    from checks.modules import connectivity as CN
+    names = [p["name"] for p in CN.json_manifest(ctx)["parts"]]
+    D = use_claims(names)
+    order = load_order(names, D)
     sel = _selected(ctx, order, ctx.scope)
     W = Walker(ctx, order)
     per, cases, evidence_rows = {n: dict(steps=[]) for n in ctx.scope}, [], {}
@@ -461,11 +480,11 @@ def run(ctx):
             if r.get("first_contact_mm"):
                 cases.append(dict(part=(r["names"] or [None])[0], mating_part=r["first_part"], pose="standing", location_mm=None,
                                   value=r["max_overlap_mm3"], unit="mm3 max overlap along the insertion path",
-                                  what=f"{name} step {r['step']} ({r['id']}): first contact {r['first_contact_mm']} mm from the final position along {r['direction']}"))
+                                  what=f"{name} step {r['step']} ({r['id']}, {r.get('file')}): first contact {r['first_contact_mm']} mm from the final position along {r['direction']}"))
             elif r.get("obstruction_mm3", 0) > 0:
                 cases.append(dict(part=(r["names"] or [None])[0], mating_part=r["first_part"], pose="standing", location_mm=None,
                                   value=r["obstruction_within_min_length_mm3"], unit="mm3 in the first driver-path length",
-                                  what=f"{name} step {r['step']} ({r['id']}): driver path blocked {r['obstruction_mm3']} mm3, first {r['first_distance_mm']} mm from the head; closed in later by {r['closed_in_by']}"))
+                                  what=f"{name} step {r['step']} ({r['id']}, {r.get('file')}): driver path blocked {r['obstruction_mm3']} mm3, first {r['first_distance_mm']} mm from the head; closed in later by {r['closed_in_by']}"))
     cases.sort(key=lambda c: -c["value"])
     steps = [r for w in evidence_rows.values() for r in w["steps"]]
     cov = coverage(ctx, order)
@@ -490,8 +509,9 @@ def run(ctx):
                                 seeded_steps=sum(1 for r in steps if r.get("seeded")), confirmed_steps=sum(1 for r in steps if r.get("confirmed")),
                                 parts_not_named=len(cov["not_named"]["part"]), screws_not_named=len(cov["not_named"]["screw"]),
                                 hardware_not_named=len(cov["not_named"]["hardware"]), specs_matching_nothing=len(cov["matching_nothing"]),
+                                definition_findings=len(order["definition_findings"]),
                                 scoped_parts_in_no_assembly=sum(1 for n in ctx.scope if not per[n]["named_in_assembly"])),
-                evidence=[], assemblies=evidence_rows, per_assembly=per_asm, coverage=cov,
-                notes="straight insertion along each step's direction in 1 mm samples to 60 mm (data/assembly_order.json defaults), exact booleans of the coarse screening solids "
+                evidence=[], assemblies=evidence_rows, per_assembly=per_asm, coverage=cov, definition_findings=order["definition_findings"],
+                notes="straight insertion along each step's direction in 1 mm samples to 60 mm (definitions.DEFAULTS), exact booleans of the coarse screening solids "
                       "against the parts assembled earlier (this assembly's base and steps, plus every assembly in its `after`); screw steps = driver_access path against the "
                       "assembled parts only; standing pose; coverage over every manifest part; seeded steps are drafts, confirmed steps name what supports them")

@@ -1,12 +1,14 @@
 """Recreate the selected body manifest from scripts and inputs in an isolated copy, and compare it with the selected one.
 
-The ordered builder steps are data: robot/body/bom/chain.json. This script
+The ordered builder steps are derived from the body definitions (robot/**/<builder>.bom.yaml: each generator's command,
+inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed by the assembly check, the BOM and the bom
+check of the target (robot/design.json body_manifest). This script
 
   setup      makes WORK/repo: a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
              .tools, ...), with .venv, .tools, data and .artifact-store linked from the main checkout, and an artifacts/
              tree in which every top-level folder and every artifacts/robot/* folder except body is a link to the main
              checkout's, artifacts/robot/body/{arm,neck-head,torso} and the leg section outputs are links (read-only
-             inputs, chain.json section_inputs), and the folders the chain writes start empty. Scripts derive ROOT from
+             inputs: outputs of the definitions' generators with rebuild false), and the folders the chain writes start empty. Scripts derive ROOT from
              __file__, so every output lands inside the copy.
   --dry-run  lists the steps and checks that every declared input resolves (on disk, through infra/storage/path-moves.json,
              or as a file an earlier step writes) without running anything.
@@ -43,7 +45,53 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-CHAIN = json.loads((Path(__file__).resolve().parent / "chain.json").read_text())
+MEMGUARD = dict(limit_gb=6, timeout_s=900)          # per-step default; a generator's `resources` override it
+
+
+def derived_chain():
+    """The rebuild as data, derived from the body definitions (robot/**/<builder>.bom.yaml, robot/body/bom/definitions.py):
+    generators with rebuild true in the order their declared inputs and outputs give; read-only section folders = outputs of
+    generators with rebuild false; produced folders = the shortest folder of each rebuild output under artifacts/robot/body
+    that neither holds nor lies in a read-only output; writable copies = their `writes_into`. Then the BOM tool's own steps on
+    the target (robot/design.json body_manifest): the assembly check, the BOM, the bom check."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import definitions as DEF
+    D = DEF.load()
+    order = D.generator_order()
+    ro = [o for g in D.generators if not g.get("rebuild", True) for o in g.get("outputs", [])]
+    produced, copied, steps = [], [], []
+    for gid in order:
+        g = D.generator(gid)
+        steps.append(dict(id=gid, command=g["command"], inputs=g.get("inputs", []), outputs=g.get("outputs", []), in_place_edits=g.get("in_place_edits", []),
+                          manifest_out=g.get("manifest_out"), file=g["file"], **(g.get("resources") or {})))
+        for o in g.get("outputs", []):
+            parts = o.split("/")
+            for k in range(4, len(parts) + 1):
+                pre = "/".join(parts[:k])
+                if not pre.startswith("artifacts/robot/body/"):
+                    continue
+                if any(r == pre or r.startswith(pre + "/") or pre.startswith(r + "/") for r in ro):
+                    if not any(pre.startswith(r + "/") for r in ro):
+                        continue
+                    if any(r.startswith(pre + "/") or r == pre for r in ro):
+                        continue
+                if pre not in produced:
+                    produced.append(pre)
+                break
+        copied += [w for w in g.get("writes_into", []) if w not in copied]
+    target = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    M = ["--manifest", target]
+    steps += [dict(id="assembly-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "assembly", "--label", "assembly"],
+                   inputs=[target], outputs=[".cache/work/cad-speed/checks/assembly/report.json"], in_place_edits=[], manifest_out=None, timeout_s=1800, file="(BOM tool)"),
+              dict(id="bom", command=[".venv/bin/python", "-B", "robot/body/bom/build.py"] + M, inputs=[target], outputs=[".cache/work/bom"], in_place_edits=[],
+                   manifest_out=None, limit_gb=4, timeout_s=600, file="(BOM tool)"),
+              dict(id="bom-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "bom", "--label", "bom"],
+                   inputs=[target], outputs=[".cache/work/cad-speed/checks/bom/report.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=900, file="(BOM tool)")]
+    return dict(target_manifest=target, memguard=MEMGUARD, steps=steps, findings=D.findings,
+                section_inputs=dict(linked_read_only=ro, produced_by_chain=produced, copied_writable=copied))
+
+
+CHAIN = derived_chain()
 WORK = Path(os.environ.get("BODY_REBUILD_WORK", ROOT / ".cache/work/body-rebuild"))
 REPO = WORK / "repo"
 RUNS = WORK / "runs.json"
@@ -131,7 +179,7 @@ def setup():
     rec = dict(time=time.strftime("%Y-%m-%dT%H:%M:%S%z"), git_head=sh(["git", "-C", str(ROOT), "rev-parse", "HEAD"]).strip(),
                git_status_lines=len(sh(["git", "-C", str(ROOT), "status", "--porcelain"]).splitlines()),
                selected_snapshot=str(SNAPSHOT.relative_to(ROOT)), selected_snapshot_sha256=sha(SNAPSHOT),
-               chain_sha256=sha(Path(__file__).resolve().parent / "chain.json"),
+               definitions_sha256={str(f.relative_to(ROOT)): sha(f) for f in __import__("definitions").discover()},
                linked=LINK_TOP + CHAIN["section_inputs"]["linked_read_only"])
     (WORK / "setup.json").write_text(json.dumps(rec, indent=1) + "\n")
     print(json.dumps(rec, indent=1))
@@ -163,11 +211,16 @@ def resolve(root: Path, rel: str) -> Path | None:
 
 def dry_run():
     root = REPO if REPO.exists() else ROOT
+    for f in CHAIN["findings"]:
+        print(f"definition finding: {f['kind']} {f['file']} {f['entry']}: {f['what']}")
+    print("read-only section outputs:", CHAIN["section_inputs"]["linked_read_only"])
+    print("produced in the copy:", CHAIN["section_inputs"]["produced_by_chain"])
+    print("copied writable:", CHAIN["section_inputs"]["copied_writable"])
     produced = set()
     bad = 0
     print(f"root: {root}")
     for i, s in enumerate(CHAIN["steps"], 1):
-        print(f"{i:2d}. {s['id']}: {' '.join(s['command'])}")
+        print(f"{i:2d}. {s['id']} ({s.get('file')}): {' '.join(s['command'])}")
         for rel in s["inputs"]:
             r = resolve(root, rel)
             state = "on disk" if r else ("written by an earlier step" if any(rel == o or rel.startswith(o + "/") for o in produced) else "MISSING")
@@ -317,10 +370,7 @@ def bounds_diff(a, b):
 
 
 def kind(p):
-    sys.path.insert(0, str(ROOT / "robot/body/bom"))
-    import inventory
-    return inventory.kind_of(p)
-
+    return p.get("role") or "unknown"
 
 def compare_manifests(path_a: Path, root_a: Path, path_b: Path, root_b: Path):
     """a = reference (main checkout / selected), b = rebuilt (copy)."""
