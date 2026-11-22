@@ -40,6 +40,7 @@ parts:
       STEP (overhang beyond 70 deg / bed contact / support standing on the part): +z 15.1 mm2 / 712 mm2 / 15 mm2 (only the sleeve-bore tops of
       the screw tab), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; the head-envelope edge is a curve,
       so only the flange gives a flat bed face'
+  section: Neck / head
 - match: combined__neck_yaw_to_pitch_link
   kind: printed
   line: print:combined__neck_yaw_to_pitch_link
@@ -395,6 +396,7 @@ parts:
         are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
       result: '2.2 -> 1.6: p99 +0.6..+1.5 %, displacement +2.1..+2.3 %; stored h 2.2 (< 5 %)'
       stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Neck / head
 - match: head_neck_collar_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -414,6 +416,7 @@ parts:
       length_mm: 4.5
     supplier: unknown
     part_number: unknown
+  section: Neck / head
 - match:
   - head_neck_collar_M2x8_0
   - head_neck_collar_M2x8_1
@@ -435,8 +438,9 @@ parts:
   part_number: M2 x 8 ISO 7380-1
   material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 assembly:
   steps:
   - id: neck_head:p002

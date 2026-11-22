@@ -32,6 +32,7 @@ parts:
   name: ape_body_shell__chest_indicator_relief4_r33
   make_buy: make
   quantity: 1
+  section: Torso
 - match: R_roll_servo_case_reference
   kind: purchased
   line: servo:Feetech-STS3250-strong-tier
@@ -47,6 +48,7 @@ parts:
     min_solid_mm3: 4000.0
   heat_source:
     kind: servo_case
+  section: Hip
 - match: fan_bridge_plate
   kind: printed
   line: print:fan_bridge_plate
@@ -62,6 +64,7 @@ parts:
     set_by: 'claude/opus-5.5 2026-11-22 (T-3npyjq): 2 mm flat plate, printed flat on its y-min face'
   expected_hardware:
     sleeves: 4
+  section: Neck / head
 - match: fan_bridge_plate_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -93,6 +96,7 @@ parts:
       length_mm: 2.0
     supplier: unknown
     part_number: unknown
+  section: Neck / head
 - match:
   - fan_plate_M3x16_-21_462
   - fan_plate_M3x16_11_462
@@ -113,8 +117,9 @@ parts:
   supplier: unknown
   part_number: M3 x 16 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 assembly:
   steps:
   - id: neck_head:p018

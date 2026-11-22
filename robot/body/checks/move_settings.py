@@ -5,7 +5,7 @@ out onto its own entry, same line), and leave part_settings.json. One definition
 first. The checks read the definition first (checks/ctx.py overlay_definitions), so a value left behind is shadowed, and the
 bom check reports it.
 
-  PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/move_settings.py --files robot/body/neck-head/build_neck_head_connectors.bom.yaml[,...] [--write]
+  PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/move_settings.py --files <definition>.bom.yaml[,...] [--write]
 
 Without --write it prints what would move. --write edits the definition files and part_settings.json in the working tree."""
 from __future__ import annotations

@@ -7,7 +7,7 @@ check of the target (robot/design.json body_manifest). This script
   setup      makes WORK/repo: a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
              .tools, ...), with .venv, .tools, data and .artifact-store linked from the main checkout, and an artifacts/
              tree in which every top-level folder and every artifacts/robot/* folder except body is a link to the main
-             checkout's, artifacts/robot/body/{arm,neck-head,torso} and the leg section outputs are links (read-only
+             checkout's, the outputs of the section builders (generators with rebuild false) are links (read-only
              inputs: outputs of the definitions' generators with rebuild false), and the folders the chain writes start empty. Scripts derive ROOT from
              __file__, so every output lands inside the copy.
   --dry-run  lists the steps and checks that every declared input resolves (on disk, through infra/storage/path-moves.json,
@@ -58,7 +58,7 @@ def derived_chain():
     import definitions as DEF
     D = DEF.load()
     order = D.generator_order()
-    ro = [o for g in D.generators if not g.get("rebuild", True) for o in g.get("outputs", [])]
+    ro = [o for g in D.generators if not g.get("rebuild", True) for o in g.get("outputs", []) if o.startswith("artifacts/")]
     produced, copied, steps = [], [], []
     for gid in order:
         g = D.generator(gid)
@@ -122,7 +122,7 @@ def own_paths() -> tuple[list[str], list[str]]:
 
 
 def link_except(rel: str, produced: list[str], copied: list[str] = ()):
-    """Link ROOT/rel into the copy; when a chain output lies inside it (arm/shoulder-clevis inside arm), make rel a real
+    """Link ROOT/rel into the copy; when a chain output lies inside it (a produced folder inside a section folder), make rel a real
     folder and link its children one by one: a produced path starts empty, a copied path as a copy, so no step can
     write through a link into the main checkout."""
     mine = [q for q in list(produced) + list(copied) if q.startswith(rel + "/")]
@@ -428,7 +428,7 @@ def compare():
         seen.add(m)
         # against the main checkout's live file: the chain never writes there (setup makes every chain output a folder
         # of the copy), and the selected body moves while a run takes an hour (2026-11-20: the setup snapshot of the
-        # shoulder-U body was 2 h older than main's and showed 59 stale differences). The snapshot's sha stays recorded.
+        # selected body was 2 h older than main's and showed 59 stale differences). The snapshot's sha stays recorded.
         ref = ROOT / m
         if ref.exists():
             out["manifests"][m] = compare_manifests(ref, ROOT, REPO / m, REPO)

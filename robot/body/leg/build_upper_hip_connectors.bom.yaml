@@ -318,6 +318,7 @@ parts:
         max_displacement_mm: 0.118
         p99_strength_ratio: 23.77
       reaction_plus_wrench_pct_max: 0.0003
+  section: Knee
 - match: L_shin_combined
   kind: printed
   line: print:L_shin_combined
@@ -336,6 +337,7 @@ parts:
     seeded_keys:
     - up
     - material
+  section: Knee
 - match: R_shin_back_hard_cover
   kind: printed
   line: print:R_shin_back_hard_cover
@@ -359,6 +361,7 @@ parts:
       it.'
     seeded_keys:
     - up
+  section: Knee
 - match: L_shin_back_hard_cover
   kind: printed
   line: print:L_shin_back_hard_cover
@@ -383,6 +386,7 @@ parts:
       it.'
     seeded_keys:
     - up
+  section: Knee
 - match: R_thigh_roll_flip
   kind: printed
   line: print:R_thigh_roll_flip
@@ -594,6 +598,7 @@ parts:
       ratio 7.4. Stored h 1.2: NOT converged within the memory cap: finest level that runs h 1.2 (peak < 6 GB); last step h 1.6 -> 1.2 p99 +2.3..+6.2
       %, displacement +7.0..+13.2 %. At the stored h, recovery PAHT-CF (layer normal x): p99 11.926 MPa, peak 97.9, displacement 0.3843 mm, ratio
       7.38 (97552 nodes). The loose-load setup that produced the numbers below stays as variant loose_load (history). Earlier notes: '
+  section: Hip
 - match: R_thigh_roll_flip_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -625,6 +630,7 @@ parts:
       length_mm: 4.15
     supplier: unknown
     part_number: unknown
+  section: Hip
 - match: L_thigh_roll_flip
   kind: printed
   line: print:L_thigh_roll_flip
@@ -636,6 +642,7 @@ parts:
     up: -z
     up_source: mirror of R_thigh_roll_flip (-z stays -z), confirmed by its designer 2026-11-20; material as R_thigh_roll_flip
     material: Bambu PAHT-CF
+  section: Hip
 - match: L_thigh_roll_flip_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -667,6 +674,7 @@ parts:
       length_mm: 4.15
     supplier: unknown
     part_number: unknown
+  section: Hip
 - match: R_hip_pitch_to_roll_roll_flip
   kind: printed
   line: print:R_hip_pitch_to_roll_roll_flip
@@ -869,6 +877,7 @@ parts:
       %. Stored h 2.2: 2.2: p99 -1.0..+2.6 % and displacement +1.3..+2.6 % to the next finer level h 1.6. At the stored h, recovery PAHT-CF (layer
       normal z): p99 15.657 MPa, peak 48.37, displacement 0.9767 mm, ratio 5.62 (24900 nodes). The loose-load setup that produced the numbers
       below stays as variant loose_load (history). Earlier notes: '
+  section: Hip
 - match: R_hip_pitch_to_roll_roll_flip_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -912,6 +921,7 @@ parts:
       length_mm: 8.5
     supplier: unknown
     part_number: unknown
+  section: Hip
 - match: L_hip_pitch_to_roll_roll_flip
   kind: printed
   line: print:L_hip_pitch_to_roll_roll_flip
@@ -923,6 +933,7 @@ parts:
     up: +x
     up_source: mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip
     material: Bambu PAHT-CF
+  section: Hip
 - match: L_hip_pitch_to_roll_roll_flip_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -966,6 +977,7 @@ parts:
       length_mm: 8.5
     supplier: unknown
     part_number: unknown
+  section: Hip
 - match: R_thigh_shell_front
   kind: printed
   line: print:R_thigh_shell_front
@@ -996,6 +1008,7 @@ parts:
     - 55.0
     - 5.0
     z_min_mm: 150.0
+  section: Hip
 - match: L_thigh_shell_front
   kind: printed
   line: print:L_thigh_shell_front
@@ -1015,6 +1028,7 @@ parts:
       rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown
       (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall
       thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  section: Hip
 - match: R_thigh_shell_back
   kind: printed
   line: print:R_thigh_shell_back
@@ -1045,6 +1059,7 @@ parts:
     - 55.0
     - 5.0
     z_min_mm: 150.0
+  section: Hip
 - match: L_thigh_shell_back
   kind: printed
   line: print:L_thigh_shell_back
@@ -1064,6 +1079,7 @@ parts:
       rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown
       (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall
       thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  section: Hip
 assembly:
   steps:
   - id: right_leg:p008

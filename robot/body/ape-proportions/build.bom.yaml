@@ -212,6 +212,7 @@ parts:
         subtracted by manifold booleans in robot/body/ape-proportions/hips.py, which writes a mesh only. No script regenerates a STEP, and the
         motor-refit STEP is a different (14.5 mm longer) part, so its proof does not carry over. Setup left as is; not re-proven; fem_setup reports
         setups_not_checked 1.'
+  section: Waist / pelvis
 - match:
   - upper__L_elbow_case_PA2x7_2
   - upper__L_elbow_case_PA2x7_4
@@ -234,8 +235,9 @@ parts:
   supplier: unknown
   part_number: PA2 x 7 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Elbow
 - match:
   - upper__L_elbow_case_washer2
   - upper__L_elbow_case_washer4
@@ -257,6 +259,7 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+  section: Elbow
 - match:
   - upper__L_elbow_case_spacer2
   - upper__L_elbow_case_spacer4
@@ -278,6 +281,7 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+  section: Elbow
 - match:
   - upper__L_elbow_central_rocker_M3x6
   - upper__L_elbow_horn_M3x6_1
@@ -306,8 +310,9 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Elbow
 - match:
   - upper__L_elbow_horn_washer1
   - upper__L_elbow_horn_washer2
@@ -333,23 +338,41 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+  section: Elbow
 - match:
-  - L_B13_C047_foot_roll_main_horn
-  - L_B13_C047_foot_roll_rear_idler
-  - R_B13_C047_foot_roll_main_horn
-  - R_B13_C047_foot_roll_rear_idler
-  - R_roll_passive_idler_reference
-  - R_roll_upper_horn_reference
   - upper__L_elbow_C047_main_horn
-  - upper__L_elbow_C047_rear_idler
   - upper__R_elbow_C047_main_horn
   - upper__R_elbow_C047_rear_idler
+  - upper__L_elbow_C047_rear_idler
   kind: included
   line: servo-horns-idlers
   name: Servo horns and idlers (supplied with each servo)
   make_buy: included
-  quantity: 10
+  quantity: 4
   notes: Come in the servo box; listed so every CAD part has a line.
+  section: Elbow
+- match:
+  - R_roll_upper_horn_reference
+  - R_roll_passive_idler_reference
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 2
+  notes: Come in the servo box; listed so every CAD part has a line.
+  section: Hip
+- match:
+  - R_B13_C047_foot_roll_main_horn
+  - R_B13_C047_foot_roll_rear_idler
+  - L_B13_C047_foot_roll_main_horn
+  - L_B13_C047_foot_roll_rear_idler
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 4
+  notes: Come in the servo box; listed so every CAD part has a line.
+  section: Ankle / foot
 - match:
   - upper__L_elbow_C047_case
   - upper__R_elbow_C047_case
@@ -365,6 +388,7 @@ parts:
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
   heat_source:
     kind: servo_case
+  section: Elbow
 - match: R_upper_arm_yaw_to_elbow_combined
   kind: printed
   line: print:R_upper_arm_yaw_to_elbow_combined
@@ -607,6 +631,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Elbow
 - match: R_upper_arm_yaw_to_elbow_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -638,6 +663,7 @@ parts:
       length_mm: 3.6
     supplier: unknown
     part_number: unknown
+  section: Elbow
 - match: L_upper_arm_yaw_to_elbow_combined
   kind: printed
   line: print:L_upper_arm_yaw_to_elbow_combined
@@ -840,6 +866,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Elbow
 - match: L_upper_arm_yaw_to_elbow_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -871,6 +898,7 @@ parts:
       length_mm: 3.55
     supplier: unknown
     part_number: unknown
+  section: Elbow
 - match: R_forearm_elbow_to_wrist_combined
   kind: printed
   line: print:R_forearm_elbow_to_wrist_combined
@@ -1110,6 +1138,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Elbow
 - match: R_forearm_elbow_to_wrist_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -1141,6 +1170,7 @@ parts:
       length_mm: 3.8
     supplier: unknown
     part_number: unknown
+  section: Elbow
 - match: L_forearm_elbow_to_wrist_combined
   kind: printed
   line: print:L_forearm_elbow_to_wrist_combined
@@ -1343,6 +1373,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Elbow
 - match: L_forearm_elbow_to_wrist_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -1374,6 +1405,7 @@ parts:
       length_mm: 3.8
     supplier: unknown
     part_number: unknown
+  section: Elbow
 - match:
   - L_fore_back_178_M3_nut
   - L_fore_back_187_M3_nut
@@ -1397,8 +1429,9 @@ parts:
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Elbow
 - match:
   - L_fore_back_M3x8_178
   - L_fore_back_M3x8_187
@@ -1425,8 +1458,9 @@ parts:
   supplier: unknown
   part_number: M3 x 8 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Elbow
 - match: R_fore_front_hard_cover
   kind: printed
   line: print:R_fore_front_hard_cover
@@ -1438,6 +1472,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate fitted arm hard-shell cover'', as the thigh and shin back shells were seeded. Print
       direction left open for the shell''s designer.'
+  section: Elbow
 - match: R_fore_back_hard_cover
   kind: printed
   line: print:R_fore_back_hard_cover
@@ -1449,6 +1484,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate fitted arm hard-shell cover'', as the thigh and shin back shells were seeded. Print
       direction left open for the shell''s designer.'
+  section: Elbow
 - match: L_fore_front_hard_cover
   kind: printed
   line: print:L_fore_front_hard_cover
@@ -1460,6 +1496,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate fitted arm hard-shell cover'', as the thigh and shin back shells were seeded. Print
       direction left open for the shell''s designer.'
+  section: Elbow
 - match: L_fore_back_hard_cover
   kind: printed
   line: print:L_fore_back_hard_cover
@@ -1471,6 +1508,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate fitted arm hard-shell cover'', as the thigh and shin back shells were seeded. Print
       direction left open for the shell''s designer.'
+  section: Elbow
 - match:
   - L_B13_C047_foot_roll_case
   - R_B13_C047_foot_roll_case
@@ -1485,6 +1523,7 @@ parts:
     part "Waveshare ST3215 12 V (SKU 22414)", price_basis Waveshare store).'
   heat_source:
     kind: servo_case
+  section: Ankle / foot
 - match:
   - L_B13R14_raised_B11_inner_PA2x6_proposal_0
   - L_B13R14_raised_B11_inner_PA2x6_proposal_1
@@ -1520,20 +1559,23 @@ parts:
   part_number: PA2 x 6 ISO 7380-1
   material: Unqualified nominal B-PA2x6 selftap envelope
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Knee
 - match: R_foot_sole_shell
   kind: printed
   line: print:R_foot_sole_shell
   name: R_foot_sole_shell
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_foot_sole_shell
   kind: printed
   line: print:L_foot_sole_shell
   name: L_foot_sole_shell
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match:
   - L_heel_lateral_sensor
   - L_mid_medial_sensor
@@ -1550,12 +1592,14 @@ parts:
   part_number: 34-00015
   notes: 'Source STEP: artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP (pinned). supplier from robot/electronics/sensing/selection.json
     (foot_contacts: FSR402 Short, solder tabs; the 30-00016 STEP is the manufacturer CAD file name, not the part bought).'
+  section: Ankle / foot
 - match: R_toe_lateral_backing
   kind: printed
   line: print:R_toe_lateral_backing
   name: R_toe_lateral_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match:
   - L_heel_lateral_bond
   - L_mid_medial_bond
@@ -1571,36 +1615,42 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: 'supplier / part number: no source in the repo (unknown).'
+  section: Ankle / foot
 - match: R_heel_lateral_backing
   kind: printed
   line: print:R_heel_lateral_backing
   name: R_heel_lateral_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: R_mid_medial_backing
   kind: printed
   line: print:R_mid_medial_backing
   name: R_mid_medial_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_toe_lateral_backing
   kind: printed
   line: print:L_toe_lateral_backing
   name: L_toe_lateral_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_heel_lateral_backing
   kind: printed
   line: print:L_heel_lateral_backing
   name: L_heel_lateral_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_mid_medial_backing
   kind: printed
   line: print:L_mid_medial_backing
   name: L_mid_medial_backing
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match:
   - L_heel_lateral_actuator_v17
   - L_mid_medial_actuator_v17
@@ -1615,6 +1665,7 @@ parts:
   quantity: 6
   material: Polymax1001526 silicone60ShA
   notes: Cut from stock; STEP missing for 5 of 6 (artifacts/cove50-sensor-integration/v17).
+  section: Ankle / foot
 - match:
   - L_sole_pad_bond_v19
   - R_sole_pad_bond_v19
@@ -1627,18 +1678,21 @@ parts:
   part_number: unknown
   material: 3M467MP
   notes: 'supplier / part number: no source in the repo (unknown).'
+  section: Ankle / foot
 - match: R_sensor_pocket_pad_v19
   kind: printed
   line: print:R_sensor_pocket_pad_v19
   name: R_sensor_pocket_pad_v19
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_sensor_pocket_pad_v19
   kind: printed
   line: print:L_sensor_pocket_pad_v19
   name: L_sensor_pocket_pad_v19
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: R_upper_arm_lower_cover
   kind: printed
   line: print:R_upper_arm_lower_cover
@@ -1650,6 +1704,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
       designer.'
+  section: Elbow
 - match: L_upper_arm_lower_cover
   kind: printed
   line: print:L_upper_arm_lower_cover
@@ -1661,6 +1716,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
       designer.'
+  section: Elbow
 assembly:
   steps:
   - id: torso:p003
@@ -2656,7 +2712,7 @@ defects:
   field: native_step
   why: Not on disk under either name, not indexed; bytes recorded in the cold storage run data/storage-runs/arm-fdm-connectors-20261102-b7c0e4f8bb1f.json
     (state cold, synced 2026-11-04; its selection lists path + sha256 = manifest native_step_sha256, no pack key).
-  fix: 'For the BOM nothing: robot/body/bom/hardware.py generates an ISO 4032 M3 nut STEP at the measured placement. For the manifest: rerun the
+  fix: 'For the BOM nothing: robot/body/standard-hardware/generate.py generates an ISO 4032 M3 nut STEP at the measured placement. For the manifest: rerun the
     arm packaging step or restore the blob index.'
   producer: robot/body/arm/common.py ensure_arm_shell_nut_assets() (called by robot/body/arm/package_and_render.py and build_arm_connectors.py)
     writes the STEP + npz into artifacts/robot/body/arm/shell_hardware

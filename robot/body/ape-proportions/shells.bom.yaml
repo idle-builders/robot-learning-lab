@@ -38,18 +38,23 @@ parts:
   name: R_foot_boot_shell
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 - match: L_foot_boot_shell
   kind: printed
   line: print:L_foot_boot_shell
   name: L_foot_boot_shell
   make_buy: make
   quantity: 1
+  section: Ankle / foot
 assembly:
   steps:
   - id: right_leg:p049
     subassembly: right_leg
     part: R_foot_boot_shell
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:p048
     status: seeded
@@ -60,7 +65,10 @@ assembly:
   - id: left_leg:p049
     subassembly: left_leg
     part: L_foot_boot_shell
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:p048
     status: seeded

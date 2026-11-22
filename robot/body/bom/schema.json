@@ -399,7 +399,7 @@
     },
     "section": {
      "type": "string",
-     "description": "Robot section (phase 2: replaces checks/data/sections.json)."
+     "description": "Robot section the part belongs to (run.py --section selects by it; checks/data/sections.json is retired)."
     },
     "process": {
      "type": "object",

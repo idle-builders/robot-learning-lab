@@ -14,6 +14,7 @@
     }
   },
   "R_thigh_combined": {
+    "_kept": "baseline for roll_flip_checks.py fem stage4_selected / stage5_selected (motor-refit manifest); intentionally absent from the selected body (hip session, 2026-11-22)",
     "process": {
       "printer": "Bambu X2D",
       "material": "Bambu PAHT-CF",
@@ -317,6 +318,7 @@
     }
   },
   "R_hip_pitch_to_roll_combined": {
+    "_kept": "baseline for roll_flip_checks.py fem stage4_selected / stage5_selected (motor-refit manifest); intentionally absent from the selected body (hip session, 2026-11-22)",
     "process": {
       "printer": "Bambu X2D",
       "material": "Bambu PAHT-CF",

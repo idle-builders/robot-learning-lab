@@ -99,7 +99,7 @@ per step whether the measurement supports it.
   Nothing under `robot/body/bom/` needs an edit for a design change.
 - Drafting aids (they never edit a definition): `PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/assembly_seed.py
   propose [--names right_leg] [--search]` (under memguard, about 1 min / 4 GB) writes proposed steps per file into
-  `.cache/work/bom/assembly-proposals/`; `robot/body/bom/propose_hardware.py --only GLOB` proposes hardware specs from names
+  `.cache/work/bom/assembly-proposals/`; `robot/body/standard-hardware/propose_specs.py --only GLOB` proposes hardware specs from names
   and meshes.
 - A new builder: a new `<script>.bom.yaml` next to it with its generator; the rebuild picks it up from its inputs / outputs.
 - Design findings (a part that cannot go in, a screw no driver reaches) go to an Idle task for the part's owner with the
@@ -113,8 +113,7 @@ per step whether the measurement supports it.
 | `definitions.py` | finds, validates and resolves the definitions; derives the generator and assembly order; findings |
 | `build.py` | the BOM and build sequence from the definitions plus file facts |
 | `files.py` | how a manifest file resolves (disk, regenerable, blob index, path moves, bucket records) |
-| `hardware.py` | generates STEP / STL of the declared standard hardware at its measured placement |
-| `propose_hardware.py` | drafting aid: hardware specs from names and meshes |
+| (moved) | standard hardware STEP / STL: `robot/body/standard-hardware/generate.py` (declared as a generator in its `generate.bom.yaml`); spec drafting aid `propose_specs.py` next to it |
 | `rebuild_chain.py` | isolated rebuild of the selected body from the declared generators, then the BOM steps |
 
 ## State

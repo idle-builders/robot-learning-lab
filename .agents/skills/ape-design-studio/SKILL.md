@@ -63,7 +63,7 @@ For any part, screw, print or purchase question start from the generated BOM and
 - edit only your builder's `.bom.yaml` (a new builder gets a new one next to it); never edit files under `robot/body/bom/` for a design change;
 - a part's check settings (print setup `process`, `fem`, `expected_hardware`, `fit_classes`, `covers`, `heat_source`, ...) live on its entry in that same file; the checks and the BOM both read it, and every check finding names the file;
 - rerun `build.py`, the assembly check and the bom check (commands in the BOM README) and work down the findings that name your file; report the counts that moved;
-- draft steps with `robot/body/checks/assembly_seed.py propose` and hardware specs with `robot/body/bom/propose_hardware.py`; you decide what goes in.
+- draft steps with `robot/body/checks/assembly_seed.py propose` and hardware specs with `robot/body/standard-hardware/propose_specs.py`; you decide what goes in.
 
 ## Publish a part's design study
 

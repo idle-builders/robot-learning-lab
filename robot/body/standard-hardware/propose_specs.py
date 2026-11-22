@@ -4,7 +4,7 @@ screw_plan a builder recorded, and a measurement of the mesh, snapped to the sta
 robot/body/checks/data/hardware.json. The BOM never runs this: the owner of the definition decides the spec and writes it
 there. Prints YAML `spec:` blocks to paste.
 
-  .venv/bin/python -B robot/body/bom/propose_hardware.py [--manifest PATH] --only GLOB[,GLOB]
+  .venv/bin/python -B robot/body/standard-hardware/propose_specs.py [--manifest PATH] --only GLOB[,GLOB]
 """
 from __future__ import annotations
 

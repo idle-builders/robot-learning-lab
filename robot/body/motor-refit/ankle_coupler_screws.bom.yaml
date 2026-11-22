@@ -356,6 +356,7 @@ parts:
         max_displacement_mm: 0.9482
         p99_strength_ratio: 4.13
       reaction_plus_wrench_pct_max: 0.0006
+  section: Ankle / foot
 - match: R_ankle_coupler_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -399,6 +400,7 @@ parts:
       length_mm: 3.0
     supplier: unknown
     part_number: unknown
+  section: Ankle / foot
 - match: L_ankle_coupler_combined
   kind: printed
   line: print:L_ankle_coupler_combined
@@ -417,6 +419,7 @@ parts:
     seeded_keys:
     - up
     - material
+  section: Ankle / foot
 - match: L_ankle_coupler_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -460,6 +463,7 @@ parts:
       length_mm: 3.0
     supplier: unknown
     part_number: unknown
+  section: Ankle / foot
 assembly:
   steps:
   - id: right_leg:p036

@@ -37,12 +37,14 @@ parts:
   name: center_front_shell
   make_buy: make
   quantity: 1
+  section: Torso
 - match: center_back_shell
   kind: printed
   line: print:center_back_shell
   name: center_back_shell
   make_buy: make
   quantity: 1
+  section: Torso
 - match: R_shoulder_roll_to_yaw_combined
   kind: printed
   line: print:R_shoulder_roll_to_yaw_combined
@@ -335,6 +337,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
 - match: R_shoulder_roll_to_yaw_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -390,6 +393,7 @@ parts:
       length_mm: 2.5
     supplier: unknown
     part_number: unknown
+  section: Shoulder
 - match: L_shoulder_roll_to_yaw_combined
   kind: printed
   line: print:L_shoulder_roll_to_yaw_combined
@@ -652,6 +656,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
 - match: L_shoulder_roll_to_yaw_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -707,6 +712,7 @@ parts:
       length_mm: 2.5
     supplier: unknown
     part_number: unknown
+  section: Shoulder
 - match: R_upper_arm_hard_cover
   kind: printed
   line: print:R_upper_arm_hard_cover
@@ -718,6 +724,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
       designer.'
+  section: Shoulder
 - match: L_upper_arm_hard_cover
   kind: printed
   line: print:L_upper_arm_hard_cover
@@ -729,6 +736,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
       designer.'
+  section: Shoulder
 - match:
   - L_upper_arm_shell_front_M3x8
   - R_upper_arm_shell_front_M3x8
@@ -749,8 +757,9 @@ parts:
   supplier: unknown
   part_number: M3 x 8 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Shoulder
 - match:
   - L_upper_arm_shell_front_M3_nut
   - L_upper_arm_shell_rear_M3_nut
@@ -770,8 +779,9 @@ parts:
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Shoulder
 - match:
   - L_upper_arm_shell_rear_M3x6
   - R_upper_arm_shell_rear_M3x6
@@ -792,8 +802,9 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Shoulder
 assembly:
   steps:
   - id: right_arm:p007

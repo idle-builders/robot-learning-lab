@@ -365,6 +365,7 @@ parts:
         are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
       result: '2.2 -> 1.6: p99 +0.2..+3.2 %, displacement +3.3..+5.1 %; stored h 2.2 (< 5 %)'
       stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Torso
 - match: combined__neck_root_cradle_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -396,6 +397,7 @@ parts:
       length_mm: 3.0
     supplier: unknown
     part_number: unknown
+  section: Torso
 - match: combined__neck_yaw_to_pitch_link_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -415,6 +417,7 @@ parts:
       length_mm: 3.5
     supplier: unknown
     part_number: unknown
+  section: Neck / head
 - match: combined__neck_pitch_to_head_cradle
   kind: printed
   line: print:combined__neck_pitch_to_head_cradle
@@ -743,6 +746,7 @@ parts:
         are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
       result: '2.2 -> 1.6: p99 +2.9..+4.4 %, displacement +6.3..+8.1 %; stored h 2.2 (< 5 %)'
       stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Neck / head
 - match: combined__neck_pitch_to_head_cradle_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -774,6 +778,7 @@ parts:
       length_mm: 3.0
     supplier: unknown
     part_number: unknown
+  section: Neck / head
 - match: combined__head_sensor_compute_carrier
   kind: printed
   line: print:combined__head_sensor_compute_carrier
@@ -1219,6 +1224,7 @@ parts:
         are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
       result: '2.2 -> 1.8 (1.6 exceeds the 6 GB cap): p99 +3.3..+5.8 %, displacement +5.4..+6.2 %; not below 5 % for every case; stored h 2.2'
       stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Neck / head
 - match: combined__head_sensor_compute_carrier_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -1238,11 +1244,8 @@ parts:
       length_mm: 2.0
     supplier: unknown
     part_number: unknown
+  section: Neck / head
 - match:
-  - upper__neck_head_M2x5_0
-  - upper__neck_head_M2x5_1
-  - upper__neck_head_M2x5_2
-  - upper__neck_head_M2x5_3
   - upper__neck_root_M2x6_0
   - upper__neck_root_M2x6_1
   - upper__neck_root_M2x6_2
@@ -1251,8 +1254,8 @@ parts:
   line: hw:M2-x-5-ISO-7380-1
   name: M2 x 5 ISO 7380-1
   make_buy: buy
-  quantity: 8
-  spec:
+  quantity: 4
+  spec: &id001
     kind: screw
     thread: M2
     family: M
@@ -1265,8 +1268,27 @@ parts:
   part_number: M2 x 5 ISO 7380-1
   material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Torso
+- match:
+  - upper__neck_head_M2x5_0
+  - upper__neck_head_M2x5_1
+  - upper__neck_head_M2x5_2
+  - upper__neck_head_M2x5_3
+  kind: hardware
+  line: hw:M2-x-5-ISO-7380-1
+  name: M2 x 5 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec: *id001
+  supplier: unknown
+  part_number: M2 x 5 ISO 7380-1
+  material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
 - match:
   - upper__neck_pitch_horn_M2x5_0
   - upper__neck_pitch_horn_M2x5_1
@@ -1294,8 +1316,9 @@ parts:
   part_number: M2 x 8 ISO 7380-1
   material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 - match:
   - compute_M2p5_CS30_0
   - compute_M2p5_CS30_1
@@ -1317,8 +1340,9 @@ parts:
   part_number: M2.5 x 30 ISO 10642
   material: ISO 10642 M2.5x30 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 - match:
   - compute_M2p5_CS10_2
   - compute_M2p5_CS10_3
@@ -1340,8 +1364,9 @@ parts:
   part_number: M2.5 x 10 ISO 10642
   material: ISO 10642 M2.5x10 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 - match:
   - B0196_plate_M2x4_0
   - B0196_plate_M2x4_1
@@ -1368,8 +1393,9 @@ parts:
   supplier: unknown
   part_number: M2 x 4 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  section: Neck / head
 assembly:
   steps:
   - id: torso:p010

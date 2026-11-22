@@ -383,6 +383,7 @@ parts:
         max_displacement_mm: 0.3318
         p99_strength_ratio: 42.22
       reaction_plus_wrench_pct_max: 0.0
+  section: Ankle / foot
 - match: R_foot_monocoque_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -414,6 +415,7 @@ parts:
       length_mm: 4.5
     supplier: unknown
     part_number: unknown
+  section: Ankle / foot
 - match: L_foot_monocoque_combined
   kind: printed
   line: print:L_foot_monocoque_combined
@@ -432,6 +434,7 @@ parts:
     seeded_keys:
     - up
     - material
+  section: Ankle / foot
 - match: L_foot_monocoque_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -463,6 +466,7 @@ parts:
       length_mm: 4.5
     supplier: unknown
     part_number: unknown
+  section: Ankle / foot
 assembly:
   steps:
   - id: right_leg:p043

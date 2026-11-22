@@ -34,16 +34,27 @@ parts:
   - Honeycomb_Cell_05_Upper_Dorsal_R2_top_insulator
   - Honeycomb_Cell_06_Upper_Core_L_top_insulator
   - Honeycomb_Cell_07_Upper_Core_R_top_insulator
+  kind: other
+  line: battery-top-insulator
+  name: Cell top insulator ring
+  make_buy: buy
+  quantity: 7
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+  section: Torso
+- match:
   - Honeycomb_Cell_08_Lower_Pelvis_L_top_insulator
   - Honeycomb_Cell_09_Lower_Pelvis_R_top_insulator
   kind: other
   line: battery-top-insulator
   name: Cell top insulator ring
   make_buy: buy
-  quantity: 9
+  quantity: 2
   supplier: unknown
   part_number: unknown
   notes: 'supplier / part number: no source in the repo (unknown).'
+  section: Waist / pelvis
 - match:
   - Honeycomb_Cell_08_Lower_Pelvis_L
   - Honeycomb_Cell_09_Lower_Pelvis_R
@@ -58,6 +69,7 @@ parts:
     no seller recorded).
   heat_source:
     kind: battery_cell
+  section: Waist / pelvis
 - match:
   - Honeycomb_Fin_08_Lower_Pelvis_L
   - Honeycomb_Fin_09_Lower_Pelvis_R
@@ -67,6 +79,7 @@ parts:
   make_buy: make
   quantity: 2
   notes: Cut from sheet; one per cell.
+  section: Waist / pelvis
 - match: combined__stage2_lower_pelvis_battery_cradle_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -122,12 +135,14 @@ parts:
       length_mm: 4.2
     supplier: unknown
     part_number: unknown
+  section: Waist / pelvis
 - match: original_profile_head_skin_v23
   kind: printed
   line: print:original_profile_head_skin_v23
   name: original_profile_head_skin_v23
   make_buy: make
   quantity: 1
+  section: Neck / head
 - match: L_roll_servo_case_reference
   kind: purchased
   line: servo:Feetech-STS3250-strong-tier
@@ -141,21 +156,39 @@ parts:
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
   heat_source:
     kind: servo_case
+  section: Hip
 - match:
-  - L_ankle_pitch_ST3025_output
-  - L_hip_pitch_ST3025_output
-  - L_knee_ST3025_output
-  - L_roll_passive_idler_reference
   - L_roll_upper_horn_reference
-  - R_ankle_pitch_ST3025_output
+  - L_roll_passive_idler_reference
   - R_hip_pitch_ST3025_output
-  - R_knee_ST3025_output
+  - L_hip_pitch_ST3025_output
   kind: included
   line: servo-horns-idlers
   name: Servo horns and idlers (supplied with each servo)
   make_buy: included
-  quantity: 8
+  quantity: 4
   notes: Come in the servo box; listed so every CAD part has a line.
+  section: Hip
+- match:
+  - R_knee_ST3025_output
+  - L_knee_ST3025_output
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 2
+  notes: Come in the servo box; listed so every CAD part has a line.
+  section: Knee
+- match:
+  - R_ankle_pitch_ST3025_output
+  - L_ankle_pitch_ST3025_output
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 2
+  notes: Come in the servo box; listed so every CAD part has a line.
+  section: Ankle / foot
 - match: R_shin_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -187,6 +220,7 @@ parts:
       length_mm: 2.0
     supplier: unknown
     part_number: unknown
+  section: Knee
 - match: L_shin_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -218,6 +252,7 @@ parts:
       length_mm: 2.0
     supplier: unknown
     part_number: unknown
+  section: Knee
 - match: R_shin_front_hard_cover
   kind: printed
   line: print:R_shin_front_hard_cover
@@ -229,6 +264,7 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate hard-shell cover'', as the thigh and shin back shells were seeded. Print direction
       left open for the shell''s designer.'
+  section: Knee
 - match: L_shin_front_hard_cover
   kind: printed
   line: print:L_shin_front_hard_cover
@@ -240,25 +276,40 @@ parts:
     seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
       from the manifest material text ''PETG / polycarbonate hard-shell cover'', as the thigh and shin back shells were seeded. Print direction
       left open for the shell''s designer.'
+  section: Knee
 - match:
-  - L_ankle_pitch_ST3025_case
-  - L_hip_pitch_ST3025_case
-  - L_knee_ST3025_case
-  - R_ankle_pitch_ST3025_case
   - R_hip_pitch_ST3025_case
+  - L_hip_pitch_ST3025_case
   - R_knee_ST3025_case
+  - L_knee_ST3025_case
   kind: purchased
   line: servo:Waveshare-ST3025-fast-leg-tier
   name: Waveshare ST3025 (fast-leg tier)
   make_buy: buy
-  quantity: 6
+  quantity: 4
   supplier: Waveshare
   part_number: 24702 (ST3025; Feetech ST-3025-C002)
   material: Waveshare ST3025 (Feetech ST-3025-C002) official STEP
   notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.fast-leg:
     part, sku).'
-  heat_source:
+  heat_source: &id001
     kind: servo_case
+  section: Hip
+- match:
+  - R_ankle_pitch_ST3025_case
+  - L_ankle_pitch_ST3025_case
+  kind: purchased
+  line: servo:Waveshare-ST3025-fast-leg-tier
+  name: Waveshare ST3025 (fast-leg tier)
+  make_buy: buy
+  quantity: 2
+  supplier: Waveshare
+  part_number: 24702 (ST3025; Feetech ST-3025-C002)
+  material: Waveshare ST3025 (Feetech ST-3025-C002) official STEP
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.fast-leg:
+    part, sku).'
+  heat_source: *id001
+  section: Knee
 assembly:
   steps:
   - id: torso:p004

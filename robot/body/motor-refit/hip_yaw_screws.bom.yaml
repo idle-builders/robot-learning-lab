@@ -250,6 +250,7 @@ parts:
         max_displacement_mm: 2.249
         p99_strength_ratio: 1.91
       reaction_plus_wrench_pct_max: 0.001
+  section: Hip
 - match: R_hip_yaw_to_pitch_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -281,6 +282,7 @@ parts:
       length_mm: 13.0
     supplier: unknown
     part_number: unknown
+  section: Hip
 - match: L_hip_yaw_to_pitch_combined
   kind: printed
   line: print:L_hip_yaw_to_pitch_combined
@@ -299,6 +301,7 @@ parts:
     seeded_keys:
     - up
     - material
+  section: Hip
 - match: L_hip_yaw_to_pitch_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -330,6 +333,7 @@ parts:
       length_mm: 13.0
     supplier: unknown
     part_number: unknown
+  section: Hip
 assembly:
   steps:
   - id: right_leg:p003

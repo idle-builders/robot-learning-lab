@@ -385,6 +385,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
 - match: R_shoulder_pitch_to_roll_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -429,6 +430,7 @@ parts:
     supplier: unknown
     part_number: unknown
   generator: shoulder-clevis-cad
+  section: Shoulder
 - match: L_shoulder_pitch_to_roll_combined
   kind: printed
   line: print:L_shoulder_pitch_to_roll_combined
@@ -736,6 +738,7 @@ parts:
       to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
       the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
       = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
 - match: L_shoulder_pitch_to_roll_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -780,6 +783,7 @@ parts:
     supplier: unknown
     part_number: unknown
   generator: shoulder-clevis-cad
+  section: Shoulder
 - match:
   - upper__L_roll_C047_rear_idler
   - upper__R_roll_C047_rear_idler
@@ -790,6 +794,7 @@ parts:
   quantity: 2
   notes: Come in the servo box; listed so every CAD part has a line.
   generator: shoulder-clevis-cad
+  section: Shoulder
 - match:
   - L_shoulder_u_roll_horn_screw_0
   - L_shoulder_u_roll_horn_screw_1
@@ -816,9 +821,10 @@ parts:
   supplier: unknown
   part_number: M3 x 8 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
   generator: shoulder-clevis-cad
+  section: Shoulder
 - match:
   - L_shoulder_u_roll_idler_screw_0
   - L_shoulder_u_roll_idler_screw_1
@@ -845,9 +851,10 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
   generator: shoulder-clevis-cad
+  section: Shoulder
 - match:
   - L_shoulder_u_roll_case_ny_screw_0
   - L_shoulder_u_roll_case_ny_screw_1
@@ -875,9 +882,10 @@ parts:
   part_number: M2 x 12 ISO 7380-1
   material: ISO 7380-1 M2x12 into STS3250.case+y.3 (aluminium)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
   generator: shoulder-clevis-cad
+  section: Shoulder
 assembly:
   subassemblies:
   - name: right_arm

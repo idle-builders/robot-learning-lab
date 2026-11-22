@@ -1,10 +1,10 @@
 """Standard hardware as generated geometry: every part a body definition declares as hardware with a screw / nut / washer /
 spacer spec (robot/**/<builder>.bom.yaml) is generated from that declared spec (kind, thread, length, head standard,
 diameters) as a native STEP and an STL at the placement measured on its current mesh (axis, head end, centre). No spec
-comes from a name here: the definition's owner declares it (robot/body/bom/propose_hardware.py drafts one). Per part the
+comes from a name here: the definition's owner declares it (robot/body/standard-hardware/propose_specs.py drafts one). Per part the
 report gives the fit of the generated geometry to the old mesh (volume ratio, largest bounds difference in mm).
 
-  .venv/bin/python -B robot/body/bom/hardware.py [--manifest PATH] [--out DIR] [--only GLOB] [--no-geometry]
+  .venv/bin/python -B robot/body/standard-hardware/generate.py [--manifest PATH] [--out DIR] [--only GLOB] [--no-geometry]
 
 Output (recreated by this script): DIR/hardware.json (declared spec, definition, placement and fit per part) and
 DIR/parts/<name>.step / .stl. Default DIR .cache/work/bom-hardware.
@@ -162,7 +162,7 @@ def fit(solid, mesh, stl_path):
 def specs(manifest, with_mesh=True, only=None):
     """{part name: declared spec + measured placement} for every part a definition declares as hardware with a generated
     kind (screw / nut / washer / spacer)."""
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
     import definitions as DEF
     names = [p["name"] for p in manifest["parts"]]
     claims = DEF.load().claims(names)
