@@ -96,9 +96,9 @@ def truth_pair(man_path, a, b):
 
 
 # ------------------------------------------------------------------------------------------------ running run.py
-def run_tool(label, args, manifest=None, limit_gb=4, timeout_s=900, env=None):
+def run_tool(label, args, manifest=None, limit_gb=4, timeout_s=900, env=None, no_wait=False):
     """run.py under memguard; dict(rc, wall_s, wait_s, exec_s, report, log)."""
-    cmd = ["python3", MEMGUARD, "--limit-gb", str(limit_gb), "--timeout-s", str(timeout_s), "--", PY, "-B", RUN, "--label", label]
+    cmd = ["python3", MEMGUARD] + (["--no-wait"] if no_wait else []) + ["--limit-gb", str(limit_gb), "--timeout-s", str(timeout_s), "--", PY, "-B", RUN, "--label", label]
     if manifest:
         cmd += ["--manifest", rel(Path(manifest))]
     cmd += args
@@ -372,10 +372,16 @@ def s_bad(sid):
 def s_concurrent(sid):
     import threading
     res = {}
-    def go(k, parts):
-        res[k] = run_tool(sid, ["--parts", parts, "--checks", "mass,gaps"])
-    t = [threading.Thread(target=go, args=("a", THIGH)), threading.Thread(target=go, args=("b", THIGH_NB))]
-    [x.start() for x in t]; [x.join() for x in t]
+    lock = REPORTS / sid / ".lock"
+    lock.unlink(missing_ok=True)
+    def go(k, parts, **kw):
+        res[k] = run_tool(sid, ["--parts", parts, "--checks", "mass,gaps,clearance"], **kw)
+    a = threading.Thread(target=go, args=("a", THIGH)); a.start()
+    t0 = time.time()                    # B starts while A holds the label (A's lock file names it), past memguard's queue
+    while time.time() - t0 < 900 and not (lock.exists() and lock.read_text().strip()):
+        time.sleep(0.5)
+    b = threading.Thread(target=go, args=("b", THIGH_NB), kwargs=dict(no_wait=True)); b.start()
+    a.join(); b.join()
     rep = json.loads((REPORTS / sid / "report.json").read_text()) if (REPORTS / sid / "report.json").exists() else None
     return dict(rc=[res["a"]["rc"], res["b"]["rc"]], final_report_complete=(rep or {}).get("complete"),
                 final_report_parts=(rep or {}).get("scope", {}).get("parts"), tails=[log_tail(res["a"], 2), log_tail(res["b"], 2)])
