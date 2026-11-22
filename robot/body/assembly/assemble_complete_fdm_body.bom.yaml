@@ -109,14 +109,12 @@ parts:
   - compute_rear_nut_3
   - fan_bridge_nut_0
   - fan_bridge_nut_1
-  - upper__cowl_M2_nut_0
-  - upper__cowl_M2_nut_1
   kind: hardware
   line: hw:M2-hex-nut-ISO-4032
   name: M2 hex nut ISO 4032
   make_buy: buy
-  quantity: 9
-  spec:
+  quantity: 7
+  spec: &id001
     kind: nut
     thread: M2
     standard: ISO 4032
@@ -885,48 +883,117 @@ parts:
   name: R_palm_lower
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    seeded: STEP artifacts/cove50-strength/complete-fdm-body-20261106/parts/R_palm_lower.step gives no solid faces; material from manifest text
+      'PAHT-CF'
+    seeded_keys:
+    - material
 - match: R_palm_upper
   kind: printed
   line: print:R_palm_upper
   name: R_palm_upper
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: -z
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Z = 141.45 mm Seam Face (layer normal -Z)''; chosen by bed contact, then least overhang
+      (bed mm2, overhang>45deg mm2) {''+z'': (340.5, 789.9), ''-z'': (334.8, 909.5)}; SIGN AMBIGUOUS; material from manifest text ''PAHT-CF'''
+    seeded_keys:
+    - up
+    - material
 - match: R_right_finger
   kind: printed
   line: print:R_right_finger
   name: R_right_finger
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +y
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Y Gear/C-Web Face (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (40.6, 559.1), ''-y'': (10.6, 582.8)}; material from manifest text ''PAHT-CF'''
+    seeded_keys:
+    - up
+    - material
 - match: R_left_finger
   kind: printed
   line: print:R_left_finger
   name: R_left_finger
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +y
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Y Gear/C-Web Face (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (10.6, 534.8), ''-y'': (10.6, 534.9)}; SIGN AMBIGUOUS; material from manifest text ''PAHT-CF'''
+    seeded_keys:
+    - up
+    - material
 - match: L_palm_lower
   kind: printed
   line: print:L_palm_lower
   name: L_palm_lower
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    seeded: STEP artifacts/cove50-strength/complete-fdm-body-20261106/parts/L_palm_lower.step gives no solid faces; material from manifest text
+      'PAHT-CF'
+    seeded_keys:
+    - material
 - match: L_palm_upper
   kind: printed
   line: print:L_palm_upper
   name: L_palm_upper
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: -z
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Z = 141.45 mm Seam Face (layer normal -Z)''; chosen by bed contact, then least overhang
+      (bed mm2, overhang>45deg mm2) {''+z'': (340.5, 789.9), ''-z'': (334.8, 909.5)}; SIGN AMBIGUOUS; material from manifest text ''PAHT-CF'''
+    seeded_keys:
+    - up
+    - material
 - match: L_right_finger
   kind: printed
   line: print:L_right_finger
   name: L_right_finger
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +y
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Y Gear/C-Web Face (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (40.6, 559.5), ''-y'': (10.6, 582.6)}; material from manifest text ''PAHT-CF'''
+    seeded_keys:
+    - up
+    - material
 - match: L_left_finger
   kind: printed
   line: print:L_left_finger
   name: L_left_finger
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +y
+    material: Bambu PAHT-CF
+    seeded: 'up from manifest print_orientation ''Flat on Y Gear/C-Web Face (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (10.6, 535.2), ''-y'': (10.6, 535.1)}; SIGN AMBIGUOUS; material from manifest text ''PAHT-CF''; up set
+      to the mirror of R_left_finger (+y -> +y; own estimate -y)'
+    seeded_keys:
+    - material
+    - up
 - match:
   - L_hand_OEM_case
   - R_hand_OEM_case
@@ -982,6 +1049,36 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: 'Hand bush (manifest role bearing); size not specified in the repo. supplier / part number: no source in the repo (unknown).'
+- match: upper__cowl_M2_nut_1
+  kind: hardware
+  line: hw:M2-hex-nut-ISO-4032
+  name: M2 hex nut ISO 4032
+  make_buy: buy
+  quantity: 1
+  spec: *id001
+  supplier: unknown
+  part_number: M2 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
+- match: upper__cowl_M2_nut_0
+  kind: hardware
+  line: hw:M2-hex-nut-ISO-4032
+  name: M2 hex nut ISO 4032
+  make_buy: buy
+  quantity: 1
+  spec: *id001
+  supplier: unknown
+  part_number: M2 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
 assembly:
   subassemblies:
   - name: neck_head
@@ -1024,7 +1121,10 @@ assembly:
   - id: torso:p024
     subassembly: torso
     part: upper__R_pitch_C047_case
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - torso:s023
     status: seeded
@@ -1056,7 +1156,10 @@ assembly:
   - id: torso:p026
     subassembly: torso
     part: upper__L_pitch_C047_case
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - torso:s025
     status: seeded
@@ -1114,7 +1217,10 @@ assembly:
   - id: torso:p032
     subassembly: torso
     part: foot_ADC_6494
-    direction: [-0.0, -1.0, 0.0]
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
     after:
     - torso:s031
     status: seeded
@@ -1123,7 +1229,10 @@ assembly:
   - id: torso:p034
     subassembly: torso
     part: upper__neck_yaw_case_XM335
-    direction: [-0.0, 1.0, -0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - -0.0
     after:
     - torso:s033
     status: seeded
@@ -1132,7 +1241,10 @@ assembly:
   - id: torso:p041
     subassembly: torso
     part: lower__L_yaw_servo_case_reference
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - torso:p040
     status: seeded
@@ -1141,7 +1253,10 @@ assembly:
   - id: torso:p042
     subassembly: torso
     part: lower__R_yaw_servo_case_reference
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - torso:p041
     status: seeded
@@ -1150,7 +1265,10 @@ assembly:
   - id: torso:p045
     subassembly: torso
     part: Main_precharge_source_board
-    direction: [-0.0, 1.0, -0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - -0.0
     after:
     - torso:p044
     status: seeded
@@ -1173,7 +1291,10 @@ assembly:
   - id: torso:p048
     subassembly: torso
     part: Power_supervisor_source_board
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - torso:s047
     status: seeded
@@ -1208,14 +1329,20 @@ assembly:
   - id: neck_head:p001
     subassembly: neck_head
     part: upper__neck_yaw_front_horn
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     status: seeded
     derived: 'graph order, fastened distance 1 from what is present (via upper__neck_yaw_case_XM335); direction: toward the centroid of placed
       neighbours (upper__neck_yaw_case_XM335), snapped to the nearest axis'
   - id: neck_head:p004
     subassembly: neck_head
     part: upper__neck_pitch_front_horn
-    direction: [-1.0, -0.0, -0.0]
+    direction:
+    - -1.0
+    - -0.0
+    - -0.0
     after:
     - neck_head:s003
     status: seeded
@@ -1224,7 +1351,10 @@ assembly:
   - id: neck_head:p006
     subassembly: neck_head
     part: upper__neck_pitch_case_XM335
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:s005
     status: seeded
@@ -1233,7 +1363,10 @@ assembly:
   - id: neck_head:p009
     subassembly: neck_head
     part: fan_black_formed_lead
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - neck_head:s008
     status: seeded
@@ -1244,7 +1377,10 @@ assembly:
   - id: neck_head:p010
     subassembly: neck_head
     part: fan_red_formed_lead
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p009
     status: seeded
@@ -1257,7 +1393,10 @@ assembly:
   - id: neck_head:p011
     subassembly: neck_head
     part: fan_yellow_formed_lead
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - neck_head:p010
     status: seeded
@@ -1269,7 +1408,10 @@ assembly:
   - id: neck_head:p012
     subassembly: neck_head
     part: TIM_3M8810_cut
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - neck_head:p011
     status: seeded
@@ -1280,7 +1422,10 @@ assembly:
   - id: neck_head:p013
     subassembly: neck_head
     part: Wuerth_61304021821_official
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p012
     status: seeded
@@ -1292,7 +1437,10 @@ assembly:
   - id: neck_head:p014
     subassembly: neck_head
     part: fan_tach_insulating_cap
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p013
     status: seeded
@@ -1312,7 +1460,10 @@ assembly:
   - id: neck_head:p017
     subassembly: neck_head
     part: Radian_INL25001_bare
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - neck_head:s016
     status: seeded
@@ -1324,7 +1475,10 @@ assembly:
   - id: neck_head:p019
     subassembly: neck_head
     part: fan_bridge_standoff_0
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - neck_head:p018
     status: seeded
@@ -1334,7 +1488,10 @@ assembly:
   - id: neck_head:p020
     subassembly: neck_head
     part: fan_bridge_standoff_1
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p019
     status: seeded
@@ -1346,7 +1503,10 @@ assembly:
   - id: neck_head:p021
     subassembly: neck_head
     part: microphone_6049_v23
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p020
     status: seeded
@@ -1371,7 +1531,10 @@ assembly:
   - id: neck_head:p023
     subassembly: neck_head
     part: heatsink_nonpreloaded_guard
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - neck_head:s022
     status: seeded
@@ -1384,7 +1547,10 @@ assembly:
   - id: neck_head:p024
     subassembly: neck_head
     part: SameSky_4010_fan
-    direction: [-0.0, -1.0, 0.0]
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
     after:
     - neck_head:p023
     status: seeded
@@ -1394,7 +1560,10 @@ assembly:
   - id: neck_head:p027
     subassembly: neck_head
     part: ROCK4D_official
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - neck_head:s026
     status: seeded
@@ -1408,7 +1577,10 @@ assembly:
   - id: neck_head:p028
     subassembly: neck_head
     part: fan_lead_guide_r16
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - neck_head:p027
     status: seeded
@@ -1430,7 +1602,10 @@ assembly:
   - id: neck_head:p031
     subassembly: neck_head
     part: B0410_supplier_native_v23
-    direction: [0.0, 1.0, -0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - -0.0
     after:
     - neck_head:s030
     status: seeded
@@ -1463,7 +1638,10 @@ assembly:
   - id: neck_head:p036
     subassembly: neck_head
     part: B0196_supplier_native_v23
-    direction: [-0.0, 1.0, 0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - 0.0
     after:
     - neck_head:s035
     status: seeded
@@ -1494,7 +1672,10 @@ assembly:
   - id: right_arm:p002
     subassembly: right_arm
     part: upper__R_pitch_C047_main_horn
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - right_arm:p001
     status: seeded
@@ -1530,7 +1711,10 @@ assembly:
   - id: right_arm:p005
     subassembly: right_arm
     part: upper__R_pitch_C047_rear_idler
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - right_arm:s004
     status: seeded
@@ -1540,7 +1724,10 @@ assembly:
   - id: right_arm:p006
     subassembly: right_arm
     part: upper__R_roll_C047_case
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - right_arm:p005
     status: seeded
@@ -1551,7 +1738,10 @@ assembly:
   - id: right_arm:p012
     subassembly: right_arm
     part: upper__R_yaw_C047_case
-    direction: [-0.164, -0.0, 0.986]
+    direction:
+    - -0.164
+    - -0.0
+    - 0.986
     after:
     - right_arm:s011
     status: seeded
@@ -1590,7 +1780,10 @@ assembly:
   - id: right_arm:p015
     subassembly: right_arm
     part: upper__R_roll_C047_main_horn
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - right_arm:s014
     status: seeded
@@ -1611,7 +1804,10 @@ assembly:
   - id: right_arm:p019
     subassembly: right_arm
     part: upper__R_yaw_C047_main_horn
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - right_arm:p018
     status: seeded
@@ -1654,7 +1850,10 @@ assembly:
     - R_wrist_M3x8_2
     - R_wrist_M3x8_3
     - R_wrist_M3x8_4
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_arm:s029
     status: seeded
@@ -1667,7 +1866,10 @@ assembly:
     with:
     - R_hand_left_front_bush
     - R_hand_left_rear_bush
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_arm:p030
     status: seeded
@@ -1678,7 +1880,10 @@ assembly:
     part: R_palm_upper
     with:
     - R_hand_OEM_horn
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_arm:p031
     status: seeded
@@ -1690,7 +1895,10 @@ assembly:
     part: R_right_finger
     with:
     - R_hand_right_rear_bush
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - right_arm:p032
     status: seeded
@@ -1699,7 +1907,10 @@ assembly:
   - id: left_arm:p002
     subassembly: left_arm
     part: upper__L_pitch_C047_main_horn
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - left_arm:p001
     status: seeded
@@ -1735,7 +1946,10 @@ assembly:
   - id: left_arm:p005
     subassembly: left_arm
     part: upper__L_pitch_C047_rear_idler
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - left_arm:s004
     status: seeded
@@ -1745,7 +1959,10 @@ assembly:
   - id: left_arm:p006
     subassembly: left_arm
     part: upper__L_roll_C047_case
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - left_arm:p005
     status: seeded
@@ -1756,7 +1973,10 @@ assembly:
   - id: left_arm:p012
     subassembly: left_arm
     part: upper__L_yaw_C047_case
-    direction: [0.164, -0.0, 0.986]
+    direction:
+    - 0.164
+    - -0.0
+    - 0.986
     after:
     - left_arm:s011
     status: seeded
@@ -1795,7 +2015,10 @@ assembly:
   - id: left_arm:p015
     subassembly: left_arm
     part: upper__L_roll_C047_main_horn
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - left_arm:s014
     status: seeded
@@ -1816,7 +2039,10 @@ assembly:
   - id: left_arm:p019
     subassembly: left_arm
     part: upper__L_yaw_C047_main_horn
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - left_arm:p018
     status: seeded
@@ -1859,7 +2085,10 @@ assembly:
     - L_wrist_M3x8_2
     - L_wrist_M3x8_3
     - L_wrist_M3x8_4
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - left_arm:s029
     status: seeded
@@ -1872,7 +2101,10 @@ assembly:
     with:
     - L_hand_left_front_bush
     - L_hand_left_rear_bush
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - left_arm:p030
     status: seeded
@@ -1883,7 +2115,10 @@ assembly:
     part: L_palm_upper
     with:
     - L_hand_OEM_horn
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - left_arm:p031
     status: seeded
@@ -1895,7 +2130,10 @@ assembly:
     part: L_right_finger
     with:
     - L_hand_right_rear_bush
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - left_arm:p032
     status: seeded
@@ -1904,7 +2142,10 @@ assembly:
   - id: right_leg:p001
     subassembly: right_leg
     part: R_yaw_passive_idler_reference
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     status: seeded
     derived: 'graph order, fastened distance 1 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference),
       snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 12.5 mm out, seat released
@@ -1912,7 +2153,10 @@ assembly:
   - id: right_leg:p002
     subassembly: right_leg
     part: R_yaw_upper_horn_reference
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:p001
     status: seeded
@@ -1945,7 +2189,10 @@ assembly:
   - id: left_leg:p001
     subassembly: left_leg
     part: L_yaw_passive_idler_reference
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     status: seeded
     derived: 'mirror of right_leg p01 (R_ <-> L_, x negated): graph order, fastened distance 1 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference), snapped to the nearest axis; direction searched (six axes
@@ -1953,7 +2200,10 @@ assembly:
   - id: left_leg:p002
     subassembly: left_leg
     part: L_yaw_upper_horn_reference
-    direction: [-0.0, 0.0, 1.0]
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:p001
     status: seeded

@@ -49,6 +49,292 @@ parts:
   name: R_shoulder_roll_to_yaw_combined
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    up:
+    - -0.164399
+    - 0.0
+    - 0.986394
+    material_alternatives:
+    - Bambu PETG-CF
+    up_source: 'designed (robot/body/arm/shoulder_clevis.py): the green U is printed on its plate bottom (yaw-saddle plane), up = the yaw-local
+      normal, 9.5 deg off +z; layer_normal_axes z = the nearest axis, used by the FEM because up is not along an axis'
+  loadpath_slices:
+    axis: z
+    range_mm:
+    - 330.0
+    - 355.0
+    n_slices: 12
+  fem:
+    _doc: 'Arm stage 2 (R_shoulder_roll_to_yaw). Supports: the sleeve sites at the roll C047 motor case (today''s body: the old ''roll main horn''
+      interface is the roll case here); load: the sleeve sites at the yaw C047 motor case. Load cases: the arm load envelope (load_cases_doc);
+      the old ARM_LOAD_WRENCHES are the variant short_arm_wrenches. Sleeve sites come from the sleeve companion part''s bores, so they follow
+      the part. Regions: 304 steel collars 0.7 mm around every sleeve bore (0.25 mm beyond the ends); no metal seat regions (the parts carry no
+      metal inserts except the sleeves; the polymer under the Al servo cases is polymer). Sleeves are told apart by their axis (roll-case sleeves
+      point along y, yaw-case sleeves along the yaw axis): one yaw-case sleeve sits 0.5 mm from the roll case and would otherwise be clamped and
+      loaded. The load patch is rigid (all its nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings
+      cannot bend independently.'
+    mesh_h_mm: 1.2
+    origin_mm: load_centroid
+    materials:
+    - Bambu PAHT-CF
+    - Bambu PETG-CF
+    - legacy_fdm_PAHT_CF_dry
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: R_shoulder_roll_to_yaw_combined_steel_sleeves
+          r_extra_mm: 0.7
+          end_extra_mm: 0.25
+    supports:
+      roll_case:
+        holes:
+          of: R_shoulder_roll_to_yaw_combined_steel_sleeves
+          mate:
+          - upper__R_roll_C047_case
+          gap_mm: 2.0
+          r_max_mm: 5.0
+          rim_mm: 2.0
+          axis_within_deg:
+            axis:
+            - 0
+            - 1
+            - 0
+            deg: 20
+    load:
+      holes:
+        of: R_shoulder_roll_to_yaw_combined_steel_sleeves
+        mate:
+        - upper__R_yaw_C047_case
+        gap_mm: 2.0
+        r_max_mm: 5.0
+        rim_mm: 2.0
+        axis_within_deg:
+          axis:
+          - -0.1644
+          - 0
+          - 0.9864
+          deg: 20
+      rigid: true
+    load_cases:
+      manip_1p5kg_reach:
+        hand_envelope:
+          force_N: 14.71
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      support_4kg_1g:
+        hand_envelope:
+          force_N: 39.23
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      recovery_4kg_1p5g:
+        hand_envelope:
+          force_N: 58.84
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+    open_difference: 'Old arm numbers are history (owner 2026-11-18; the old arm fem_evaluate report is not in the tree, its sites were 12-48
+      mm off today''s parts), not reproduced; proven by fem_setup (patches on the sleeve sites, per-side / per-mate areas, 0 shared support/load
+      nodes) and mesh convergence on the roll-flip manifest (sha256 068f6436...). Load patch rigid (decision M-chnfz7: master-slave elimination
+      with a 6-DOF reference node at the load centroid, direct solve; the support is fixed = already rigid). Mesh convergence, change to the next
+      finer level (all cases, materials): 1.2: p99 +3.1..+4.3 % and displacement +5.4..+6.2 % to h 0.9 (2.2->1.6 +4.2..+7.1, 1.6->1.2 +5.2..+7.2).
+      At the stored h: recovery p99 133 MPa (ratio 0.66), peak 732, displacement 14.0 mm (20016 nodes). At the converged level the part is overloaded
+      for the 4 kg cases (p99 above the strength reference; displacement 14 mm). Differences to the old script: wrench at the load patch centroid;
+      patches follow the sleeve bores next to the named mating parts; steel collars 0.7 mm around the sleeve bores; no metal seat regions (M-vnzq43);
+      default material Bambu datasheet. Support is the roll case (old: roll main horn); roll-case and yaw-case sleeves are told apart by axis
+      (a yaw-case sleeve sits 0.5 mm from the roll case).'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695
+      levels:
+      - h_from: '2.2'
+        h_to: '1.6'
+        p99_change_pct: +4.2..+7.1
+        peak_change_pct: +7.2..+59.7
+        max_displacement_change_pct: +6.3..+7.6
+      - h_from: '1.6'
+        h_to: '1.2'
+        p99_change_pct: +5.2..+7.2
+        peak_change_pct: -16.1..+22.4
+        max_displacement_change_pct: +9.6..+12.3
+      - h_from: '1.2'
+        h_to: '0.9'
+        p99_change_pct: +3.1..+4.3
+        peak_change_pct: 0.0..+23.3
+        max_displacement_change_pct: +5.4..+6.2
+      stored_h_rule: first level whose p99 change to the next finer level is < 5 % (all load cases x materials); the peak is one element and is
+        not part of the rule
+      stored_h_result: '1.2: p99 +3.1..+4.3 % and displacement +5.4..+6.2 % to h 0.9 (2.2->1.6 +4.2..+7.1, 1.6->1.2 +5.2..+7.2)'
+      converged: true
+    variants:
+      short_arm_wrenches:
+        load_cases:
+          manip_1p5kg_reach:
+            wrench_N_Nmm:
+            - 4.0
+            - -5.5
+            - -18.5
+            - 860.0
+            - 1240.0
+            - 310.0
+          support_4kg_1g:
+            wrench_N_Nmm:
+            - 7.5
+            - -11.0
+            - 39.23
+            - 1320.0
+            - 1890.0
+            - 420.0
+          recovery_4kg_1p5g:
+            wrench_N_Nmm:
+            - 14.0
+            - -18.0
+            - 58.84
+            - 1920.0
+            - 2760.0
+            - 620.0
+          heavy_6kg_1g:
+            wrench_N_Nmm:
+            - 18.0
+            - -22.0
+            - 58.84
+            - 2180.0
+            - 3090.0
+            - 710.0
+      any_direction:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+      cone_45:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+      shoulder_u:
+        _doc: 'Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json):
+          supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today''s 4 yaw-case sleeves,
+          rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u. Supports: the
+          main setup''s roll-case sleeve patch with gap 3.0 mm: at the case-y far holes the case face is the strip 2.2 mm below the raised panel
+          the -y arm rests on, so gap 2.0 caught only the +y pair (review 2026-11-22).'
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 1.2
+        convergence:
+          manifest: 'artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the
+            end-face plane, root fillets)'
+          levels:
+          - h_from: '1.2'
+            h_to: '0.9'
+            nodes: 11939 -> 19071
+            p99_change_pct: +2.6..+3.1 (envelope p50 / p90 / max, all cases, PAHT-CF / PETG-CF)
+            p99_layer_tension_change_pct: -0.2..+0.4 (max)
+            max_displacement_change_pct: +6.3..+6.5 (max)
+          stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+          stored_h_result: '1.2'
+          converged: true
+          finer_level_not_run: 'h 0.7: the 1.2 -> 0.9 p99 change is under 5 %'
+          at_h_0p9: 'recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement
+            max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1'
+        supports:
+          roll_case:
+            holes:
+              of: R_shoulder_roll_to_yaw_combined_steel_sleeves
+              mate:
+              - upper__R_roll_C047_case
+              gap_mm: 3.0
+              r_max_mm: 5.0
+              rim_mm: 2.0
+              axis_within_deg:
+                axis:
+                - 0
+                - 1
+                - 0
+                deg: 20
+    load_cases_doc: 'Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4
+      kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder
+      line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved
+      to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
+      the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
+      = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
 - match: R_shoulder_roll_to_yaw_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -110,6 +396,262 @@ parts:
   name: L_shoulder_roll_to_yaw_combined
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up:
+    - 0.164399
+    - 0.0
+    - 0.986394
+    material: Bambu PAHT-CF
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XZ Roll-Horn Flange Bed (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (20.3, 867.3), ''-y'': (20.3, 870.0)}; SIGN AMBIGUOUS; material from manifest text ''Bambu PAHT-CF / PA12-CF
+      (1.22 g/cm3) or PETG-CF (1.25 g/cm3)'''
+    seeded_keys:
+    - material
+    layer_normal_axes:
+    - z
+    up_source: 'designed (robot/body/arm/shoulder_clevis.py): the green U is printed on its plate bottom (yaw-saddle plane), up = the yaw-local
+      normal, 9.5 deg off +z; layer_normal_axes z = the nearest axis, used by the FEM because up is not along an axis'
+  fem:
+    mesh_h_mm: 1.2
+    origin_mm: load_centroid
+    materials:
+    - Bambu PAHT-CF
+    - Bambu PETG-CF
+    - legacy_fdm_PAHT_CF_dry
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: L_shoulder_roll_to_yaw_combined_steel_sleeves
+          r_extra_mm: 0.7
+          end_extra_mm: 0.25
+    supports:
+      roll_case:
+        holes:
+          of: L_shoulder_roll_to_yaw_combined_steel_sleeves
+          mate:
+          - upper__L_roll_C047_case
+          gap_mm: 2.0
+          r_max_mm: 5.0
+          rim_mm: 2.0
+          axis_within_deg:
+            axis:
+            - 0
+            - 1
+            - 0
+            deg: 20
+    load:
+      holes:
+        of: L_shoulder_roll_to_yaw_combined_steel_sleeves
+        mate:
+        - upper__L_yaw_C047_case
+        gap_mm: 2.0
+        r_max_mm: 5.0
+        rim_mm: 2.0
+        axis_within_deg:
+          axis:
+          - 0.1644
+          - 0
+          - 0.9864
+          deg: 20
+      rigid: true
+    load_cases:
+      manip_1p5kg_reach:
+        hand_envelope:
+          force_N: 14.71
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      support_4kg_1g:
+        hand_envelope:
+          force_N: 39.23
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      recovery_4kg_1p5g:
+        hand_envelope:
+          force_N: 58.84
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_roll_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), clamp
+      axes mirrored, mesh size and materials as R. Checked by fem_setup on the left part; the R setup''s own _doc follows. Arm stage 2 (R_shoulder_roll_to_yaw).
+      Supports: the sleeve sites at the roll C047 motor case (today''s body: the old ''roll main horn'' interface is the roll case here); load:
+      the sleeve sites at the yaw C047 motor case. Load cases: the arm load envelope (load_cases_doc); the old ARM_LOAD_WRENCHES are the variant
+      short_arm_wrenches. Sleeve sites come from the sleeve companion part''s bores, so they follow the part. Regions: 304 steel collars 0.7 mm
+      around every sleeve bore (0.25 mm beyond the ends); no metal seat regions (the parts carry no metal inserts except the sleeves; the polymer
+      under the Al servo cases is polymer). Sleeves are told apart by their axis (roll-case sleeves point along y, yaw-case sleeves along the
+      yaw axis): one yaw-case sleeve sits 0.5 mm from the roll case and would otherwise be clamped and loaded. The load patch is rigid (all its
+      nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend independently.'
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part
+      (see its open_difference). Left stress should match the R part within mesh noise.'
+    variants:
+      short_arm_wrenches:
+        load_cases:
+          manip_1p5kg_reach:
+            wrench_N_Nmm:
+            - -4.0
+            - -5.5
+            - -18.5
+            - 860.0
+            - -1240.0
+            - -310.0
+          support_4kg_1g:
+            wrench_N_Nmm:
+            - -7.5
+            - -11.0
+            - 39.23
+            - 1320.0
+            - -1890.0
+            - -420.0
+          recovery_4kg_1p5g:
+            wrench_N_Nmm:
+            - -14.0
+            - -18.0
+            - 58.84
+            - 1920.0
+            - -2760.0
+            - -620.0
+          heavy_6kg_1g:
+            wrench_N_Nmm:
+            - -18.0
+            - -22.0
+            - 58.84
+            - 2180.0
+            - -3090.0
+            - -710.0
+      any_direction:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+      cone_45:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_roll_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+      shoulder_u:
+        _doc: 'Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json):
+          supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today''s 4 yaw-case sleeves,
+          rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u. Supports: the
+          main setup''s roll-case sleeve patch with gap 3.0 mm: at the case-y far holes the case face is the strip 2.2 mm below the raised panel
+          the -y arm rests on, so gap 2.0 caught only the +y pair (review 2026-11-22).'
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 1.2
+        convergence:
+          manifest: 'artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the
+            end-face plane, root fillets)'
+          levels:
+          - h_from: '1.2'
+            h_to: '0.9'
+            nodes: 11939 -> 19071
+            p99_change_pct: +2.6..+3.1 (envelope p50 / p90 / max, all cases, PAHT-CF / PETG-CF)
+            p99_layer_tension_change_pct: -0.2..+0.4 (max)
+            max_displacement_change_pct: +6.3..+6.5 (max)
+          stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+          stored_h_result: '1.2'
+          converged: true
+          finer_level_not_run: 'h 0.7: the 1.2 -> 0.9 p99 change is under 5 %'
+          at_h_0p9: 'recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement
+            max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1'
+        supports:
+          roll_case:
+            holes:
+              of: L_shoulder_roll_to_yaw_combined_steel_sleeves
+              mate:
+              - upper__L_roll_C047_case
+              gap_mm: 3.0
+              r_max_mm: 5.0
+              rim_mm: 2.0
+              axis_within_deg:
+                axis:
+                - 0
+                - 1
+                - 0
+                deg: 20
+    load_cases_doc: 'Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4
+      kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder
+      line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved
+      to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
+      the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
+      = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
 - match: L_shoulder_roll_to_yaw_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -171,12 +713,22 @@ parts:
   name: R_upper_arm_hard_cover
   make_buy: make
   quantity: 1
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
+      from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
+      designer.'
 - match: L_upper_arm_hard_cover
   kind: printed
   line: print:L_upper_arm_hard_cover
   name: L_upper_arm_hard_cover
   make_buy: make
   quantity: 1
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
+      from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
+      designer.'
 - match:
   - L_upper_arm_shell_front_M3x8
   - R_upper_arm_shell_front_M3x8
@@ -249,7 +801,10 @@ assembly:
     part:
     - R_shoulder_roll_to_yaw_combined
     - R_shoulder_roll_to_yaw_combined_steel_sleeves
-    direction: [-0.164, 0.0, 0.986]
+    direction:
+    - -0.164
+    - 0.0
+    - 0.986
     after:
     - right_arm:p006
     status: seeded
@@ -259,7 +814,10 @@ assembly:
   - id: right_arm:p034
     subassembly: right_arm
     part: R_upper_arm_hard_cover
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - right_arm:p033
     status: seeded
@@ -292,7 +850,10 @@ assembly:
     part:
     - L_shoulder_roll_to_yaw_combined
     - L_shoulder_roll_to_yaw_combined_steel_sleeves
-    direction: [0.164, -0.0, 0.986]
+    direction:
+    - 0.164
+    - -0.0
+    - 0.986
     after:
     - left_arm:p006
     status: seeded
@@ -302,7 +863,10 @@ assembly:
   - id: left_arm:p034
     subassembly: left_arm
     part: L_upper_arm_hard_cover
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - left_arm:p033
     status: seeded
@@ -336,7 +900,10 @@ assembly:
     with:
     - upper__cowl_M2_nut_0
     - upper__cowl_M2_nut_1
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - final_body:s002
     status: seeded
@@ -347,7 +914,10 @@ assembly:
   - id: final_body:p005
     subassembly: final_body
     part: center_front_shell
-    direction: [-0.0, 1.0, -0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - -0.0
     after:
     - final_body:s004
     status: seeded
