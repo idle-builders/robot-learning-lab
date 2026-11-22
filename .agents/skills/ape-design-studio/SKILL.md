@@ -57,6 +57,13 @@ The reference body is `classic`. Soft ivory covers are allowed on every joint.
 - Write the round card to disk early. Sessions get interrupted.
 - Keep one study folder and one card per variant, named by content (`robot/<area>/<part>/`, e.g. `robot/body/leg/`), and revise them in place: a new round is a new commit, not a `-r2`, `-v16` or dated folder. Publish with `source` naming that folder; the publisher takes the commit as the dashboard version. Competitor handoffs, reviews, freezes and publication checks are process records: write them under `.bookkeeping/<task-id>/` ([git and bookkeeping](../../../docs/operations/git-and-bookkeeping.md)).
 
+## Hardware starts at the BOM
+
+For any part, screw, print or purchase question start from the generated BOM and assembly order, not from a manifest or an old study folder: [robot/body/bom/README.md](../../../robot/body/bom/README.md) (`BOM.md` and `ASSEMBLY.md` in `.cache/work/bom/` after `.venv/bin/python -B robot/body/bom/build.py`). When your work changes the selected body (a part added, removed, renamed or moved, a screw changed, a new builder step):
+- keep `robot/body/bom/lines.json` current (a line, supplier and part number only from a repo source or `unknown`, notes) and `robot/body/checks/data/assembly_order.json` (`assembly_seed.py seed` places new parts and screws; set a direction or reorder by hand when you know better, and leave a draft `seeded`);
+- add a new builder to `robot/body/bom/chain.json` before its last three steps;
+- rerun the assembly check, `build.py` and the bom check (the last three chain steps; commands in the BOM README) and report the counts that moved.
+
 ## Publish a part's design study
 
 Use the dedicated [robot design dashboard](http://127.0.0.1:8805/design/), never the learning table for mechanical CAD. Read the [design registration and evidence contract](../../../docs/operations/design-dashboard.md). Start with `infra/dashboard/results_hub.py design-template --robot-section Knee` (use the actual part). Each study is exactly one variant: use a stable content-named `study_id`, `source` (the committed study folder), explicit `robot_sections`, `dashboard: "design"` and one `design` object. Git holds the versions: commit, then publish; the previous version stays in the study's version menu under its commit. Different mechanisms become separate studies in the same body section. The current version is the default. Register each alternative's neutral GLB, other configurations, STEP, named-part/joint manifest and renders as assets and `cad` references. Include real joint axes, pivots, units, ranges and couplings for dynamic inspection; do not substitute independent sliders for a constrained linkage.

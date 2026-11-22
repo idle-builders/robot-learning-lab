@@ -324,6 +324,14 @@ reach the core by contact only, the largest contact-only break points the pelvis
 the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s;
 the cause and the reclassified findings are under Connectivity below (unscoped run now 42-49 s).
 
+2026-11-22 (T-ghvncz), shoulder-shells body (673 parts): 196 lines (79 make, 116 buy, 1 included), 0 quantity
+differences; buy lines: supplier filled from a repo source 15, part number 47 (standard designations for ISO hardware,
+the actuator catalog, the electronics selection; source in each line's notes), both `unknown` 68, empty 0; 44 hardware
+kinds (29 screw), 273 sleeves in 44 sizes; parts with an assembly step 673 of 673. Dangling file references: 31 native
+STEPs (47 on the 20 Nov body), all with the exact bytes recorded in the bucket while the local blob index
+(`data/blob-store.sqlite`) is empty: flagged `file_in_bucket_not_indexed`, explained per group in `defects.json`
+`dangling` (T-ysavyb); 0 unexplained. `bom` check 4.4 s, 0.6 GiB.
+
 The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 15 steps, ending at the shoulder-U body
 of `robot/design.json`) and `rebuild_chain.py` reruns it in an isolated copy (Idle T-be4dt7, 2026-11-20). Run times (s /
 peak GB): assembly 323 / 8.2 (data complete, render phase over its then 8 GB cap, now 10), motor-refit 583 / 3.5,
@@ -378,6 +386,38 @@ R_foot_monocoque 289 (1290 mm, smallest fillet 0.4 mm), R_shoulder_pitch_to_roll
 `edges.sharp_ok_regions` [{centre_mm, radius_mm}] mark edges meant to be sharp (counted as intended; a 30 mm region on stage4
 moves 38 edges there), and every sharp edge and corner with its location goes to edges-<part>.json next to the picture
 (the chassis has 972 free sharp edges and 468 corners, too many for the report's top ten).
+
+Whole body (2026-11-22, Idle T-ghvncz). The order covers every subassembly of the selected body
+(`artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json`, 673 parts), each built in place
+on the ones in its `after`: torso (base: stage-1 chassis and its sleeves), neck_head, right_arm, left_arm, right_leg,
+left_leg, final_body (torso shells). Seeded by `checks/assembly_seed.py seed` from one connection graph (66 s, 4.0 GB),
+the right leg's 16 designer hip steps kept, the left leg mirrored from the right, then `--search` (six axis directions per
+blocked seeded part step, 89 + 12 directions changed), `reorder` (a screw's obstacle moved after it, a part moved before
+the part it touches; covers stay last; 14 + 2 x ~10 moves) and `confirm` (a seeded step becomes `confirmed` with the run
+and measurement when its path touches nothing over 60 mm, seat interference let go within the range, or its driver path
+is free). Changes to the check: coarse screening solids (`screwlib.screen`, the T-c4sy9d pattern), a box test per sample,
+screws as the BOM classifies them (the 24 shoulder-U `*_screw_<i>` proxies included, their thread from the BOM spec),
+`with` lists, seat interference (`seat_parts_released_at_mm`) apart from path contact (`path_first_contact_mm`), and
+coverage over every manifest part. Unscoped: 76.7-93.9 s, 3.2-4.0 GiB (was 76 s for the 42 right-leg steps).
+
+| assembly | steps | confirmed | designer | seeded | parts | screws | carried (`with`) |
+|---|---|---|---|---|---|---|---|
+| torso | 62 | 44 | 0 | 18 | 44 | 37 | 48 |
+| neck_head | 41 | 28 | 0 | 13 | 30 | 41 | 35 |
+| right_arm | 41 | 26 | 0 | 15 | 26 | 40 | 40 |
+| left_arm | 41 | 26 | 0 | 15 | 26 | 40 | 40 |
+| right_leg | 59 | 38 | 16 | 5 | 48 | 52 | 6 |
+| left_leg | 59 | 54 | 0 | 5 | 48 | 52 | 6 |
+| final_body | 8 | 6 | 0 | 2 | 3 | 5 | 4 |
+
+Coverage: 0 parts, 0 screws and 0 other hardware items in no step (was 14 parts and 8 screws on the right leg's links
+alone, 587 parts without a step body-wide). Remaining seeded steps, best direction found: 41 part steps touch a part
+that is not in their seat (55 have seat interference), 24 screw steps have an obstructed driver path. Registered as
+proposed Idle tasks with the measurements: torso cells captured by the stage-1 honeycomb (22.5 mm, 1882-2802 mm3 per
+cell; T-f7p9ke), head compute stack and the one-piece head skin (skin still 1235 mm3 into ROCK4D at 60 mm; T-dj4tpn),
+arms (T-f5gcm8), legs (T-xp29jk), torso screw driver paths (T-8zj89w). The BOM shows the order per line and writes the
+per-subassembly sequence (`ASSEMBLY.md`, `assembly.json`), and the chain's last three steps are the assembly check, the
+BOM and the bom check.
 
 ## Connectivity (2026-11-20, T-c4sy9d)
 

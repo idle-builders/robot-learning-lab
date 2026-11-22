@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import functools
+import gzip
 import json
 import os
 import re
@@ -47,6 +49,8 @@ PRODUCERS = [
     ("artifacts/robot/body/torso/neighbor_meshes_cache", "robot/body/torso/common.py (copy of a neighbour mesh)"),
     ("artifacts/robot/body/torso/shell_assets", "robot/body/torso/package_and_render.py (copy of a shell input)"),
     ("artifacts/robot/body/torso", "robot/body/torso/build_torso_carriers.py"),
+    ("artifacts/robot/body/assembly/neck-collar", "robot/body/assembly/neck_collar.py"),
+    ("artifacts/robot/body/assembly/held-parts", "robot/body/assembly/held_parts.py"),
     ("artifacts/robot/body/assembly", "robot/body/assembly/assemble_complete_fdm_body.py"),
     ("artifacts/robot/body/motor-refit", "robot/body/motor-refit/motor_refit.py"),
 ]
@@ -86,6 +90,48 @@ def kind_of(p):
     if r in PURCHASED_ROLES:
         return "purchased"
     return "other"   # cut stock, fins, insulators, adhesive, harness
+
+
+@functools.lru_cache(maxsize=1)
+def _cold_records():
+    """{path: {sha256: record file}} from the local records of files packed into the private bucket: the index-row dumps
+    of the 2026-10-29 storage cleanup (data/storage-cleanup-*/lean/*indexed-selection.json.gz, rows with a pack key),
+    the archive receipts (data/*archive-receipt*.json, rows with a pack key) and the selections of storage runs in state
+    `cold` (data/storage-runs/*.json). data/ is Git-ignored; without it this is empty."""
+    out = defaultdict(dict)
+
+    def add(rows, src, need_pack):
+        for e in rows if isinstance(rows, list) else []:
+            if isinstance(e, dict) and e.get("path") and e.get("sha256") and (e.get("pack_key") or not need_pack):
+                out[e["path"]][e["sha256"]] = src
+    for f in sorted(ROOT.glob("data/storage-cleanup-*/lean/*indexed-selection.json.gz")):
+        try:
+            add(json.loads(gzip.open(f).read())["files"], str(f.relative_to(ROOT)), True)
+        except (OSError, ValueError, KeyError):
+            pass
+    for f in sorted(ROOT.glob("data/*archive-receipt*.json")):
+        try:
+            d = json.loads(f.read_text())
+            add(d.get("files") if isinstance(d, dict) else None, str(f.relative_to(ROOT)), True)
+        except (OSError, ValueError):
+            pass
+    for f in sorted(ROOT.glob("data/storage-runs/*.json")):
+        try:
+            d = json.loads(f.read_text())
+            if d.get("state") == "cold" and d.get("selection"):
+                add(json.loads(gzip.open(ROOT / d["selection"]).read())["files"], str(f.relative_to(ROOT)), False)
+        except (OSError, ValueError, KeyError, AttributeError):
+            pass
+    return out
+
+
+def cold_record(path, sha256):
+    """The local record that names exactly these bytes (path and the manifest's sha256) as packed into the private
+    bucket, or None. Such a file is not on disk and not in data/blob-store.sqlite, so blob_store.ensure cannot restore it
+    until the index is restored (`infra/storage/catalog_backup.py restore`)."""
+    if not path or not sha256:
+        return None
+    return _cold_records().get(path, {}).get(sha256)
 
 
 def resolve(path):
@@ -188,8 +234,14 @@ def build(manifest_path):
         geo = st_path if st_status not in ("none", "missing") else me_path if me_status not in ("none", "missing") else (p.get("native_step") or p.get("mesh"))
         prod, prod_class = producer_of(geo, pinned)
         flags = []
-        if st_status == "missing" or me_status == "missing":
+        # a missing file whose exact bytes (manifest sha256) a local storage record places in the bucket: still missing
+        # for the checks and builders (not in data/blob-store.sqlite), but not dangling; flagged apart from file_missing
+        st_cold = cold_record(p.get("native_step"), p.get("native_step_sha256")) if st_status == "missing" else None
+        me_cold = cold_record(p.get("mesh"), p.get("mesh_sha256")) if me_status == "missing" else None
+        if (st_status == "missing" and not st_cold) or (me_status == "missing" and not me_cold):
             flags.append("file_missing")
+        if st_cold or me_cold:
+            flags.append("file_in_bucket_not_indexed")
         if st_status in ("none", "missing") and me_status not in ("none", "missing"):
             flags.append("mesh_only")
         if st_status in ("none", "missing") and me_status in ("none", "missing"):
@@ -226,6 +278,7 @@ def build(manifest_path):
         rows.append(dict(name=p["name"], role=p["role"], kind=k, owning_link=p["owning_link"], section=section_of(p),
                          native_step=p.get("native_step"), step_status=st_status, step_resolved=st_path,
                          mesh=p.get("mesh"), mesh_status=me_status, mesh_resolved=me_path,
+                         step_cold_record=st_cold, mesh_cold_record=me_cold,
                          source_folder=study_folder(geo), producer=prod, producer_class=prod_class,
                          first_manifest=first[0] if first else None, first_geometry=origin,
                          first_geometry_folder=study_folder(origin), recorded_upstream_source=upstream_src,

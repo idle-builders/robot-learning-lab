@@ -20,6 +20,13 @@ For scale, contact, actuator or system-identification claims, read [dynamics and
 
 Move retained large completed CAD/simulation outputs and full transfer traces to the existing private Infomaniak blob archive; keep current body XML, its mesh dependencies and compact source/config/hash records local. Follow the [retention and restore guide](../../../docs/design/artifact-storage.md): restore both bodies and their dependencies before paired replay, native CAD work or export, and verify recovery before eviction. Local `.artifact-store` deduplication is not a remote archive; keep generated bulk out of Git.
 
+## Hardware starts at the BOM
+
+For any part, screw, print or purchase question start from the generated BOM and assembly order, not from a manifest or an old study folder: [robot/body/bom/README.md](../../../robot/body/bom/README.md) (`BOM.md` and `ASSEMBLY.md` in `.cache/work/bom/` after `.venv/bin/python -B robot/body/bom/build.py`). When your work changes the selected body (a part added, removed, renamed or moved, a screw changed, a new builder step):
+- keep `robot/body/bom/lines.json` current (a line, supplier and part number only from a repo source or `unknown`, notes) and `robot/body/checks/data/assembly_order.json` (`assembly_seed.py seed` places new parts and screws; set a direction or reorder by hand when you know better, and leave a draft `seeded`);
+- add a new builder to `robot/body/bom/chain.json` before its last three steps;
+- rerun the assembly check, `build.py` and the bom check (the last three chain steps; commands in the BOM README) and report the counts that moved.
+
 ## Match the experiment to the physical question
 
 1. Identify which layer changed: visual mesh, collision shape, joint frame/axis, mass/inertia, transmission, actuator law, sensing or control timing. Record selected geometry and all input hashes. A visual mesh export alone does not change physical contacts or inertia. Visual-only changes can still alter camera observations, occlusion and image-driven policy behavior; physical parity does not imply perception parity.

@@ -1,7 +1,7 @@
 {
  "schema": "robot-learning-lab.body-builder-chain.v1",
- "meaning": "The ordered builder steps that recreate the selected body manifest (robot/design.json body_manifest) from the per-section outputs and pinned inputs. Each step reads the previous manifest; some edit it in place. Commands run from the repository root (or from the isolated copy made by robot/body/bom/rebuild_chain.py). Paths are repository-relative. Read by robot/body/bom/rebuild_chain.py and by the BOM tooling.",
- "target_manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json",
+ "meaning": "The ordered builder steps that recreate the selected body manifest (robot/design.json body_manifest) from the per-section outputs and pinned inputs. Each step reads the previous manifest; some edit it in place. Commands run from the repository root (or from the isolated copy made by robot/body/bom/rebuild_chain.py). Paths are repository-relative. Read by robot/body/bom/rebuild_chain.py and by the BOM tooling. The last three steps (kind check / bom) write no manifest: they check the rebuilt body and regenerate its BOM and assembly sequence, so any rebuild of the selected body refreshes the BOM; each also runs standalone in the main checkout with the same command.",
+ "target_manifest": "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
  "memguard": {
   "limit_gb": 6,
   "timeout_s": 900
@@ -411,6 +411,114 @@
    "notes": "Applies the shoulder U connectors to the roll-flip body: per side a roll idler, generated M3x8 x4, M3x6 x4, M2x12 x4; removes the roll case's 4 PA2 and the two upper-arm cover posts with their M3 screws and nuts. body_manifest_chain in robot/design.json.",
    "in_place_edits": [],
    "timeout_s": 1800
+  },
+  {
+   "id": "shoulder-shells",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/arm/shoulder_shells.py",
+    "apply"
+   ],
+   "inputs": [
+    "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json",
+    "artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json",
+    "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
+   ],
+   "outputs": [
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "artifacts/robot/body/arm/shoulder-clevis/shells/parts",
+    "artifacts/robot/body/arm/shoulder-clevis/shells/report.json"
+   ],
+   "manifest_out": "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+   "in_place_edits": [],
+   "timeout_s": 1800,
+   "notes": "Parametric upper-arm covers on the green U and round torso openings about the shoulder pitch axes (Idle T-tph7xb; selected by the owner 2026-11-22, commit 7fd81122f / 458b6ef6d). Writes the selected body. Added to the chain by the BOM session (T-ghvncz) from the script docstring; not yet rerun in the isolated copy."
+  },
+  {
+   "id": "assembly-check",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/checks/run.py",
+    "--manifest",
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "--checks",
+    "assembly",
+    "--label",
+    "assembly"
+   ],
+   "inputs": [
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "robot/body/checks/data/assembly_order.json"
+   ],
+   "outputs": [
+    ".cache/work/cad-speed/checks/assembly/report.json"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "limit_gb": 6,
+   "timeout_s": 1800,
+   "kind": "check",
+   "notes": "Walks the assembly order of the whole body on the rebuilt manifest (per step insertion / driver path, coverage of every part, screw and hardware). Writes nothing under artifacts/; the BOM build reads its report when it is complete and on the same manifest. Standalone: the same command in the main checkout."
+  },
+  {
+   "id": "bom",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/bom/build.py",
+    "--manifest",
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json"
+   ],
+   "inputs": [
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "robot/body/bom/lines.json",
+    "robot/body/bom/defects.json",
+    "robot/body/checks/data/assembly_order.json",
+    ".cache/work/cad-speed/checks/assembly/report.json"
+   ],
+   "outputs": [
+    ".cache/work/bom/bom.json",
+    ".cache/work/bom/bom.csv",
+    ".cache/work/bom/BOM.md",
+    ".cache/work/bom/assembly.json",
+    ".cache/work/bom/ASSEMBLY.md",
+    ".cache/work/bom/dashboard-bom.json"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "limit_gb": 4,
+   "timeout_s": 600,
+   "kind": "bom",
+   "notes": "The robot BOM and the per-subassembly build sequence of the rebuilt body (seconds). Never publishes from the chain: publish from the main checkout with build.py --publish once the selected body is final."
+  },
+  {
+   "id": "bom-check",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/checks/run.py",
+    "--manifest",
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "--checks",
+    "bom",
+    "--label",
+    "bom"
+   ],
+   "inputs": [
+    "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+    "robot/body/bom/lines.json"
+   ],
+   "outputs": [
+    ".cache/work/cad-speed/checks/bom/report.json"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "limit_gb": 4,
+   "timeout_s": 900,
+   "kind": "check",
+   "notes": "BOM against the CAD: quantity differences, buy lines without supplier, hardware variety, per-part builder gaps (about 5 s; about 60 s more when the hardware specs must be measured)."
   }
  ],
  "not_in_chain": {

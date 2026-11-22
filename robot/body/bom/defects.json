@@ -3,45 +3,156 @@
  "groups": [
   {
    "id": "old-study-head-electronics",
-   "parts": ["original_profile_head_skin_v23", "head_neck_collar", "fan_lead_guide_r16", "fan_bridge_standoff_*", "heatsink_nonpreloaded_guard", "*_sensor_pocket_pad_v19"],
+   "parts": [
+    "original_profile_head_skin_v23",
+    "fan_lead_guide_r16",
+    "fan_bridge_standoff_*",
+    "heatsink_nonpreloaded_guard",
+    "*_sensor_pocket_pad_v19"
+   ],
    "state": "STEP and STL exist only in artifacts/cove50-sensor-integration/original-shell-layout-20261026 (pinned input, no producer recorded). No commit, private history included, holds the script that wrote them; only robot/electronics-integration/r1-20261026/render.py (commit ebc1c3118) reads them.",
-   "fix": "Rewrite as one parametric script (robot/body/neck-head/head_electronics.py) from the measured STEPs: standoffs and guard are extrusions (small); fan lead guide small; head skin and neck collar are organic shells: rebuild as a loft / offset of the head profile against the ape look reference (medium).",
-   "effort": "small for 5 parts, medium for 2"
+   "fix": "Rewrite as one parametric script (robot/body/neck-head/head_electronics.py) from the measured STEPs: standoffs and guard are extrusions (small); fan lead guide small; the head skin is an organic shell: rebuild as a loft / offset of the head profile against the ape look reference (medium). The neck collar is done (robot/body/assembly/neck_collar.py, parametric B-rep).",
+   "effort": "small for 4 parts, medium for 1"
   },
   {
    "id": "old-study-torso-power",
-   "parts": ["ape_body_shell__chest_indicator_relief4_r33", "Main_H1_2mm_front_spacer", "Main_H2_2mm_front_spacer"],
+   "parts": [
+    "ape_body_shell__chest_indicator_relief4_r33",
+    "Main_H1_2mm_front_spacer",
+    "Main_H2_2mm_front_spacer"
+   ],
    "state": "STEP in artifacts/cove50-power-integration/internal-r33-20261025/installed-torso-r8|r9 (not a pinned input). Code at commit b46960e7b / ebc1c3118 (robot/power-integration/cad/internal-r33-20261025, private history), not in the tree.",
    "fix": "Spacers: one parametric extrusion each (small). Chest indicator relief: port the relief cut from the r33 builder into the torso shell script, or drop it if the r33 indicator is no longer fitted (small).",
    "effort": "small"
   },
   {
    "id": "foot-fsr-backings",
-   "parts": ["*_toe_lateral_backing", "*_heel_lateral_backing", "*_mid_medial_backing"],
-   "state": "Native STEP missing everywhere (artifacts/cove50-sensor-integration/v4/parts, not in the blob index); only the mesh morphed by robot/body/ape-proportions/build.py exists.",
+   "parts": [
+    "*_toe_lateral_backing",
+    "*_heel_lateral_backing",
+    "*_mid_medial_backing"
+   ],
+   "state": "Native STEP not on disk (artifacts/cove50-sensor-integration/v4/parts, only the .stl there) and not in the local blob index; the exact bytes (manifest sha256) are recorded as packed into the private bucket (data/storage-cleanup-20261029/lean/small-indexed-selection.json.gz, pack ...7d62c43f9c9a), see `dangling`. No producer in the tree (studies/cove50-sensor-integration/foot-contact/build.py, history commit 4b79b740d); the selected body uses the mesh morphed by robot/body/ape-proportions/build.py.",
    "fix": "Parametric backing plate per FSR site from the FSR 402 footprint and the foot sole, in the foot builder (small).",
-   "effort": "small"
+   "effort": "small",
+   "task": "T-54avce"
   },
   {
    "id": "covers-mesh-from-builder",
-   "parts": ["*_fore_front_hard_cover", "*_fore_back_hard_cover", "*_upper_arm_lower_cover"],
+   "parts": [
+    "*_fore_front_hard_cover",
+    "*_fore_back_hard_cover",
+    "*_upper_arm_lower_cover"
+   ],
    "state": "Built by scripts in the tree (assemble_complete_fdm_body.py forearm barrel covers; ape-proportions/build.py lower cover) but written only as .npz meshes, then morphed as meshes.",
    "fix": "Export the B-rep the builder already constructs as STEP and apply the ape-proportions stretch to it (OCC general transform for the axial stretch) instead of to the mesh (medium).",
    "effort": "medium"
   },
   {
    "id": "step-dropped-by-morph",
-   "parts": ["*_upper_arm_hard_cover", "*_shin_back_hard_cover", "combined__stage2_lower_pelvis_battery_cradle"],
+   "parts": [
+    "*_upper_arm_hard_cover",
+    "*_shin_back_hard_cover",
+    "combined__stage2_lower_pelvis_battery_cradle"
+   ],
    "state": "An upstream STEP exists (artifacts/robot/body/assembly/parts), but robot/body/ape-proportions/build.py stretches the mesh and records the STEP as native_step_unmorphed, so the selected body has no STEP. The cradle is a structural carrier: its checks run on the mesh.",
    "fix": "Same as above: stretch the B-rep in build.py (BRepBuilderAPI_GTransform for the axial scale; a piecewise stretch needs a split, scale, fuse) and write native_step (medium). Do the cradle first: it carries load.",
    "effort": "medium"
   },
   {
    "id": "voxel-shells",
-   "parts": ["center_front_shell", "center_back_shell", "*_foot_boot_shell", "*_foot_sole_shell", "*_thigh_shell_front", "*_thigh_shell_back"],
+   "parts": [
+    "center_front_shell",
+    "center_back_shell",
+    "*_foot_boot_shell",
+    "*_foot_sole_shell",
+    "*_thigh_shell_front",
+    "*_thigh_shell_back"
+   ],
    "state": "Regenerable by script (ape-proportions/shells.py voxel sweep + marching cubes; leg/thigh_shell.py; ape-proportions/build.py) but mesh only by method. The STL prints; the B-rep checks screen them as closed meshes.",
    "fix": "Not a recreation defect. A native STEP needs a B-rep shell method (offset surface or loft of sections) instead of voxels (large); only worth it if a check or a supplier needs B-rep.",
    "effort": "large (optional)"
+  }
+ ],
+ "dangling_doc": "Hand-maintained: manifest file references (native_step / mesh) that do not resolve the way the checks resolve them (disk, path-moves, regenerable registry, blob index), why, and what regenerates or restores them. `parts` are globs against the selected manifest. Evidence: robot/body/bom/inventory.py (cold_record) and a sha256 search of every STEP on disk, .artifact-store and data/ records (2026-11-22). Common cause today: data/blob-store.sqlite is empty (0 packs, 0 files, checked 2026-11-22), so blob_store.lookup/ensure find nothing; the bytes are in the bucket per the local record named per entry (sha256 equal to the manifest's). inventory.py flags these parts file_in_bucket_not_indexed instead of file_missing. Restoring the index (`.venv/bin/python infra/storage/catalog_backup.py restore`, reads the bucket) would make all of them restorable by blob_store.ensure; the long-term fix for the printed / cut parts is a producer script in the tree.",
+ "dangling": [
+  {
+   "id": "foot-fsr-backings-step",
+   "parts": [
+    "*_toe_lateral_backing",
+    "*_heel_lateral_backing",
+    "*_mid_medial_backing"
+   ],
+   "count": 6,
+   "field": "native_step",
+   "reference": "artifacts/cove50-sensor-integration/v4/parts/<part>.step",
+   "why": "Not on disk (the .stl beside it is), not in the (empty) blob index. Exact bytes recorded in the bucket: data/storage-cleanup-20261029/lean/small-indexed-selection.json.gz (pack ...7d62c43f9c9a, sha256 = manifest native_step_sha256); also sealed in artifacts/cove50-sensor-integration/v4/asset-seal.json.",
+   "producer": "studies/cove50-sensor-integration/foot-contact/build.py + finalize.py (history only, commit 4b79b740d); not in the tree",
+   "fix": "Restore the blob index (catalog_backup.py restore) for the old STEP; the source-of-truth fix is a foot FSR-stack script.",
+   "task": "T-54avce"
+  },
+  {
+   "id": "foot-fsr-bonds-step",
+   "parts": [
+    "*_toe_lateral_bond",
+    "*_heel_lateral_bond",
+    "*_mid_medial_bond"
+   ],
+   "count": 6,
+   "field": "native_step",
+   "reference": "artifacts/cove50-sensor-integration/v4/parts/<part>.step",
+   "why": "As the backings: not on disk, not indexed; bytes recorded in small-indexed-selection.json.gz (pack ...7d62c43f9c9a), sha256 match.",
+   "producer": "studies/cove50-sensor-integration/foot-contact/build.py (history only, commit 4b79b740d)",
+   "fix": "As the backings.",
+   "task": "T-54avce"
+  },
+  {
+   "id": "foot-fsr-sensors-step",
+   "parts": [
+    "*_toe_lateral_sensor",
+    "*_heel_lateral_sensor",
+    "*_mid_medial_sensor"
+   ],
+   "count": 6,
+   "field": "native_step",
+   "reference": "artifacts/cove50-sensor-integration/v4/parts/<part>.step (placed copy of the purchased FSR 402 Short Tail STEP)",
+   "why": "Not on disk, not indexed; bytes recorded (evicted 2026-10-25) in data/storage-cleanup-20261029/lean/indexed-selection.json.gz (pack ...7d62c43f9c9a), sha256 match. The supplier source named in the manifest (artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP) is not on disk either.",
+   "producer": "studies/cove50-sensor-integration/foot-contact/build.py (history only, commit 4b79b740d) placing the supplier STEP",
+   "fix": "Restore the blob index; or place the supplier STEP by a script in the tree (FSR-stack script).",
+   "task": "needs task (T-54avce covers backings / bonds / pucks, not the purchased sensor copies)"
+  },
+  {
+   "id": "foot-fsr-pucks-step",
+   "parts": [
+    "R_toe_lateral_actuator_v17",
+    "R_heel_lateral_actuator_v17",
+    "R_mid_medial_actuator_v17",
+    "L_heel_lateral_actuator_v17",
+    "L_mid_medial_actuator_v17"
+   ],
+   "count": 5,
+   "field": "native_step",
+   "reference": "artifacts/cove50-sensor-integration/v17/parts/<part>.step (L_toe_lateral_actuator_v17.step is on disk)",
+   "why": "Not on disk (.stl present), not indexed; bytes recorded in data/sensor-purchasable-v17-archive-receipt-20261024.json and small-indexed-selection.json.gz (pack ...9f454dbc9402), sha256 match.",
+   "producer": "robot/electronics/sensing/studies/purchasable/build.py (in the tree; a 10 x 0.5 mm cylinder per site) but it imports ../integrated-attachments/build.py, which is not in the tree, so it does not run as is",
+   "fix": "Restore the blob index; or let the FSR-stack script write the pucks (they are plain cylinders).",
+   "task": "T-d98ff3 (R heel), T-54avce (all pucks)"
+  },
+  {
+   "id": "arm-shell-m3-nuts-step",
+   "parts": [
+    "*_fore_front_187_M3_nut",
+    "*_fore_front_178_M3_nut",
+    "*_fore_back_187_M3_nut",
+    "*_fore_back_178_M3_nut"
+   ],
+   "count": 8,
+   "field": "native_step",
+   "reference": "artifacts/cove50-strength/arm-fdm-connectors-20261102/shell_hardware/<part>.step (path-moves -> artifacts/robot/body/arm/shell_hardware/<part>.step; only the .npz exists there)",
+   "why": "Not on disk under either name, not indexed; bytes recorded in the cold storage run data/storage-runs/arm-fdm-connectors-20261102-b7c0e4f8bb1f.json (state cold, synced 2026-11-04; its selection lists path + sha256 = manifest native_step_sha256, no pack key).",
+   "producer": "robot/body/arm/common.py ensure_arm_shell_nut_assets() (called by robot/body/arm/package_and_render.py and build_arm_connectors.py) writes the STEP + npz into artifacts/robot/body/arm/shell_hardware",
+   "fix": "For the BOM nothing: robot/body/bom/hardware.py generates an ISO 4032 M3 nut STEP at the measured placement. For the manifest: rerun the arm packaging step or restore the blob index.",
+   "task": "needs task (low value: hardware.py already generates the nut)"
   }
  ]
 }
