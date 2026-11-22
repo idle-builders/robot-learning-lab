@@ -46,8 +46,8 @@ DRIVER_R = 2.4                           # driver channel: hex-key blade 4.0 (da
 CHANNEL_Z0 = 215.0
 DECK_BOTTOM = 262.75
 FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
-BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): the front bosses of z.1 / z.2 are trimmed out of the yaw screws' blade path (measured 17.5 -> 0.001 mm3 per screw)
-RIB_LEN, RIB_H = 7.0, 3.8         # rib behind a trimmed front boss: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
+BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path; they stay full height (see @lore below) and get a rib
+RIB_LEN, RIB_H = 7.0, 3.8         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
 POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
 
 
@@ -113,7 +113,7 @@ def build_right():
         x, y, _ = h["opening"]
         dx = max(0.0, x_face - x, x - seat_f)
         return min(max(0.0, abs(y - f["opening"][1]) - FRONT_PAD_R) for f in front) ** 2 + dx ** 2 < BLADE_R ** 2
-    ribs = []                                     # a front boss whose blade path is trimmed keeps one thin web to the plate: a rib on the far side of the channel carries the load around it
+    ribs = []                                     # a front boss in a yaw blade path gets a rib on the far side of the channel that carries the load around the channel
     for h in front:
         _, y, z = h["opening"]
         for yw in yaw:
