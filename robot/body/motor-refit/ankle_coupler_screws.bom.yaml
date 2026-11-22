@@ -32,6 +32,330 @@ parts:
   name: R_ankle_coupler_combined
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - x
+    up: +x
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''YZ Oblique Arch Bed (layer normal X)''; chosen by bed contact, then least overhang (bed mm2,
+      overhang>45deg mm2) {''+x'': (427.0, 773.8), ''-x'': (452.5, 777.0)}; SIGN AMBIGUOUS'
+    seeded_keys:
+    - up
+  fem:
+    _doc: 'Motor-refit ankle coupler (old fem_refit PARTS[''ankle_coupler''], leg fem_evaluate stage 2). Supports: both ankle-pitch cheeks (axis
+      band around the ankle pitch axis, bolt circle 7 mm +- 3.8); load: the foot-roll horn''s 4 M3 screw holes. Manifest frame = old r1 frame
+      + 4 mm in x.'
+    mesh_h_mm: 1.2
+    bonded:
+    - part: R_ankle_coupler_combined_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_ankle_roll
+      offset_mm:
+      - 0.0
+      - 31.5
+      - 0.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    supports:
+      ankle_cheek_low:
+        axis_band:
+          joint: R_ankle_pitch
+          r_mm:
+          - 3.2
+          - 10.8
+          mate: R_ankle_pitch_ST3025_output
+          side: low
+      ankle_cheek_high:
+        axis_band:
+          joint: R_ankle_pitch
+          r_mm:
+          - 3.2
+          - 10.8
+          mate: R_ankle_pitch_ST3025_output
+          side: high
+    load:
+      holes:
+        mate:
+        - R_B13_output_NBK_M3x4_H0p8_0
+        - R_B13_output_NBK_M3x4_H0p8_1
+        - R_B13_output_NBK_M3x4_H0p8_2
+        - R_B13_output_NBK_M3x4_H0p8_3
+        gap_mm: 2.0
+        r_max_mm: 3.0
+        rim_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 1180.0
+        - 490.0
+        - 95.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 16.0
+        - -22.0
+        - 58.84
+        - 1960.0
+        - 980.0
+        - 340.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 12.0
+        - -16.5
+        - 44.13
+        - 1470.0
+        - 735.0
+        - 255.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 24.0
+        - -33.0
+        - 88.26
+        - 2940.0
+        - 1470.0
+        - 510.0
+      servo_stall:
+        stall:
+          joint: R_ankle_pitch
+          torque_Nmm: 3922.7
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 79.0
+        - 18.0
+        - 19.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                min: 89.3
+          idler:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                max: 39.3
+        load:
+          rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 72.0
+              - 19.0
+            - - 86.0
+              - 19.0
+            - - 79.0
+              - 12.0
+            - - 79.0
+              - 26.0
+            radius_mm: 3.8
+            where:
+              axis: y
+              min: 17.2
+      legacy_coordinates_load_r3p4:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 79.0
+        - 18.0
+        - 19.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                min: 89.3
+          idler:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                max: 39.3
+        load:
+          rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 72.0
+              - 19.0
+            - - 86.0
+              - 19.0
+            - - 79.0
+              - 12.0
+            - - 79.0
+              - 26.0
+            radius_mm: 3.43
+            where:
+              axis: y
+              min: 17.2
+      stored_load_legacy_supports:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                min: 89.3
+          idler:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 54.0
+              - - 4.0
+                - 68.0
+              - - -3.0
+                - 61.0
+              - - 11.0
+                - 61.0
+              radius_mm: 3.8
+              where:
+                axis: x
+                max: 39.3
+        origin_mm:
+        - 79.0
+        - 18.0
+        - 19.0
+      loose_load:
+        load:
+          holes:
+            mate:
+            - R_B13_output_NBK_M3x4_H0p8_0
+            - R_B13_output_NBK_M3x4_H0p8_1
+            - R_B13_output_NBK_M3x4_H0p8_2
+            - R_B13_output_NBK_M3x4_H0p8_3
+            gap_mm: 2.0
+            r_max_mm: 3.0
+            rim_mm: 2.0
+    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the foot-roll horn
+      (4 NBK output screws): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction
+      + applied wrench = 0.0006 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 1.2 (same setup otherwise,
+      variant loose_load; all cases x materials): p99 -19..-12 %, peak -2..+23 %, displacement -38..-34 %; recovery PAHT-CF p99 25.28 -> 21.3
+      MPa, displacement 1.49 -> 0.95 mm. Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.6 p99 +2.1..+5.4
+      %, disp +6.6..+7.9 %; 1.6->1.2 p99 +5.0..+6.5 %, disp +5.7..+6.4 %; 1.2->0.9 p99 +2.8..+3.8 %, disp +3.9..+4.5 %. Stored h 1.2: 1.2: p99
+      +2.8..+3.8 % and displacement +3.9..+4.5 % to the next finer level h 0.9. At the stored h, recovery PAHT-CF (layer normal x): p99 21.313
+      MPa, peak 85.11, displacement 0.9482 mm, ratio 4.13 (44998 nodes). The loose-load setup that produced the numbers below stays as variant
+      loose_load (history). Earlier notes: legacy_coordinates here vs the stored old run: p99 -31..-28 %, displacement -30..-26 % because the
+      part changed since that run: the old fem_refit pipeline on today''s STEP gives recovery p99 25.81 / peak 81.4 / disp 0.946 (old stored 37.39
+      / 84.1 / 1.336); legacy_coordinates gives 25.78 / 88.3 / 0.946. Stored vs legacy_coordinates (same geometry): p99 +1.1..+2.2 %, peak -1.0..+1.6
+      %, displacement -0.3..+0.2 %. Stored supports are the axis band (1166 + 1090 mm2 vs old rings 517 + 517); load = holes next to the foot-roll
+      horn screws (686 mm2 vs 861).'
+    convergence:
+      manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
+        except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'
+      rigid_load: true
+      levels:
+      - h_from: '2.2'
+        h_to: '1.6'
+        p99_change_pct: +2.1..+5.4
+        peak_change_pct: -5.3..+16.4
+        max_displacement_change_pct: +6.6..+7.9
+      - h_from: '1.6'
+        h_to: '1.2'
+        p99_change_pct: +5.0..+6.5
+        peak_change_pct: +8.0..+18.8
+        max_displacement_change_pct: +5.7..+6.4
+      - h_from: '1.2'
+        h_to: '0.9'
+        p99_change_pct: +2.8..+3.8
+        peak_change_pct: -4.9..+10.8
+        max_displacement_change_pct: +3.9..+4.5
+      stored_h_rule: first level from which every step to the next finer level has p99 change < 5 % (all load cases x materials); the peak is
+        one element and is not part of the rule
+      stored_h_result: '1.2: p99 +2.8..+3.8 % and displacement +3.9..+4.5 % to the next finer level h 0.9'
+      converged: true
+      recovery_PAHT_CF:
+        h_mm: 1.2
+        nodes: 44998
+        layer_normal: x
+        p99_vm_MPa: 21.313
+        peak_vm_MPa: 85.11
+        max_displacement_mm: 0.9482
+        p99_strength_ratio: 4.13
+      reaction_plus_wrench_pct_max: 0.0006
 - match: R_ankle_coupler_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -81,6 +405,18 @@ parts:
   name: L_ankle_coupler_combined
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    up: -x
+    material: Bambu PAHT-CF
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''YZ Oblique Arch Bed (layer normal X)''; chosen by bed contact, then least overhang (bed mm2,
+      overhang>45deg mm2) {''+x'': (452.5, 777.0), ''-x'': (427.0, 773.8)}; SIGN AMBIGUOUS; material from manifest text ''Bambu PAHT-CF / PA12-CF
+      (1.22 g/cm3) or PETG-CF (1.25 g/cm3)'''
+    seeded_keys:
+    - up
+    - material
 - match: L_ankle_coupler_combined_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -131,7 +467,10 @@ assembly:
     part:
     - R_ankle_coupler_combined
     - R_ankle_coupler_combined_steel_sleeves
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:p035
     status: seeded
@@ -142,7 +481,10 @@ assembly:
     part:
     - L_ankle_coupler_combined
     - L_ankle_coupler_combined_steel_sleeves
-    direction: [-0.0, 0.0, 1.0]
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:p035
     status: seeded

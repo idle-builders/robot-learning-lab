@@ -224,12 +224,22 @@ parts:
   name: R_shin_front_hard_cover
   make_buy: make
   quantity: 1
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
+      from the manifest material text ''PETG / polycarbonate hard-shell cover'', as the thigh and shin back shells were seeded. Print direction
+      left open for the shell''s designer.'
 - match: L_shin_front_hard_cover
   kind: printed
   line: print:L_shin_front_hard_cover
   name: L_shin_front_hard_cover
   make_buy: make
   quantity: 1
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
+      from the manifest material text ''PETG / polycarbonate hard-shell cover'', as the thigh and shin back shells were seeded. Print direction
+      left open for the shell''s designer.'
 - match:
   - L_ankle_pitch_ST3025_case
   - L_hip_pitch_ST3025_case
