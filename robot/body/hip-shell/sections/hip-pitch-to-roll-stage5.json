@@ -54,11 +54,11 @@
    "title": "SECTION B-B at z 184 (stub insertion slot, below the roll axis), seen from +z"
   }
  ],
- "body": "mass 11.57 g PAHT-CF + 11 steel sleeves 4.19 g (was 11.52 g + 12, 4.50 g)\nmating faces measured: horn y -12.0, idler y 25.25, wheel x 61.0\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 into the ST3025 wheel: engaged 2.935-2.95 of 2.95\n  4 x M3x8 horn / 3 x M3x8 idler (owner 2026-11-22: the (56, 183)\n    idler screw dropped, its sleeve too): 0.10 mm free gap per side\nstub slot (rear arm inner face): the case's rear stub (r 3.0, to\n  y 25.80) rises along +z in a slot x 52.8..59.2, floor y 25.95 (0.60\n  deep), from the arm's lower edge (lead-in 0.6 per side) into the\n  centre hole; servo unit insertion path overlap 0 mm3 (was 7.8 mm3,\n  first contact 15.3 mm before the seat)\nidler load, 6 kg x 1.5 g: about 180 N radial, 39 N axial: per screw\n  60 N shear / 13 N pull with 3 (45 / 10 with 4)\nFEM (layer x), min p99 strength ratio: Bambu PAHT-CF 3.41 heavy /\n  3.43 roll stall (was 3.42 / 3.39), legacy PETG-CF 2.50 roll stall\n  (was 2.49); peak 88 MPa at the front arm root",
+ "body": "mass 11.71 g PAHT-CF + 11 steel sleeves 4.19 g (was 11.57 g, hub recess r 6.0)\nmating faces measured: horn y -12.0, idler y 25.25, wheel x 61.0\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 into the ST3025 wheel: engaged 2.935-2.95 of 2.95\n  4 x M3x8 horn / 3 x M3x8 idler (owner 2026-11-22: the (56, 183)\n    idler screw dropped, its sleeve too): 0.10 mm free gap per side\nstub slot (rear arm inner face): the case's rear stub (r 3.0, to\n  y 25.80) rises along +z in a slot x 52.8..59.2, floor y 25.95 (0.60\n  deep), from the arm's lower edge (lead-in 0.6 per side) into the\n  centre hole; servo unit insertion path overlap 0 mm3 (was 7.8 mm3,\n  first contact 15.3 mm before the seat)\nidler load 6 kg x 1.5 g: 180 N radial, 39 N axial; per screw 60 N / 13 N\nrear arm top: 0.8 mm / 35 deg counter-chamfer (was a 57 deg knife edge)\nFEM (layer x), min p99 strength ratio: Bambu PAHT-CF 3.33 heavy /\n  3.35 roll stall (was 3.41 / 3.43), legacy PETG-CF 2.51 roll stall\n  (was 2.50); peak 107 MPa (roll stall) at the front arm root",
  "callouts": {
   "secx": [
    {
-    "text": "land on the wheel face\n(x 61.0, measured),\nhub recess r 6.0",
+    "text": "land on the wheel face\n(x 61.0, measured),\nhub recess r 6.8",
     "xy": [
      61.6,
      214.5
