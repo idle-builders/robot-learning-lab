@@ -34,8 +34,8 @@ def check_mass(body, changed, sol, density=None):
             mk = p.get("mass_kg")
             if not mk:
                 miss.append(n); continue
-            if n in sol:
-                c = sol[n][0].center_mass
+            if n in changed:                # scoped parts: solid centroid; every other part its bounds centre, whatever solids
+                c = sol[n][0].center_mass   # other checks happened to load in this process (the result must not depend on them)
             else:
                 c = np.array(p["bounds_mm"], float).mean(0)
             M += mk * 1000; S += mk * 1000 * np.asarray(c)

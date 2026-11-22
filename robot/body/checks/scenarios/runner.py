@@ -76,3 +76,17 @@ def s_ignore(sid):
     p = subprocess.run(["git", "check-ignore", "-v", "robot/body/checks/data/part_settings.json", "robot/body/checks/data/x.json"],
                        cwd=ROOT, capture_output=True, text=True)
     return dict(ignored=p.stdout.strip().splitlines(), rc=p.returncode)
+
+
+@scenario("check-context-independence", "truth", "each light check alone gives the same result as inside the light group (the result "
+          "cache keys a result by its own inputs, not by which checks shared the process; mass's link centre of mass once "
+          "depended on the solids other checks had loaded)")
+def s_context(sid):
+    from evaluate import LIGHT, results_of
+    g = run_tool(sid + "-group", ["--parts", THIGH, "--checks", LIGHT])
+    rg = results_of(g["report"])
+    out = {}
+    for c in LIGHT.split(","):
+        a = run_tool(f"{sid}-{c}", ["--parts", THIGH, "--checks", c])
+        out[c] = results_of(a["report"]).get(c) == rg.get(c)
+    return dict(identical_alone_and_grouped=out, differing=sorted(k for k, v in out.items() if not v), rc=g["rc"])
