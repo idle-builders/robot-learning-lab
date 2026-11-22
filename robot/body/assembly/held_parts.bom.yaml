@@ -43,12 +43,23 @@ parts:
   notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
     robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+  exact_fit:
+    min_solid_mm3: 4000.0
 - match: fan_bridge_plate
   kind: printed
   line: print:fan_bridge_plate
   name: fan_bridge_plate
   make_buy: make
   quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    up: +y
+    material_alternatives:
+    - Bambu PETG-CF
+    set_by: 'claude/opus-5.5 2026-11-22 (T-3npyjq): 2 mm flat plate, printed flat on its y-min face'
+  expected_hardware:
+    sleeves: 4
 - match: fan_bridge_plate_steel_sleeves
   kind: hardware
   line: steel-sleeve-sets
@@ -109,7 +120,10 @@ assembly:
     part:
     - fan_bridge_plate
     - fan_bridge_plate_steel_sleeves
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - neck_head:p017
     status: seeded
@@ -145,7 +159,10 @@ assembly:
     - R_roll_servo_case_reference
     - R_roll_upper_horn_reference
     - R_roll_passive_idler_reference
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:s009
     status: designer
@@ -155,7 +172,10 @@ assembly:
   - id: final_body:p008
     subassembly: final_body
     part: ape_body_shell__chest_indicator_relief4_r33
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - final_body:s007
     status: seeded

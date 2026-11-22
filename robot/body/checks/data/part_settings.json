@@ -650,11 +650,6 @@
       ]
     }
   },
-  "R_roll_servo_case_reference": {
-    "exact_fit": {
-      "min_solid_mm3": 4000.0
-    }
-  },
   "R_shoulder_pitch_to_roll_combined": {
     "loadpath_slices": {
       "axis": "x",
@@ -4621,150 +4616,6 @@
       }
     }
   },
-  "combined__stage1_center_torso_spine_chassis": {
-    "loadpath_slices": {
-      "axis": "z",
-      "range_mm": [
-        274.0,
-        365.0
-      ],
-      "n_slices": 12,
-      "set_by": "builder/opus 2026-11-19: dominant axis and span between the centroids of the FEM support holes and load holes (first reading, not designer-confirmed)"
-    },
-    "process": {
-      "printer": "Bambu X2D",
-      "material": "Bambu PAHT-CF",
-      "layer_normal_axes": [
-        "y"
-      ],
-      "up": "-z",
-      "material_alternatives": [
-        "Bambu PETG-CF"
-      ],
-      "seeded": "up from manifest print_orientation 'XY Vertical Honeycomb Magazine & Actuator Cheeks Upright on Build Plat'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+z': (99.1, 4589.0), '-z': (140.7, 4471.1)}; the text writes +z, the estimate differs",
-      "seeded_keys": [
-        "up"
-      ]
-    },
-    "fem": {
-      "_doc": "Torso stage 1 spine chassis (old torso fem_evaluate stage1_center_torso_spine_chassis, LOAD_CASES incl. the combined bilateral shoulder + hip yaw + neck stall). Supports: the 8 hip-yaw C047 case mount sleeve sites (both sides) at the lower yaw servo case references; load: the shoulder-pitch C047 case sleeve sites (both sides), the neck-yaw XM335 case sites and the neck root cradle anchor sites. Force + moment as a wrench at the load patch centroid (the old script spread the moment as a force couple over the load nodes with a lever of 121 mm and a stage-volume factor). Steel collars 0.7 mm around every sleeve bore of the chassis. The sleeve sites sit 2.4 mm (hip yaw case) and 3.0-3.3 mm (shoulder pitch case) from the servo case surfaces (3 mm mount spacers), hence gap 3.5 mm.",
-      "mesh_h_mm": 2.2,
-      "origin_mm": "load_centroid",
-      "materials": [
-        "Bambu PAHT-CF",
-        "Bambu PETG-CF"
-      ],
-      "regions": [
-        {
-          "material": "Steel 304 sleeve",
-          "where": {
-            "bore_collars": {
-              "of": "combined__stage1_center_torso_spine_chassis_steel_sleeves",
-              "r_extra_mm": 0.7,
-              "end_extra_mm": 0.25
-            }
-          }
-        }
-      ],
-      "supports": {
-        "hip_yaw_case_mounts": {
-          "holes": {
-            "of": "combined__stage1_center_torso_spine_chassis_steel_sleeves",
-            "mate": [
-              "lower__L_yaw_servo_case_reference",
-              "lower__R_yaw_servo_case_reference"
-            ],
-            "gap_mm": 3.5,
-            "r_max_mm": 5.0,
-            "rim_mm": 2.0
-          }
-        }
-      },
-      "load": {
-        "holes": {
-          "of": "combined__stage1_center_torso_spine_chassis_steel_sleeves",
-          "mate": [
-            "upper__L_pitch_C047_case",
-            "upper__R_pitch_C047_case",
-            "upper__neck_yaw_case_XM335",
-            "combined__neck_root_cradle"
-          ],
-          "gap_mm": 3.5,
-          "r_max_mm": 5.0,
-          "rim_mm": 2.0
-        }
-      },
-      "load_cases": {
-        "1g_upright_battery_torso": {
-          "wrench_N_Nmm": [
-            0.0,
-            4.5,
-            -31.4,
-            420.0,
-            180.0,
-            90.0
-          ]
-        },
-        "3g_dynamic_gait_arm_swing": {
-          "wrench_N_Nmm": [
-            28.0,
-            34.0,
-            -94.2,
-            1650.0,
-            1120.0,
-            780.0
-          ]
-        },
-        "6g_fall_landing_impact": {
-          "wrench_N_Nmm": [
-            62.0,
-            75.0,
-            -188.4,
-            3400.0,
-            2400.0,
-            1650.0
-          ]
-        },
-        "combined_shoulder_hip_neck_stall": {
-          "wrench_N_Nmm": [
-            95.0,
-            110.0,
-            -145.0,
-            8000.0,
-            4800.0,
-            8000.0
-          ]
-        }
-      },
-      "variants": {
-        "legacy_torso": {
-          "materials": [
-            "legacy_torso_PAHT_CF_dry",
-            "legacy_torso_PAHT_CF_wet",
-            "legacy_torso_PETG_CF"
-          ],
-          "regions": [
-            {
-              "material": "legacy_torso_sleeve_zone",
-              "where": {
-                "bore_collars": {
-                  "of": "combined__stage1_center_torso_spine_chassis_steel_sleeves",
-                  "r_extra_mm": 1.2,
-                  "end_extra_mm": 1.2
-                }
-              }
-            }
-          ]
-        }
-      },
-      "open_difference": "Old torso numbers (torso fem_evaluate: own mesh 4372 nodes, volume-scaled, moment spread as a force couple over the load nodes, sleeve zones x 2.65 stiffness and x 0.58 stress, support / load = spheres around the old bores, which sit 12 mm off today's shoulder sites) are history, not reproduced. variant legacy_torso = the old materials (legacy_torso_*) and the 2.65 sleeve-zone stiffness as a bore-collar region (r 1.2 mm around every sleeve; the 0.58 stress factor and the volume scaling are not reproduced). legacy_torso vs the old stored PAHT dry / wet / PETG, all cases: p99 -8..-9 % (1g), -40..-41 % (3g, 6g), -58..-59 % (combined stall); peak +2..+10 % (1g, 3g, 6g), -56 % (stall); max displacement +44 % (1g), -16 % (3g), -20 % (6g), -11..-12 % (stall). Stored (Bambu PAHT-CF, steel collars) combined stall p99 14.69 / peak 67.4 / disp 2.61 mm vs old dry 35.8 / 132.9 / 2.64. Mesh convergence h 2.2 -> 1.6 mm (nodes 37373 -> 58727): p99 +4.5..+5.1 %, peak +4.9..+17.6 %, max displacement +8.4..+10.1 % (4 load cases x 2 materials). Only stage 1 (the chassis) has a setup; the old script's stages 2-4 are other parts (stage 2 is the pelvis cradle, migrated earlier).",
-      "convergence": {
-        "manifest": "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695 (the part's STEP and sleeves are identical in the motor-refit manifest it first ran on, sha e8b9ae95)",
-        "result": "2.2 -> 1.6: p99 +4.5..+5.1 %, peak +4.9..+17.6 %, displacement +8.4..+10.1 %; stored h 2.2 (p99 about 5 %)",
-        "stored_h_rule": "first level whose p99 change to the next finer level is < 5 %"
-      }
-    }
-  },
   "_printed": {
     "_doc": "Parts whose role is listed are printed parts (coverage counts them); a part's process.printed overrides this.",
     "roles": [
@@ -4783,48 +4634,6 @@
     "process": {
       "printed": false,
       "_note": "bought M2/M3 nut: the manifest gives it role body_shell"
-    }
-  },
-  "C_T01_chest__T02_back_1_M3_hex_nut": {
-    "process": {
-      "printed": false,
-      "_note": "bought M2/M3 nut: the manifest gives it role body_shell"
-    }
-  },
-  "C_T01_chest__T02_back_2_M3_hex_nut": {
-    "process": {
-      "printed": false,
-      "_note": "bought M2/M3 nut: the manifest gives it role body_shell"
-    }
-  },
-  "combined__stage3_front_power_electronics_carrier": {
-    "process": {
-      "printer": "Bambu X2D",
-      "up": "-y",
-      "material": "Bambu PAHT-CF",
-      "material_alternatives": [
-        "Bambu PETG-CF"
-      ],
-      "seeded": "up from manifest print_orientation 'XZ Ventral Dual-Deck Power Frame Flat on Build Plate (layer normal -Y,'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (31.0, 5684.1), '-y': (118.1, 5597.1)}; material from manifest text 'Bambu PAHT-CF / PA12-CF (1.24 g/cm3) or PETG-CF (1.27 g/cm3)'",
-      "seeded_keys": [
-        "up",
-        "material"
-      ]
-    }
-  },
-  "combined__stage4_rear_imu_adc_carrier": {
-    "process": {
-      "printer": "Bambu X2D",
-      "up": "-y",
-      "material": "Bambu PAHT-CF",
-      "material_alternatives": [
-        "Bambu PETG-CF"
-      ],
-      "seeded": "up from manifest print_orientation 'XZ Dorsal IMU/ADC Sensor Plate Flat on Build Plate (layer normal +Y, 3'; chosen by bed contact, then least overhang (bed mm2, overhang>45deg mm2) {'+y': (682.1, 1929.4), '-y': (2611.5, 0.0)}; the text writes +y, the estimate differs; material from manifest text 'Bambu PAHT-CF / PA12-CF (1.24 g/cm3) or PETG-CF (1.27 g/cm3)'",
-      "seeded_keys": [
-        "up",
-        "material"
-      ]
     }
   },
   "L_shoulder_pitch_to_roll_combined": {
@@ -6162,20 +5971,6 @@
       "up": "+x",
       "up_source": "mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip",
       "material": "Bambu PAHT-CF"
-    }
-  },
-  "fan_bridge_plate": {
-    "process": {
-      "printer": "Bambu X2D",
-      "material": "Bambu PAHT-CF",
-      "up": "+y",
-      "material_alternatives": [
-        "Bambu PETG-CF"
-      ],
-      "set_by": "claude/opus-5.5 2026-11-22 (T-3npyjq): 2 mm flat plate, printed flat on its y-min face"
-    },
-    "expected_hardware": {
-      "sleeves": 4
     }
   },
   "R_fore_front_hard_cover": {

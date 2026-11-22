@@ -154,15 +154,13 @@ parts:
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
-- match:
-  - C_T01_chest__T02_back_1_M3_hex_nut
-  - C_T01_chest__T02_back_2_M3_hex_nut
+- match: C_T01_chest__T02_back_2_M3_hex_nut
   kind: hardware
   line: hw:M3-hex-nut-ISO-4032
   name: M3 hex nut ISO 4032
   make_buy: buy
-  quantity: 2
-  spec:
+  quantity: 1
+  spec: &id001
     kind: nut
     thread: M3
     standard: ISO 4032
@@ -173,6 +171,9 @@ parts:
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
 - match:
   - T02_back_mount1_M3x6
   - T02_back_mount3_M3x6
@@ -215,6 +216,21 @@ parts:
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
+- match: C_T01_chest__T02_back_1_M3_hex_nut
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 1
+  spec: *id001
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
 assembly:
   subassemblies:
   - name: final_body
@@ -236,7 +252,10 @@ assembly:
   - id: torso:p001
     subassembly: torso
     part: Honeycomb_Cell_06_Upper_Core_L
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     status: seeded
     derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
       centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
@@ -245,7 +264,10 @@ assembly:
   - id: torso:p002
     subassembly: torso
     part: Honeycomb_Cell_07_Upper_Core_R
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p001
     status: seeded
@@ -256,7 +278,10 @@ assembly:
   - id: torso:p011
     subassembly: torso
     part: Honeycomb_Cell_01_Upper_Dorsal_L2
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p010
     status: seeded
@@ -267,7 +292,10 @@ assembly:
   - id: torso:p013
     subassembly: torso
     part: Honeycomb_Cell_04_Upper_Dorsal_R1
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p012
     status: seeded
@@ -278,7 +306,10 @@ assembly:
   - id: torso:p015
     subassembly: torso
     part: Honeycomb_Cell_02_Upper_Dorsal_L1
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p014
     status: seeded
@@ -290,7 +321,10 @@ assembly:
   - id: torso:p016
     subassembly: torso
     part: Honeycomb_Cell_03_Upper_Dorsal_C0
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p015
     status: seeded
@@ -302,7 +336,10 @@ assembly:
   - id: torso:p017
     subassembly: torso
     part: Honeycomb_Fin_03_Upper_Dorsal_C0
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p016
     status: seeded
@@ -313,7 +350,10 @@ assembly:
   - id: torso:p028
     subassembly: torso
     part: body_IMU_4517
-    direction: [-0.0, -1.0, 0.0]
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
     after:
     - torso:s027
     status: seeded
@@ -322,7 +362,10 @@ assembly:
   - id: torso:p036
     subassembly: torso
     part: Honeycomb_Cell_05_Upper_Dorsal_R2
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:s035
     status: seeded
@@ -332,7 +375,10 @@ assembly:
   - id: torso:p043
     subassembly: torso
     part: Honeycomb_Fin_01_Upper_Dorsal_L2
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p042
     status: seeded
@@ -341,7 +387,10 @@ assembly:
   - id: torso:p044
     subassembly: torso
     part: Honeycomb_Fin_05_Upper_Dorsal_R2
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p043
     status: seeded
@@ -387,7 +436,10 @@ assembly:
   - id: torso:p053
     subassembly: torso
     part: Honeycomb_Fin_02_Upper_Dorsal_L1
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - torso:s052
     status: seeded
@@ -397,7 +449,10 @@ assembly:
   - id: torso:p054
     subassembly: torso
     part: Honeycomb_Fin_04_Upper_Dorsal_R1
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p053
     status: seeded
@@ -406,7 +461,10 @@ assembly:
   - id: torso:p055
     subassembly: torso
     part: Honeycomb_Fin_06_Upper_Core_L
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - torso:p054
     status: seeded
@@ -416,7 +474,10 @@ assembly:
   - id: torso:p056
     subassembly: torso
     part: Honeycomb_Fin_07_Upper_Core_R
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - torso:p055
     status: seeded
