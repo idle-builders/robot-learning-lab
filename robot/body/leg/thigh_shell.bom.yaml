@@ -28,6 +28,9 @@ generators:
   notes: Replaces the four thigh hard covers with the blue thigh shells (THIGH_SHELL_MANIFEST / THIGH_SHELL_OUT redirect it). Surface parameters
     SURF are code constants; fit-surface is not part of the rebuild. Shell material and density come from each shell's
     process.material (its definition entry) and checks/data/materials.json.
+  resources:
+    limit_gb: 8
+    timeout_s: 2400
   after:
   - roll-flip-manifest
 - id: shin-cover
@@ -46,7 +49,10 @@ generators:
   in_place_edits:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
-  notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws.
+  notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws. Peaks at about 6.6 GB.
+  resources:
+    limit_gb: 8
+    timeout_s: 2400
   after:
   - thigh-shell
 parts:
