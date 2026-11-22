@@ -453,7 +453,7 @@ async function showResult(target, options = {}) {
     mode='archive'; await loadArchive(); return showSession(row.id);
   }
   if (isDesign) {
-    const {mountDesignDetail} = await import('./design-detail.js?v=four-side-light-20261106');
+    const {mountDesignDetail} = await import('./design-detail.js?v=menu-below-20261122');
     if (generation !== viewGeneration) return;
     const mounted = await mountDesignDetail($('detail'), row, workspace, {evidenceText, briefText, renderMatrix, renderGrades, imageWidget, fileWidget, modelWidget, modelHost, bindCommon, videoHost, playVideo, showResult, selection, async select(section,study_id) {
       const response = await fetch('/api/design-selection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({section,study_id})});
@@ -602,7 +602,7 @@ async function showResult(target, options = {}) {
   if (catalogs.length) {
     const host = document.createElement('div');
     $('detail').querySelector('.cards').before(host);
-    const {mountCatalog} = await import('./catalog.js?v=snapshot-feedback-20261119');
+    const {mountCatalog} = await import('./catalog.js?v=menu-below-20261122');
     if (generation !== viewGeneration) return;
     const mounted = await mountCatalog(host, id, catalogs[0].payload);
     if (generation !== viewGeneration) { mounted.dispose(); return; }

@@ -1,7 +1,7 @@
-import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=snapshot-feedback-20261119';
+import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=menu-below-20261122';
 import {designEvidence} from './design-evidence.js?v=fem-pictures-20261024';
 import {esc, briefText, evidenceText, shortText} from './readable.js?v=studies-final-20261020';
-import {mountCatalog} from './catalog.js?v=snapshot-feedback-20261119';
+import {mountCatalog} from './catalog.js?v=menu-below-20261122';
 import {createCadViewer} from './cad-viewer.js?v=no-page-pan-20261120';
 import {mountStudyBom} from './design-bom.js?v=mechanism-names-20261021';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
