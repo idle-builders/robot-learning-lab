@@ -40,13 +40,10 @@ CASES = {"recovery_4kg_1p5g": "recovery 4 kg x 1.5 g (58.8 N)", "support_4kg_1g"
 REPORTS = {
     "shoulder-u-verify3": "R: geometry, mass, gaps, static_audit, clearance (library), press, screws, holes, walls, overhang, bed, driver_access, range_sweep",
     "shoulder-u-verify-L": "L: the same checks",
-    "shoulder-u-s1-fem-final": "R blue U FEM, arm load envelope, h 0.9 (variant shoulder_u)",
-    "shoulder-u-s1-fem-h07b": "R blue U FEM, recovery / PAHT-CF at h 0.7 (convergence)",
-    "shoulder-u-s2-fem-i3": "R green U FEM, arm load envelope, h 1.2 (variant shoulder_u)",
-    "shoulder-u-s2-fem-h09": "R green U FEM, arm load envelope, h 0.9 (convergence)",
-    "shoulder-u-fem-L": "L blue + green U FEM, arm load envelope (blue h 0.9, green h 1.2)",
-    "arm-envelope-s1": "before: today's stage 1 in the selected body, same envelope, h 1.2",
-    "arm-envelope-s2": "before: today's stage 2 in the selected body, same envelope, h 1.2",
+    "shoulder-u-fem-push": "R and L blue + green U FEM, arm load envelope (push cone), blue h 0.9, green h 1.2 (variant shoulder_u)",
+    "shoulder-u-s1-fem-h07b": "R blue U FEM, recovery / PAHT-CF at h 0.7 (convergence; von Mises)",
+    "shoulder-u-s2-fem-h09": "R green U FEM, arm load envelope, h 0.9 (convergence; von Mises)",
+    "arm-envelope-push": "before: today's stages 1-4 on the roll-flip body, same envelope (push cone), in the print directions of the new parts",
 }
 RENDERS = ("shoulder-u-parts.png", "shoulder-u-collisions.png", "shoulder-today.png")
 CHART = ART / "renders/fem-envelope-before-after.png"
@@ -114,8 +111,8 @@ def layer(p):
 def fem_rows():
     """{(part, material, case): {"after": envelope, "before": envelope}} for the R side, each part along its own print direction."""
     rows = {}
-    for side, labels in (("after", {S1: "shoulder-u-s1-fem-final", S2: "shoulder-u-s2-fem-i3"}),
-                         ("before", {S1: "arm-envelope-s1", S2: "arm-envelope-s2"})):
+    for side, labels in (("after", {S1: "shoulder-u-fem-push", S2: "shoulder-u-fem-push"}),
+                         ("before", {S1: "arm-envelope-push", S2: "arm-envelope-push"})):
         for part, label in labels.items():
             p = report(label)["checks"]["fem"]["per_part"]["R_" + part]
             ln = layer(p)
@@ -224,7 +221,7 @@ def fem_evidence(refs):
         p = report(label)["checks"]["fem"]["per_part"][part]
         return p["by_layer_normal"][layer(p)][mat][case]["envelope"], p["mesh_h_mm"], p["nodes"]
     conv = []
-    for part, coarse, fine in ((S1, "shoulder-u-s1-fem-final", "shoulder-u-s1-fem-h07b"), (S2, "shoulder-u-s2-fem-i3", "shoulder-u-s2-fem-h09")):
+    for part, coarse, fine in ((S1, "shoulder-u-fem-push", "shoulder-u-s1-fem-h07b"), (S2, "shoulder-u-fem-push", "shoulder-u-s2-fem-h09")):
         (c, hc, nc), (f, hf, nf) = env(coarse, "R_" + part), env(fine, "R_" + part)
         d = lambda k, q: round(100.0 * (f[k][q] - c[k][q]) / c[k][q], 1)
         conv.append(m(f"{NAMES[part].split(' (')[0]}: change of the worst p99 von Mises, h {hc} -> {hf} mm", d("p99_vm_MPa", "max"), "%",
@@ -232,12 +229,12 @@ def fem_evidence(refs):
                       f"worst strength ratio {c['p99_strength_ratio']['min']:.2f} -> {f['p99_strength_ratio']['min']:.2f} (recovery, PAHT-CF)"))
     for part in (S1, S2):
         for mat in MATS:
-            (r, _, _), (l, hl, _) = env("shoulder-u-s1-fem-final" if part == S1 else "shoulder-u-s2-fem-i3", "R_" + part, mat), env("shoulder-u-fem-L", "L_" + part, mat)
+            (r, _, _), (l, hl, _) = env("shoulder-u-fem-push" if part == S1 else "shoulder-u-fem-push", "R_" + part, mat), env("shoulder-u-fem-push", "L_" + part, mat)
             conv.append(m(f"Left side, {NAMES[part].split(' (')[0]}, {mat.replace('Bambu ', '')}: p99 strength ratio, worst wrench", l["p99_strength_ratio"]["min"], "x",
                           f"recovery, h {hl}, {l['wrenches']} wrenches; p50 {l['p99_strength_ratio']['p50']:.2f}; right {r['p99_strength_ratio']['min']:.2f} / "
                           f"p50 {r['p99_strength_ratio']['p50']:.2f}; below 1: {l['wrenches_with_p99_strength_ratio_below_1']}"))
-    s1 = report("shoulder-u-s1-fem-final")["checks"]["fem"]["per_part"]["R_" + S1]
-    s2 = report("shoulder-u-s2-fem-i3")["checks"]["fem"]["per_part"]["R_" + S2]
+    s1 = report("shoulder-u-fem-push")["checks"]["fem"]["per_part"]["R_" + S1]
+    s2 = report("shoulder-u-fem-push")["checks"]["fem"]["per_part"]["R_" + S2]
     pm = json.loads(MOMENTS.read_text())["cases"]
     worst1 = s1["by_layer_normal"]["x"]["Bambu PAHT-CF"]["recovery_4kg_1p5g"]["envelope"]["worst"][0]
     worst2 = s2["by_layer_normal"]["z"]["Bambu PAHT-CF"]["recovery_4kg_1p5g"]["envelope"]["worst"][0]
