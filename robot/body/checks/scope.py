@@ -13,15 +13,43 @@ from checks.core import DATA, ROOT, R, kit, sha, WORK
 LAST = WORK / "checks" / "last-run"
 
 
+def _definition_sections(body):
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        claims = DEF.load().claims(list(body.parts))
+        out = {}
+        for n, e in claims.items():
+            if e.get("section"):
+                out.setdefault(e["section"], []).append(n)
+        return out
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def section_links(section, body):
     sec = json.loads((DATA / "sections.json").read_text())
-    if section not in sec:
+    if section not in sec:   # a section only the definitions name
+        sec[section] = dict(links=[], parts=[]) if _definition_sections(body).get(section) else sec.get(section)
+    if not sec.get(section):
         raise SystemExit(f"unknown section {section!r}; known: {[k for k in sec if not k.startswith('_')]}")
     links = {p["owning_link"] for p in body.parts.values()}
     out = set()
     for base in sec[section]["links"]:
         out |= {lk for lk in links if lk == base or lk in (f"L_{base}", f"R_{base}")}
-    return out, sec[section]["parts"]
+    # parts whose body definition declares this section (robot/**/<builder>.bom.yaml `section`), in addition to sections.json
+    globs = list(sec[section]["parts"])
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        D = DEF.load()
+        claims = D.claims(list(body.parts))
+        globs += sorted(n for n, e in claims.items() if e.get("section") == section)
+    except Exception:  # noqa: BLE001
+        pass
+    return out, globs
 
 
 def part_files(p):

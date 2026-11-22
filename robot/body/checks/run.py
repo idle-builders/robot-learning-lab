@@ -174,7 +174,9 @@ def make_plan(a, man, split):
     run = [n for n in todo if checks[n]["applies"](ctx)]
     nbs = list(ctx.neighbours())
     plan = dict(manifest=str(man.relative_to(ROOT)), manifest_sha256=sha(man), names=names, desc=desc, todo=todo, run=run,
-               not_applicable=[n for n in todo if n not in run], settings={n: ctx.settings(n) for n in names}, out_dir=str(out_dir),
+               not_applicable=[n for n in todo if n not in run], settings={n: ctx.settings(n) for n in names},
+               definitions={n: dict(file=ctx.definition(n)[0], entry=ctx.definition(n)[1], settings_source=ctx.settings_source.get(n, {})) for n in ctx.body.parts},
+               out_dir=str(out_dir),
                fem_parts=[n for n in names if FC.merged_setup(ctx, n, a.fem_variant)] if "fem" in run else [],
                keys={n: S.part_key(ctx.body.parts[n]) for n in names + nbs}, last_file=str(S.LAST / (man.stem + ".json")))
     save_sha()
@@ -286,8 +288,16 @@ def main(argv=None):
     f = out_dir / "report.json"
     secs, setup_secs, n_children = {}, {}, [0]      # setup timers are repeated in every child, so they are summed apart from the check timers
 
+    defs = pl.get("definitions", {})
+    rep["definitions"] = {n: d for n, d in defs.items() if n in set(names)}
+
     def write(running=None):
         rep["checks"] = {n: rep["checks"][n] for n in pl["todo"] if n in rep["checks"]}
+        for r in rep["checks"].values():          # every finding names the definition file and entry of its part
+            for c in r.get("worst_cases", []) if isinstance(r, dict) else []:
+                d = defs.get(c.get("part")) or {}
+                if d.get("file") and "definition" not in c:
+                    c["definition"] = f"{d['file']} ({d['entry']})"
         rep["seconds"] = dict(secs, total=round(time.time() - t_all, 1))
         rep["setup_seconds_summed_over_children"] = dict(setup_secs, children=n_children[0])
         rep["peak_tree_gib"] = round(peaks["tree"], 2)
