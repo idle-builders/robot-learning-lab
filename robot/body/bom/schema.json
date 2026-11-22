@@ -1,0 +1,608 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "cove50-body-definition/1",
+ "title": "Cove-50 body definition (<builder>.bom.yaml)",
+ "description": "One annotated definition per builder, next to its script (robot/body/**/<script>.bom.yaml). The agents who own the builder decide everything in it: what the builder generates and from what, which manifest parts it owns and what they are (make / buy, spec, supplier), and how they go together. robot/body/bom/build.py and the checks only read these files, resolve the globs against the selected manifest, add what they can read from files (existence, sha256, solids, volume, mass), and report what is missing. Example and field guide: robot/body/bom/README.md.",
+ "type": "object",
+ "required": [
+  "schema",
+  "definition"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "schema": {
+   "const": "cove50-body-definition/1"
+  },
+  "definition": {
+   "type": "string",
+   "pattern": "^[a-z0-9][a-z0-9-]*$",
+   "description": "Short unique id of this definition (used in findings and line origins)."
+  },
+  "owner": {
+   "type": "string",
+   "description": "Who maintains it: section / session / Idle task."
+  },
+  "doc": {
+   "type": "string"
+  },
+  "generators": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/generator"
+   }
+  },
+  "parts": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/part"
+   }
+  },
+  "assembly": {
+   "$ref": "#/$defs/assembly"
+  },
+  "defects": {
+   "type": "array",
+   "description": "Open defects of this builder's parts (no scripted STEP, a file reference that resolves nowhere, ...): what is wrong and what fixing it takes.",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "parts"
+    ],
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "parts": {
+      "$ref": "#/$defs/names"
+     },
+     "field": {
+      "type": "string"
+     },
+     "state": {
+      "type": "string"
+     },
+     "why": {
+      "type": "string"
+     },
+     "fix": {
+      "type": "string"
+     },
+     "effort": {
+      "type": "string"
+     },
+     "producer": {
+      "type": "string"
+     },
+     "reference": {
+      "type": "string"
+     },
+     "task": {
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "no_scripted_step",
+       "dangling",
+       "other"
+      ]
+     }
+    }
+   }
+  }
+ },
+ "$defs": {
+  "names": {
+   "description": "Part name, glob, or list of them (fnmatch, case-sensitive) against the manifest's part names.",
+   "oneOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1
+    }
+   ]
+  },
+  "generator": {
+   "type": "object",
+   "required": [
+    "id",
+    "command"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "type": "string",
+     "pattern": "^[a-z0-9][a-z0-9-]*$",
+     "description": "Unique over all definitions."
+    },
+    "command": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1,
+     "description": "Exact argv, run from the repository root."
+    },
+    "rebuild": {
+     "type": "boolean",
+     "default": true,
+     "description": "false: a section builder whose outputs the body rebuild links read-only instead of rerunning."
+    },
+    "inputs": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Repository-relative files / folders it reads."
+    },
+    "outputs": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Files / folders it writes."
+    },
+    "in_place_edits": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Files written by another generator that it rewrites."
+    },
+    "writes_into": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Folders of another (read-only) generator's outputs that it rewrites; the rebuild copies them writable."
+    },
+    "manifest_out": {
+     "type": [
+      "string",
+      "null"
+     ],
+     "description": "The body manifest it writes, if any."
+    },
+    "after": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Generator ids that must run first when the files alone do not order them (several writers of one file)."
+    },
+    "resources": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "limit_gb": {
+       "type": "number"
+      },
+      "timeout_s": {
+       "type": "number"
+      }
+     }
+    },
+    "notes": {
+     "type": "string"
+    }
+   }
+  },
+  "spec": {
+   "type": "object",
+   "description": "The bought item as the agent declares it (standard hardware: kind, thread, nominal length, head standard; sleeves: outer x inner x length).",
+   "properties": {
+    "kind": {
+     "enum": [
+      "screw",
+      "nut",
+      "washer",
+      "spacer",
+      "sleeve",
+      "threaded_sleeve",
+      "insert",
+      "bearing",
+      "servo",
+      "electronics",
+      "cell",
+      "material",
+      "other"
+     ]
+    },
+    "standard": {
+     "type": "string"
+    },
+    "thread": {
+     "type": "string"
+    },
+    "family": {
+     "type": "string"
+    },
+    "length_mm": {
+     "type": "number"
+    },
+    "outer_dia_mm": {
+     "type": "number"
+    },
+    "inner_dia_mm": {
+     "type": "number"
+    },
+    "thickness_mm": {
+     "type": "number"
+    },
+    "head_dia_mm": {
+     "type": "number"
+    },
+    "head_height_mm": {
+     "type": "number"
+    },
+    "across_flats_mm": {
+     "type": "number"
+    },
+    "label": {
+     "type": "string"
+    }
+   }
+  },
+  "purchase": {
+   "type": "object",
+   "properties": {
+    "supplier": {
+     "type": "string",
+     "description": "From a repo source (named in notes), else 'unknown'. Never guessed."
+    },
+    "part_number": {
+     "type": "string"
+    },
+    "unit_cost": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "currency": {
+     "type": "string"
+    },
+    "url": {
+     "type": "string"
+    }
+   }
+  },
+  "part": {
+   "type": "object",
+   "required": [
+    "match",
+    "kind",
+    "line"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "match": {
+     "$ref": "#/$defs/names"
+    },
+    "kind": {
+     "enum": [
+      "printed",
+      "purchased",
+      "hardware",
+      "included",
+      "made",
+      "other"
+     ],
+     "description": "printed: an FDM part; purchased: bought as is; hardware: standard hardware; included: comes with another bought part; made: cut / bent / made by hand."
+    },
+    "line": {
+     "type": "string",
+     "description": "BOM line id. The same id in several entries or files is one line: its quantities add, and name / make_buy / spec / supplier must agree."
+    },
+    "name": {
+     "type": "string",
+     "description": "Line name (default: the line id)."
+    },
+    "make_buy": {
+     "enum": [
+      "make",
+      "buy",
+      "included",
+      "context"
+     ]
+    },
+    "quantity": {
+     "type": "integer",
+     "minimum": 0,
+     "description": "Expected number of matched manifest parts (the check compares it with the match count)."
+    },
+    "unit": {
+     "type": "string"
+    },
+    "spec": {
+     "$ref": "#/$defs/spec"
+    },
+    "supplier": {
+     "type": "string"
+    },
+    "part_number": {
+     "type": "string"
+    },
+    "unit_cost": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "currency": {
+     "type": "string"
+    },
+    "url": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "notes": {
+     "type": "string"
+    },
+    "generator": {
+     "type": "string",
+     "description": "Generator id that writes these parts (default: the file's only generator)."
+    },
+    "contains": {
+     "type": "array",
+     "description": "Bought items inside each matched CAD part (e.g. the steel sleeves of a <part>_steel_sleeves STEP), per matched part.",
+     "items": {
+      "type": "object",
+      "required": [
+       "line",
+       "quantity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "line": {
+        "type": "string"
+       },
+       "name": {
+        "type": "string"
+       },
+       "quantity": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "make_buy": {
+        "enum": [
+         "make",
+         "buy",
+         "included"
+        ]
+       },
+       "spec": {
+        "$ref": "#/$defs/spec"
+       },
+       "supplier": {
+        "type": "string"
+       },
+       "part_number": {
+        "type": "string"
+       },
+       "notes": {
+        "type": "string"
+       },
+       "part": {
+        "type": "string",
+        "description": "Only for this one matched part (default: every matched part)."
+       }
+      }
+     }
+    },
+    "section": {
+     "type": "string",
+     "description": "Robot section (phase 2: replaces checks/data/sections.json)."
+    },
+    "process": {
+     "type": "object",
+     "description": "Print setup (phase 2: replaces part_settings.json process): printer, material, nozzle_mm, layer_height_mm, up, ... keys of checks/data/printers.json / materials.json."
+    },
+    "expected_hardware": {
+     "type": "object"
+    },
+    "fit_classes": {
+     "type": "object"
+    },
+    "covers": {
+     "type": [
+      "array",
+      "object"
+     ]
+    },
+    "exact_fit": {
+     "type": [
+      "array",
+      "object",
+      "boolean"
+     ]
+    },
+    "loadpath_slices": {
+     "type": [
+      "array",
+      "object"
+     ]
+    },
+    "geometry_thresholds": {
+     "type": "object"
+    },
+    "fem": {
+     "type": [
+      "object",
+      "string"
+     ]
+    },
+    "heat_source": {
+     "type": "object"
+    }
+   }
+  },
+  "assembly": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "subassemblies": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "name": {
+        "type": "string"
+       },
+       "doc": {
+        "type": "string"
+       },
+       "after": {
+        "type": "array",
+        "items": {
+         "type": "string"
+        },
+        "description": "Subassemblies built before this one (present at its start)."
+       },
+       "base": {
+        "$ref": "#/$defs/names"
+       },
+       "plan": {
+        "type": "object",
+        "description": "What robot/body/checks/assembly_seed.py propose drafts missing steps from: links (owning links whose parts belong here), include / exclude (globs), roles, exclude_roles, last_roles (default body_shell), mirror_of (a subassembly on the other side).",
+        "additionalProperties": false,
+        "properties": {
+         "links": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "include": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "exclude": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "roles": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "exclude_roles": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "last_roles": {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         "mirror_of": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "steps": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/step"
+     }
+    }
+   }
+  },
+  "step": {
+   "type": "object",
+   "required": [
+    "id",
+    "subassembly"
+   ],
+   "additionalProperties": false,
+   "oneOf": [
+    {
+     "required": [
+      "part"
+     ]
+    },
+    {
+     "required": [
+      "screw"
+     ]
+    }
+   ],
+   "properties": {
+    "id": {
+     "type": "string",
+     "description": "Unique over all definitions, e.g. right_leg:hip-08."
+    },
+    "subassembly": {
+     "type": "string"
+    },
+    "part": {
+     "$ref": "#/$defs/names"
+    },
+    "screw": {
+     "$ref": "#/$defs/names"
+    },
+    "with": {
+     "$ref": "#/$defs/names",
+     "description": "Hardware and parts without geometry that go in with the step (not measured)."
+    },
+    "direction": {
+     "oneOf": [
+      {
+       "const": "screw axis"
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "number"
+       },
+       "minItems": 3,
+       "maxItems": 3
+      }
+     ]
+    },
+    "after": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Step ids that come before it (any definition); none = at the start of its subassembly."
+    },
+    "status": {
+     "enum": [
+      "designer",
+      "seeded"
+     ],
+     "description": "designer: the owner's order; seeded: a draft (from assembly_seed.py) not yet reviewed. Check support is measured, not stored."
+    },
+    "derived": {
+     "type": "string"
+    },
+    "notes": {
+     "type": "string"
+    }
+   }
+  }
+ }
+}

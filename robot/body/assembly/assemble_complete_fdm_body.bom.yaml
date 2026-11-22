@@ -1,0 +1,2001 @@
+# Cove-50 body definition for robot/body/assembly/assemble_complete_fdm_body.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: assemble-complete-fdm-body
+owner: (set by the owning session)
+generators:
+- id: assembly
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/assembly/assemble_complete_fdm_body.py
+  inputs:
+  - artifacts/robot/body/leg/complete_leg_hip_combined/parts.json
+  - artifacts/robot/body/leg/complete_leg_hip_combined/cad-manifest.json
+  - artifacts/robot/body/leg/complete_leg_hip_combined/assembly-with-full-shell.glb
+  - artifacts/robot/body/leg/combined/parts/R_shin_combined.step
+  - artifacts/robot/body/arm/combined/assembly-parts.json
+  - artifacts/robot/body/arm/combined/manifest.json
+  - artifacts/robot/body/neck-head/combined/assembly-parts.json
+  - artifacts/robot/body/neck-head/combined/manifest.json
+  - artifacts/robot/body/torso/combined/assembly-parts.json
+  - artifacts/robot/body/torso/combined/manifest.json
+  - artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json
+  - artifacts/cove50-fitted-shell/r1-20261027/panels/T01_chest.step
+  - artifacts/cove50-fitted-shell/r1-20261027/panels/T02_back.step
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1/palm_lower.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-gear-r0/palm_upper.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/right_finger.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/left_finger.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/lead-twin-crawl-r1/cad/assembly.glb
+  outputs:
+  - artifacts/robot/body/assembly/assembly-parts.json
+  - artifacts/robot/body/assembly/parts
+  - artifacts/robot/body/assembly/subsystem-rollup.json
+  - artifacts/robot/body/assembly/whole-body-verification-report.json
+  manifest_out: artifacts/robot/body/assembly/assembly-parts.json
+  resources:
+    limit_gb: 10
+    timeout_s: 2400
+  notes: Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json).
+    Compiles robot/electronics/power/cad/zbuffer_renderer.cpp for its renders. Every data output (assembly-parts.json, parts/, bom.json, verification
+    report, manifest.json) is written before the final render phase; on 2026-11-20 the render phase went past 6 GB (peak 6.24) and memguard stopped
+    it after the data was complete. Cap 10 GB for that render phase (peaks 6.24 and 8.22 GB on 2026-11-20), so a chain run does not stop at step
+    1.
+parts:
+- match:
+  - Main_precharge_H1_M2x12
+  - Power_supervisor_H3_M2x12
+  - Power_supervisor_H4_M2x12
+  kind: hardware
+  line: hw:M2-x-12-ISO-4762
+  name: M2 x 12 ISO 4762
+  make_buy: buy
+  quantity: 3
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 12.0
+    standard: ISO 4762
+    head_dia_mm: 3.8
+    head_height_mm: 2.0
+    label: M2 x 12 ISO 4762
+  supplier: unknown
+  part_number: M2 x 12 ISO 4762
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - B0196_camera_washer_0
+  - B0196_camera_washer_1
+  - B0196_camera_washer_2
+  - B0196_camera_washer_3
+  - B0410_camera_washer_0
+  - B0410_camera_washer_1
+  - B0410_camera_washer_2
+  - B0410_camera_washer_3
+  - Main_precharge_H1_front_washer
+  - Main_precharge_H1_rear_washer
+  - Power_supervisor_H3_front_washer
+  - Power_supervisor_H3_rear_washer
+  - Power_supervisor_H4_front_washer
+  - Power_supervisor_H4_rear_washer
+  kind: hardware
+  line: hw:M2-washer-2.2-5-x-0.3
+  name: M2 washer 2.2/5 x 0.3
+  make_buy: buy
+  quantity: 14
+  spec:
+    kind: washer
+    thread: M2
+    standard: ISO 7089
+    inner_dia_mm: 2.2
+    outer_dia_mm: 5.0
+    thickness_mm: 0.3
+    label: M2 washer 2.2/5 x 0.3
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - Main_precharge_H1_M2_nut
+  - Power_supervisor_H3_M2_nut
+  - Power_supervisor_H4_M2_nut
+  - compute_rear_nut_2
+  - compute_rear_nut_3
+  - fan_bridge_nut_0
+  - fan_bridge_nut_1
+  - upper__cowl_M2_nut_0
+  - upper__cowl_M2_nut_1
+  kind: hardware
+  line: hw:M2-hex-nut-ISO-4032
+  name: M2 hex nut ISO 4032
+  make_buy: buy
+  quantity: 9
+  spec:
+    kind: nut
+    thread: M2
+    standard: ISO 4032
+    across_flats_mm: 4.0
+    label: M2 hex nut ISO 4032
+  supplier: unknown
+  part_number: M2 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: Main_H1_2mm_front_spacer
+  kind: printed
+  line: print:Main_H1_2mm_front_spacer
+  name: Main_H1_2mm_front_spacer
+  make_buy: make
+  quantity: 1
+- match:
+  - upper__neck_pitch_case_XM335
+  - upper__neck_yaw_case_XM335
+  kind: purchased
+  line: servo:Robotis-XM335
+  name: ROBOTIS XM335 (neck tier)
+  make_buy: buy
+  quantity: 2
+  supplier: ROBOTIS
+  part_number: XM335-T323-T
+  notes: 'Neck yaw and pitch. The manifest has no motor field on these cases; model from the part name. supplier from robot/model/README.md (selected
+    CAD: two ROBOTIS XM335-T323-T) and robot/actuators/parts.csv (robotis-xm335-t323-t).'
+- match:
+  - upper__L_pitch_C047_case
+  - upper__L_roll_C047_case
+  - upper__L_yaw_C047_case
+  - upper__R_pitch_C047_case
+  - upper__R_roll_C047_case
+  - upper__R_yaw_C047_case
+  kind: purchased
+  line: servo:Feetech-STS3250-strong-tier
+  name: Feetech STS3250 (strong tier)
+  make_buy: buy
+  quantity: 6
+  supplier: Feetech
+  part_number: ST-3250-C001
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
+    robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
+    robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+- match:
+  - upper__A_L_clocked_pitch_washer_0
+  - upper__A_L_clocked_pitch_washer_1
+  - upper__A_L_clocked_pitch_washer_2
+  - upper__A_L_clocked_pitch_washer_3
+  - upper__A_R_clocked_pitch_washer_0
+  - upper__A_R_clocked_pitch_washer_1
+  - upper__A_R_clocked_pitch_washer_2
+  - upper__A_R_clocked_pitch_washer_3
+  kind: hardware
+  line: hw:M2-washer-2.2-4.2-x-0.5
+  name: M2 washer 2.2/4.2 x 0.5
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: washer
+    thread: M2
+    standard: custom (measured)
+    inner_dia_mm: 2.2
+    outer_dia_mm: 4.2
+    thickness_mm: 0.5
+    label: M2 washer 2.2/4.2 x 0.5
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - upper__A_L_clocked_pitch_spacer_3mm_0
+  - upper__A_L_clocked_pitch_spacer_3mm_1
+  - upper__A_L_clocked_pitch_spacer_3mm_2
+  - upper__A_L_clocked_pitch_spacer_3mm_3
+  - upper__A_R_clocked_pitch_spacer_3mm_0
+  - upper__A_R_clocked_pitch_spacer_3mm_1
+  - upper__A_R_clocked_pitch_spacer_3mm_2
+  - upper__A_R_clocked_pitch_spacer_3mm_3
+  kind: hardware
+  line: hw:M2-spacer-4.2-2.4-x-3.0
+  name: M2 spacer 4.2/2.4 x 3.0
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: spacer
+    thread: M2
+    outer_dia_mm: 4.2
+    inner_dia_mm: 2.4
+    length_mm: 3.0
+    standard: round spacer
+    label: M2 spacer 4.2/2.4 x 3.0
+  supplier: unknown
+  part_number: unknown
+  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+- match:
+  - upper__A_L_clocked_pitch_PA2x10_0
+  - upper__A_L_clocked_pitch_PA2x10_1
+  - upper__A_L_clocked_pitch_PA2x10_2
+  - upper__A_L_clocked_pitch_PA2x10_3
+  - upper__A_R_clocked_pitch_PA2x10_0
+  - upper__A_R_clocked_pitch_PA2x10_1
+  - upper__A_R_clocked_pitch_PA2x10_2
+  - upper__A_R_clocked_pitch_PA2x10_3
+  kind: hardware
+  line: hw:PA2-x-10-ISO-7045
+  name: PA2 x 10 ISO 7045
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 10.0
+    standard: ISO 7045
+    head_dia_mm: 4.0
+    head_height_mm: 1.6
+    label: PA2 x 10 ISO 7045
+  supplier: unknown
+  part_number: PA2 x 10 ISO 7045
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - lower__L_yaw_servo_case_reference
+  - lower__R_yaw_servo_case_reference
+  kind: purchased
+  line: servo:Feetech-ST3215-C047-12-V-light-tier
+  name: Feetech ST3215-C047 12 V (light tier)
+  make_buy: buy
+  quantity: 2
+  supplier: Waveshare
+  part_number: 22414 (ST3215 12 V; Feetech ST-3215-C047)
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.light:
+    part "Waveshare ST3215 12 V (SKU 22414)", price_basis Waveshare store).'
+- match: foot_ADC_6494
+  kind: purchased
+  line: purchased:foot_ADC
+  name: foot_ADC
+  make_buy: buy
+  quantity: 1
+  supplier: Adafruit
+  part_number: '6494'
+  notes: supplier from robot/electronics/sensing/selection.json (Adafruit ADS7128 ADC/GPIO module, supplier_url adafruit.com).
+- match:
+  - neck_anchor_M3x16_CSK_1_v21
+  - neck_anchor_M3x16_CSK_3_v21
+  kind: hardware
+  line: hw:M3-x-16-ISO-10642
+  name: M3 x 16 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 16.0
+    standard: ISO 10642
+    head_dia_mm: 6.72
+    head_height_mm: 1.86
+    label: M3 x 16 ISO 10642
+  supplier: unknown
+  part_number: M3 x 16 ISO 10642
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - fan_guide_front_washer
+  - fan_washer_-21_430
+  - fan_washer_-21_462
+  - fan_washer_11_462
+  - neck_anchor_front_washer_1_v21
+  - neck_anchor_front_washer_3_v21
+  kind: hardware
+  line: hw:M3-washer-3.2-6-x-0.5
+  name: M3 washer 3.2/6 x 0.5
+  make_buy: buy
+  quantity: 6
+  spec:
+    kind: washer
+    thread: M3
+    standard: custom (measured)
+    inner_dia_mm: 3.2
+    outer_dia_mm: 6.0
+    thickness_mm: 0.5
+    label: M3 washer 3.2/6 x 0.5
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - L_Shin_carrier_shell_shin_front_1_nut
+  - L_Shin_carrier_shell_shin_front_2_nut
+  - R_Shin_carrier_shell_shin_front_1_nut
+  - R_Shin_carrier_shell_shin_front_2_nut
+  - neck_anchor_M3nut_1_v21
+  - neck_anchor_M3nut_3_v21
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 6
+  spec:
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: Power_supervisor_source_board
+  kind: purchased
+  line: purchased:Power_supervisor_source_board
+  name: Power_supervisor_source_board
+  make_buy: buy
+  quantity: 1
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match: Main_precharge_source_board
+  kind: purchased
+  line: purchased:Main_precharge_source_board
+  name: Main_precharge_source_board
+  make_buy: buy
+  quantity: 1
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match:
+  - L_hand_OEM_horn
+  - L_yaw_passive_idler_reference
+  - L_yaw_upper_horn_reference
+  - R_hand_OEM_horn
+  - R_yaw_passive_idler_reference
+  - R_yaw_upper_horn_reference
+  - upper__L_pitch_C047_main_horn
+  - upper__L_pitch_C047_rear_idler
+  - upper__L_roll_C047_main_horn
+  - upper__L_yaw_C047_main_horn
+  - upper__R_pitch_C047_main_horn
+  - upper__R_pitch_C047_rear_idler
+  - upper__R_roll_C047_main_horn
+  - upper__R_yaw_C047_main_horn
+  - upper__neck_pitch_front_horn
+  - upper__neck_yaw_front_horn
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 16
+  notes: Come in the servo box; listed so every CAD part has a line.
+- match: B0410_supplier_native_v23
+  kind: purchased
+  line: purchased:B0410_supplier_native_v23
+  name: B0410_supplier_native_v23
+  make_buy: buy
+  quantity: 1
+  supplier: GoTronic
+  part_number: B0410 / GoTronic36874
+  notes: 'supplier from robot/electronics/sensing/selection.json (item depth: Arducam B0410, supplier_url gotronic.fr).'
+- match: B0196_supplier_native_v23
+  kind: purchased
+  line: purchased:B0196_supplier_native_v23
+  name: B0196_supplier_native_v23
+  make_buy: buy
+  quantity: 1
+  supplier: Welectron
+  part_number: B0196 / UC-626Rev.B
+  notes: 'supplier from robot/electronics/sensing/selection.json (item RGB: Arducam B0196, supplier_url welectron.com).'
+- match: microphone_6049_v23
+  kind: purchased
+  line: purchased:microphone_6049_v23
+  name: microphone_6049_v23
+  make_buy: buy
+  quantity: 1
+  supplier: Adafruit
+  part_number: '6049'
+  notes: supplier from robot/electronics/sensing/selection.json (Adafruit ICS-43434 I2S microphone module, supplier_url adafruit.com).
+- match: ROCK4D_official
+  kind: purchased
+  line: purchased:ROCK4D_official
+  name: ROCK4D_official
+  make_buy: buy
+  quantity: 1
+  supplier: unknown
+  part_number: ROCK4D 6GB
+  notes: supplier from robot/model/urdf/timing.json ("Selected ROCK4D6GB"; part number only, no maker or seller named in the repo).
+- match: Radian_INL25001_bare
+  kind: purchased
+  line: purchased:Radian_INL25001_bare
+  name: Radian_INL25001_bare
+  make_buy: buy
+  quantity: 1
+  supplier: Radian
+  part_number: INL25001
+  notes: 'supplier from the supplier STEP / part name Radian_INL25001_bare (docs/research/design-checks.md: "Radian heatsink").'
+- match: SameSky_4010_fan
+  kind: purchased
+  line: purchased:SameSky_4010_fan
+  name: SameSky_4010_fan
+  make_buy: buy
+  quantity: 1
+  supplier: Same Sky
+  part_number: unknown
+  notes: supplier from the supplier STEP / part name SameSky_4010_fan (maker only; 4010 is the frame size, no part number in the repo).
+- match: TIM_3M8810_cut
+  kind: other
+  line: thermal-pad-3M8810
+  name: 3M 8810 thermal tape, cut to size
+  make_buy: buy
+  quantity: 1
+  supplier: 3M
+  part_number: '8810'
+  notes: supplier from the manifest part name TIM_3M8810_cut (no other repo source; size cut at assembly).
+- match: Wuerth_61304021821_official
+  kind: purchased
+  line: purchased:Wuerth_61304021821_official
+  name: Wuerth_61304021821_official
+  make_buy: buy
+  quantity: 1
+  supplier: Wuerth
+  part_number: '61304021821'
+  notes: 'supplier from the supplier STEP / part name Wuerth_61304021821_official (docs/research/design-checks.md: "Wuerth 61304021821 header").'
+- match:
+  - compute_rear_washer_2
+  - compute_rear_washer_3
+  kind: hardware
+  line: hw:M2.5-washer-2.7-6-x-0.5
+  name: M2.5 washer 2.7/6 x 0.5
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: washer
+    thread: M2.5
+    standard: ISO 7089
+    inner_dia_mm: 2.7
+    outer_dia_mm: 6.0
+    thickness_mm: 0.5
+    label: M2.5 washer 2.7/6 x 0.5
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match: fan_M3x16_guide
+  kind: hardware
+  line: hw:M3-x-16-ISO-7380-1
+  name: M3 x 16 ISO 7380-1
+  make_buy: buy
+  quantity: 1
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 16.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 16 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 16 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - fan_black_formed_lead
+  - fan_red_formed_lead
+  - fan_yellow_formed_lead
+  kind: made
+  line: fan-leads
+  name: Fan leads (formed)
+  make_buy: make
+  quantity: 3
+  notes: Wire, cut and formed at assembly.
+- match: fan_bridge_standoff_0
+  kind: printed
+  line: print:fan_bridge_standoff_0
+  name: fan_bridge_standoff_0
+  make_buy: make
+  quantity: 1
+- match: fan_bridge_standoff_1
+  kind: printed
+  line: print:fan_bridge_standoff_1
+  name: fan_bridge_standoff_1
+  make_buy: make
+  quantity: 1
+- match: fan_lead_guide_r16
+  kind: printed
+  line: print:fan_lead_guide_r16
+  name: fan_lead_guide_r16
+  make_buy: make
+  quantity: 1
+- match:
+  - fan_nut_-21_430
+  - fan_nut_-21_462
+  - fan_nut_11_462
+  kind: hardware
+  line: hw:M2.5-hex-nut-ISO-4032
+  name: M2.5 hex nut ISO 4032
+  make_buy: buy
+  quantity: 3
+  spec:
+    kind: nut
+    thread: M2.5
+    standard: ISO 4032
+    across_flats_mm: 5.0
+    label: M2.5 hex nut ISO 4032
+  supplier: unknown
+  part_number: M2.5 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: fan_tach_insulating_cap
+  kind: other
+  line: fan-tach-cap
+  name: Fan tach lead insulating cap
+  make_buy: buy
+  quantity: 1
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match: heatsink_nonpreloaded_guard
+  kind: printed
+  line: print:heatsink_nonpreloaded_guard
+  name: heatsink_nonpreloaded_guard
+  make_buy: make
+  quantity: 1
+- match:
+  - neck_M3x6_countersunk_0
+  - neck_M3x6_countersunk_1
+  kind: hardware
+  line: hw:M3-x-6-ISO-10642
+  name: M3 x 6 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 10642
+    head_dia_mm: 6.72
+    head_height_mm: 1.86
+    label: M3 x 6 ISO 10642
+  supplier: unknown
+  part_number: M3 x 6 ISO 10642
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - B0196_M2_FF5_spacer_0_v23
+  - B0196_M2_FF5_spacer_1_v23
+  - B0196_M2_FF5_spacer_2_v23
+  - B0196_M2_FF5_spacer_3_v23
+  - B0410_M2_FF5_spacer_0_v23
+  - B0410_M2_FF5_spacer_1_v23
+  - B0410_M2_FF5_spacer_2_v23
+  - B0410_M2_FF5_spacer_3_v23
+  kind: hardware
+  line: hw:M2-F-F-standoff-5.8-1.6-x-5.0
+  name: M2 F-F standoff 5.8/1.6 x 5.0
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: spacer
+    thread: M2
+    outer_dia_mm: 5.8
+    inner_dia_mm: 1.6
+    length_mm: 5.0
+    standard: hex standoff F-F
+    label: M2 F-F standoff 5.8/1.6 x 5.0
+  supplier: unknown
+  part_number: unknown
+  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+- match:
+  - B0196_camera_M2x4_0
+  - B0196_camera_M2x4_1
+  - B0196_camera_M2x4_2
+  - B0196_camera_M2x4_3
+  - B0410_camera_M2x4_0
+  - B0410_camera_M2x4_1
+  - B0410_camera_M2x4_2
+  - B0410_camera_M2x4_3
+  kind: hardware
+  line: hw:M2-x-4-ISO-4762
+  name: M2 x 4 ISO 4762
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 4.0
+    standard: ISO 4762
+    head_dia_mm: 3.8
+    head_height_mm: 2.0
+    label: M2 x 4 ISO 4762
+  supplier: unknown
+  part_number: M2 x 4 ISO 4762
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - compute_FF4_spacer_0
+  - compute_FF4_spacer_1
+  - compute_FF4_spacer_2
+  - compute_FF4_spacer_3
+  kind: hardware
+  line: hw:M2.5-F-F-standoff-6.0-2.7-x-4.0
+  name: M2.5 F-F standoff 6.0/2.7 x 4.0
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: spacer
+    thread: M2.5
+    outer_dia_mm: 6.0
+    inner_dia_mm: 2.7
+    length_mm: 4.0
+    standard: hex standoff F-F
+    label: M2.5 F-F standoff 6.0/2.7 x 4.0
+  supplier: unknown
+  part_number: unknown
+  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+- match:
+  - mic_side_M2x4_lowhead_0
+  - mic_side_M2x4_lowhead_1
+  kind: hardware
+  line: hw:M2-x-4-ISO-7380-1
+  name: M2 x 4 ISO 7380-1
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 4.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 4 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 4 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - mic_side_shim_0
+  - mic_side_shim_1
+  kind: hardware
+  line: hardware:mic_side_shim
+  name: mic_side_shim
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'Insulating shim 0.2 mm nominal, material unspecified (robot/model/urdf/part-mass-ledger.json). supplier / part number: no source in
+    the repo (unknown).'
+- match:
+  - upper__L_yaw_case_PA2x7_3
+  - upper__L_yaw_case_PA2x7_4
+  - upper__R_yaw_case_PA2x7_1
+  - upper__R_yaw_case_PA2x7_2
+  kind: hardware
+  line: hw:PA2-x-7-ISO-7380-1
+  name: PA2 x 7 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 7.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 7 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 7 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - upper__L_yaw_case_washer1
+  - upper__L_yaw_case_washer2
+  - upper__L_yaw_case_washer3
+  - upper__L_yaw_case_washer4
+  - upper__R_yaw_case_washer1
+  - upper__R_yaw_case_washer2
+  - upper__R_yaw_case_washer3
+  - upper__R_yaw_case_washer4
+  kind: hardware
+  line: hw:M2-washer-2.2-3.8-x-0.5
+  name: M2 washer 2.2/3.8 x 0.5
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: washer
+    thread: M2
+    standard: custom (measured)
+    inner_dia_mm: 2.2
+    outer_dia_mm: 3.8
+    thickness_mm: 0.5
+    label: M2 washer 2.2/3.8 x 0.5
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - upper__L_yaw_case_spacer1
+  - upper__L_yaw_case_spacer2
+  - upper__L_yaw_case_spacer3
+  - upper__L_yaw_case_spacer4
+  - upper__R_yaw_case_spacer1
+  - upper__R_yaw_case_spacer2
+  - upper__R_yaw_case_spacer3
+  - upper__R_yaw_case_spacer4
+  kind: hardware
+  line: hw:M2-spacer-3.8-2.4-x-1.0
+  name: M2 spacer 3.8/2.4 x 1.0
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: spacer
+    thread: M2
+    outer_dia_mm: 3.8
+    inner_dia_mm: 2.4
+    length_mm: 1.0
+    standard: round spacer
+    label: M2 spacer 3.8/2.4 x 1.0
+  supplier: unknown
+  part_number: unknown
+  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+- match:
+  - upper__L_pitch_central_rocker_M3x6
+  - upper__L_pitch_horn_M3x6_1
+  - upper__L_pitch_horn_M3x6_2
+  - upper__L_pitch_horn_M3x6_3
+  - upper__L_pitch_horn_M3x6_4
+  - upper__L_roll_central_rocker_M3x6
+  - upper__L_yaw_central_rocker_M3x6
+  - upper__L_yaw_horn_M3x6_1
+  - upper__L_yaw_horn_M3x6_2
+  - upper__L_yaw_horn_M3x6_3
+  - upper__L_yaw_horn_M3x6_4
+  - upper__R_pitch_central_rocker_M3x6
+  - upper__R_pitch_horn_M3x6_1
+  - upper__R_pitch_horn_M3x6_2
+  - upper__R_pitch_horn_M3x6_3
+  - upper__R_pitch_horn_M3x6_4
+  - upper__R_roll_central_rocker_M3x6
+  - upper__R_yaw_central_rocker_M3x6
+  - upper__R_yaw_horn_M3x6_1
+  - upper__R_yaw_horn_M3x6_2
+  - upper__R_yaw_horn_M3x6_3
+  - upper__R_yaw_horn_M3x6_4
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 22
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - upper__L_pitch_horn_washer1
+  - upper__L_pitch_horn_washer2
+  - upper__L_pitch_horn_washer3
+  - upper__L_pitch_horn_washer4
+  - upper__L_yaw_horn_washer1
+  - upper__L_yaw_horn_washer2
+  - upper__L_yaw_horn_washer3
+  - upper__L_yaw_horn_washer4
+  - upper__R_pitch_horn_washer1
+  - upper__R_pitch_horn_washer2
+  - upper__R_pitch_horn_washer3
+  - upper__R_pitch_horn_washer4
+  - upper__R_yaw_horn_washer1
+  - upper__R_yaw_horn_washer2
+  - upper__R_yaw_horn_washer3
+  - upper__R_yaw_horn_washer4
+  kind: hardware
+  line: hw:M3-washer-3.2-6-x-1
+  name: M3 washer 3.2/6 x 1
+  make_buy: buy
+  quantity: 16
+  spec:
+    kind: washer
+    thread: M3
+    standard: custom (measured)
+    inner_dia_mm: 3.2
+    outer_dia_mm: 6.0
+    thickness_mm: 1.0
+    label: M3 washer 3.2/6 x 1
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - L_yawcase_PA2x9p2_1
+  - L_yawcase_PA2x9p2_2
+  - R_yawcase_PA2x9p2_3
+  - R_yawcase_PA2x9p2_4
+  kind: hardware
+  line: hw:PA2-x-9.2-ISO-7380-1
+  name: PA2 x 9.2 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 9.2
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 9.2 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 9.2 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - L_Shin_carrier_shell_shin_front_1_M3x8
+  - L_Shin_carrier_shell_shin_front_2_M3x8
+  - L_wrist_M3x8_1
+  - L_wrist_M3x8_2
+  - L_wrist_M3x8_3
+  - L_wrist_M3x8_4
+  - R_Shin_carrier_shell_shin_front_1_M3x8
+  - R_Shin_carrier_shell_shin_front_2_M3x8
+  - R_wrist_M3x8_1
+  - R_wrist_M3x8_2
+  - R_wrist_M3x8_3
+  - R_wrist_M3x8_4
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 12
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: R_palm_lower
+  kind: printed
+  line: print:R_palm_lower
+  name: R_palm_lower
+  make_buy: make
+  quantity: 1
+- match: R_palm_upper
+  kind: printed
+  line: print:R_palm_upper
+  name: R_palm_upper
+  make_buy: make
+  quantity: 1
+- match: R_right_finger
+  kind: printed
+  line: print:R_right_finger
+  name: R_right_finger
+  make_buy: make
+  quantity: 1
+- match: R_left_finger
+  kind: printed
+  line: print:R_left_finger
+  name: R_left_finger
+  make_buy: make
+  quantity: 1
+- match: L_palm_lower
+  kind: printed
+  line: print:L_palm_lower
+  name: L_palm_lower
+  make_buy: make
+  quantity: 1
+- match: L_palm_upper
+  kind: printed
+  line: print:L_palm_upper
+  name: L_palm_upper
+  make_buy: make
+  quantity: 1
+- match: L_right_finger
+  kind: printed
+  line: print:L_right_finger
+  name: L_right_finger
+  make_buy: make
+  quantity: 1
+- match: L_left_finger
+  kind: printed
+  line: print:L_left_finger
+  name: L_left_finger
+  make_buy: make
+  quantity: 1
+- match:
+  - L_hand_OEM_case
+  - R_hand_OEM_case
+  kind: purchased
+  line: servo:hand-OEM
+  name: Hand servo (OEM, model to specify)
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'No geometry in the manifest (R/L_hand_OEM_case); model not recorded. supplier / part number: no source in the repo (unknown).'
+- match:
+  - L_hand_driven_front_bush
+  - R_hand_driven_front_bush
+  kind: hardware
+  line: hardware:hand_driven_front_bush
+  name: hand_driven_front_bush
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'Hand bush (manifest role bearing); size not specified in the repo. supplier / part number: no source in the repo (unknown).'
+- match:
+  - L_hand_right_rear_bush
+  - R_hand_right_rear_bush
+  kind: hardware
+  line: hardware:hand_right_rear_bush
+  name: hand_right_rear_bush
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'Hand bush (manifest role bearing); size not specified in the repo. supplier / part number: no source in the repo (unknown).'
+- match:
+  - L_hand_left_rear_bush
+  - R_hand_left_rear_bush
+  kind: hardware
+  line: hardware:hand_left_rear_bush
+  name: hand_left_rear_bush
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'Hand bush (manifest role bearing); size not specified in the repo. supplier / part number: no source in the repo (unknown).'
+- match:
+  - L_hand_left_front_bush
+  - R_hand_left_front_bush
+  kind: hardware
+  line: hardware:hand_left_front_bush
+  name: hand_left_front_bush
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  notes: 'Hand bush (manifest role bearing); size not specified in the repo. supplier / part number: no source in the repo (unknown).'
+assembly:
+  subassemblies:
+  - name: neck_head
+    plan:
+      links:
+      - neck_yaw
+      - head
+    doc: 'Neck and head, built in place on the torso: neck yaw-to-pitch link, the head carrier with camera, compute and sensors; the head skin
+      and neck collar go on last.'
+    after:
+    - torso
+  - name: right_leg
+    plan:
+      links:
+      - R_yaw_link
+      - R_pitch_link
+      - R_roll_link
+      - R_shin
+      - R_ankle_pitch
+      - R_foot
+    doc: 'Right leg, built in place on the torso''s hip yaw servo (lower__R_yaw_servo_case_reference, in the torso assembly): hip yaw-to-pitch,
+      pitch servo, roll-flip Stage 5 and H-cage, knee, shin, ankle, foot; covers last. Hip steps without `seeded` are the roll-flip designer''s
+      order (2026-11-20/22).'
+    after:
+    - torso
+  - name: left_leg
+    plan:
+      links:
+      - L_yaw_link
+      - L_pitch_link
+      - L_roll_link
+      - L_shin
+      - L_ankle_pitch
+      - L_foot
+      mirror_of: right_leg
+    doc: 'Left leg: the mirror of right_leg (R_ <-> L_, x negated), extended where the sides differ.'
+    after:
+    - torso
+  steps:
+  - id: torso:p024
+    subassembly: torso
+    part: upper__R_pitch_C047_case
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - torso:s023
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via combined__stage1_center_torso_spine_chassis); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (upper__A_R_clocked_pitch_PA2x10), head to tip when the part carries the head, else reversed; moved
+      after s014 (its part upper__R_pitch_C047_case blocked that screw''s driver path, 139.895 mm3)'
+  - id: torso:s025
+    subassembly: torso
+    screw:
+    - upper__A_R_clocked_pitch_PA2x10_0
+    - upper__A_R_clocked_pitch_PA2x10_1
+    - upper__A_R_clocked_pitch_PA2x10_2
+    - upper__A_R_clocked_pitch_PA2x10_3
+    with:
+    - upper__A_R_clocked_pitch_spacer_3mm_0
+    - upper__A_R_clocked_pitch_spacer_3mm_1
+    - upper__A_R_clocked_pitch_spacer_3mm_2
+    - upper__A_R_clocked_pitch_spacer_3mm_3
+    - upper__A_R_clocked_pitch_washer_0
+    - upper__A_R_clocked_pitch_washer_1
+    - upper__A_R_clocked_pitch_washer_2
+    - upper__A_R_clocked_pitch_washer_3
+    direction: screw axis
+    after:
+    - torso:p024
+    status: seeded
+    derived: '4 screw(s) that joins parts never placed (connection graph): placed after the nearest part upper__R_pitch_C047_case; driver path
+      vs placed parts; moved after s014 (its part upper__R_pitch_C047_case blocked that screw''s driver path, 139.895 mm3)'
+  - id: torso:p026
+    subassembly: torso
+    part: upper__L_pitch_C047_case
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - torso:s025
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via combined__stage1_center_torso_spine_chassis); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (upper__A_L_clocked_pitch_PA2x10), head to tip when the part carries the head, else reversed; moved
+      after s014 (its part upper__L_pitch_C047_case blocked that screw''s driver path, 139.891 mm3); moved after s023 (its part upper__L_pitch_C047_case
+      blocked that screw''s driver path, 140.315 mm3)'
+  - id: torso:s027
+    subassembly: torso
+    screw:
+    - upper__A_L_clocked_pitch_PA2x10_0
+    - upper__A_L_clocked_pitch_PA2x10_1
+    - upper__A_L_clocked_pitch_PA2x10_2
+    - upper__A_L_clocked_pitch_PA2x10_3
+    with:
+    - upper__A_L_clocked_pitch_spacer_3mm_0
+    - upper__A_L_clocked_pitch_spacer_3mm_1
+    - upper__A_L_clocked_pitch_spacer_3mm_2
+    - upper__A_L_clocked_pitch_spacer_3mm_3
+    - upper__A_L_clocked_pitch_washer_0
+    - upper__A_L_clocked_pitch_washer_1
+    - upper__A_L_clocked_pitch_washer_2
+    - upper__A_L_clocked_pitch_washer_3
+    direction: screw axis
+    after:
+    - torso:p026
+    status: seeded
+    derived: '4 screw(s) that joins parts never placed (connection graph): placed after the nearest part upper__L_pitch_C047_case; driver path
+      vs placed parts; moved after s014 (its part upper__L_pitch_C047_case blocked that screw''s driver path, 139.891 mm3); moved after s023 (its
+      part upper__L_pitch_C047_case blocked that screw''s driver path, 140.315 mm3)'
+  - id: torso:s030
+    subassembly: torso
+    screw: neck_anchor_M3x16_CSK_1_v21
+    with:
+    - neck_anchor_M3nut_1_v21
+    - neck_anchor_front_washer_1_v21
+    direction: screw axis
+    after:
+    - torso:s029
+    status: seeded
+    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
+      vs placed parts'
+  - id: torso:s031
+    subassembly: torso
+    screw: neck_anchor_M3x16_CSK_3_v21
+    with:
+    - neck_anchor_M3nut_3_v21
+    - neck_anchor_front_washer_3_v21
+    direction: screw axis
+    after:
+    - torso:s030
+    status: seeded
+    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
+      vs placed parts'
+  - id: torso:p032
+    subassembly: torso
+    part: foot_ADC_6494
+    direction: [-0.0, -1.0, 0.0]
+    after:
+    - torso:s031
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via combined__stage4_rear_imu_adc_carrier); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (ADC_M2x6), head to tip when the part carries the head, else reversed'
+  - id: torso:p034
+    subassembly: torso
+    part: upper__neck_yaw_case_XM335
+    direction: [-0.0, 1.0, -0.0]
+    after:
+    - torso:s033
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via combined__neck_root_cradle); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (upper__neck_root_M2x6), head to tip when the part carries the head, else reversed'
+  - id: torso:p041
+    subassembly: torso
+    part: lower__L_yaw_servo_case_reference
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - torso:p040
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis'
+  - id: torso:p042
+    subassembly: torso
+    part: lower__R_yaw_servo_case_reference
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - torso:p041
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis'
+  - id: torso:p045
+    subassembly: torso
+    part: Main_precharge_source_board
+    direction: [-0.0, 1.0, -0.0]
+    after:
+    - torso:p044
+    status: seeded
+    derived: 'graph order, fastened distance 11 from what is present (via combined__stage3_front_power_electronics_carrier); direction: mean screw
+      direction of 2 screw(s) joining it to placed parts (Main_precharge_H1_M2x12, Main_precharge_H2_M2x12), head to tip when the part carries
+      the head, else reversed'
+  - id: torso:s046
+    subassembly: torso
+    screw: Main_precharge_H1_M2x12
+    with:
+    - Main_H1_2mm_front_spacer
+    - Main_precharge_H1_M2_nut
+    - Main_precharge_H1_front_washer
+    - Main_precharge_H1_rear_washer
+    direction: screw axis
+    after:
+    - torso:p045
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Main_precharge_source_board; driver path vs placed parts
+  - id: torso:p048
+    subassembly: torso
+    part: Power_supervisor_source_board
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - torso:s047
+    status: seeded
+    derived: 'graph order, fastened distance 11 from what is present (via combined__stage3_front_power_electronics_carrier); direction: mean screw
+      direction of 4 screw(s) joining it to placed parts (Power_supervisor_H1_M2x12, Power_supervisor_H2_M2x12, Power_supervisor_H3_M2x12, Power_supervisor_H4_M2x12),
+      head to tip when the part carries the head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 22.5
+      -> 0.0 mm out, seat released True -> True, max overlap 3241.7 -> 0.0 mm3'
+  - id: torso:s051
+    subassembly: torso
+    screw: Power_supervisor_H3_M2x12
+    with:
+    - Power_supervisor_H3_M2_nut
+    - Power_supervisor_H3_front_washer
+    - Power_supervisor_H3_rear_washer
+    direction: screw axis
+    after:
+    - torso:s050
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Power_supervisor_source_board; driver path vs placed parts
+  - id: torso:s052
+    subassembly: torso
+    screw: Power_supervisor_H4_M2x12
+    with:
+    - Power_supervisor_H4_M2_nut
+    - Power_supervisor_H4_front_washer
+    - Power_supervisor_H4_rear_washer
+    direction: screw axis
+    after:
+    - torso:s051
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Power_supervisor_source_board; driver path vs placed parts
+  - id: neck_head:p001
+    subassembly: neck_head
+    part: upper__neck_yaw_front_horn
+    direction: [0.0, 0.0, -1.0]
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__neck_yaw_case_XM335); direction: toward the centroid of placed
+      neighbours (upper__neck_yaw_case_XM335), snapped to the nearest axis'
+  - id: neck_head:p004
+    subassembly: neck_head
+    part: upper__neck_pitch_front_horn
+    direction: [-1.0, -0.0, -0.0]
+    after:
+    - neck_head:s003
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via combined__neck_yaw_to_pitch_link); direction: mean screw direction of
+      4 screw(s) joining it to placed parts (upper__neck_pitch_horn_M2x5), head to tip when the part carries the head, else reversed'
+  - id: neck_head:p006
+    subassembly: neck_head
+    part: upper__neck_pitch_case_XM335
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - neck_head:s005
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via upper__neck_pitch_front_horn); direction: toward the centroid of placed
+      neighbours (upper__neck_pitch_front_horn), snapped to the nearest axis'
+  - id: neck_head:p009
+    subassembly: neck_head
+    part: fan_black_formed_lead
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - neck_head:s008
+    status: seeded
+    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
+      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact
+      58.5 -> 5.5 mm out, seat released True -> True, max overlap 5.8 -> 5.1 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
+      5.5 mm out, 5.092 mm3); moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23 43.5 mm out, 5.402 mm3)'
+  - id: neck_head:p010
+    subassembly: neck_head
+    part: fan_red_formed_lead
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - neck_head:p009
+    status: seeded
+    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
+      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact
+      57.5 -> 8.5 mm out, seat released True -> True, max overlap 8.9 -> 2.2 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
+      8.5 mm out, 2.242 mm3); moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23 60.0 mm out, 3.919 mm3);
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 2.5 -> 0.0 mm out, seat released True -> True, max overlap 2.2
+      -> 0.0 mm3'
+  - id: neck_head:p011
+    subassembly: neck_head
+    part: fan_yellow_formed_lead
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - neck_head:p010
+    status: seeded
+    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
+      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact
+      17.5 -> 4.5 mm out, seat released True -> True, max overlap 1.3 -> 1.0 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
+      4.5 mm out, 1.033 mm3); moved after s027 (its part fan_yellow_formed_lead blocked that screw''s driver path, 23.569 mm3); moved before original_profile_head_skin_v23
+      (it touched original_profile_head_skin_v23 60.0 mm out, 2.456 mm3)'
+  - id: neck_head:p012
+    subassembly: neck_head
+    part: TIM_3M8810_cut
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:p011
+    status: seeded
+    derived: 'graph order, fastened distance 27 from what is present (via Radian_INL25001_bare); direction: toward the centroid of placed neighbours
+      (Radian_INL25001_bare), snapped to the nearest axis; moved before B0196_supplier_native_v23 (it touched B0196_supplier_native_v23 16.5 mm
+      out, 69.087 mm3); moved after s037 (its part TIM_3M8810_cut blocked that screw''s driver path, 127.262 mm3); moved before original_profile_head_skin_v23
+      (it touched original_profile_head_skin_v23 36.5 mm out, 69.087 mm3)'
+  - id: neck_head:p013
+    subassembly: neck_head
+    part: Wuerth_61304021821_official
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - neck_head:p012
+    status: seeded
+    derived: 'graph order, fastened distance 14 from what is present (via upper__neck_pitch_case_XM335); direction: toward the centroid of placed
+      neighbours (upper__neck_pitch_case_XM335), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path
+      contact 57.5 -> 0.0 mm out, seat released True -> True, max overlap 275.9 -> 0.0 mm3; moved before original_profile_head_skin_v23 (it touched
+      original_profile_head_skin_v23 60.0 mm out, 83.205 mm3); direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 50.5
+      -> 0.0 mm out, seat released True -> True, max overlap 0.1 -> 0.0 mm3'
+  - id: neck_head:p014
+    subassembly: neck_head
+    part: fan_tach_insulating_cap
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - neck_head:p013
+    status: seeded
+    derived: 'graph order, fastened distance 28 from what is present (via fan_yellow_formed_lead); direction: toward the centroid of placed neighbours
+      (fan_yellow_formed_lead), snapped to the nearest axis; moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23
+      22.5 mm out, 5.237 mm3)'
+  - id: neck_head:s016
+    subassembly: neck_head
+    screw:
+    - neck_M3x6_countersunk_0
+    - neck_M3x6_countersunk_1
+    direction: screw axis
+    after:
+    - neck_head:p015
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after combined__head_sensor_compute_carrier; driver path vs placed parts
+  - id: neck_head:p017
+    subassembly: neck_head
+    part: Radian_INL25001_bare
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:s016
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via ROCK4D_official); direction: toward the centroid of placed neighbours
+      (ROCK4D_official), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 26.5 mm
+      out, seat released True -> True, max overlap 1836.8 -> 1217.7 mm3; moved before SameSky_4010_fan (it touched SameSky_4010_fan 26.5 mm out,
+      1217.722 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate 15.5 mm out, 277.327 mm3); direction searched (six axes vs the
+      seeded [0.0, -1.0, 0.0]): path contact 57.5 -> 50.5 mm out, seat released True -> True, max overlap 558.2 -> 967.8 mm3'
+  - id: neck_head:p019
+    subassembly: neck_head
+    part: fan_bridge_standoff_0
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - neck_head:p018
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, -0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.1 -> 2.1 mm3'
+  - id: neck_head:p020
+    subassembly: neck_head
+    part: fan_bridge_standoff_1
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - neck_head:p019
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.0 -> 1.8 mm3; direction
+      searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 26.5 -> 0.0 mm out, seat released True -> True, max overlap 99.7 -> 0.0
+      mm3'
+  - id: neck_head:p021
+    subassembly: neck_head
+    part: microphone_6049_v23
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - neck_head:p020
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 2 screw(s) joining it to placed parts (mic_side_M2x4_lowhead), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 265.8 -> 0.0 mm3; direction
+      searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 45.5 -> 10.5 mm out, seat released True -> True, max overlap 93.9 -> 223.9
+      mm3'
+  - id: neck_head:s022
+    subassembly: neck_head
+    screw:
+    - mic_side_M2x4_lowhead_0
+    - mic_side_M2x4_lowhead_1
+    with:
+    - mic_side_shim_0
+    - mic_side_shim_1
+    direction: screw axis
+    after:
+    - neck_head:p021
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after microphone_6049_v23; driver path vs placed parts
+  - id: neck_head:p023
+    subassembly: neck_head
+    part: heatsink_nonpreloaded_guard
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:s022
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; moved after s026
+      (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 136.949 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate
+      15.5 mm out, 70.32 mm3); moved after s016 (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 2.231 mm3); direction
+      searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 56.5 -> 50.5 mm out, seat released True -> True, max overlap 199.7 -> 229.1
+      mm3'
+  - id: neck_head:p024
+    subassembly: neck_head
+    part: SameSky_4010_fan
+    direction: [-0.0, -1.0, 0.0]
+    after:
+    - neck_head:p023
+    status: seeded
+    derived: 'graph order, fastened distance 8 from what is present (via fan_bridge_plate); direction: mean screw direction of 2 screw(s) joining
+      it to placed parts (fan_plate_M3x16, fan_plate_M3x16_-21), head to tip when the part carries the head, else reversed; moved after s025 (its
+      part SameSky_4010_fan blocked that screw''s driver path, 12.031 mm3)'
+  - id: neck_head:p027
+    subassembly: neck_head
+    part: ROCK4D_official
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:s026
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (compute_M2p5_CS10, compute_M2p5_CS30), head to tip when the part carries the head, else reversed;
+      direction searched (six axes vs the seeded [-0.0, -1.0, -0.0]): path contact 17.5 -> 0.0 mm out, seat released True -> True, max overlap
+      35.7 -> 0.0 mm3; moved after s028 (its part ROCK4D_official blocked that screw''s driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official
+      blocked that screw''s driver path, 11.298 mm3); moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16 60.0 mm out, 789.922 mm3);
+      direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 43.5 mm out, seat released True -> True, max overlap 2527.3
+      -> 5334.9 mm3'
+  - id: neck_head:p028
+    subassembly: neck_head
+    part: fan_lead_guide_r16
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - neck_head:p027
+    status: seeded
+    derived: 'graph order, fastened distance 9 from what is present (via SameSky_4010_fan); direction: mean screw direction of 1 screw(s) joining
+      it to placed parts (fan_M3x16_guide), head to tip when the part carries the head, else reversed; direction searched (six axes vs the seeded
+      [0.0, 1.0, -0.0]): path contact 30.5 -> 0.0 mm out, seat released True -> True, max overlap 67.5 -> 0.7 mm3'
+  - id: neck_head:s029
+    subassembly: neck_head
+    screw: fan_M3x16_guide
+    with:
+    - fan_guide_front_washer
+    - fan_nut_-21_430
+    - fan_washer_-21_430
+    direction: screw axis
+    after:
+    - neck_head:p028
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after fan_lead_guide_r16; driver path vs placed parts
+  - id: neck_head:p031
+    subassembly: neck_head
+    part: B0410_supplier_native_v23
+    direction: [0.0, 1.0, -0.0]
+    after:
+    - neck_head:s030
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 8 screw(s) joining it to placed parts (B0410_camera_M2x4, B0410_plate_M2x4), head to tip when the part carries the head, else reversed;
+      moved after s018 (its part B0410_supplier_native_v23 blocked that screw''s driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23
+      blocked that screw''s driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw''s driver path,
+      0.496 mm3)'
+  - id: neck_head:s032
+    subassembly: neck_head
+    screw:
+    - B0410_camera_M2x4_0
+    - B0410_camera_M2x4_1
+    - B0410_camera_M2x4_2
+    - B0410_camera_M2x4_3
+    with:
+    - B0410_M2_FF5_spacer_0_v23
+    - B0410_M2_FF5_spacer_1_v23
+    - B0410_camera_washer_0
+    - B0410_camera_washer_1
+    - B0410_camera_washer_2
+    - B0410_camera_washer_3
+    direction: screw axis
+    after:
+    - neck_head:p031
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0410_supplier_native_v23; driver path vs placed parts; moved after s018 (its
+      part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23 blocked
+      that screw's driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3)
+  - id: neck_head:p036
+    subassembly: neck_head
+    part: B0196_supplier_native_v23
+    direction: [-0.0, 1.0, 0.0]
+    after:
+    - neck_head:s035
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
+      of 8 screw(s) joining it to placed parts (B0196_camera_M2x4, B0196_plate_M2x4), head to tip when the part carries the head, else reversed;
+      moved after s024 (its part B0196_supplier_native_v23 blocked that screw''s driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23
+      blocked that screw''s driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw''s driver path,
+      15.104 mm3)'
+  - id: neck_head:s037
+    subassembly: neck_head
+    screw:
+    - B0196_camera_M2x4_0
+    - B0196_camera_M2x4_1
+    - B0196_camera_M2x4_2
+    - B0196_camera_M2x4_3
+    with:
+    - B0196_camera_washer_0
+    - B0196_camera_washer_1
+    - B0196_camera_washer_2
+    - B0196_camera_washer_3
+    direction: screw axis
+    after:
+    - neck_head:p036
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0196_supplier_native_v23; driver path vs placed parts; moved after s024 (its
+      part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23 blocked
+      that screw's driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3)
+  - id: right_arm:p002
+    subassembly: right_arm
+    part: upper__R_pitch_C047_main_horn
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_arm:p001
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__R_pitch_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__R_pitch_central_rocker_M3x6, upper__R_pitch_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max
+      overlap 1323.7 -> 31.4 mm3'
+  - id: right_arm:s003
+    subassembly: right_arm
+    screw: upper__R_pitch_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - right_arm:p002
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__R_pitch_C047_main_horn; driver path vs placed parts
+  - id: right_arm:s004
+    subassembly: right_arm
+    screw:
+    - upper__R_pitch_horn_M3x6_1
+    - upper__R_pitch_horn_M3x6_2
+    - upper__R_pitch_horn_M3x6_3
+    - upper__R_pitch_horn_M3x6_4
+    with:
+    - upper__R_pitch_horn_washer1
+    - upper__R_pitch_horn_washer2
+    - upper__R_pitch_horn_washer3
+    - upper__R_pitch_horn_washer4
+    direction: screw axis
+    after:
+    - right_arm:s003
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_pitch_C047_main_horn; driver path vs placed parts
+  - id: right_arm:p005
+    subassembly: right_arm
+    part: upper__R_pitch_C047_rear_idler
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_arm:s004
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__R_pitch_C047_case); direction: toward the centroid of placed neighbours
+      (upper__R_pitch_C047_case), snapped to the nearest axis; direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0
+      -> 18.5 mm out, seat released True -> True, max overlap 554.1 -> 51.3 mm3'
+  - id: right_arm:p006
+    subassembly: right_arm
+    part: upper__R_roll_C047_case
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_arm:p005
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via R_shoulder_pitch_to_roll_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (R_shoulder_u_roll_horn_screw, upper__R_roll_central_rocker_M3x6), head to tip when the part carries
+      the head, else reversed; direction searched (six axes vs the seeded [-0.0, 1.0, 0.0]): path contact 38.5 -> 14.5 mm out, seat released True
+      -> True, max overlap 1991.9 -> 16.1 mm3'
+  - id: right_arm:p012
+    subassembly: right_arm
+    part: upper__R_yaw_C047_case
+    direction: [-0.164, -0.0, 0.986]
+    after:
+    - right_arm:s011
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__R_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (R_yawcase_PA2x9p2, upper__R_yaw_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: right_arm:s013
+    subassembly: right_arm
+    screw:
+    - R_yawcase_PA2x9p2_3
+    - R_yawcase_PA2x9p2_4
+    with:
+    - upper__R_yaw_case_spacer3
+    - upper__R_yaw_case_spacer4
+    - upper__R_yaw_case_washer3
+    - upper__R_yaw_case_washer4
+    direction: screw axis
+    after:
+    - right_arm:p012
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after upper__R_yaw_C047_case; driver path vs placed parts
+  - id: right_arm:s014
+    subassembly: right_arm
+    screw:
+    - upper__R_yaw_case_PA2x7_1
+    - upper__R_yaw_case_PA2x7_2
+    with:
+    - upper__R_yaw_case_spacer1
+    - upper__R_yaw_case_spacer2
+    - upper__R_yaw_case_washer1
+    - upper__R_yaw_case_washer2
+    direction: screw axis
+    after:
+    - right_arm:s013
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after upper__R_yaw_C047_case; driver path vs placed parts
+  - id: right_arm:p015
+    subassembly: right_arm
+    part: upper__R_roll_C047_main_horn
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - right_arm:s014
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via R_shoulder_pitch_to_roll_combined); direction: mean screw direction of
+      5 screw(s) joining it to placed parts (R_shoulder_u_roll_horn_screw, upper__R_roll_central_rocker_M3x6), head to tip when the part carries
+      the head, else reversed; direction searched (six axes vs the seeded [-0.0, 1.0, 0.0]): path contact 40.5 -> 0.0 mm out, seat released True
+      -> True, max overlap 1323.8 -> 31.5 mm3; moved after s017 (its part upper__R_roll_C047_main_horn blocked that screw''s driver path, 476.051
+      mm3)'
+  - id: right_arm:s017
+    subassembly: right_arm
+    screw: upper__R_roll_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - right_arm:s016
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__R_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__R_roll_C047_main_horn blocked that screw's driver path, 476.051 mm3)
+  - id: right_arm:p019
+    subassembly: right_arm
+    part: upper__R_yaw_C047_main_horn
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_arm:p018
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via upper__R_yaw_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__R_yaw_central_rocker_M3x6, upper__R_yaw_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [0.164, -0.0, -0.986]): path contact 60.0 -> 0.0 mm out, seat released True -> True,
+      max overlap 1323.8 -> 31.5 mm3'
+  - id: right_arm:s020
+    subassembly: right_arm
+    screw: upper__R_yaw_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - right_arm:p019
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__R_yaw_C047_main_horn; driver path vs placed parts
+  - id: right_arm:s021
+    subassembly: right_arm
+    screw:
+    - upper__R_yaw_horn_M3x6_1
+    - upper__R_yaw_horn_M3x6_2
+    - upper__R_yaw_horn_M3x6_3
+    - upper__R_yaw_horn_M3x6_4
+    with:
+    - upper__R_yaw_horn_washer1
+    - upper__R_yaw_horn_washer2
+    - upper__R_yaw_horn_washer3
+    - upper__R_yaw_horn_washer4
+    direction: screw axis
+    after:
+    - right_arm:s020
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_yaw_C047_main_horn; driver path vs placed parts
+  - id: right_arm:p030
+    subassembly: right_arm
+    part: R_palm_lower
+    with:
+    - R_hand_OEM_case
+    - R_hand_driven_front_bush
+    - R_wrist_M3x8_1
+    - R_wrist_M3x8_2
+    - R_wrist_M3x8_3
+    - R_wrist_M3x8_4
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_arm:s029
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via R_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (R_forearm_elbow_to_wrist_combined, R_forearm_elbow_to_wrist_combined_steel_sleeves), snapped to the nearest axis; moved
+      before R_right_finger (it touched R_right_finger 53.5 mm out, 1191.677 mm3)'
+  - id: right_arm:p031
+    subassembly: right_arm
+    part: R_left_finger
+    with:
+    - R_hand_left_front_bush
+    - R_hand_left_rear_bush
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_arm:p030
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via R_palm_lower); direction: toward the centroid of placed neighbours (R_palm_lower),
+      snapped to the nearest axis; moved before R_palm_upper (it touched R_palm_upper 21.5 mm out, 277.242 mm3)'
+  - id: right_arm:p032
+    subassembly: right_arm
+    part: R_palm_upper
+    with:
+    - R_hand_OEM_horn
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_arm:p031
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via R_palm_lower); direction: toward the centroid of placed neighbours (R_left_finger,
+      R_palm_lower), snapped to the nearest axis; moved before R_left_finger (it touched R_left_finger 18.5 mm out, 243.92 mm3); moved before
+      R_right_finger (it touched R_right_finger 18.5 mm out, 244.094 mm3)'
+  - id: right_arm:p033
+    subassembly: right_arm
+    part: R_right_finger
+    with:
+    - R_hand_right_rear_bush
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_arm:p032
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via R_palm_lower); direction: toward the centroid of placed neighbours (R_left_finger,
+      R_palm_lower, R_palm_upper), snapped to the nearest axis; moved before R_palm_lower (it touched R_palm_lower 21.5 mm out, 148.499 mm3)'
+  - id: left_arm:p002
+    subassembly: left_arm
+    part: upper__L_pitch_C047_main_horn
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - left_arm:p001
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__L_pitch_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__L_pitch_central_rocker_M3x6, upper__L_pitch_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [-1.0, -0.0, -0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max
+      overlap 1323.7 -> 31.4 mm3'
+  - id: left_arm:s003
+    subassembly: left_arm
+    screw: upper__L_pitch_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - left_arm:p002
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__L_pitch_C047_main_horn; driver path vs placed parts
+  - id: left_arm:s004
+    subassembly: left_arm
+    screw:
+    - upper__L_pitch_horn_M3x6_1
+    - upper__L_pitch_horn_M3x6_2
+    - upper__L_pitch_horn_M3x6_3
+    - upper__L_pitch_horn_M3x6_4
+    with:
+    - upper__L_pitch_horn_washer1
+    - upper__L_pitch_horn_washer2
+    - upper__L_pitch_horn_washer3
+    - upper__L_pitch_horn_washer4
+    direction: screw axis
+    after:
+    - left_arm:s003
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_pitch_C047_main_horn; driver path vs placed parts
+  - id: left_arm:p005
+    subassembly: left_arm
+    part: upper__L_pitch_C047_rear_idler
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - left_arm:s004
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__L_pitch_C047_case); direction: toward the centroid of placed neighbours
+      (upper__L_pitch_C047_case), snapped to the nearest axis; direction searched (six axes vs the seeded [-1.0, 0.0, 0.0]): path contact 60.0
+      -> 18.5 mm out, seat released True -> True, max overlap 554.1 -> 51.3 mm3'
+  - id: left_arm:p006
+    subassembly: left_arm
+    part: upper__L_roll_C047_case
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:p005
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via L_shoulder_pitch_to_roll_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (L_shoulder_u_roll_horn_screw, upper__L_roll_central_rocker_M3x6), head to tip when the part carries
+      the head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 38.5 -> 14.5 mm out, seat released True
+      -> True, max overlap 1991.9 -> 16.1 mm3'
+  - id: left_arm:p012
+    subassembly: left_arm
+    part: upper__L_yaw_C047_case
+    direction: [0.164, -0.0, 0.986]
+    after:
+    - left_arm:s011
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__L_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (L_yawcase_PA2x9p2, upper__L_yaw_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: left_arm:s013
+    subassembly: left_arm
+    screw:
+    - L_yawcase_PA2x9p2_1
+    - L_yawcase_PA2x9p2_2
+    with:
+    - upper__L_yaw_case_spacer1
+    - upper__L_yaw_case_spacer2
+    - upper__L_yaw_case_washer1
+    - upper__L_yaw_case_washer2
+    direction: screw axis
+    after:
+    - left_arm:p012
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after upper__L_yaw_C047_case; driver path vs placed parts
+  - id: left_arm:s014
+    subassembly: left_arm
+    screw:
+    - upper__L_yaw_case_PA2x7_3
+    - upper__L_yaw_case_PA2x7_4
+    with:
+    - upper__L_yaw_case_spacer3
+    - upper__L_yaw_case_spacer4
+    - upper__L_yaw_case_washer3
+    - upper__L_yaw_case_washer4
+    direction: screw axis
+    after:
+    - left_arm:s013
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after upper__L_yaw_C047_case; driver path vs placed parts
+  - id: left_arm:p015
+    subassembly: left_arm
+    part: upper__L_roll_C047_main_horn
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - left_arm:s014
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via L_shoulder_pitch_to_roll_combined); direction: mean screw direction of
+      5 screw(s) joining it to placed parts (L_shoulder_u_roll_horn_screw, upper__L_roll_central_rocker_M3x6), head to tip when the part carries
+      the head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 40.5 -> 0.0 mm out, seat released True
+      -> True, max overlap 1323.8 -> 31.6 mm3; moved after s017 (its part upper__L_roll_C047_main_horn blocked that screw''s driver path, 464.326
+      mm3)'
+  - id: left_arm:s017
+    subassembly: left_arm
+    screw: upper__L_roll_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - left_arm:s016
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__L_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__L_roll_C047_main_horn blocked that screw's driver path, 464.326 mm3)
+  - id: left_arm:p019
+    subassembly: left_arm
+    part: upper__L_yaw_C047_main_horn
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - left_arm:p018
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via upper__L_yaw_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__L_yaw_central_rocker_M3x6, upper__L_yaw_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [-0.164, -0.0, -0.986]): path contact 60.0 -> 0.0 mm out, seat released True -> True,
+      max overlap 1323.7 -> 31.5 mm3'
+  - id: left_arm:s020
+    subassembly: left_arm
+    screw: upper__L_yaw_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - left_arm:p019
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__L_yaw_C047_main_horn; driver path vs placed parts
+  - id: left_arm:s021
+    subassembly: left_arm
+    screw:
+    - upper__L_yaw_horn_M3x6_1
+    - upper__L_yaw_horn_M3x6_2
+    - upper__L_yaw_horn_M3x6_3
+    - upper__L_yaw_horn_M3x6_4
+    with:
+    - upper__L_yaw_horn_washer1
+    - upper__L_yaw_horn_washer2
+    - upper__L_yaw_horn_washer3
+    - upper__L_yaw_horn_washer4
+    direction: screw axis
+    after:
+    - left_arm:s020
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_yaw_C047_main_horn; driver path vs placed parts
+  - id: left_arm:p030
+    subassembly: left_arm
+    part: L_palm_lower
+    with:
+    - L_hand_OEM_case
+    - L_hand_driven_front_bush
+    - L_wrist_M3x8_1
+    - L_wrist_M3x8_2
+    - L_wrist_M3x8_3
+    - L_wrist_M3x8_4
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_arm:s029
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via L_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (L_forearm_elbow_to_wrist_combined, L_forearm_elbow_to_wrist_combined_steel_sleeves), snapped to the nearest axis; moved
+      before L_right_finger (it touched L_right_finger 53.5 mm out, 1191.658 mm3)'
+  - id: left_arm:p031
+    subassembly: left_arm
+    part: L_left_finger
+    with:
+    - L_hand_left_front_bush
+    - L_hand_left_rear_bush
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_arm:p030
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via L_palm_lower); direction: toward the centroid of placed neighbours (L_palm_lower),
+      snapped to the nearest axis; moved before L_palm_upper (it touched L_palm_upper 21.5 mm out, 277.242 mm3)'
+  - id: left_arm:p032
+    subassembly: left_arm
+    part: L_palm_upper
+    with:
+    - L_hand_OEM_horn
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_arm:p031
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via L_palm_lower); direction: toward the centroid of placed neighbours (L_left_finger,
+      L_palm_lower), snapped to the nearest axis; moved before L_left_finger (it touched L_left_finger 18.5 mm out, 243.921 mm3); moved before
+      L_right_finger (it touched L_right_finger 18.5 mm out, 244.094 mm3)'
+  - id: left_arm:p033
+    subassembly: left_arm
+    part: L_right_finger
+    with:
+    - L_hand_right_rear_bush
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:p032
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via L_palm_lower); direction: toward the centroid of placed neighbours (L_left_finger,
+      L_palm_lower, L_palm_upper), snapped to the nearest axis; moved before L_palm_lower (it touched L_palm_lower 21.5 mm out, 148.499 mm3)'
+  - id: right_leg:p001
+    subassembly: right_leg
+    part: R_yaw_passive_idler_reference
+    direction: [-1.0, 0.0, 0.0]
+    status: seeded
+    derived: 'graph order, fastened distance 1 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference),
+      snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 12.5 mm out, seat released
+      True -> True, max overlap 716.9 -> 49.9 mm3'
+  - id: right_leg:p002
+    subassembly: right_leg
+    part: R_yaw_upper_horn_reference
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p001
+    status: seeded
+    derived: 'graph order, fastened distance 1 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference),
+      snapped to the nearest axis'
+  - id: right_leg:s033
+    subassembly: right_leg
+    screw: R_Shin_carrier_shell_shin_front_1_M3x8
+    with:
+    - R_Shin_carrier_shell_shin_front_1_nut
+    direction: screw axis
+    after:
+    - right_leg:p032
+    status: seeded
+    derived: 1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover; driver path vs placed parts; moved after s033
+      (its part R_shin_front_hard_cover blocked that screw's driver path, 9.307 mm3); moved after s034 (its part R_shin_front_hard_cover blocked
+      that screw's driver path, 9.508 mm3)
+  - id: right_leg:s034
+    subassembly: right_leg
+    screw: R_Shin_carrier_shell_shin_front_2_M3x8
+    with:
+    - R_Shin_carrier_shell_shin_front_2_nut
+    direction: screw axis
+    after:
+    - right_leg:s033
+    status: seeded
+    derived: 1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover; driver path vs placed parts; moved after s033
+      (its part R_shin_front_hard_cover blocked that screw's driver path, 9.307 mm3); moved after s034 (its part R_shin_front_hard_cover blocked
+      that screw's driver path, 9.508 mm3)
+  - id: left_leg:p001
+    subassembly: left_leg
+    part: L_yaw_passive_idler_reference
+    direction: [1.0, 0.0, 0.0]
+    status: seeded
+    derived: 'mirror of right_leg p01 (R_ <-> L_, x negated): graph order, fastened distance 1 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference), snapped to the nearest axis; direction searched (six axes
+      vs the seeded [-0.0, 0.0, -1.0]): path contact 60.0 -> 12.5 mm out, seat released True -> True, max overlap 645.5 -> 49.9 mm3'
+  - id: left_leg:p002
+    subassembly: left_leg
+    part: L_yaw_upper_horn_reference
+    direction: [-0.0, 0.0, 1.0]
+    after:
+    - left_leg:p001
+    status: seeded
+    derived: 'mirror of right_leg p02 (R_ <-> L_, x negated): graph order, fastened distance 1 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (lower__R_yaw_servo_case_reference), snapped to the nearest axis'
+  - id: left_leg:s033
+    subassembly: left_leg
+    screw: L_Shin_carrier_shell_shin_front_1_M3x8
+    with:
+    - L_Shin_carrier_shell_shin_front_1_nut
+    direction: screw axis
+    after:
+    - left_leg:p032
+    status: seeded
+    derived: 'mirror of right_leg s30 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover;
+      driver path vs placed parts; moved after s033 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.307 mm3); moved after
+      s034 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.508 mm3)'
+  - id: left_leg:s034
+    subassembly: left_leg
+    screw: L_Shin_carrier_shell_shin_front_2_M3x8
+    with:
+    - L_Shin_carrier_shell_shin_front_2_nut
+    direction: screw axis
+    after:
+    - left_leg:s033
+    status: seeded
+    derived: 'mirror of right_leg s31 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_shin_front_hard_cover;
+      driver path vs placed parts; moved after s033 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.307 mm3); moved after
+      s034 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.508 mm3)'
+defects:
+- id: old-study-head-electronics
+  kind: no_scripted_step
+  parts:
+  - original_profile_head_skin_v23
+  - fan_lead_guide_r16
+  - fan_bridge_standoff_*
+  - heatsink_nonpreloaded_guard
+  - '*_sensor_pocket_pad_v19'
+  state: STEP and STL exist only in artifacts/cove50-sensor-integration/original-shell-layout-20261026 (pinned input, no producer recorded). No
+    commit, private history included, holds the script that wrote them; only robot/electronics-integration/r1-20261026/render.py (commit ebc1c3118)
+    reads them.
+  fix: 'Rewrite as one parametric script (robot/body/neck-head/head_electronics.py) from the measured STEPs: standoffs and guard are extrusions
+    (small); fan lead guide small; the head skin is an organic shell: rebuild as a loft / offset of the head profile against the ape look reference
+    (medium). The neck collar is done (robot/body/assembly/neck_collar.py, parametric B-rep).'
+  effort: small for 4 parts, medium for 1

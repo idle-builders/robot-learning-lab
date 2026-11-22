@@ -1,0 +1,20 @@
+# Cove-50 body definition for robot/body/leg/regenerate_derived.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: regenerate-derived
+owner: (set by the owning session)
+generators:
+- id: section-regenerate-derived
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/regenerate_derived.py
+  rebuild: false
+  outputs:
+  - artifacts/robot/body/leg/scratch-regeneration.json
+  notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
+    producer table; confirm before running).'

@@ -1,0 +1,127 @@
+# Cove-50 body definition for robot/body/motor-refit/hip_yaw_screws.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: hip-yaw-screws
+owner: (set by the owning session)
+generators:
+- id: hip-yaw-screws
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/motor-refit/hip_yaw_screws.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - robot/body/fastening/connector_screws.json
+  outputs:
+  - artifacts/robot/body/leg/hip-yaw-screws/records.json
+  - artifacts/robot/body/leg/hip-yaw-screws/parts
+  notes: Edited hip yaw-to-pitch connector + sleeves (T-v3kzs4) that roll_flip_checks manifest swaps in.
+  after:
+  - shell-pass
+parts:
+- match: R_hip_yaw_to_pitch_combined
+  kind: printed
+  line: print:R_hip_yaw_to_pitch_combined
+  name: R_hip_yaw_to_pitch_combined
+  make_buy: make
+  quantity: 1
+- match: R_hip_yaw_to_pitch_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x2.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 2.25 mm (outer x inner x length)
+    quantity: 3
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 2.25
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x13
+    name: 304 steel compression sleeve 4.5 x 3.2 x 13 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 13.0
+    supplier: unknown
+    part_number: unknown
+- match: L_hip_yaw_to_pitch_combined
+  kind: printed
+  line: print:L_hip_yaw_to_pitch_combined
+  name: L_hip_yaw_to_pitch_combined
+  make_buy: make
+  quantity: 1
+- match: L_hip_yaw_to_pitch_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x2.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 2.25 mm (outer x inner x length)
+    quantity: 3
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 2.25
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x13
+    name: 304 steel compression sleeve 4.5 x 3.2 x 13 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 13.0
+    supplier: unknown
+    part_number: unknown
+assembly:
+  steps:
+  - id: right_leg:p003
+    subassembly: right_leg
+    part:
+    - R_hip_yaw_to_pitch_combined
+    - R_hip_yaw_to_pitch_combined_steel_sleeves
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_leg:p002
+    status: seeded
+    derived: 'graph order, fastened distance 2 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_A14_yaw_M3x14_0,
+      R_A14_yaw_M3x14_1, R_A14_yaw_M3x14_2, R_A14_yaw_M3x14_3), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-0.0, 0.0, -1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 3930.3 -> 0.0 mm3'
+  - id: left_leg:p003
+    subassembly: left_leg
+    part:
+    - L_hip_yaw_to_pitch_combined
+    - L_hip_yaw_to_pitch_combined_steel_sleeves
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_leg:p002
+    status: seeded
+    derived: 'mirror of right_leg p03 (R_ <-> L_, x negated): graph order, fastened distance 2 from the base; direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (R_A14_yaw_M3x14_0, R_A14_yaw_M3x14_1, R_A14_yaw_M3x14_2, R_A14_yaw_M3x14_3), head to tip when
+      the part carries the head, else reversed; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 0.0 mm out,
+      seat released True -> True, max overlap 3900.9 -> 0.0 mm3'

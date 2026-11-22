@@ -1,0 +1,410 @@
+# Cove-50 body definition for robot/body/arm/shoulder_clevis.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: shoulder-clevis
+owner: (set by the owning session)
+generators:
+- id: shoulder-clevis-cad
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/shoulder_clevis.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/actuators/interfaces/sources/feetech_sts3250.step
+  - artifacts/cove50-strength/complete-fdm-body-20261106/parts
+  - robot/body/checks/data/part_settings.json
+  - robot/body/checks/data/materials.json
+  outputs:
+  - artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json
+  - artifacts/robot/body/arm/shoulder-clevis/parts
+  resources:
+    timeout_s: 1800
+  notes: Shoulder U connectors and the STS3250 roll idler (B-rep), placed against the roll-flip body. Selected for Shoulder at f5dc4f036 (study
+    shoulder-roll-u-connectors).
+  after:
+  - shin-cover
+- id: shoulder-clevis-manifest
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/shoulder_clevis.py
+  - manifest
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json
+  outputs:
+  - artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json
+  - artifacts/robot/body/arm/shoulder-clevis/standing-overlaps.json
+  manifest_out: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json
+  resources:
+    timeout_s: 1800
+  notes: 'Applies the shoulder U connectors to the roll-flip body: per side a roll idler, generated M3x8 x4, M3x6 x4, M2x12 x4; removes the roll
+    case''s 4 PA2 and the two upper-arm cover posts with their M3 screws and nuts. body_manifest_chain in robot/design.json.'
+  after:
+  - shoulder-clevis-cad
+parts:
+- match: R_shoulder_pitch_to_roll_combined
+  kind: printed
+  line: print:R_shoulder_pitch_to_roll_combined
+  name: R_shoulder_pitch_to_roll_combined
+  make_buy: make
+  quantity: 1
+  generator: shoulder-clevis-cad
+- match: R_shoulder_pitch_to_roll_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.4
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x2.4
+    name: 304 steel compression sleeve 4.5 x 3.3 x 2.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 2.4
+    supplier: unknown
+    part_number: unknown
+  generator: shoulder-clevis-cad
+- match: L_shoulder_pitch_to_roll_combined
+  kind: printed
+  line: print:L_shoulder_pitch_to_roll_combined
+  name: L_shoulder_pitch_to_roll_combined
+  make_buy: make
+  quantity: 1
+  generator: shoulder-clevis-cad
+- match: L_shoulder_pitch_to_roll_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.4
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x2.4
+    name: 304 steel compression sleeve 4.5 x 3.3 x 2.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 2.4
+    supplier: unknown
+    part_number: unknown
+  generator: shoulder-clevis-cad
+- match:
+  - upper__L_roll_C047_rear_idler
+  - upper__R_roll_C047_rear_idler
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 2
+  notes: Come in the servo box; listed so every CAD part has a line.
+  generator: shoulder-clevis-cad
+- match:
+  - L_shoulder_u_roll_horn_screw_0
+  - L_shoulder_u_roll_horn_screw_1
+  - L_shoulder_u_roll_horn_screw_2
+  - L_shoulder_u_roll_horn_screw_3
+  - R_shoulder_u_roll_horn_screw_0
+  - R_shoulder_u_roll_horn_screw_1
+  - R_shoulder_u_roll_horn_screw_2
+  - R_shoulder_u_roll_horn_screw_3
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+- match:
+  - L_shoulder_u_roll_idler_screw_0
+  - L_shoulder_u_roll_idler_screw_1
+  - L_shoulder_u_roll_idler_screw_2
+  - L_shoulder_u_roll_idler_screw_3
+  - R_shoulder_u_roll_idler_screw_0
+  - R_shoulder_u_roll_idler_screw_1
+  - R_shoulder_u_roll_idler_screw_2
+  - R_shoulder_u_roll_idler_screw_3
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+- match:
+  - L_shoulder_u_roll_case_ny_screw_0
+  - L_shoulder_u_roll_case_ny_screw_1
+  - L_shoulder_u_roll_case_py_screw_0
+  - L_shoulder_u_roll_case_py_screw_1
+  - R_shoulder_u_roll_case_ny_screw_0
+  - R_shoulder_u_roll_case_ny_screw_1
+  - R_shoulder_u_roll_case_py_screw_0
+  - R_shoulder_u_roll_case_py_screw_1
+  kind: hardware
+  line: hw:M2-x-12-ISO-7380-1
+  name: M2 x 12 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 12.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 12 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 12 ISO 7380-1
+  material: ISO 7380-1 M2x12 into STS3250.case+y.3 (aluminium)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+assembly:
+  subassemblies:
+  - name: right_arm
+    plan:
+      links:
+      - R_shoulder_pitch_link
+      - R_shoulder_roll_link
+      - R_upper_arm
+      - R_forearm
+      - R_right_finger
+      - R_left_finger
+    doc: 'Right arm with hand, built in place on the torso''s shoulder pitch servo: shoulder U, roll / yaw servos, upper arm, elbow, forearm,
+      hand; covers last.'
+    after:
+    - torso
+  - name: left_arm
+    plan:
+      links:
+      - L_shoulder_pitch_link
+      - L_shoulder_roll_link
+      - L_upper_arm
+      - L_forearm
+      - L_right_finger
+      - L_left_finger
+      mirror_of: right_arm
+    doc: 'Left arm with hand: the mirror of right_arm (R_ <-> L_, x negated), extended where the sides differ.'
+    after:
+    - torso
+  steps:
+  - id: right_arm:p001
+    subassembly: right_arm
+    part:
+    - R_shoulder_pitch_to_roll_combined
+    - R_shoulder_pitch_to_roll_combined_steel_sleeves
+    direction: [-1.0, 0.0, 0.0]
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__R_pitch_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__R_pitch_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4309.4 -> 0.0 mm3'
+  - id: right_arm:s008
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_case_ny_screw_0
+    - R_shoulder_u_roll_case_ny_screw_1
+    direction: screw axis
+    after:
+    - right_arm:p007
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: right_arm:s009
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_case_py_screw_0
+    - R_shoulder_u_roll_case_py_screw_1
+    direction: screw axis
+    after:
+    - right_arm:s008
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: right_arm:p010
+    subassembly: right_arm
+    part: upper__R_roll_C047_rear_idler
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_arm:s009
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__R_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (R_shoulder_u_roll_idler_screw), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 41.5 -> 6.5 mm out, seat released True -> True, max overlap 1038.0 -> 473.3 mm3'
+  - id: right_arm:s011
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_idler_screw_0
+    - R_shoulder_u_roll_idler_screw_1
+    - R_shoulder_u_roll_idler_screw_2
+    - R_shoulder_u_roll_idler_screw_3
+    direction: screw axis
+    after:
+    - right_arm:p010
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_roll_C047_rear_idler; driver path vs placed parts
+  - id: right_arm:s016
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_horn_screw_0
+    - R_shoulder_u_roll_horn_screw_1
+    - R_shoulder_u_roll_horn_screw_2
+    - R_shoulder_u_roll_horn_screw_3
+    direction: screw axis
+    after:
+    - right_arm:p015
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__R_roll_C047_main_horn blocked that screw's driver path, 476.051 mm3)
+  - id: left_arm:p001
+    subassembly: left_arm
+    part:
+    - L_shoulder_pitch_to_roll_combined
+    - L_shoulder_pitch_to_roll_combined_steel_sleeves
+    direction: [1.0, 0.0, 0.0]
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__L_pitch_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__L_pitch_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-1.0, -0.0, -0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4310.8 -> 0.0 mm3'
+  - id: left_arm:s008
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_case_ny_screw_0
+    - L_shoulder_u_roll_case_ny_screw_1
+    direction: screw axis
+    after:
+    - left_arm:p007
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: left_arm:s009
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_case_py_screw_0
+    - L_shoulder_u_roll_case_py_screw_1
+    direction: screw axis
+    after:
+    - left_arm:s008
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: left_arm:p010
+    subassembly: left_arm
+    part: upper__L_roll_C047_rear_idler
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - left_arm:s009
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__L_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (L_shoulder_u_roll_idler_screw), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, -0.001]): path contact 41.5 -> 6.5 mm out, seat released True -> True, max overlap 1037.9 -> 473.3 mm3'
+  - id: left_arm:s011
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_idler_screw_0
+    - L_shoulder_u_roll_idler_screw_1
+    - L_shoulder_u_roll_idler_screw_2
+    - L_shoulder_u_roll_idler_screw_3
+    direction: screw axis
+    after:
+    - left_arm:p010
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_roll_C047_rear_idler; driver path vs placed parts
+  - id: left_arm:s016
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_horn_screw_0
+    - L_shoulder_u_roll_horn_screw_1
+    - L_shoulder_u_roll_horn_screw_2
+    - L_shoulder_u_roll_horn_screw_3
+    direction: screw axis
+    after:
+    - left_arm:p015
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__L_roll_C047_main_horn blocked that screw's driver path, 464.326 mm3)

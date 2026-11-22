@@ -1,0 +1,439 @@
+# Cove-50 body definition for robot/body/neck-head/build_neck_head_connectors.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: build-neck-head-connectors
+owner: (set by the owning session)
+generators:
+- id: section-build-neck-head-connectors
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/neck-head/build_neck_head_connectors.py
+  rebuild: false
+  outputs:
+  - artifacts/robot/body/neck-head
+  notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
+    producer table; confirm before running).'
+parts:
+- match: combined__neck_root_cradle
+  kind: printed
+  line: print:combined__neck_root_cradle
+  name: combined__neck_root_cradle
+  make_buy: make
+  quantity: 1
+- match: combined__neck_root_cradle_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x3
+    name: 304 steel compression sleeve 4.5 x 3.3 x 3 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+- match: combined__neck_yaw_to_pitch_link_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x3.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 8
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+- match: combined__neck_pitch_to_head_cradle
+  kind: printed
+  line: print:combined__neck_pitch_to_head_cradle
+  name: combined__neck_pitch_to_head_cradle
+  make_buy: make
+  quantity: 1
+- match: combined__neck_pitch_to_head_cradle_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.3x3.3x3
+    name: 304 steel compression sleeve 4.3 x 3.3 x 3 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.3
+      inner_dia_mm: 3.3
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+- match: combined__head_sensor_compute_carrier
+  kind: printed
+  line: print:combined__head_sensor_compute_carrier
+  name: combined__head_sensor_compute_carrier
+  make_buy: make
+  quantity: 1
+- match: combined__head_sensor_compute_carrier_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.0
+    supplier: unknown
+    part_number: unknown
+- match:
+  - upper__neck_head_M2x5_0
+  - upper__neck_head_M2x5_1
+  - upper__neck_head_M2x5_2
+  - upper__neck_head_M2x5_3
+  - upper__neck_root_M2x6_0
+  - upper__neck_root_M2x6_1
+  - upper__neck_root_M2x6_2
+  - upper__neck_root_M2x6_3
+  kind: hardware
+  line: hw:M2-x-5-ISO-7380-1
+  name: M2 x 5 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 5.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 5 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 5 ISO 7380-1
+  material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - upper__neck_pitch_horn_M2x5_0
+  - upper__neck_pitch_horn_M2x5_1
+  - upper__neck_pitch_horn_M2x5_2
+  - upper__neck_pitch_horn_M2x5_3
+  - upper__neck_yaw_horn_M2x5_0
+  - upper__neck_yaw_horn_M2x5_1
+  - upper__neck_yaw_horn_M2x5_2
+  - upper__neck_yaw_horn_M2x5_3
+  kind: hardware
+  line: hw:M2-x-8-ISO-7380-1
+  name: M2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 8 ISO 7380-1
+  material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - compute_M2p5_CS30_0
+  - compute_M2p5_CS30_1
+  kind: hardware
+  line: hw:M2.5-x-30-ISO-10642
+  name: M2.5 x 30 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2.5
+    family: M
+    length_mm: 30.0
+    standard: ISO 10642
+    head_dia_mm: 5.5
+    head_height_mm: 1.5
+    label: M2.5 x 30 ISO 10642
+  supplier: unknown
+  part_number: M2.5 x 30 ISO 10642
+  material: ISO 10642 M2.5x30 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - compute_M2p5_CS10_2
+  - compute_M2p5_CS10_3
+  kind: hardware
+  line: hw:M2.5-x-10-ISO-10642
+  name: M2.5 x 10 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2.5
+    family: M
+    length_mm: 10.0
+    standard: ISO 10642
+    head_dia_mm: 5.5
+    head_height_mm: 1.5
+    label: M2.5 x 10 ISO 10642
+  supplier: unknown
+  part_number: M2.5 x 10 ISO 10642
+  material: ISO 10642 M2.5x10 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - B0196_plate_M2x4_0
+  - B0196_plate_M2x4_1
+  - B0196_plate_M2x4_2
+  - B0196_plate_M2x4_3
+  - B0410_plate_M2x4_0
+  - B0410_plate_M2x4_1
+  - B0410_plate_M2x4_2
+  - B0410_plate_M2x4_3
+  kind: hardware
+  line: hw:M2-x-4-ISO-7380-1
+  name: M2 x 4 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 4.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 4 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 4 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+assembly:
+  steps:
+  - id: torso:p010
+    subassembly: torso
+    part:
+    - combined__neck_root_cradle
+    - combined__neck_root_cradle_steel_sleeves
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - torso:p009
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via combined__stage1_center_torso_spine_chassis_steel_sleeves); direction:
+      no placed neighbour: straight down (-z); direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 26.5 -> 16.5 mm out,
+      seat released True -> True, max overlap 10.6 -> 191.8 mm3; moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier
+      16.5 mm out, 191.755 mm3)'
+  - id: torso:s035
+    subassembly: torso
+    screw:
+    - upper__neck_root_M2x6_0
+    - upper__neck_root_M2x6_1
+    - upper__neck_root_M2x6_2
+    - upper__neck_root_M2x6_3
+    direction: screw axis
+    after:
+    - torso:p034
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__neck_yaw_case_XM335; driver path vs placed parts
+  - id: neck_head:s003
+    subassembly: neck_head
+    screw:
+    - upper__neck_yaw_horn_M2x5_0
+    - upper__neck_yaw_horn_M2x5_1
+    - upper__neck_yaw_horn_M2x5_2
+    - upper__neck_yaw_horn_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p002
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after combined__neck_yaw_to_pitch_link; driver path vs placed parts
+  - id: neck_head:s005
+    subassembly: neck_head
+    screw:
+    - upper__neck_pitch_horn_M2x5_0
+    - upper__neck_pitch_horn_M2x5_1
+    - upper__neck_pitch_horn_M2x5_2
+    - upper__neck_pitch_horn_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p004
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__neck_pitch_front_horn; driver path vs placed parts
+  - id: neck_head:p007
+    subassembly: neck_head
+    part:
+    - combined__neck_pitch_to_head_cradle
+    - combined__neck_pitch_to_head_cradle_steel_sleeves
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:p006
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via upper__neck_pitch_case_XM335); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (upper__neck_head_M2x5), head to tip when the part carries the head, else reversed'
+  - id: neck_head:s008
+    subassembly: neck_head
+    screw:
+    - upper__neck_head_M2x5_0
+    - upper__neck_head_M2x5_1
+    - upper__neck_head_M2x5_2
+    - upper__neck_head_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p007
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after combined__neck_pitch_to_head_cradle; driver path vs placed parts
+  - id: neck_head:p015
+    subassembly: neck_head
+    part:
+    - combined__head_sensor_compute_carrier
+    - combined__head_sensor_compute_carrier_steel_sleeves
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:p014
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via combined__neck_pitch_to_head_cradle); direction: mean screw direction
+      of 2 screw(s) joining it to placed parts (neck_M3x6_countersunk), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 5.5 -> 0.0 mm out, seat released True -> True, max overlap 27.6 -> 0.0 mm3; direction
+      searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 34.5 mm out, seat released True -> True, max overlap 277.9 -> 3416.1
+      mm3'
+  - id: neck_head:s030
+    subassembly: neck_head
+    screw:
+    - compute_M2p5_CS10_2
+    - compute_M2p5_CS10_3
+    with:
+    - compute_FF4_spacer_2
+    - compute_FF4_spacer_3
+    - compute_rear_nut_2
+    - compute_rear_nut_3
+    - compute_rear_washer_2
+    - compute_rear_washer_3
+    direction: screw axis
+    after:
+    - neck_head:s029
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after ROCK4D_official; driver path vs placed parts; moved after s028 (its part ROCK4D_official
+      blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+  - id: neck_head:s033
+    subassembly: neck_head
+    screw:
+    - B0410_plate_M2x4_0
+    - B0410_plate_M2x4_1
+    - B0410_plate_M2x4_2
+    - B0410_plate_M2x4_3
+    with:
+    - B0410_M2_FF5_spacer_2_v23
+    - B0410_M2_FF5_spacer_3_v23
+    direction: screw axis
+    after:
+    - neck_head:s032
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0410_supplier_native_v23; driver path vs placed parts; moved after s018 (its
+      part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23 blocked
+      that screw's driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3)
+  - id: neck_head:s034
+    subassembly: neck_head
+    screw: compute_M2p5_CS30_0
+    with:
+    - compute_FF4_spacer_0
+    - fan_bridge_nut_0
+    direction: screw axis
+    after:
+    - neck_head:s033
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after fan_bridge_standoff_0; driver path vs placed parts; moved after s028 (its part
+      ROCK4D_official blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path,
+      11.298 mm3)
+  - id: neck_head:s035
+    subassembly: neck_head
+    screw: compute_M2p5_CS30_1
+    with:
+    - compute_FF4_spacer_1
+    - fan_bridge_nut_1
+    direction: screw axis
+    after:
+    - neck_head:s034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after heatsink_nonpreloaded_guard; driver path vs placed parts; moved after s026 (its
+      part heatsink_nonpreloaded_guard blocked that screw's driver path, 136.949 mm3); moved after s028 (its part ROCK4D_official blocked that
+      screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+  - id: neck_head:s038
+    subassembly: neck_head
+    screw:
+    - B0196_plate_M2x4_0
+    - B0196_plate_M2x4_1
+    - B0196_plate_M2x4_2
+    - B0196_plate_M2x4_3
+    with:
+    - B0196_M2_FF5_spacer_0_v23
+    - B0196_M2_FF5_spacer_1_v23
+    - B0196_M2_FF5_spacer_2_v23
+    - B0196_M2_FF5_spacer_3_v23
+    direction: screw axis
+    after:
+    - neck_head:s037
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0196_supplier_native_v23; driver path vs placed parts; moved after s024 (its
+      part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23 blocked
+      that screw's driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3)

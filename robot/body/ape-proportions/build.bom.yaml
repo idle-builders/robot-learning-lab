@@ -1,0 +1,1440 @@
+# Cove-50 body definition for robot/body/ape-proportions/build.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: ape-proportions-build
+owner: (set by the owning session)
+generators:
+- id: ape-proportions
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/ape-proportions/build.py
+  inputs:
+  - artifacts/robot/body/motor-refit/assembly-parts.json
+  - artifacts/robot/body/leg/complete_leg_hip_combined/assembly-with-full-shell.glb
+  outputs:
+  - artifacts/robot/body/ape-proportions/assembly-parts.json
+  - artifacts/robot/body/ape-proportions/parts
+  - artifacts/robot/body/ape-proportions/report.json
+  manifest_out: artifacts/robot/body/ape-proportions/assembly-parts.json
+  resources:
+    limit_gb: 8
+    timeout_s: 900
+  notes: 'Env APE_OUT / APE_UPPER / APE_FOREARM / APE_SHELL_PASS only for variants; defaults are the selected build. In Git since 2026-11-20 (Idle
+    T-be4dt7; until then untracked). Code vs the selected outputs: the edits made after the selected assembly-parts.json (2026-11-15 05:07 CET)
+    are the reviewer fixes of T-xdcjn9 / T-gqwdrn (elbow motor sign negated once by elbow_flip.flip_motor_sign, as the selected shell-pass manifest
+    already carries; hip pitch-to-roll volume scaled by the mesh ratio, those parts are replaced by the roll-flip connectors later), and the cradle-cut
+    tool size, now back at the selected 2500 faces / 150 per batch. Stall of 2026-11-20 (past 3600 s, no output after the hip sleeve gmsh line):
+    hips.py''s pelvis-cradle cut built one lazy manifold3d CSG tree of 3,538 swept copies and evaluated it in a single to_mesh() call (stack dumps;
+    the gmsh sleeve meshes take under 1 s). Fixed by evaluating per batch (hips.cut_cradle): build.py 264 s, peak 4.3 GB; output equal to the
+    selected step-3 manifest except the cradle mesh triangulation (same surface within 2e-5 mm) and the two reviewer fixes.'
+  after:
+  - motor-refit
+parts:
+- match: combined__stage2_lower_pelvis_battery_cradle
+  kind: printed
+  line: print:combined__stage2_lower_pelvis_battery_cradle
+  name: combined__stage2_lower_pelvis_battery_cradle
+  make_buy: make
+  quantity: 1
+- match:
+  - upper__L_elbow_case_PA2x7_2
+  - upper__L_elbow_case_PA2x7_4
+  - upper__R_elbow_case_PA2x7_2
+  - upper__R_elbow_case_PA2x7_4
+  kind: hardware
+  line: hw:PA2-x-7-ISO-7380-1
+  name: PA2 x 7 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 7.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 7 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 7 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - upper__L_elbow_case_washer2
+  - upper__L_elbow_case_washer4
+  - upper__R_elbow_case_washer2
+  - upper__R_elbow_case_washer4
+  kind: hardware
+  line: hw:M2-washer-2.2-3.8-x-0.5
+  name: M2 washer 2.2/3.8 x 0.5
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: washer
+    thread: M2
+    standard: custom (measured)
+    inner_dia_mm: 2.2
+    outer_dia_mm: 3.8
+    thickness_mm: 0.5
+    label: M2 washer 2.2/3.8 x 0.5
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - upper__L_elbow_case_spacer2
+  - upper__L_elbow_case_spacer4
+  - upper__R_elbow_case_spacer2
+  - upper__R_elbow_case_spacer4
+  kind: hardware
+  line: hw:M2-spacer-3.8-2.4-x-1.0
+  name: M2 spacer 3.8/2.4 x 1.0
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: spacer
+    thread: M2
+    outer_dia_mm: 3.8
+    inner_dia_mm: 2.4
+    length_mm: 1.0
+    standard: round spacer
+    label: M2 spacer 3.8/2.4 x 1.0
+  supplier: unknown
+  part_number: unknown
+  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+- match:
+  - upper__L_elbow_central_rocker_M3x6
+  - upper__L_elbow_horn_M3x6_1
+  - upper__L_elbow_horn_M3x6_2
+  - upper__L_elbow_horn_M3x6_3
+  - upper__L_elbow_horn_M3x6_4
+  - upper__R_elbow_central_rocker_M3x6
+  - upper__R_elbow_horn_M3x6_1
+  - upper__R_elbow_horn_M3x6_2
+  - upper__R_elbow_horn_M3x6_3
+  - upper__R_elbow_horn_M3x6_4
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 10
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - upper__L_elbow_horn_washer1
+  - upper__L_elbow_horn_washer2
+  - upper__L_elbow_horn_washer3
+  - upper__L_elbow_horn_washer4
+  - upper__R_elbow_horn_washer1
+  - upper__R_elbow_horn_washer2
+  - upper__R_elbow_horn_washer3
+  - upper__R_elbow_horn_washer4
+  kind: hardware
+  line: hw:M3-washer-3.2-6-x-1
+  name: M3 washer 3.2/6 x 1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: washer
+    thread: M3
+    standard: custom (measured)
+    inner_dia_mm: 3.2
+    outer_dia_mm: 6.0
+    thickness_mm: 1.0
+    label: M3 washer 3.2/6 x 1
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+- match:
+  - L_B13_C047_foot_roll_main_horn
+  - L_B13_C047_foot_roll_rear_idler
+  - R_B13_C047_foot_roll_main_horn
+  - R_B13_C047_foot_roll_rear_idler
+  - R_roll_passive_idler_reference
+  - R_roll_upper_horn_reference
+  - upper__L_elbow_C047_main_horn
+  - upper__L_elbow_C047_rear_idler
+  - upper__R_elbow_C047_main_horn
+  - upper__R_elbow_C047_rear_idler
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 10
+  notes: Come in the servo box; listed so every CAD part has a line.
+- match:
+  - upper__L_elbow_C047_case
+  - upper__R_elbow_C047_case
+  kind: purchased
+  line: servo:Feetech-STS3250-strong-tier
+  name: Feetech STS3250 (strong tier)
+  make_buy: buy
+  quantity: 2
+  supplier: Feetech
+  part_number: ST-3250-C001
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
+    robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
+    robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+- match: R_upper_arm_yaw_to_elbow_combined
+  kind: printed
+  line: print:R_upper_arm_yaw_to_elbow_combined
+  name: R_upper_arm_yaw_to_elbow_combined
+  make_buy: make
+  quantity: 1
+- match: R_upper_arm_yaw_to_elbow_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.4x3
+    name: 304 steel compression sleeve 3.5 x 2.4 x 3 mm (outer x inner x length)
+    quantity: 6
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.4
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x3.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.6
+    supplier: unknown
+    part_number: unknown
+- match: L_upper_arm_yaw_to_elbow_combined
+  kind: printed
+  line: print:L_upper_arm_yaw_to_elbow_combined
+  name: L_upper_arm_yaw_to_elbow_combined
+  make_buy: make
+  quantity: 1
+- match: L_upper_arm_yaw_to_elbow_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.4x3
+    name: 304 steel compression sleeve 3.5 x 2.4 x 3 mm (outer x inner x length)
+    quantity: 6
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.4
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x3.55
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.55 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.55
+    supplier: unknown
+    part_number: unknown
+- match: R_forearm_elbow_to_wrist_combined
+  kind: printed
+  line: print:R_forearm_elbow_to_wrist_combined
+  name: R_forearm_elbow_to_wrist_combined
+  make_buy: make
+  quantity: 1
+- match: R_forearm_elbow_to_wrist_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x3.8
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.8 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.8
+    supplier: unknown
+    part_number: unknown
+- match: L_forearm_elbow_to_wrist_combined
+  kind: printed
+  line: print:L_forearm_elbow_to_wrist_combined
+  name: L_forearm_elbow_to_wrist_combined
+  make_buy: make
+  quantity: 1
+- match: L_forearm_elbow_to_wrist_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x3.8
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.8 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.8
+    supplier: unknown
+    part_number: unknown
+- match:
+  - L_fore_back_178_M3_nut
+  - L_fore_back_187_M3_nut
+  - L_fore_front_178_M3_nut
+  - L_fore_front_187_M3_nut
+  - R_fore_back_178_M3_nut
+  - R_fore_back_187_M3_nut
+  - R_fore_front_178_M3_nut
+  - R_fore_front_187_M3_nut
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - L_fore_back_M3x8_178
+  - L_fore_back_M3x8_187
+  - L_fore_front_M3x8_178
+  - L_fore_front_M3x8_187
+  - R_fore_back_M3x8_178
+  - R_fore_back_M3x8_187
+  - R_fore_front_M3x8_178
+  - R_fore_front_M3x8_187
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: R_fore_front_hard_cover
+  kind: printed
+  line: print:R_fore_front_hard_cover
+  name: R_fore_front_hard_cover
+  make_buy: make
+  quantity: 1
+- match: R_fore_back_hard_cover
+  kind: printed
+  line: print:R_fore_back_hard_cover
+  name: R_fore_back_hard_cover
+  make_buy: make
+  quantity: 1
+- match: L_fore_front_hard_cover
+  kind: printed
+  line: print:L_fore_front_hard_cover
+  name: L_fore_front_hard_cover
+  make_buy: make
+  quantity: 1
+- match: L_fore_back_hard_cover
+  kind: printed
+  line: print:L_fore_back_hard_cover
+  name: L_fore_back_hard_cover
+  make_buy: make
+  quantity: 1
+- match:
+  - L_B13_C047_foot_roll_case
+  - R_B13_C047_foot_roll_case
+  kind: purchased
+  line: servo:Feetech-ST3215-C047-12-V-light-tier
+  name: Feetech ST3215-C047 12 V (light tier)
+  make_buy: buy
+  quantity: 2
+  supplier: Waveshare
+  part_number: 22414 (ST3215 12 V; Feetech ST-3215-C047)
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.light:
+    part "Waveshare ST3215 12 V (SKU 22414)", price_basis Waveshare store).'
+- match:
+  - L_B13R14_raised_B11_inner_PA2x6_proposal_0
+  - L_B13R14_raised_B11_inner_PA2x6_proposal_1
+  - L_B13R14_raised_B11_inner_PA2x6_proposal_2
+  - L_B13R14_raised_B11_inner_PA2x6_proposal_3
+  - L_B13R14_raised_B11_outer_PA2x6_proposal_0
+  - L_B13R14_raised_B11_outer_PA2x6_proposal_1
+  - L_B13R14_raised_B11_outer_PA2x6_proposal_2
+  - L_B13R14_raised_B11_outer_PA2x6_proposal_3
+  - R_B13R14_raised_B11_inner_PA2x6_proposal_0
+  - R_B13R14_raised_B11_inner_PA2x6_proposal_1
+  - R_B13R14_raised_B11_inner_PA2x6_proposal_2
+  - R_B13R14_raised_B11_inner_PA2x6_proposal_3
+  - R_B13R14_raised_B11_outer_PA2x6_proposal_0
+  - R_B13R14_raised_B11_outer_PA2x6_proposal_1
+  - R_B13R14_raised_B11_outer_PA2x6_proposal_2
+  - R_B13R14_raised_B11_outer_PA2x6_proposal_3
+  kind: hardware
+  line: hw:PA2-x-6-ISO-7380-1
+  name: PA2 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 16
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 6 ISO 7380-1
+  material: Unqualified nominal B-PA2x6 selftap envelope
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match: R_foot_sole_shell
+  kind: printed
+  line: print:R_foot_sole_shell
+  name: R_foot_sole_shell
+  make_buy: make
+  quantity: 1
+- match: L_foot_sole_shell
+  kind: printed
+  line: print:L_foot_sole_shell
+  name: L_foot_sole_shell
+  make_buy: make
+  quantity: 1
+- match:
+  - L_heel_lateral_sensor
+  - L_mid_medial_sensor
+  - L_toe_lateral_sensor
+  - R_heel_lateral_sensor
+  - R_mid_medial_sensor
+  - R_toe_lateral_sensor
+  kind: purchased
+  line: foot-fsr-sensor
+  name: Foot force sensor (FSR 402 short tail)
+  make_buy: buy
+  quantity: 6
+  supplier: Interlink Electronics
+  part_number: 34-00015
+  notes: 'Source STEP: artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP (pinned). supplier from robot/electronics/sensing/selection.json
+    (foot_contacts: FSR402 Short, solder tabs; the 30-00016 STEP is the manufacturer CAD file name, not the part bought).'
+- match: R_toe_lateral_backing
+  kind: printed
+  line: print:R_toe_lateral_backing
+  name: R_toe_lateral_backing
+  make_buy: make
+  quantity: 1
+- match:
+  - L_heel_lateral_bond
+  - L_mid_medial_bond
+  - L_toe_lateral_bond
+  - R_heel_lateral_bond
+  - R_mid_medial_bond
+  - R_toe_lateral_bond
+  kind: other
+  line: foot-fsr-bond
+  name: FSR bond (adhesive allocation)
+  make_buy: buy
+  quantity: 6
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match: R_heel_lateral_backing
+  kind: printed
+  line: print:R_heel_lateral_backing
+  name: R_heel_lateral_backing
+  make_buy: make
+  quantity: 1
+- match: R_mid_medial_backing
+  kind: printed
+  line: print:R_mid_medial_backing
+  name: R_mid_medial_backing
+  make_buy: make
+  quantity: 1
+- match: L_toe_lateral_backing
+  kind: printed
+  line: print:L_toe_lateral_backing
+  name: L_toe_lateral_backing
+  make_buy: make
+  quantity: 1
+- match: L_heel_lateral_backing
+  kind: printed
+  line: print:L_heel_lateral_backing
+  name: L_heel_lateral_backing
+  make_buy: make
+  quantity: 1
+- match: L_mid_medial_backing
+  kind: printed
+  line: print:L_mid_medial_backing
+  name: L_mid_medial_backing
+  make_buy: make
+  quantity: 1
+- match:
+  - L_heel_lateral_actuator_v17
+  - L_mid_medial_actuator_v17
+  - L_toe_lateral_actuator_v17
+  - R_heel_lateral_actuator_v17
+  - R_mid_medial_actuator_v17
+  - R_toe_lateral_actuator_v17
+  kind: made
+  line: foot-fsr-actuator
+  name: FSR actuator puck (cut stock)
+  make_buy: make
+  quantity: 6
+  material: Polymax1001526 silicone60ShA
+  notes: Cut from stock; STEP missing for 5 of 6 (artifacts/cove50-sensor-integration/v17).
+- match:
+  - L_sole_pad_bond_v19
+  - R_sole_pad_bond_v19
+  kind: other
+  line: foot-sole-pad-bond
+  name: Sole pad bond
+  make_buy: buy
+  quantity: 2
+  supplier: unknown
+  part_number: unknown
+  material: 3M467MP
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match: R_sensor_pocket_pad_v19
+  kind: printed
+  line: print:R_sensor_pocket_pad_v19
+  name: R_sensor_pocket_pad_v19
+  make_buy: make
+  quantity: 1
+- match: L_sensor_pocket_pad_v19
+  kind: printed
+  line: print:L_sensor_pocket_pad_v19
+  name: L_sensor_pocket_pad_v19
+  make_buy: make
+  quantity: 1
+- match: R_upper_arm_lower_cover
+  kind: printed
+  line: print:R_upper_arm_lower_cover
+  name: R_upper_arm_lower_cover
+  make_buy: make
+  quantity: 1
+- match: L_upper_arm_lower_cover
+  kind: printed
+  line: print:L_upper_arm_lower_cover
+  name: L_upper_arm_lower_cover
+  make_buy: make
+  quantity: 1
+assembly:
+  steps:
+  - id: torso:p003
+    subassembly: torso
+    part:
+    - combined__stage2_lower_pelvis_battery_cradle
+    - combined__stage2_lower_pelvis_battery_cradle_steel_sleeves
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - torso:p002
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via combined__stage1_center_torso_spine_chassis); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (torso_iface_stage2_2_M2x8, torso_iface_stage2_3_M2x8, torso_iface_stage2_4_M2x8, torso_iface_stage2_5_M2x8),
+      head to tip when the part carries the head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 48.5
+      -> 0.0 mm out, seat released True -> True, max overlap 858.4 -> 0.0 mm3; moved before Honeycomb_Fin_09_Lower_Pelvis_R (it touched Honeycomb_Fin_09_Lower_Pelvis_R
+      15.5 mm out, 89.368 mm3)'
+  - id: right_arm:p018
+    subassembly: right_arm
+    part:
+    - R_upper_arm_yaw_to_elbow_combined
+    - R_upper_arm_yaw_to_elbow_combined_steel_sleeves
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_arm:s017
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via upper__R_yaw_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__R_yaw_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.164, -0.0, -0.986]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 5410.8 -> 0.0 mm3'
+  - id: right_arm:p022
+    subassembly: right_arm
+    part: upper__R_elbow_C047_case
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - right_arm:s021
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via R_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__R_elbow_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: right_arm:p023
+    subassembly: right_arm
+    part: upper__R_elbow_C047_rear_idler
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_arm:p022
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__R_elbow_C047_case); direction: toward the centroid of placed neighbours
+      (R_forearm_elbow_to_wrist_combined, upper__R_elbow_C047_case), snapped to the nearest axis; moved before R_forearm_elbow_to_wrist_combined
+      (it touched R_forearm_elbow_to_wrist_combined 7.5 mm out, 491.764 mm3)'
+  - id: right_arm:p024
+    subassembly: right_arm
+    part:
+    - R_forearm_elbow_to_wrist_combined
+    - R_forearm_elbow_to_wrist_combined_steel_sleeves
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_arm:p023
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__R_elbow_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__R_elbow_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 39.5 -> 11.5 mm out, seat released True -> True, max overlap 2331.7 -> 9.6 mm3'
+  - id: right_arm:s025
+    subassembly: right_arm
+    screw: R_fore_back_M3x8_178
+    with:
+    - R_fore_back_178_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p024
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_forearm_elbow_to_wrist_combined; driver path vs placed parts
+  - id: right_arm:s026
+    subassembly: right_arm
+    screw:
+    - R_fore_front_M3x8_178
+    - R_fore_front_M3x8_187
+    with:
+    - R_fore_front_178_M3_nut
+    - R_fore_front_187_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:s025
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_forearm_elbow_to_wrist_combined; driver path vs placed parts
+  - id: right_arm:p027
+    subassembly: right_arm
+    part: upper__R_elbow_C047_main_horn
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_arm:s026
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__R_elbow_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__R_elbow_central_rocker_M3x6, upper__R_elbow_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [-1.0, 0.0, 0.0]): path contact 41.5 -> 0.0 mm out, seat released True -> True, max
+      overlap 1323.8 -> 31.4 mm3'
+  - id: right_arm:s028
+    subassembly: right_arm
+    screw: upper__R_elbow_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - right_arm:p027
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__R_elbow_C047_main_horn; driver path vs placed parts
+  - id: right_arm:s029
+    subassembly: right_arm
+    screw:
+    - upper__R_elbow_horn_M3x6_1
+    - upper__R_elbow_horn_M3x6_2
+    - upper__R_elbow_horn_M3x6_3
+    - upper__R_elbow_horn_M3x6_4
+    with:
+    - upper__R_elbow_horn_washer1
+    - upper__R_elbow_horn_washer2
+    - upper__R_elbow_horn_washer3
+    - upper__R_elbow_horn_washer4
+    direction: screw axis
+    after:
+    - right_arm:s028
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_elbow_C047_main_horn; driver path vs placed parts
+  - id: right_arm:p037
+    subassembly: right_arm
+    part: R_upper_arm_lower_cover
+    direction: [-1.0, -0.0, -0.0]
+    after:
+    - right_arm:s036
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via R_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__R_elbow_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: right_arm:s038
+    subassembly: right_arm
+    screw:
+    - upper__R_elbow_case_PA2x7_2
+    - upper__R_elbow_case_PA2x7_4
+    with:
+    - upper__R_elbow_case_spacer2
+    - upper__R_elbow_case_spacer4
+    - upper__R_elbow_case_washer2
+    - upper__R_elbow_case_washer4
+    direction: screw axis
+    after:
+    - right_arm:p037
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_upper_arm_lower_cover; driver path vs placed parts
+  - id: right_arm:p039
+    subassembly: right_arm
+    part: R_fore_back_hard_cover
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_arm:s038
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via R_forearm_elbow_to_wrist_combined); direction: mean screw direction of
+      1 screw(s) joining it to placed parts (R_fore_back_M3x8), head to tip when the part carries the head, else reversed'
+  - id: right_arm:s040
+    subassembly: right_arm
+    screw: R_fore_back_M3x8_187
+    with:
+    - R_fore_back_187_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p039
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_fore_back_hard_cover; driver path vs placed parts
+  - id: right_arm:p041
+    subassembly: right_arm
+    part: R_fore_front_hard_cover
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_arm:s040
+    status: seeded
+    derived: 'graph order, fastened distance 16 from what is present (via R_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (R_forearm_elbow_to_wrist_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0,
+      1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 618.2 -> 0.0 mm3'
+  - id: left_arm:p018
+    subassembly: left_arm
+    part:
+    - L_upper_arm_yaw_to_elbow_combined
+    - L_upper_arm_yaw_to_elbow_combined_steel_sleeves
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:s017
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via upper__L_yaw_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__L_yaw_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-0.164, 0.0, -0.986]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 5402.0 -> 0.0 mm3'
+  - id: left_arm:p022
+    subassembly: left_arm
+    part: upper__L_elbow_C047_case
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - left_arm:s021
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via L_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__L_elbow_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: left_arm:p023
+    subassembly: left_arm
+    part: upper__L_elbow_C047_rear_idler
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:p022
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__L_elbow_C047_case); direction: toward the centroid of placed neighbours
+      (L_forearm_elbow_to_wrist_combined, upper__L_elbow_C047_case), snapped to the nearest axis; moved before L_forearm_elbow_to_wrist_combined
+      (it touched L_forearm_elbow_to_wrist_combined 7.5 mm out, 491.764 mm3)'
+  - id: left_arm:p024
+    subassembly: left_arm
+    part:
+    - L_forearm_elbow_to_wrist_combined
+    - L_forearm_elbow_to_wrist_combined_steel_sleeves
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_arm:p023
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__L_elbow_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__L_elbow_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-1.0, -0.0, -0.0]): path contact 39.5 -> 11.5 mm out, seat released True -> True, max overlap 2332.2 -> 9.7 mm3'
+  - id: left_arm:s025
+    subassembly: left_arm
+    screw: L_fore_back_M3x8_178
+    with:
+    - L_fore_back_178_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p024
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_forearm_elbow_to_wrist_combined; driver path vs placed parts
+  - id: left_arm:s026
+    subassembly: left_arm
+    screw:
+    - L_fore_front_M3x8_178
+    - L_fore_front_M3x8_187
+    with:
+    - L_fore_front_178_M3_nut
+    - L_fore_front_187_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:s025
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_forearm_elbow_to_wrist_combined; driver path vs placed parts
+  - id: left_arm:p027
+    subassembly: left_arm
+    part: upper__L_elbow_C047_main_horn
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - left_arm:s026
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via upper__L_elbow_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (upper__L_elbow_central_rocker_M3x6, upper__L_elbow_horn_M3x6), head to tip when the part carries the head, else
+      reversed; direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 41.5 -> 0.0 mm out, seat released True -> True, max
+      overlap 1323.7 -> 31.4 mm3'
+  - id: left_arm:s028
+    subassembly: left_arm
+    screw: upper__L_elbow_central_rocker_M3x6
+    direction: screw axis
+    after:
+    - left_arm:p027
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after upper__L_elbow_C047_main_horn; driver path vs placed parts
+  - id: left_arm:s029
+    subassembly: left_arm
+    screw:
+    - upper__L_elbow_horn_M3x6_1
+    - upper__L_elbow_horn_M3x6_2
+    - upper__L_elbow_horn_M3x6_3
+    - upper__L_elbow_horn_M3x6_4
+    with:
+    - upper__L_elbow_horn_washer1
+    - upper__L_elbow_horn_washer2
+    - upper__L_elbow_horn_washer3
+    - upper__L_elbow_horn_washer4
+    direction: screw axis
+    after:
+    - left_arm:s028
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_elbow_C047_main_horn; driver path vs placed parts
+  - id: left_arm:p037
+    subassembly: left_arm
+    part: L_upper_arm_lower_cover
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:s036
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via L_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__L_elbow_case_PA2x7), head to tip when the part carries the head, else reversed; direction
+      searched (six axes vs the seeded [-1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 1901.9 -> 1669.8
+      mm3'
+  - id: left_arm:s038
+    subassembly: left_arm
+    screw:
+    - upper__L_elbow_case_PA2x7_2
+    - upper__L_elbow_case_PA2x7_4
+    with:
+    - upper__L_elbow_case_spacer2
+    - upper__L_elbow_case_spacer4
+    - upper__L_elbow_case_washer2
+    - upper__L_elbow_case_washer4
+    direction: screw axis
+    after:
+    - left_arm:p037
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_upper_arm_lower_cover; driver path vs placed parts
+  - id: left_arm:p039
+    subassembly: left_arm
+    part: L_fore_back_hard_cover
+    direction: [-0.0, -1.0, 0.0]
+    after:
+    - left_arm:s038
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via L_forearm_elbow_to_wrist_combined); direction: mean screw direction of
+      1 screw(s) joining it to placed parts (L_fore_back_M3x8), head to tip when the part carries the head, else reversed'
+  - id: left_arm:s040
+    subassembly: left_arm
+    screw: L_fore_back_M3x8_187
+    with:
+    - L_fore_back_187_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p039
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_fore_back_hard_cover; driver path vs placed parts
+  - id: left_arm:p041
+    subassembly: left_arm
+    part: L_fore_front_hard_cover
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - left_arm:s040
+    status: seeded
+    derived: 'graph order, fastened distance 16 from what is present (via L_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (L_forearm_elbow_to_wrist_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0,
+      1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 618.5 -> 0.0 mm3'
+  - id: right_leg:s026
+    subassembly: right_leg
+    screw: R_B13R14_raised_B11_inner_PA2x6_proposal_1
+    direction: screw axis
+    after:
+    - right_leg:p025
+    status: seeded
+    derived: '1 screw(s) that joins nothing in the graph (connection graph): placed after the nearest part R_shin_combined; driver path vs placed
+      parts'
+  - id: right_leg:s028
+    subassembly: right_leg
+    screw:
+    - R_B13R14_raised_B11_inner_PA2x6_proposal_0
+    - R_B13R14_raised_B11_inner_PA2x6_proposal_2
+    - R_B13R14_raised_B11_inner_PA2x6_proposal_3
+    direction: screw axis
+    after:
+    - right_leg:p027
+    status: seeded
+    derived: 3 screw(s) whose joined parts are all placed after R_ankle_pitch_ST3025_case; driver path vs placed parts
+  - id: right_leg:s029
+    subassembly: right_leg
+    screw:
+    - R_B13R14_raised_B11_outer_PA2x6_proposal_0
+    - R_B13R14_raised_B11_outer_PA2x6_proposal_1
+    - R_B13R14_raised_B11_outer_PA2x6_proposal_2
+    - R_B13R14_raised_B11_outer_PA2x6_proposal_3
+    direction: screw axis
+    after:
+    - right_leg:s028
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after R_ankle_pitch_ST3025_case; driver path vs placed parts
+  - id: right_leg:p037
+    subassembly: right_leg
+    part: R_B13_C047_foot_roll_main_horn
+    direction: [-0.0, -1.0, -0.0]
+    after:
+    - right_leg:p036
+    status: seeded
+    derived: 'graph order, fastened distance 52 from the base; direction: mean screw direction of 4 screw(s) joining it to placed parts (R_B13_output_NBK_M3x4_H0p8_0,
+      R_B13_output_NBK_M3x4_H0p8_1, R_B13_output_NBK_M3x4_H0p8_2, R_B13_output_NBK_M3x4_H0p8_3), head to tip when the part carries the head, else
+      reversed'
+  - id: right_leg:p039
+    subassembly: right_leg
+    part: R_B13_C047_foot_roll_case
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_leg:s038
+    status: seeded
+    derived: 'graph order, fastened distance 53 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_main_horn),
+      snapped to the nearest axis'
+  - id: right_leg:p042
+    subassembly: right_leg
+    part: R_B13_C047_foot_roll_rear_idler
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_leg:s041
+    status: seeded
+    derived: 'graph order, fastened distance 54 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case),
+      snapped to the nearest axis'
+  - id: right_leg:p044
+    subassembly: right_leg
+    part: R_heel_lateral_backing
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_leg:p043
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined), snapped to the nearest axis'
+  - id: right_leg:p045
+    subassembly: right_leg
+    part: R_heel_lateral_bond
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_leg:p044
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_heel_lateral_backing), snapped to the nearest axis'
+  - id: right_leg:p046
+    subassembly: right_leg
+    part: R_heel_lateral_sensor
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_leg:p045
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_heel_lateral_backing), snapped to the nearest axis'
+  - id: right_leg:p047
+    subassembly: right_leg
+    part: R_mid_medial_backing
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - right_leg:p046
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined), snapped to the nearest axis'
+  - id: right_leg:p048
+    subassembly: right_leg
+    part: R_mid_medial_bond
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - right_leg:p047
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_mid_medial_backing), snapped to the nearest axis'
+  - id: right_leg:p050
+    subassembly: right_leg
+    part: R_mid_medial_sensor
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p049
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_mid_medial_backing), snapped to the nearest axis'
+  - id: right_leg:p051
+    subassembly: right_leg
+    part: R_sole_pad_bond_v19
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p050
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_sensor_pocket_pad_v19), snapped to the nearest axis; moved before R_sensor_pocket_pad_v19 (it touched
+      R_sensor_pocket_pad_v19 3.5 mm out, 58.669 mm3)'
+  - id: right_leg:p052
+    subassembly: right_leg
+    part: R_toe_lateral_backing
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p051
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 1.0, 0.0]): path contact 26.5 -> 3.5 mm out, seat released True -> True, max overlap 27.3 -> 56.7 mm3; moved before R_sensor_pocket_pad_v19
+      (it touched R_sensor_pocket_pad_v19 3.5 mm out, 56.653 mm3)'
+  - id: right_leg:p053
+    subassembly: right_leg
+    part: R_toe_lateral_bond
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p052
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_sensor_pocket_pad_v19, R_toe_lateral_backing), snapped to the nearest axis; direction searched
+      (six axes vs the seeded [0.0, 1.0, 0.0]): path contact 26.5 -> 3.5 mm out, seat released True -> True, max overlap 6.8 -> 14.2 mm3; moved
+      before R_sensor_pocket_pad_v19 (it touched R_sensor_pocket_pad_v19 3.5 mm out, 14.163 mm3)'
+  - id: right_leg:p054
+    subassembly: right_leg
+    part: R_toe_lateral_sensor
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p053
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_toe_lateral_backing), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0,
+      1.0, 0.0]): path contact 37.5 -> 3.5 mm out, seat released True -> True, max overlap 47.6 -> 117.2 mm3; moved before R_sensor_pocket_pad_v19
+      (it touched R_sensor_pocket_pad_v19 3.5 mm out, 117.187 mm3)'
+  - id: right_leg:p055
+    subassembly: right_leg
+    part: R_heel_lateral_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p054
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via R_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (R_foot_sole_shell, R_heel_lateral_sensor, R_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, -1.0, 0.0]): path contact 36.5 -> 3.5 mm out, seat released True -> True, max overlap 63.4 -> 39.5 mm3; moved before R_sensor_pocket_pad_v19
+      (it touched R_sensor_pocket_pad_v19 3.5 mm out, 39.464 mm3)'
+  - id: right_leg:p056
+    subassembly: right_leg
+    part: R_mid_medial_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p055
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via R_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (R_foot_sole_shell, R_mid_medial_sensor, R_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [1.0, 0.0, 0.0]): path contact 28.5 -> 3.5 mm out, seat released True -> True, max overlap 78.4 -> 45.4 mm3; moved before R_sensor_pocket_pad_v19
+      (it touched R_sensor_pocket_pad_v19 3.5 mm out, 45.426 mm3)'
+  - id: right_leg:p057
+    subassembly: right_leg
+    part: R_toe_lateral_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p056
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via R_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (R_foot_sole_shell, R_sensor_pocket_pad_v19, R_toe_lateral_sensor), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 1.0, 0.0]): path contact 21.5 -> 3.5 mm out, seat released True -> True, max overlap 44.3 -> 39.4 mm3; moved before R_sensor_pocket_pad_v19
+      (it touched R_sensor_pocket_pad_v19 3.5 mm out, 39.371 mm3)'
+  - id: right_leg:p058
+    subassembly: right_leg
+    part: R_sensor_pocket_pad_v19
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p057
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (R_foot_monocoque_combined, R_heel_lateral_backing, R_heel_lateral_bond), snapped to the nearest axis; direction searched (six
+      axes vs the seeded [0.0, 1.0, 0.0]): path contact 57.5 -> 0.0 mm out, seat released True -> True, max overlap 354.7 -> 0.0 mm3'
+  - id: right_leg:p059
+    subassembly: right_leg
+    part: R_foot_sole_shell
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:p058
+    status: seeded
+    derived: 'graph order, fastened distance 65 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_foot_monocoque_combined),
+      snapped to the nearest axis'
+  - id: left_leg:s026
+    subassembly: left_leg
+    screw: L_B13R14_raised_B11_inner_PA2x6_proposal_1
+    direction: screw axis
+    after:
+    - left_leg:p025
+    status: seeded
+    derived: '1 screw(s) that joins nothing in the graph (connection graph): placed after the nearest part L_shin_combined; driver path vs placed
+      parts'
+  - id: left_leg:s028
+    subassembly: left_leg
+    screw:
+    - L_B13R14_raised_B11_inner_PA2x6_proposal_0
+    - L_B13R14_raised_B11_inner_PA2x6_proposal_2
+    - L_B13R14_raised_B11_inner_PA2x6_proposal_3
+    direction: screw axis
+    after:
+    - left_leg:p027
+    status: seeded
+    derived: 3 screw(s) whose joined parts are all placed after L_ankle_pitch_ST3025_case; driver path vs placed parts
+  - id: left_leg:s029
+    subassembly: left_leg
+    screw:
+    - L_B13R14_raised_B11_outer_PA2x6_proposal_0
+    - L_B13R14_raised_B11_outer_PA2x6_proposal_1
+    - L_B13R14_raised_B11_outer_PA2x6_proposal_2
+    - L_B13R14_raised_B11_outer_PA2x6_proposal_3
+    direction: screw axis
+    after:
+    - left_leg:s028
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after L_ankle_pitch_ST3025_case; driver path vs placed parts
+  - id: left_leg:p037
+    subassembly: left_leg
+    part: L_B13_C047_foot_roll_main_horn
+    direction: [0.0, -1.0, -0.0]
+    after:
+    - left_leg:p036
+    status: seeded
+    derived: 'mirror of right_leg p35 (R_ <-> L_, x negated): graph order, fastened distance 52 from the base; direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (R_B13_output_NBK_M3x4_H0p8_0, R_B13_output_NBK_M3x4_H0p8_1, R_B13_output_NBK_M3x4_H0p8_2, R_B13_output_NBK_M3x4_H0p8_3),
+      head to tip when the part carries the head, else reversed'
+  - id: left_leg:p039
+    subassembly: left_leg
+    part: L_B13_C047_foot_roll_case
+    direction: [-0.0, 1.0, 0.0]
+    after:
+    - left_leg:s038
+    status: seeded
+    derived: 'mirror of right_leg p37 (R_ <-> L_, x negated): graph order, fastened distance 53 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_B13_C047_foot_roll_main_horn), snapped to the nearest axis'
+  - id: left_leg:p042
+    subassembly: left_leg
+    part: L_B13_C047_foot_roll_rear_idler
+    direction: [-0.0, 1.0, 0.0]
+    after:
+    - left_leg:s041
+    status: seeded
+    derived: 'mirror of right_leg p40 (R_ <-> L_, x negated): graph order, fastened distance 54 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis'
+  - id: left_leg:p044
+    subassembly: left_leg
+    part: L_heel_lateral_backing
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - left_leg:p043
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined), snapped to the nearest axis'
+  - id: left_leg:p045
+    subassembly: left_leg
+    part: L_heel_lateral_bond
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - left_leg:p044
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_heel_lateral_backing), snapped to the nearest axis'
+  - id: left_leg:p046
+    subassembly: left_leg
+    part: L_heel_lateral_sensor
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_leg:p045
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_heel_lateral_backing), snapped to the nearest axis'
+  - id: left_leg:p047
+    subassembly: left_leg
+    part: L_mid_medial_backing
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - left_leg:p046
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined), snapped to the nearest axis'
+  - id: left_leg:p048
+    subassembly: left_leg
+    part: L_mid_medial_bond
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - left_leg:p047
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_mid_medial_backing), snapped to the nearest axis'
+  - id: left_leg:p050
+    subassembly: left_leg
+    part: L_mid_medial_sensor
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p049
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_mid_medial_backing), snapped to the nearest axis'
+  - id: left_leg:p051
+    subassembly: left_leg
+    part: L_sole_pad_bond_v19
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p050
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_sensor_pocket_pad_v19), snapped to the nearest axis; moved before L_sensor_pocket_pad_v19 (it touched
+      L_sensor_pocket_pad_v19 3.5 mm out, 58.669 mm3)'
+  - id: left_leg:p052
+    subassembly: left_leg
+    part: L_toe_lateral_backing
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p051
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 1.0, 0.0]): path contact 26.5 -> 3.5 mm out, seat released True -> True, max overlap 27.3 -> 56.7 mm3; moved before L_sensor_pocket_pad_v19
+      (it touched L_sensor_pocket_pad_v19 3.5 mm out, 56.653 mm3)'
+  - id: left_leg:p053
+    subassembly: left_leg
+    part: L_toe_lateral_bond
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p052
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_sensor_pocket_pad_v19, L_toe_lateral_backing), snapped to the nearest axis; direction searched
+      (six axes vs the seeded [0.0, 1.0, 0.0]): path contact 26.5 -> 3.5 mm out, seat released True -> True, max overlap 6.8 -> 14.2 mm3; moved
+      before L_sensor_pocket_pad_v19 (it touched L_sensor_pocket_pad_v19 3.5 mm out, 14.163 mm3)'
+  - id: left_leg:p054
+    subassembly: left_leg
+    part: L_toe_lateral_sensor
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p053
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_toe_lateral_backing), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0,
+      1.0, 0.0]): path contact 37.5 -> 3.5 mm out, seat released True -> True, max overlap 47.6 -> 117.2 mm3; moved before L_sensor_pocket_pad_v19
+      (it touched L_sensor_pocket_pad_v19 3.5 mm out, 117.187 mm3)'
+  - id: left_leg:p055
+    subassembly: left_leg
+    part: L_heel_lateral_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p054
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via L_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (L_foot_sole_shell, L_heel_lateral_sensor, L_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, -1.0, 0.0]): path contact 36.5 -> 3.5 mm out, seat released True -> True, max overlap 63.4 -> 39.5 mm3; moved before L_sensor_pocket_pad_v19
+      (it touched L_sensor_pocket_pad_v19 3.5 mm out, 39.464 mm3)'
+  - id: left_leg:p056
+    subassembly: left_leg
+    part: L_mid_medial_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p055
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via L_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (L_foot_sole_shell, L_mid_medial_sensor, L_sensor_pocket_pad_v19), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [-1.0, 0.0, 0.0]): path contact 28.5 -> 3.5 mm out, seat released True -> True, max overlap 78.4 -> 45.4 mm3; moved before L_sensor_pocket_pad_v19
+      (it touched L_sensor_pocket_pad_v19 3.5 mm out, 45.426 mm3)'
+  - id: left_leg:p057
+    subassembly: left_leg
+    part: L_toe_lateral_actuator_v17
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p056
+    status: seeded
+    derived: 'graph order, fastened distance 55 from what is present (via L_foot_sole_shell); direction: toward the centroid of placed neighbours
+      (L_foot_sole_shell, L_sensor_pocket_pad_v19, L_toe_lateral_sensor), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 1.0, 0.0]): path contact 21.5 -> 3.5 mm out, seat released True -> True, max overlap 44.3 -> 39.4 mm3; moved before L_sensor_pocket_pad_v19
+      (it touched L_sensor_pocket_pad_v19 3.5 mm out, 39.371 mm3)'
+  - id: left_leg:p058
+    subassembly: left_leg
+    part: L_sensor_pocket_pad_v19
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:p057
+    status: seeded
+    derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
+      neighbours (L_foot_monocoque_combined, L_heel_lateral_backing, L_heel_lateral_bond), snapped to the nearest axis; direction searched (six
+      axes vs the seeded [0.0, 1.0, 0.0]): path contact 57.5 -> 0.0 mm out, seat released True -> True, max overlap 354.8 -> 0.0 mm3'
+  - id: left_leg:p059
+    subassembly: left_leg
+    part: L_foot_sole_shell
+    direction: [-0.0, 0.0, 1.0]
+    after:
+    - left_leg:p058
+    status: seeded
+    derived: 'mirror of right_leg p43 (R_ <-> L_, x negated): graph order, fastened distance 65 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_foot_monocoque_combined), snapped to the nearest axis'
+defects:
+- id: foot-fsr-backings
+  kind: no_scripted_step
+  parts:
+  - '*_toe_lateral_backing'
+  - '*_heel_lateral_backing'
+  - '*_mid_medial_backing'
+  state: Native STEP not on disk (artifacts/cove50-sensor-integration/v4/parts, only the .stl there) and not in the local blob index; the exact
+    bytes (manifest sha256) are recorded as packed into the private bucket (data/storage-cleanup-20261029/lean/small-indexed-selection.json.gz,
+    pack ...7d62c43f9c9a), see `dangling`. No producer in the tree (studies/cove50-sensor-integration/foot-contact/build.py, history commit 4b79b740d);
+    the selected body uses the mesh morphed by robot/body/ape-proportions/build.py.
+  fix: Parametric backing plate per FSR site from the FSR 402 footprint and the foot sole, in the foot builder (small).
+  effort: small
+  task: T-54avce
+- id: covers-mesh-from-builder
+  kind: no_scripted_step
+  parts:
+  - '*_fore_front_hard_cover'
+  - '*_fore_back_hard_cover'
+  - '*_upper_arm_lower_cover'
+  state: Built by scripts in the tree (assemble_complete_fdm_body.py forearm barrel covers; ape-proportions/build.py lower cover) but written
+    only as .npz meshes, then morphed as meshes.
+  fix: Export the B-rep the builder already constructs as STEP and apply the ape-proportions stretch to it (OCC general transform for the axial
+    stretch) instead of to the mesh (medium).
+  effort: medium
+- id: foot-fsr-backings-step
+  kind: dangling
+  parts:
+  - '*_toe_lateral_backing'
+  - '*_heel_lateral_backing'
+  - '*_mid_medial_backing'
+  field: native_step
+  why: 'Not on disk (the .stl beside it is), not in the (empty) blob index. Exact bytes recorded in the bucket: data/storage-cleanup-20261029/lean/small-indexed-selection.json.gz
+    (pack ...7d62c43f9c9a, sha256 = manifest native_step_sha256); also sealed in artifacts/cove50-sensor-integration/v4/asset-seal.json.'
+  fix: Restore the blob index (catalog_backup.py restore) for the old STEP; the source-of-truth fix is a foot FSR-stack script.
+  producer: studies/cove50-sensor-integration/foot-contact/build.py + finalize.py (history only, commit 4b79b740d); not in the tree
+  reference: artifacts/cove50-sensor-integration/v4/parts/<part>.step
+  task: T-54avce
+- id: foot-fsr-bonds-step
+  kind: dangling
+  parts:
+  - '*_toe_lateral_bond'
+  - '*_heel_lateral_bond'
+  - '*_mid_medial_bond'
+  field: native_step
+  why: 'As the backings: not on disk, not indexed; bytes recorded in small-indexed-selection.json.gz (pack ...7d62c43f9c9a), sha256 match.'
+  fix: As the backings.
+  producer: studies/cove50-sensor-integration/foot-contact/build.py (history only, commit 4b79b740d)
+  reference: artifacts/cove50-sensor-integration/v4/parts/<part>.step
+  task: T-54avce
+- id: foot-fsr-sensors-step
+  kind: dangling
+  parts:
+  - '*_toe_lateral_sensor'
+  - '*_heel_lateral_sensor'
+  - '*_mid_medial_sensor'
+  field: native_step
+  why: Not on disk, not indexed; bytes recorded (evicted 2026-10-25) in data/storage-cleanup-20261029/lean/indexed-selection.json.gz (pack ...7d62c43f9c9a),
+    sha256 match. The supplier source named in the manifest (artifacts/cove50-sensor-integration/contact-sources/30-00016-FSR 402 Short Tail.STEP)
+    is not on disk either.
+  fix: Restore the blob index; or place the supplier STEP by a script in the tree (FSR-stack script).
+  producer: studies/cove50-sensor-integration/foot-contact/build.py (history only, commit 4b79b740d) placing the supplier STEP
+  reference: artifacts/cove50-sensor-integration/v4/parts/<part>.step (placed copy of the purchased FSR 402 Short Tail STEP)
+  task: needs task (T-54avce covers backings / bonds / pucks, not the purchased sensor copies)
+- id: foot-fsr-pucks-step
+  kind: dangling
+  parts:
+  - R_toe_lateral_actuator_v17
+  - R_heel_lateral_actuator_v17
+  - R_mid_medial_actuator_v17
+  - L_heel_lateral_actuator_v17
+  - L_mid_medial_actuator_v17
+  field: native_step
+  why: Not on disk (.stl present), not indexed; bytes recorded in data/sensor-purchasable-v17-archive-receipt-20261024.json and small-indexed-selection.json.gz
+    (pack ...9f454dbc9402), sha256 match.
+  fix: Restore the blob index; or let the FSR-stack script write the pucks (they are plain cylinders).
+  producer: robot/electronics/sensing/studies/purchasable/build.py (in the tree; a 10 x 0.5 mm cylinder per site) but it imports ../integrated-attachments/build.py,
+    which is not in the tree, so it does not run as is
+  reference: artifacts/cove50-sensor-integration/v17/parts/<part>.step (L_toe_lateral_actuator_v17.step is on disk)
+  task: T-d98ff3 (R heel), T-54avce (all pucks)
+- id: arm-shell-m3-nuts-step
+  kind: dangling
+  parts:
+  - '*_fore_front_187_M3_nut'
+  - '*_fore_front_178_M3_nut'
+  - '*_fore_back_187_M3_nut'
+  - '*_fore_back_178_M3_nut'
+  field: native_step
+  why: Not on disk under either name, not indexed; bytes recorded in the cold storage run data/storage-runs/arm-fdm-connectors-20261102-b7c0e4f8bb1f.json
+    (state cold, synced 2026-11-04; its selection lists path + sha256 = manifest native_step_sha256, no pack key).
+  fix: 'For the BOM nothing: robot/body/bom/hardware.py generates an ISO 4032 M3 nut STEP at the measured placement. For the manifest: rerun the
+    arm packaging step or restore the blob index.'
+  producer: robot/body/arm/common.py ensure_arm_shell_nut_assets() (called by robot/body/arm/package_and_render.py and build_arm_connectors.py)
+    writes the STEP + npz into artifacts/robot/body/arm/shell_hardware
+  reference: artifacts/cove50-strength/arm-fdm-connectors-20261102/shell_hardware/<part>.step (path-moves -> artifacts/robot/body/arm/shell_hardware/<part>.step;
+    only the .npz exists there)
+  task: 'needs task (low value: hardware.py already generates the nut)'

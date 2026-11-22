@@ -1,0 +1,116 @@
+# Cove-50 body definition for robot/body/assembly/neck_collar.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: neck-collar
+owner: (set by the owning session)
+generators:
+- id: neck-collar
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/assembly/neck_collar.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.step
+  outputs:
+  - artifacts/robot/body/assembly/neck-collar/records.json
+  - artifacts/robot/body/assembly/neck-collar/parts
+  notes: "head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33): inward tabs, two 3.6/2.2 steel sleeves, head recesses, two M2x8 screws, two dia 1.6 pilots in the link plate; the collar is a parametric B-rep with a native STEP (ring cut by ruled splines measured from the old head-envelope mesh; neck_collar_envelope.json); roll_flip_checks manifest swaps it in after neck_parts."
+  after:
+  - shell-pass
+parts:
+- match: head_neck_collar
+  kind: printed
+  line: print:head_neck_collar
+  name: head_neck_collar
+  make_buy: make
+  quantity: 1
+- match: combined__neck_yaw_to_pitch_link
+  kind: printed
+  line: print:combined__neck_yaw_to_pitch_link
+  name: combined__neck_yaw_to_pitch_link
+  make_buy: make
+  quantity: 1
+- match: head_neck_collar_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x4.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4.5 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.5
+    supplier: unknown
+    part_number: unknown
+- match:
+  - head_neck_collar_M2x8_0
+  - head_neck_collar_M2x8_1
+  kind: hardware
+  line: hw:M2-x-8-ISO-7380-1
+  name: M2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 8 ISO 7380-1
+  material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+assembly:
+  steps:
+  - id: neck_head:p002
+    subassembly: neck_head
+    part:
+    - combined__neck_yaw_to_pitch_link
+    - combined__neck_yaw_to_pitch_link_steel_sleeves
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - neck_head:p001
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via upper__neck_yaw_front_horn); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (upper__neck_yaw_horn_M2x5), head to tip when the part carries the head, else reversed; direction searched (six
+      axes vs the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 3111.7 -> 0.0 mm3'
+  - id: neck_head:p039
+    subassembly: neck_head
+    part:
+    - head_neck_collar
+    - head_neck_collar_steel_sleeves
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - neck_head:s038
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via combined__neck_yaw_to_pitch_link); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (head_neck_collar_M2x8), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-1.0, 0.0, -0.0]): path contact 43.5 -> 0.0 mm out, seat released True -> True, max overlap 846.8 -> 0.0 mm3'
+  - id: neck_head:s040
+    subassembly: neck_head
+    screw:
+    - head_neck_collar_M2x8_0
+    - head_neck_collar_M2x8_1
+    direction: screw axis
+    after:
+    - neck_head:p039
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after head_neck_collar; driver path vs placed parts

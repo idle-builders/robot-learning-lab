@@ -1,0 +1,548 @@
+# Cove-50 body definition for robot/body/motor-refit/motor_refit.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: motor-refit
+owner: (set by the owning session)
+generators:
+- id: motor-refit
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/motor-refit/motor_refit.py
+  - legs
+  inputs:
+  - artifacts/robot/body/assembly/assembly-parts.json
+  - artifacts/robot/body/assembly/parts
+  outputs:
+  - artifacts/robot/body/motor-refit/assembly-parts.json
+  - artifacts/robot/body/motor-refit/parts
+  manifest_out: artifacts/robot/body/motor-refit/assembly-parts.json
+  notes: Official ST3025 STEP from artifacts/robot/actuators. robot/body/motor-refit/package.py (GLB, skeleton STEP, renders) is presentation
+    only; no later step reads its outputs, so it is not in the chain.
+  after:
+  - assembly
+parts:
+- match:
+  - Honeycomb_Cell_01_Upper_Dorsal_L2_top_insulator
+  - Honeycomb_Cell_02_Upper_Dorsal_L1_top_insulator
+  - Honeycomb_Cell_03_Upper_Dorsal_C0_top_insulator
+  - Honeycomb_Cell_04_Upper_Dorsal_R1_top_insulator
+  - Honeycomb_Cell_05_Upper_Dorsal_R2_top_insulator
+  - Honeycomb_Cell_06_Upper_Core_L_top_insulator
+  - Honeycomb_Cell_07_Upper_Core_R_top_insulator
+  - Honeycomb_Cell_08_Lower_Pelvis_L_top_insulator
+  - Honeycomb_Cell_09_Lower_Pelvis_R_top_insulator
+  kind: other
+  line: battery-top-insulator
+  name: Cell top insulator ring
+  make_buy: buy
+  quantity: 9
+  supplier: unknown
+  part_number: unknown
+  notes: 'supplier / part number: no source in the repo (unknown).'
+- match:
+  - Honeycomb_Cell_08_Lower_Pelvis_L
+  - Honeycomb_Cell_09_Lower_Pelvis_R
+  kind: purchased
+  line: battery-cell-21700
+  name: 21700 Li-ion cell
+  make_buy: buy
+  quantity: 2
+  supplier: Molicel
+  part_number: INR-21700-P50B
+  notes: 9-cell honeycomb pack. Cell model and supplier to fill in. supplier from robot/electronics/power/battery.json (model_basis.cell; manufacturer,
+    no seller recorded).
+- match:
+  - Honeycomb_Fin_08_Lower_Pelvis_L
+  - Honeycomb_Fin_09_Lower_Pelvis_R
+  kind: made
+  line: battery-fin-6063
+  name: Battery heat-sink fin, 6063-T5 aluminium (cut / bent)
+  make_buy: make
+  quantity: 2
+  notes: Cut from sheet; one per cell.
+- match: combined__stage2_lower_pelvis_battery_cradle_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.3x2.1x2.8
+    name: 304 steel compression sleeve 3.3 x 2.1 x 2.8 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.3
+      inner_dia_mm: 2.1
+      length_mm: 2.8
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.3x2.1x3.2
+    name: 304 steel compression sleeve 3.3 x 2.1 x 3.2 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.3
+      inner_dia_mm: 2.1
+      length_mm: 3.2
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.3x2.1x7.6
+    name: 304 steel compression sleeve 3.3 x 2.1 x 7.6 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.3
+      inner_dia_mm: 2.1
+      length_mm: 7.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.1x3.2x4.2
+    name: 304 steel compression sleeve 4.1 x 3.2 x 4.2 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.1
+      inner_dia_mm: 3.2
+      length_mm: 4.2
+    supplier: unknown
+    part_number: unknown
+- match: original_profile_head_skin_v23
+  kind: printed
+  line: print:original_profile_head_skin_v23
+  name: original_profile_head_skin_v23
+  make_buy: make
+  quantity: 1
+- match: L_roll_servo_case_reference
+  kind: purchased
+  line: servo:Feetech-STS3250-strong-tier
+  name: Feetech STS3250 (strong tier)
+  make_buy: buy
+  quantity: 1
+  supplier: Feetech
+  part_number: ST-3250-C001
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
+    robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
+    robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+- match:
+  - L_ankle_pitch_ST3025_output
+  - L_hip_pitch_ST3025_output
+  - L_knee_ST3025_output
+  - L_roll_passive_idler_reference
+  - L_roll_upper_horn_reference
+  - R_ankle_pitch_ST3025_output
+  - R_hip_pitch_ST3025_output
+  - R_knee_ST3025_output
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 8
+  notes: Come in the servo box; listed so every CAD part has a line.
+- match: R_shin_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x4.75
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4.75 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.75
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x2
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2 mm (outer x inner x length)
+    quantity: 8
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.0
+    supplier: unknown
+    part_number: unknown
+- match: L_shin_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x4.75
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4.75 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.75
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x2
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2 mm (outer x inner x length)
+    quantity: 8
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.0
+    supplier: unknown
+    part_number: unknown
+- match: R_shin_front_hard_cover
+  kind: printed
+  line: print:R_shin_front_hard_cover
+  name: R_shin_front_hard_cover
+  make_buy: make
+  quantity: 1
+- match: L_shin_front_hard_cover
+  kind: printed
+  line: print:L_shin_front_hard_cover
+  name: L_shin_front_hard_cover
+  make_buy: make
+  quantity: 1
+- match:
+  - L_ankle_pitch_ST3025_case
+  - L_hip_pitch_ST3025_case
+  - L_knee_ST3025_case
+  - R_ankle_pitch_ST3025_case
+  - R_hip_pitch_ST3025_case
+  - R_knee_ST3025_case
+  kind: purchased
+  line: servo:Waveshare-ST3025-fast-leg-tier
+  name: Waveshare ST3025 (fast-leg tier)
+  make_buy: buy
+  quantity: 6
+  supplier: Waveshare
+  part_number: 24702 (ST3025; Feetech ST-3025-C002)
+  material: Waveshare ST3025 (Feetech ST-3025-C002) official STEP
+  notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.fast-leg:
+    part, sku).'
+assembly:
+  steps:
+  - id: torso:p004
+    subassembly: torso
+    part: Honeycomb_Fin_09_Lower_Pelvis_R
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - torso:p003
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: toward
+      the centroid of placed neighbours (Honeycomb_Cell_09_Lower_Pelvis_R), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 0.0, -1.0]): path contact 60.0 -> 36.5 mm out, seat released True -> True, max overlap 208.2 -> 158.6 mm3; moved before combined__stage2_lower_pelvis_battery_cradle
+      (it touched combined__stage2_lower_pelvis_battery_cradle 36.5 mm out, 158.578 mm3); direction searched (six axes vs the seeded [-1.0, 0.0,
+      0.0]): path contact 36.5 -> 15.5 mm out, seat released True -> True, max overlap 158.6 -> 89.4 mm3'
+  - id: torso:p009
+    subassembly: torso
+    part: Honeycomb_Cell_02_Upper_Dorsal_L1_top_insulator
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - torso:s008
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_02_Upper_Dorsal_L1, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      moved before combined__neck_root_cradle (it touched combined__neck_root_cradle 26.5 mm out, 151.649 mm3); direction searched (six axes vs
+      the seeded [0.0, 0.0, -1.0]): path contact 10.5 -> 0.0 mm out, seat released True -> True, max overlap 125.9 -> 0.0 mm3'
+  - id: torso:p012
+    subassembly: torso
+    part: Honeycomb_Cell_01_Upper_Dorsal_L2_top_insulator
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - torso:p011
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_01_Upper_Dorsal_L2, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 48.5 -> 22.5 mm out, seat released True -> True, max overlap
+      99.1 -> 31.9 mm3; moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier 22.5 mm out, 31.904
+      mm3)'
+  - id: torso:p014
+    subassembly: torso
+    part: Honeycomb_Cell_04_Upper_Dorsal_R1_top_insulator
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - torso:p013
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_04_Upper_Dorsal_R1, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 35.5 -> 22.5 mm out, seat released True -> True, max overlap
+      89.2 -> 31.9 mm3; moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier 22.5 mm out, 31.93
+      mm3)'
+  - id: torso:p018
+    subassembly: torso
+    part: Honeycomb_Cell_03_Upper_Dorsal_C0_top_insulator
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - torso:p017
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_03_Upper_Dorsal_C0, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 41.5 -> 30.5 mm out, seat released True -> True, max overlap
+      387.2 -> 125.9 mm3; moved before foot_ADC_6494 (it touched foot_ADC_6494 30.5 mm out, 125.851 mm3); moved before combined__stage4_rear_imu_adc_carrier
+      (it touched combined__stage4_rear_imu_adc_carrier 26.5 mm out, 98.766 mm3)'
+  - id: torso:p037
+    subassembly: torso
+    part: Honeycomb_Cell_05_Upper_Dorsal_R2_top_insulator
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - torso:p036
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_05_Upper_Dorsal_R2, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 48.5 -> 19.5 mm out, seat released True -> True, max overlap
+      99.1 -> 27.6 mm3'
+  - id: torso:p038
+    subassembly: torso
+    part: Honeycomb_Cell_06_Upper_Core_L_top_insulator
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p037
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_06_Upper_Core_L, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 31.5 -> 22.5 mm out, seat released True -> True, max overlap
+      146.0 -> 41.3 mm3'
+  - id: torso:p039
+    subassembly: torso
+    part: Honeycomb_Cell_07_Upper_Core_R_top_insulator
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p038
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (Honeycomb_Cell_07_Upper_Core_R, combined__stage1_center_torso_spine_chassis), snapped to the nearest axis;
+      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 31.5 -> 22.5 mm out, seat released True -> True, max overlap
+      151.4 -> 41.3 mm3'
+  - id: torso:p057
+    subassembly: torso
+    part: Honeycomb_Cell_08_Lower_Pelvis_L
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p056
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: no
+      placed neighbour: straight down (-z); direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 0.0 mm out, seat
+      released True -> True, max overlap 15158.6 -> 0.0 mm3'
+  - id: torso:p058
+    subassembly: torso
+    part: Honeycomb_Cell_08_Lower_Pelvis_L_top_insulator
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p057
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: toward
+      the centroid of placed neighbours (Honeycomb_Cell_08_Lower_Pelvis_L), snapped to the nearest axis'
+  - id: torso:p059
+    subassembly: torso
+    part: Honeycomb_Cell_09_Lower_Pelvis_R
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p058
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: no
+      placed neighbour: straight down (-z); direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 0.0 mm out, seat
+      released True -> True, max overlap 15588.3 -> 0.0 mm3'
+  - id: torso:p060
+    subassembly: torso
+    part: Honeycomb_Cell_09_Lower_Pelvis_R_top_insulator
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - torso:p059
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: toward
+      the centroid of placed neighbours (Honeycomb_Cell_09_Lower_Pelvis_R), snapped to the nearest axis'
+  - id: torso:p061
+    subassembly: torso
+    part: Honeycomb_Fin_08_Lower_Pelvis_L
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - torso:p060
+    status: seeded
+    derived: 'not reached by the connection graph (no screw, joint or contact edge to what is present): placed before the covers; direction: toward
+      the centroid of placed neighbours (Honeycomb_Cell_08_Lower_Pelvis_L), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 0.0, 1.0]): path contact 7.5 -> 0.0 mm out, seat released True -> True, max overlap 7.0 -> 0.0 mm3'
+  - id: neck_head:p041
+    subassembly: neck_head
+    part: original_profile_head_skin_v23
+    direction: [0.0, 0.0, -1.0]
+    after:
+    - neck_head:s040
+    status: seeded
+    derived: 'graph order, fastened distance 17 from what is present (via B0196_supplier_native_v23); direction: toward the centroid of placed
+      neighbours (B0196_supplier_native_v23), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, -1.0, 0.0]): path
+      contact 60.0 -> 60.0 mm out, seat released True -> True, max overlap 5135.9 -> 1234.8 mm3; moved before ROCK4D_official (it touched ROCK4D_official
+      60.0 mm out, 1234.847 mm3); moved before combined__head_sensor_compute_carrier (it touched combined__head_sensor_compute_carrier 60.0 mm
+      out, 347.709 mm3); back to the end (covers last; an earlier reorder had moved it forward)'
+  - id: right_leg:p005
+    subassembly: right_leg
+    part: R_hip_pitch_ST3025_case
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:s004
+    status: seeded
+    derived: 'graph order, fastened distance 3 from the base; direction: mean screw direction of 3 screw(s) joining it to placed parts (R_A14_front_PA2x4_0,
+      R_A14_front_PA2x4_1, R_A14_front_PA2x4_2), head to tip when the part carries the head, else reversed; direction searched (six axes vs the
+      seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4485.5 -> 0.0 mm3'
+  - id: right_leg:p007
+    subassembly: right_leg
+    part: R_hip_pitch_ST3025_output
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_leg:s006
+    status: seeded
+    derived: 'graph order, fastened distance 4 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_hip_pitch_ST3025_case),
+      snapped to the nearest axis'
+  - id: right_leg:p016
+    subassembly: right_leg
+    part: R_knee_ST3025_case
+    direction: [0.0, 1.0, 0.0]
+    after:
+    - right_leg:s015
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the knee case slides in along +y between the medial and lateral cheeks, under the
+      bridge and the plates'' lower edge (z 153.4); the shin may already be on its output'
+  - id: right_leg:p024
+    subassembly: right_leg
+    part: R_knee_ST3025_output
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:s023
+    status: seeded
+    derived: 'graph order, fastened distance 20 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_knee_ST3025_case),
+      snapped to the nearest axis'
+  - id: right_leg:p027
+    subassembly: right_leg
+    part: R_ankle_pitch_ST3025_case
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - right_leg:s026
+    status: seeded
+    derived: 'graph order, fastened distance 40 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_shin_combined),
+      snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact 23.5 -> 0.0 mm out, seat released
+      True -> True, max overlap 38.7 -> 0.0 mm3'
+  - id: right_leg:p032
+    subassembly: right_leg
+    part: R_shin_front_hard_cover
+    direction: [0.0, 1.0, -0.0]
+    after:
+    - right_leg:s031
+    status: seeded
+    derived: 'graph order, fastened distance 31 from the base; direction: mean screw direction of 2 screw(s) joining it to placed parts (R_Shin_carrier_shell_shin_front_1_M3x8,
+      R_Shin_carrier_shell_shin_front_2_M3x8), head to tip when the part carries the head, else reversed; moved after s033 (its part R_shin_front_hard_cover
+      blocked that screw''s driver path, 9.307 mm3); moved after s034 (its part R_shin_front_hard_cover blocked that screw''s driver path, 9.508
+      mm3)'
+  - id: right_leg:p035
+    subassembly: right_leg
+    part: R_ankle_pitch_ST3025_output
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - right_leg:s034
+    status: seeded
+    derived: 'graph order, fastened distance 41 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_ankle_pitch_ST3025_case),
+      snapped to the nearest axis'
+  - id: left_leg:p005
+    subassembly: left_leg
+    part: L_hip_pitch_ST3025_case
+    direction: [0.0, 0.0, 1.0]
+    after:
+    - left_leg:s004
+    status: seeded
+    derived: 'mirror of right_leg p05 (R_ <-> L_, x negated): graph order, fastened distance 3 from the base; direction: mean screw direction
+      of 3 screw(s) joining it to placed parts (R_A14_front_PA2x4_0, R_A14_front_PA2x4_1, R_A14_front_PA2x4_2), head to tip when the part carries
+      the head, else reversed; direction searched (six axes vs the seeded [-1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True
+      -> True, max overlap 4485.3 -> 0.0 mm3'
+  - id: left_leg:p007
+    subassembly: left_leg
+    part: L_hip_pitch_ST3025_output
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_leg:s006
+    status: seeded
+    derived: 'mirror of right_leg p07 (R_ <-> L_, x negated): graph order, fastened distance 4 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_hip_pitch_ST3025_case), snapped to the nearest axis'
+  - id: left_leg:p010
+    subassembly: left_leg
+    part:
+    - L_roll_servo_case_reference
+    - L_roll_upper_horn_reference
+    - L_roll_passive_idler_reference
+    direction: [-0.0, 0.0, 1.0]
+    after:
+    - left_leg:s009
+    status: seeded
+    derived: 'mirror of right_leg p09 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the roll servo with its horn and
+      idler as one unit rises into the Stage 5 U from below (+z): the arms'' inner faces are 0.10 mm clear of the horn / idler faces per side
+      (running fit), the screws close it; the case''s rear stub (r 3.0, 0.45 proud of the rear arm face) runs up a 0.6 mm insertion slot in the
+      rear arm (2026-11-22)'
+  - id: left_leg:p016
+    subassembly: left_leg
+    part: L_knee_ST3025_case
+    direction: [-0.0, 1.0, 0.0]
+    after:
+    - left_leg:s015
+    status: seeded
+    derived: 'mirror of right_leg p17 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the knee case slides in along +y
+      between the medial and lateral cheeks, under the bridge and the plates'' lower edge (z 153.4); the shin may already be on its output'
+  - id: left_leg:p024
+    subassembly: left_leg
+    part: L_knee_ST3025_output
+    direction: [-0.0, 0.0, 1.0]
+    after:
+    - left_leg:s023
+    status: seeded
+    derived: 'mirror of right_leg p25 (R_ <-> L_, x negated): graph order, fastened distance 20 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_knee_ST3025_case), snapped to the nearest axis'
+  - id: left_leg:p027
+    subassembly: left_leg
+    part: L_ankle_pitch_ST3025_case
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - left_leg:s026
+    status: seeded
+    derived: 'mirror of right_leg p32 (R_ <-> L_, x negated): graph order, fastened distance 40 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_shin_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [-0.0,
+      0.0, 1.0]): path contact 23.5 -> 0.0 mm out, seat released True -> True, max overlap 38.8 -> 0.0 mm3'
+  - id: left_leg:p032
+    subassembly: left_leg
+    part: L_shin_front_hard_cover
+    direction: [-0.0, 1.0, -0.0]
+    after:
+    - left_leg:s031
+    status: seeded
+    derived: 'mirror of right_leg p29 (R_ <-> L_, x negated): graph order, fastened distance 31 from the base; direction: mean screw direction
+      of 2 screw(s) joining it to placed parts (R_Shin_carrier_shell_shin_front_1_M3x8, R_Shin_carrier_shell_shin_front_2_M3x8), head to tip when
+      the part carries the head, else reversed; moved after s033 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.307 mm3);
+      moved after s034 (its part L_shin_front_hard_cover blocked that screw''s driver path, 9.508 mm3)'
+  - id: left_leg:p035
+    subassembly: left_leg
+    part: L_ankle_pitch_ST3025_output
+    direction: [-0.0, 0.0, 1.0]
+    after:
+    - left_leg:s034
+    status: seeded
+    derived: 'mirror of right_leg p33 (R_ <-> L_, x negated): graph order, fastened distance 41 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_ankle_pitch_ST3025_case), snapped to the nearest axis'

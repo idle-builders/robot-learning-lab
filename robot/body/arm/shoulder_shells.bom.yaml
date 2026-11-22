@@ -1,0 +1,368 @@
+# Cove-50 body definition for robot/body/arm/shoulder_shells.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: shoulder-shells
+owner: (set by the owning session)
+generators:
+- id: shoulder-shells
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/shoulder_shells.py
+  - apply
+  inputs:
+  - artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json
+  - artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  outputs:
+  - artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json
+  - artifacts/robot/body/arm/shoulder-clevis/shells/parts
+  - artifacts/robot/body/arm/shoulder-clevis/shells/report.json
+  manifest_out: artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json
+  resources:
+    timeout_s: 1800
+  notes: Parametric upper-arm covers on the green U and round torso openings about the shoulder pitch axes (Idle T-tph7xb; selected by the owner
+    2026-11-22, commit 7fd81122f / 458b6ef6d). Writes the selected body. Added to the chain by the BOM session (T-ghvncz) from the script docstring;
+    not yet rerun in the isolated copy.
+  after:
+  - shoulder-clevis-manifest
+parts:
+- match: center_front_shell
+  kind: printed
+  line: print:center_front_shell
+  name: center_front_shell
+  make_buy: make
+  quantity: 1
+- match: center_back_shell
+  kind: printed
+  line: print:center_back_shell
+  name: center_back_shell
+  make_buy: make
+  quantity: 1
+- match: R_shoulder_roll_to_yaw_combined
+  kind: printed
+  line: print:R_shoulder_roll_to_yaw_combined
+  name: R_shoulder_roll_to_yaw_combined
+  make_buy: make
+  quantity: 1
+- match: R_shoulder_roll_to_yaw_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.4x3
+    name: 304 steel compression sleeve 3.5 x 2.4 x 3 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.4
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.6x2.2x6
+    name: 304 steel compression sleeve 3.6 x 2.2 x 6 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 6.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.6x2.2x7
+    name: 304 steel compression sleeve 3.6 x 2.2 x 7 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 7.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x2.5
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+- match: L_shoulder_roll_to_yaw_combined
+  kind: printed
+  line: print:L_shoulder_roll_to_yaw_combined
+  name: L_shoulder_roll_to_yaw_combined
+  make_buy: make
+  quantity: 1
+- match: L_shoulder_roll_to_yaw_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.4x3
+    name: 304 steel compression sleeve 3.5 x 2.4 x 3 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.4
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.6x2.2x6
+    name: 304 steel compression sleeve 3.6 x 2.2 x 6 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 6.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.6x2.2x7
+    name: 304 steel compression sleeve 3.6 x 2.2 x 7 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 7.0
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x2.5
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+- match: R_upper_arm_hard_cover
+  kind: printed
+  line: print:R_upper_arm_hard_cover
+  name: R_upper_arm_hard_cover
+  make_buy: make
+  quantity: 1
+- match: L_upper_arm_hard_cover
+  kind: printed
+  line: print:L_upper_arm_hard_cover
+  name: L_upper_arm_hard_cover
+  make_buy: make
+  quantity: 1
+- match:
+  - L_upper_arm_shell_front_M3x8
+  - R_upper_arm_shell_front_M3x8
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - L_upper_arm_shell_front_M3_nut
+  - L_upper_arm_shell_rear_M3_nut
+  - R_upper_arm_shell_front_M3_nut
+  - R_upper_arm_shell_rear_M3_nut
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+- match:
+  - L_upper_arm_shell_rear_M3x6
+  - R_upper_arm_shell_rear_M3x6
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/bom/hardware.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+assembly:
+  steps:
+  - id: right_arm:p007
+    subassembly: right_arm
+    part:
+    - R_shoulder_roll_to_yaw_combined
+    - R_shoulder_roll_to_yaw_combined_steel_sleeves
+    direction: [-0.164, 0.0, 0.986]
+    after:
+    - right_arm:p006
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__R_roll_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (R_shoulder_u_roll_case_ny_screw, R_shoulder_u_roll_case_py_screw, upper__R_yaw_case_PA2x7), head to tip when
+      the part carries the head, else reversed'
+  - id: right_arm:p034
+    subassembly: right_arm
+    part: R_upper_arm_hard_cover
+    direction: [-1.0, 0.0, 0.0]
+    after:
+    - right_arm:p033
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via R_shoulder_roll_to_yaw_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (R_upper_arm_shell_front_M3x8, R_upper_arm_shell_rear_M3x6), head to tip when the part carries the
+      head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 59.5 -> 41.5 mm out, seat released True
+      -> True, max overlap 2264.3 -> 2402.8 mm3'
+  - id: right_arm:s035
+    subassembly: right_arm
+    screw: R_upper_arm_shell_front_M3x8
+    with:
+    - R_upper_arm_shell_front_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
+  - id: right_arm:s036
+    subassembly: right_arm
+    screw: R_upper_arm_shell_rear_M3x6
+    with:
+    - R_upper_arm_shell_rear_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:s035
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
+  - id: left_arm:p007
+    subassembly: left_arm
+    part:
+    - L_shoulder_roll_to_yaw_combined
+    - L_shoulder_roll_to_yaw_combined_steel_sleeves
+    direction: [0.164, -0.0, 0.986]
+    after:
+    - left_arm:p006
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__L_roll_C047_case); direction: mean screw direction of 5 screw(s)
+      joining it to placed parts (L_shoulder_u_roll_case_ny_screw, L_shoulder_u_roll_case_py_screw, upper__L_yaw_case_PA2x7), head to tip when
+      the part carries the head, else reversed'
+  - id: left_arm:p034
+    subassembly: left_arm
+    part: L_upper_arm_hard_cover
+    direction: [1.0, 0.0, 0.0]
+    after:
+    - left_arm:p033
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via L_shoulder_roll_to_yaw_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (L_upper_arm_shell_front_M3x8, L_upper_arm_shell_rear_M3x6), head to tip when the part carries the
+      head, else reversed; direction searched (six axes vs the seeded [-0.0, 1.0, 0.0]): path contact 59.5 -> 41.5 mm out, seat released True
+      -> True, max overlap 2255.9 -> 2432.3 mm3'
+  - id: left_arm:s035
+    subassembly: left_arm
+    screw: L_upper_arm_shell_front_M3x8
+    with:
+    - L_upper_arm_shell_front_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
+  - id: left_arm:s036
+    subassembly: left_arm
+    screw: L_upper_arm_shell_rear_M3x6
+    with:
+    - L_upper_arm_shell_rear_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:s035
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
+  - id: final_body:p003
+    subassembly: final_body
+    part: center_back_shell
+    with:
+    - upper__cowl_M2_nut_0
+    - upper__cowl_M2_nut_1
+    direction: [0.0, -1.0, 0.0]
+    after:
+    - final_body:s002
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via upper__L_pitch_C047_case); direction: toward the centroid of placed
+      neighbours (upper__L_pitch_C047_case, upper__R_pitch_C047_case), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [0.0, 0.0, 1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4566.0 -> 0.0 mm3; moved after s003 (its part
+      center_back_shell blocked that screw''s driver path, 15.268 mm3)'
+  - id: final_body:p005
+    subassembly: final_body
+    part: center_front_shell
+    direction: [-0.0, 1.0, -0.0]
+    after:
+    - final_body:s004
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage2_lower_pelvis_battery_cradle); direction: mean screw
+      direction of 2 screw(s) joining it to placed parts (C_T01_chest__T02_back_1_M3x8, C_T01_chest__T02_back_2_M3x8), head to tip when the part
+      carries the head, else reversed'
+defects:
+- id: step-dropped-by-morph
+  kind: no_scripted_step
+  parts:
+  - '*_upper_arm_hard_cover'
+  - '*_shin_back_hard_cover'
+  - combined__stage2_lower_pelvis_battery_cradle
+  state: 'An upstream STEP exists (artifacts/robot/body/assembly/parts), but robot/body/ape-proportions/build.py stretches the mesh and records
+    the STEP as native_step_unmorphed, so the selected body has no STEP. The cradle is a structural carrier: its checks run on the mesh.'
+  fix: 'Same as above: stretch the B-rep in build.py (BRepBuilderAPI_GTransform for the axial scale; a piecewise stretch needs a split, scale,
+    fuse) and write native_step (medium). Do the cradle first: it carries load.'
+  effort: medium

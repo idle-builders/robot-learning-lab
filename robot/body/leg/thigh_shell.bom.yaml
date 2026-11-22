@@ -1,0 +1,46 @@
+# Cove-50 body definition for robot/body/leg/thigh_shell.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: thigh-shell
+owner: (set by the owning session)
+generators:
+- id: thigh-shell
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/thigh_shell.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/body/ape-proportions/assembly-parts.json
+  outputs:
+  - artifacts/robot/body/leg/roll-flip/parts/thigh_shell_edges.npz
+  - artifacts/robot/body/leg/roll-flip/parts
+  in_place_edits:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  notes: Replaces the four thigh hard covers with the blue thigh shells (THIGH_SHELL_MANIFEST / THIGH_SHELL_OUT redirect it). Surface parameters
+    SURF are code constants; fit-surface is not part of the rebuild.
+  after:
+  - roll-flip-manifest
+- id: shin-cover
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/thigh_shell.py
+  - shin-cover
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  outputs:
+  - artifacts/robot/body/leg/roll-flip/parts
+  - artifacts/robot/body/leg/roll-flip/parts/moved
+  in_place_edits:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws.
+  after:
+  - thigh-shell
