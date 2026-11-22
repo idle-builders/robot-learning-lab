@@ -39,6 +39,8 @@ def measure(m, layer):
     poly = union_all(polygons(m.triangles[bed][:, :, :2])).buffer(0.01, join_style="mitre").buffer(-0.01, join_style="mitre").simplify(0.005)
     geoms = list(poly.geoms) if isinstance(poly, MultiPolygon) else [poly]
     geoms = [g for g in geoms if g.area > 0.01]
+    if not geoms:                            # bed-facing faces whose islands are all under 0.01 mm2 (a vertex or edge on the bed)
+        return dict(out, contact_mm2=0.0, islands=0, bed_facing_area_under_0p01_mm2=round(float(poly.area), 4))
     hull_all = union_all(polygons(m.triangles[:, :, :2])).convex_hull
     chull = poly.convex_hull
     mrr = poly.minimum_rotated_rectangle

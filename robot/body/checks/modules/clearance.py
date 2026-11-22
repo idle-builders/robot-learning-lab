@@ -23,12 +23,21 @@ def check_clearance(body, changed, others, sol, mf, poses, SEARCH_MM=5.0):
             t0 = time.time(); sol[n] = screen_solid(body, n, changed); mf[n] = kit.mf(sol[n][0]); tick("solids (others)", t0)
     t0 = time.time()
 
+    T0 = {lk: body.link_T(lk, poses[0][2]) for lk in {link[n] for pr in pairs for n in pr}}
+    base = None
+
     def at(q):
-        Tq = {lk: body.link_T(lk, q)[:3, :4] for lk in {link[n] for pr in pairs for n in pr}}
-        posed = {n: mf[n].transform(Tq[link[n]]) for n in {x for pr in pairs for x in pr}}
+        """(overlap, distance) per pair within SEARCH_MM at pose q. A pair whose two links keep the relative transform they have at the
+        first pose (standing) has its first-pose result (an unscoped run: torso pairs over leg poses); only moved pairs are measured."""
+        Tq = {lk: body.link_T(lk, q) for lk in T0}
+        lp = {(link[a], link[b]) for a, b in pairs}
+        lmoved = lp if base is None else {(la, lb) for la, lb in lp if not np.allclose(np.linalg.solve(Tq[la], Tq[lb]),
+                                                                                        np.linalg.solve(T0[la], T0[lb]), rtol=0.0, atol=1e-9)}
+        moved = [(a, b) for a, b in pairs if (link[a], link[b]) in lmoved]
+        out = {} if base is None else {pr: r for pr, r in base.items() if (link[pr[0]], link[pr[1]]) not in lmoved}
+        posed = {n: mf[n].transform(Tq[link[n]][:3, :4]) for n in {x for pr in moved for x in pr}}
         bb = {n: np.array(g.bounding_box()).reshape(2, 3) for n, g in posed.items()}
-        out = {}
-        for a, b in pairs:
+        for a, b in moved:
             gap = np.maximum(0.0, np.maximum(bb[a][0] - bb[b][1], bb[b][0] - bb[a][1]))
             if np.linalg.norm(gap) > SEARCH_MM:
                 continue

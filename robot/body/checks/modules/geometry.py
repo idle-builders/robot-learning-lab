@@ -16,6 +16,11 @@ from checks.registry import register
 # thresholds of the old audit, kept as named measurement definitions (they define what a counted event is, not a verdict);
 # a part's own values come from its `geometry_thresholds` setting (part_settings.json, defaults there); these are the fallback
 DEFAULT_THRESHOLDS = dict(sliver_mm2=0.25, micro_edge_mm=0.30, acute_normal_deg=125.0, g1_kink_deg=8.0)
+# Parts we make without printing them (cut, produced, machined): their STEP is ours and audited like a printed part's. Every other
+# non-printed part is bought: its STEP is the supplier's (power supervisor board 80 MB, ROCK4D 45, ST3025 cases 15 each, thousands
+# of component solids), the audit of its B-rep says nothing about our design and an unscoped run never finished on them
+# (T-zfejzf, 2026-11-22: no part audited in 1800 s). Those are listed in `bought_not_audited` with their STEP size.
+MADE_ROLES = {"cut_stock", "cut_material", "produced_backing", "produced_holder", "manufactured"}
 
 
 def _face_normal_at(face, pt):
@@ -247,8 +252,10 @@ def loadpath_slices(mesh_mf, spec, n_default=12):
 
 
 def _step(ctx, name):
+    """The part's native STEP, None without one or when the manifest path resolves nowhere (31 foot-sensor / forearm-nut paths on
+    22 Nov: counted in bad_events.dangling_native_step, the part is then skipped like a mesh-only part)."""
     p = ctx.parts.get(name)
-    if not p or not p.get("native_step"):
+    if not p or not p.get("native_step") or not BL.src(p["native_step"]).exists():
         return None
     return BL.src(p["native_step"])
 
@@ -281,7 +288,7 @@ def audit_part(ctx, name):
     else:
         out.update(mirror_part=None, mirror_volume_diff_pct=None)
     slv = ctx.parts.get(f"{name}_steel_sleeves")
-    slv_step = BL.src(slv["native_step"]) if slv and slv.get("native_step") else None
+    slv_step = _step(ctx, f"{name}_steel_sleeves") if slv else None
     n_slv = len(_solids(slv_step)[1]) if slv_step is not None else 0
     exp = (ctx.settings(name).get("expected_hardware") or {}).get("steel_sleeves")
     out.update(sleeves=n_slv, expected_sleeves=exp, sleeves_missing=None if exp is None else exp - n_slv)
@@ -309,7 +316,16 @@ def run(ctx):
     t0 = time.time()
     per_part, cases, skipped = {}, [], []
     tot = dict(invalid_solids=0, sliver_faces=0, micro_edges=0, acute_wedge_edges=0, non_tangent_hub_steps=0, unrounded_profile_corners=0)
+    from checks import process as P
+    bought, dangling = {}, []
     for n in ctx.scope:
+        if ctx.parts[n].get("native_step") and not BL.src(ctx.parts[n]["native_step"]).exists():
+            dangling.append(n)
+            continue
+        if ctx.parts[n].get("native_step") and not (P.is_printed(ctx, n) or ctx.parts[n].get("role") in MADE_ROLES):
+            bought[n] = dict(role=ctx.parts[n].get("role"), step_mb=round(BL.src(ctx.parts[n]["native_step"]).stat().st_size / 1e6, 2)
+                             if BL.src(ctx.parts[n]["native_step"]).exists() else None)
+            continue
         r = audit_part(ctx, n)
         if r is None:
             skipped.append(n)
@@ -346,8 +362,8 @@ def run(ctx):
                               context=True))   # the summary's header already names parts whose screening solid is over 5 % off
     tick("geometry", t0)
     cases.sort(key=lambda c: (bool(c.get("context")), c["unit"] != "faces, no solid", -c["value"] if c["unit"].startswith(("%", "sleeves", "mm3")) else c["value"]))
-    return dict(per_part=per_part, worst_cases=cases[:20],
-                bad_events=dict(parts_audited=len(per_part), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
+    return dict(per_part=per_part, worst_cases=cases[:20], bought_not_audited=bought, dangling_native_step=dangling,
+                bad_events=dict(parts_audited=len(per_part), bought_parts_not_audited=len(bought), dangling_native_step=len(dangling), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
                                 acute_wedge_edges=tot["acute_wedge_edges"], non_tangent_hub_steps=tot["non_tangent_hub_steps"],
                                 unrounded_profile_corners=tot["unrounded_profile_corners"],
                                 parts_over_build_volume=sum(1 for r in per_part.values() if (r.get("min_bed_margin_mm") or 0) < 0),

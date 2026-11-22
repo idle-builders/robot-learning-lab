@@ -17,7 +17,7 @@ from checks.registry import register
 def check_gaps(body, changed, sol, mf):
     t0 = time.time()
     q = body.standing
-    out = {}
+    out, memo = {}, {}
     for a in changed:
         Ta = body.link_T(body.parts[a]["owning_link"], q)[:3, :4]
         ga = mf[a].transform(Ta); ba = np.array(ga.bounding_box()).reshape(2, 3)
@@ -31,9 +31,14 @@ def check_gaps(body, changed, sol, mf):
                 continue
             if n not in mf:
                 t1 = time.time(); sol[n] = screen_solid(body, n, changed); mf[n] = kit.mf(sol[n][0]); tick("solids (others)", t1)
-            gn = mf[n].transform(Tn[:3, :4])
-            v = (ga ^ gn).volume()
-            d = 0.0 if v > 1e-3 else ga.min_gap(gn, 6.0)
+            key = (n, a) if n < a else (a, n)
+            if key in memo:                     # both parts scoped (unscoped run): the pair was measured from the other side
+                v, d = memo[key]
+            else:
+                gn = mf[n].transform(Tn[:3, :4])
+                v = (ga ^ gn).volume()
+                d = 0.0 if v > 1e-3 else ga.min_gap(gn, 6.0)
+                memo[key] = (v, d)
             if d < 6.0:
                 out[f"{a} x {n}"] = dict(same_link=p["owning_link"] == body.parts[a]["owning_link"], overlap_mm3=round(v, 3),
                                          distance_mm=round(min(d, 6.0), 3), solid=sol[n][1])
