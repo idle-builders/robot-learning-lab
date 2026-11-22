@@ -120,7 +120,7 @@ _CLAIMS = {}
 
 
 def use_claims(names, defs=None):
-    """Resolve the definitions' part entries once for these manifest names (hardware_kind / BomThread read them)."""
+    """Resolve the definitions' part entries once for these manifest names (hardware_kind reads them)."""
     D = defs or definitions().load()
     _CLAIMS.clear(); _CLAIMS.update(D.claims(list(names)))
     return D
@@ -247,32 +247,6 @@ class Coarse:
         return (m, how)
 
 
-class BomThread:
-    """While measuring a screw whose name carries no thread (the `*_screw_<i>` proxies), mount_check.nominal answers with the
-    thread and family its definition declares, so driver_access finds its tool."""
-
-    def __init__(self, ctx, k):
-        self.ctx, self.k = ctx, k
-
-    def __enter__(self):
-        MC = SL.mount_check()
-        self.orig = MC.nominal
-        if self.orig(self.k).get("thread"):
-            return self
-        sp = (_CLAIMS.get(self.k) or {}).get("spec") or {}
-        th = sp.get("thread")
-        if not th:
-            return self
-        fam = ("PA" + th.lstrip("M")) if sp.get("family") == "PA" else th
-        orig, k = self.orig, self.k
-        MC.nominal = lambda n: dict(orig(n), thread=fam, length_mm=sp.get("length_mm")) if n == k else orig(n)
-        return self
-
-    def __exit__(self, *exc):
-        SL.mount_check().nominal = self.orig
-        return False
-
-
 class World:
     """Coarse screening manifolds at standing, world frame, built once per part."""
 
@@ -391,9 +365,8 @@ class Walker:
                         info = _screw_info(self.ctx, self.T, k, self.nodes, self.WB)
                     except Exception as e:  # noqa: BLE001
                         screws[k] = dict(error=f"screw geometry: {e}", touches_not_yet_assembled=[]); continue
-                    with BomThread(self.ctx, k):
-                        r = DA.measure_screw(self.coarse, k, info, self.T, assembled, self.WB, self.box, self.tdata)
-                        rl = DA.measure_screw(self.coarse, k, info, self.T, assembled + later, self.WB, self.box, self.tdata) if "error" not in r else None
+                    r = DA.measure_screw(self.coarse, k, info, self.T, assembled, self.WB, self.box, self.tdata)
+                    rl = DA.measure_screw(self.coarse, k, info, self.T, assembled + later, self.WB, self.box, self.tdata) if "error" not in r else None
                     if "error" not in r:
                         new = {b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])}
                         cover = {n for n in new if parts[n].get("role") == COVER_ROLE}     # a cover going on over its screws is the order working

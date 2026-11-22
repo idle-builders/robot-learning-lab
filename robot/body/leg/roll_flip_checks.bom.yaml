@@ -383,18 +383,18 @@ parts:
   - R_Thigh_rear_carrier_shell_thigh_back_1_nut
   - R_Thigh_rear_carrier_shell_thigh_back_2_nut
   kind: hardware
-  line: hw:M2.5-hex-nut-ISO-4032
-  name: M2.5 hex nut ISO 4032
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
   make_buy: buy
   quantity: 8
   spec:
     kind: nut
-    thread: M2.5
+    thread: M3
     standard: ISO 4032
-    across_flats_mm: 5.0
-    label: M2.5 hex nut ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
   supplier: unknown
-  part_number: M2.5 hex nut ISO 4032
+  part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
     form. Supplier: no repo source (unknown).'
@@ -402,14 +402,12 @@ parts:
   section: Hip
 - match:
   - L_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
-  - L_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
   - R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
-  - R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
   kind: hardware
   line: hw:M3-x-12-ISO-10642
   name: M3 x 12 ISO 10642
   make_buy: buy
-  quantity: 4
+  quantity: 2
   spec:
     kind: screw
     thread: M3
@@ -422,6 +420,32 @@ parts:
   supplier: unknown
   part_number: M3 x 12 ISO 10642
   material: ISO 10642 M3x12 (hex socket countersunk, head flush with the shell skin) into the ISO 4032 M3 nut in the Stage 4 post; head dk 6.72
+    (theoretical) x k 1.86, shank dia 3, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_Thigh_rear_carrier_shell_thigh_back_2_M3x10_countersunk
+  - R_Thigh_rear_carrier_shell_thigh_back_2_M3x10_countersunk
+  kind: hardware
+  line: hw:M3-x-10-ISO-10642
+  name: M3 x 10 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 10.0
+    standard: ISO 10642
+    head_dia_mm: 6.72
+    head_height_mm: 1.86
+    label: M3 x 10 ISO 10642
+  supplier: unknown
+  part_number: M3 x 10 ISO 10642
+  material: ISO 10642 M3x10 (hex socket countersunk, head sunk 2.0 mm under the shell skin in a counterbore, the skin slopes over the head) into the ISO 4032 M3 nut in the Stage 4 post; head dk 6.72
     (theoretical) x k 1.86, shank dia 3, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
@@ -692,7 +716,7 @@ assembly:
     derived: 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts
   - id: right_leg:s020
     subassembly: right_leg
-    screw: R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+    screw: R_Thigh_rear_carrier_shell_thigh_back_2_M3x10_countersunk
     with:
     - R_Thigh_rear_carrier_shell_thigh_back_2_nut
     direction: screw axis
@@ -904,7 +928,7 @@ assembly:
       path vs placed parts'
   - id: left_leg:s020
     subassembly: left_leg
-    screw: L_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+    screw: L_Thigh_rear_carrier_shell_thigh_back_2_M3x10_countersunk
     with:
     - L_Thigh_rear_carrier_shell_thigh_back_2_nut
     direction: screw axis

@@ -62,11 +62,11 @@ def build_right():
     import interfaces as I
     import screw_plan as SP
     from checks import bodylib as F
-    man = json.loads(VARIANT.read_text())
-    iface = I.instances(F.Body(man), man)
+    man = json.loads(SHELL_PASS.read_text())      # the declared input: the unedited sources (build is repeatable after apply)
+    iface = I.instances(F.Body(man), man)         # foot servo holes are identical in the roll-flip variant (written later in the chain)
     st = SP.standards()
     pt = st["point_mm"]
-    by = {p["name"]: p for p in json.loads(SHELL_PASS.read_text())["parts"]}     # the unedited sources (build is repeatable after apply)
+    by = {p["name"]: p for p in man["parts"]}
 
     def load(name):
         s = MR.load_step(by[name]["native_step"])

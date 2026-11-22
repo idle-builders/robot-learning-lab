@@ -73,16 +73,10 @@ NAMES = ("R_thigh_shell_front", "R_thigh_shell_back")
 
 
 def shell_material(name):
-    """(material, density g/mm3) of shell part `name`: its print setting as the checks read it (body definition first,
-    then checks/data/part_settings.json; checks/ctx.overlay_definitions) and the density from checks/data/materials.json."""
-    sys.path.insert(0, str(R.ROOT / "robot/body"))
-    from checks.core import DATA
-    from checks.ctx import overlay_definitions
-    s, _, _ = overlay_definitions(json.loads((DATA / "part_settings.json").read_text()), R.VARIANT)
-    mat = ((s.get(name) or {}).get("process") or {}).get("material")
-    if not mat:
-        raise SystemExit(f"{name}: no process.material in its definition or part_settings.json")
-    return mat, json.loads((DATA / "materials.json").read_text())[mat]["density_g_cm3"] * 1e-3
+    """(material, density g/mm3) of shell part `name`: its print setting from its body definition, else
+    checks/data/part_settings.json (B.rf_part_material, no manifest read), density from checks/data/materials.json."""
+    mat = B.rf_part_material(name)
+    return mat, B.rf_density(mat)
 
 
 def sec_hull(body, names, z, extra=()):
@@ -907,7 +901,7 @@ def build():
                 xa, xb = sorted((x, x + dx * 12.0))
                 bosses.append(trimesh.creation.box(bounds=[[xa, y0, z - BOSS_WEB_H / 2], [xb, y1, z + BOSS_WEB_H / 2]]))
         holes.append(trimesh.creation.cylinder(SLEEVE_R, 40.0, sections=48, transform=_ty(x, tip + sg * 15.0, z)))
-        holes += head_seat_cutters(x, y_out, z, sg, q["fit"]["recess_mm"])
+        holes += head_seat_cutters(x, y_out, z, sg, q["fit"]["recess_mm"], q.get("skin_normal"))
     hull_out = kit.mf(_outer_hull(th, zs, ro))
     boss = M.Manifold.batch_boolean([kit.mf(b) for b in bosses], M.OpType.Add) ^ hull_out
     shell = (shell + boss) - M.Manifold.batch_boolean([kit.mf(h) for h in holes], M.OpType.Add)
@@ -971,6 +965,12 @@ BOSS_SEAT_RECESS = 0.4            # the boss end stops this far short of the pos
                                   # steel seats on the post: the boss end is a ceiling printed on support (up -y / +y), too rough
                                   # to locate the shell (overhang check: 113 mm2 of supported face on the posts)
 POST_TIP_MIN, POST_RECESS_MAX, POST_CBORE_CLEAR = 0.3, 2.5, 0.2   # mm: tip to bore bottom, head below the skin, counterbore
+HEAD_BELOW_SKIN = 0.05            # mm: the whole head top stays at least this far under the skin (owner 2026-11-22: heads must
+                                  # not stand proud; the skin slopes over the dia 6.72 head disc by up to 2.5 mm, so a head flush
+                                  # at the axis stood 1.51 / 0.78 mm proud at front_2 / back_2)
+CB_SEAT_CHAMFER = 0.5             # mm: 45 deg chamfer round the counterbore mouth, on a cone about the local skin normal, so the
+                                  # seat meets the sloping skin with an even lip instead of a 0.3 mm knife edge on its shallow side
+HEAD_DISC_R = (0.0, 1.2, 2.3, 3.36)   # radii (mm) the skin is sampled at over the head disc (dk/2 = 3.36)
 CS_HEAD, NUT_STD, THREAD = "ISO 10642", "ISO 4032", "M3"
 
 
@@ -990,9 +990,18 @@ def shell_posts(th, zs, ro):
             stem = f"Thigh_carrier_shell_thigh_front_{i + 1}" if half == "front" else f"Thigh_rear_carrier_shell_thigh_back_{i + 1}"
             out.append(dict(half=half, i=i + 1, stem=stem, x=x, z=z, tip_y=tip, sg=sg, skin_y=_outer_y(th, zs, ro, x, z, sg),
                             nut_face_y=B.rf_post_nut_face(tip, _nut),
-                            skin_y_over_head=[_outer_y(th, zs, ro, x + 3.36 * np.cos(a), z + 3.36 * np.sin(a), sg)
-                                              for a in np.linspace(0, 2 * np.pi, 24, endpoint=False)]))
+                            skin_y_over_head=[_outer_y(th, zs, ro, x + r * np.cos(a), z + r * np.sin(a), sg)
+                                              for r in HEAD_DISC_R for a in np.linspace(0, 2 * np.pi, 24, endpoint=False)],
+                            skin_normal=_skin_normal_at(th, zs, ro, x, z, sg)))
     return out
+
+
+def _skin_normal_at(th, zz, Ro, x, z, sg, h=2.0):
+    """Outward unit normal of the outer skin at (x, z) on the front / back side (central differences of _outer_y)."""
+    dydx = (_outer_y(th, zz, Ro, x + h, z, sg) - _outer_y(th, zz, Ro, x - h, z, sg)) / (2 * h)
+    dydz = (_outer_y(th, zz, Ro, x, z + h, sg) - _outer_y(th, zz, Ro, x, z - h, sg)) / (2 * h)
+    n = np.array([-dydx, 1.0, -dydz]) * sg          # surface y = f(x, z): normal (-fx, 1, -fz), outward along sg
+    return (n / np.linalg.norm(n)).tolist()
 
 
 def countersink(x, y_out, z, sg):
@@ -1007,15 +1016,25 @@ def countersink(x, y_out, z, sg):
     return cone
 
 
-def head_seat_cutters(x, y_out, z, sg, recess):
+def head_seat_cutters(x, y_out, z, sg, recess, normal=None):
     """Countersink with its head top `recess` below the skin point (x, y_out, z), plus (recess > 0) a counterbore of the
-    head's radius + POST_CBORE_CLEAR from that plane out through the skin."""
+    head's radius + POST_CBORE_CLEAR from that plane out through the skin, its mouth chamfered CB_SEAT_CHAMFER at 45 deg on
+    a cone about the local skin normal (the skin slopes across the counterbore: an axial chamfer would be 0 on one side and
+    eat through the wall on the other)."""
     import trimesh
     y_seat = y_out - sg * recess
     out = [countersink(x, y_seat, z, sg)]
     if recess > 1e-6:
         r = _hw()[2]["dk"] / 2.0 + POST_CBORE_CLEAR
         out.append(trimesh.creation.cylinder(r, 12.0, sections=64, transform=_ty(x, y_seat + sg * 6.0, z)))
+        n = np.asarray(normal if normal is not None else [0.0, sg, 0.0], float); n /= np.linalg.norm(n)
+        cos_t = abs(float(n[1]))
+        rs = r / cos_t + CB_SEAT_CHAMFER                      # cone radius in the skin plane: the counterbore's ellipse + the chamfer
+        big = rs + 6.0
+        cone = trimesh.creation.cone(radius=big, height=big, sections=96)   # base at local z 0, apex at +big
+        cone.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], -n))  # apex inward along -n
+        cone.apply_translation(np.array([x, y_out, z]) - n * rs + n * big)  # apex rs inside the skin point: radius rs at the skin
+        out.append(cone)
     return out
 
 
@@ -1027,16 +1046,18 @@ def post_fit(q, s4):
     tip, sg, y_out, nf = q["tip_y"], q["sg"], q["skin_y"], q["nut_face_y"]
     bottom = _bore_bottom(s4, q["x"], q["z"], tip, sg)
     dist0, free = abs(y_out - nf), abs(bottom - nf)
+    proud = max(float((-sg * (np.asarray(q["skin_y_over_head"]) - y_out)).max()), 0.0)   # head top over the skin, flush at the axis
+    s_min = proud + HEAD_BELOW_SKIN if proud > 0 else 0.0  # the whole head disc at or under the skin
     cands = []
     for L in head["lengths"]:
-        s = max(0.0, dist0 + m - (L - pt))                 # recess that runs the thread through the whole nut
-        if s <= POST_RECESS_MAX and (dist0 - s + free) - L >= POST_TIP_MIN:
+        s = max(s_min, dist0 + m - (L - pt))               # recess that runs the thread through the whole nut, head under the skin
+        if s <= POST_RECESS_MAX and (dist0 - s + free) - L >= POST_TIP_MIN - 1e-6:
             cands.append((round(s, 6), L, s))
     if cands:
         _, L, s = min(cands)
     else:                                                    # nothing fits: flush, nearest length by violation
         s, L = 0.0, SP.choose_length(dist0, free - pt, nut["reference_engagement_mm"], head["lengths"], pt)["length_mm"]
-    return dict(length_mm=float(L), recess_mm=round(s, 3), dist_flush_mm=round(dist0, 3), dist_mm=round(dist0 - s, 3),
+    return dict(length_mm=float(L), recess_mm=round(s, 3), head_proud_if_flush_mm=round(proud, 3), dist_flush_mm=round(dist0, 3), dist_mm=round(dist0 - s, 3),
                 free_mm=round(free, 3), bore_bottom_y=round(bottom, 3), nut_face_y=round(nf, 3),
                 tip_wall_mm=round(abs(nf - tip), 3), fits=bool(cands))
 
@@ -1193,6 +1214,7 @@ PILOT_D, PILOT_DEPTH, BOSS_GAP = 1.7, 5.0, 0.0          # pilot hole in the fram
                                                        # on the frame wall (was 0.2 short: an open clamp gap under the head)
 PA2_ENG = 4.25                    # engagement in the frame wall the head seat is set for (screws check reference 4.0, it reads ~0.18 less)
 BOSS_BACK = 6.0                   # the side-mount boss runs this far toward +y past the screws (into the curving wing)
+BOSS_END_Y = 18.0                 # above this y the boss end is bevelled 45 deg back to the wing (the frame wall face ends at y 17.5)
 CB_CHAMFER_SINK = 0.3             # the counterbore's 45 deg entry chamfer starts this far under the deepest rim point
 SLV_D, SLV_BORE_D = 3.6, 2.2      # 304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)
 PA2_L, PA2_HD, PA2_HH, PA2_D, PA2_PT = 8.0, 3.5, 1.3, 2.0, 0.6
@@ -1287,6 +1309,13 @@ def cover_mounts(cov, c, q, body):
         boss = M.Manifold.batch_hull([_cyl_x(xs0 - d * 3.0, end, s_["y"] + dy, s_["z"], BOSS_D) for s_ in ss for dy in (0.0, BOSS_BACK)])
         for s_ in ss:
             boss = boss - s_["hf"]
+        # the end face met the wing's inner skin (curving back at ~45 deg) in a 45 deg V that read as a 0.02 mm gap and a
+        # 0.01-0.04 mm wall: above BOSS_END_Y the end is bevelled at 45 deg back toward the skin, square to the wing
+        zb = [min(s_["z"] for s_ in ss) - BOSS_D, max(s_["z"] for s_ in ss) + BOSS_D]
+        bev = M.Manifold.cube([30.0, 30.0, zb[1] - zb[0]]).translate([-15.0, 0.0, zb[0]]).rotate([0.0, 0.0, -45.0 * d])
+        boss = boss - bev.translate([end, BOSS_END_Y, 0.0])
+        # seated on the frame's side wall as it is (its face is not one plane at x `end`: a 0.13 mm3 overlap)
+        boss = boss - kit.mf(fr)
         m = m + boss
         for s_ in ss:
             y, z, ff, fin, end, xs = s_["y"], s_["z"], s_["ff"], s_["fin"], s_["end"], s_["xs"]
@@ -1389,6 +1418,7 @@ def cover_sleeve_rows(solids):
 
 
 VOX_H, VOX_R, VOX_FACES = 0.15, 0.4, 250000   # voxel pitch, opening / closing radius (mm), faces kept after decimation
+VOX_SMOOTH = 12                   # Taubin iterations on the marching-cubes surface (stair steps of the grid)
 
 
 def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):
@@ -1432,6 +1462,10 @@ def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):
     out = trimesh.Trimesh(v + lo, fa, process=True)
     if out.volume < 0:
         out.invert()
+    # the binary grid leaves h-high stair steps on every sloped face: rays cast from a riser read 0.01-0.06 mm walls / gaps,
+    # the treads 0.002 mm Z steps and one-layer slivers (walls / small_features checks, 2026-11-22). Taubin smoothing
+    # (lambda / mu, volume-neutral to first order) takes them out; shape change about h / 4
+    trimesh.smoothing.filter_taubin(out, lamb=0.5, nu=0.53, iterations=VOX_SMOOTH)
     if len(out.faces) > faces:
         dec = out.simplify_quadric_decimation(face_count=faces)
         if dec.is_watertight:
@@ -1440,6 +1474,8 @@ def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):
 
 
 DEBURR_W = 0.55                   # mm: knife edges are cut back to this width (line width 0.42 + margin)
+COVER_Z_LOW = 52.5                # shin frame z of the cover's straight lower edge (the source lip reached 46.5, scalloped and
+                                  # necked to 0.2-0.5 mm up to z 52.2)
 
 
 def deburr(m, width=DEBURR_W, max_wedge=75.0, cap=3.0):
@@ -1530,6 +1566,9 @@ def shin_cover():
         if best is None or kept.volume() > best[2]:
             best = (q, c, kept.volume(), kept)
     q, c, vol, kept = best
+    # lower edge: the source cover's lower lip is scalloped (teeth and bulbs z 46.5-50.5, necks of 0.2-0.5 mm that read as walls
+    # under one line after cleaning); one straight edge at COVER_Z_LOW instead
+    kept = kept ^ kit.mf(trimesh.creation.box(bounds=[[-50.0, -50.0, COVER_Z_LOW], [200.0, 100.0, 300.0]]))
     mm = kit.tm(kept)
     parts = mm.split(only_watertight=False)
     mm = max(parts, key=lambda p_: abs(p_.volume))       # the source's loose 2.7 mm3 fragment (4.4 mm off the shell) goes
@@ -1577,6 +1616,7 @@ def shin_cover():
                volume_before_mm3=round(cov.volume(), 1), volume_after_mm3=round(float(mm.volume), 1),
                voxel_clean=dict(pitch_mm=VOX_H, radius_mm=VOX_R, faces=VOX_FACES, volume_change_mm3=round(vol_clean - vol_trim, 2)),
                deburr=dict(edges_trimmed=n_deburr, width_mm=DEBURR_W, volume_removed_mm3=round(vol_mounted - float(mm.volume), 2)),
+               lower_edge_z=COVER_Z_LOW,
                top_edge_z_at_y={f"{y}": round(c + q * y, 1) for y in (8.3, 15, 20, 25, 29.4)},
                old_mount_screw_centre_above_cut_mm=old_mounts, removed_parts=gone,
                mounts=dict(sites=sites, frame=frame_rep, screws=[r["name"] for r in screw_rows]),

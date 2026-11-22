@@ -20,9 +20,11 @@ generators:
   outputs:
   - artifacts/robot/body/assembly/neck-collar/records.json
   - artifacts/robot/body/assembly/neck-collar/parts
-  notes: 'head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33): inward tabs, two 3.6/2.2 steel sleeves, head recesses, two M2x8 screws,
-    two dia 1.6 pilots in the link plate; the collar is a parametric B-rep with a native STEP (ring cut by ruled splines measured from the old
-    head-envelope mesh; neck_collar_envelope.json); roll_flip_checks manifest swaps it in after neck_parts.'
+  notes: 'head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33, T-6rr3sa): inward tab to a 1.1 mm boss on the link plate (thread 4.6 deep), two 3.6/2.2 x 3.5
+    steel sleeves, a vertical flat channel in the outer wall (screw heads and the press tip), two M2x8 screws, two dia 1.6 pilots in the link; the collar is a
+    parametric B-rep with a native STEP (ring cut by ruled splines measured from the old head-envelope mesh; neck_collar_envelope.json, with the notch and head
+    cut re-measured over the neck pitch range by `neck_collar.py sweep`); reads only the shell-pass manifest and the neck-head link STEP; roll_flip_checks swaps
+    its records in after neck_parts.'
   after:
   - shell-pass
 parts:
@@ -34,13 +36,75 @@ parts:
   quantity: 1
   process:
     printer: Bambu X2D
-    material: Bambu PETG-CF
+    material: Bambu PAHT-CF
+    nozzle_mm: 0.4
+    nozzle_set_by: 'builder/opus-5.5 2026-11-22 (T-6rr3sa): 0.4 mm (line 0.42): the 0.6 mm default of PAHT-CF puts the 0.8 - 1.2 mm channel and notch-floor walls under two 0.62 mm lines'
+    material_alternatives:
+    - Bambu PETG-CF
+    material_set_by: 'builder/opus-5.5 2026-11-22 (T-6rr3sa): PAHT-CF like the link it is screwed to; PETG-CF (HDT 68 C at 1.8 MPa) left a -2.0 C margin against the neck
+      pitch servo case (70 C assumed worst case, 5.8 mm away, no contact)'
     up: +z
     set_by: 'builder/opus-5.5 2026-11-22 (T-vjw5z8): +z (ring base flange z 394.2 on the bed) chosen from the six axes measured on the native
       STEP (overhang beyond 70 deg / bed contact / support standing on the part): +z 15.1 mm2 / 712 mm2 / 15 mm2 (only the sleeve-bore tops of
       the screw tab), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; the head-envelope edge is a curve,
       so only the flange gives a flat bed face'
   section: Neck / head
+  fem:
+    _doc: 'Body shell (T-6rr3sa, builder/opus-5.5 2026-11-22): the collar carries no head load (the head rests on the neck pitch cradle); it is held by its two
+      screws through the 3.6 / 2.2 x 3.5 sleeves to the link plate and is loaded by what can touch it: the head skin pressing on its rim (the skin sits 0.9 mm
+      off, a hand pushing the head down) and a sideways push on the same rim. Supports = the part''s own sleeve bores at the link, load = the rim surface
+      within 2 mm of the head skin, wrench at the load patch centroid. 0.7 mm steel collars around the sleeve bores. Loads are nominal assumptions
+      (5 N finger press, 20 N hard press down, 10 N sideways; no stored shell setup exists to follow): they say whether the 0.8 - 2.4 mm shell walls survive a hand, not a design target.'
+    mesh_h_mm: 1.2
+    origin_mm: load_centroid
+    materials:
+    - Bambu PETG-CF
+    - Bambu PAHT-CF
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: head_neck_collar_steel_sleeves
+          r_extra_mm: 0.7
+          end_extra_mm: 0.25
+    supports:
+      link_screws:
+        holes:
+          of: head_neck_collar_steel_sleeves
+          mate:
+          - combined__neck_yaw_to_pitch_link
+          gap_mm: 2.0
+          r_max_mm: 5.0
+          rim_mm: 2.0
+    load:
+      contact:
+      - original_profile_head_skin_v23
+      gap_mm: 2.0
+    load_cases:
+      push_down_5N:
+        wrench_N_Nmm:
+        - 0.0
+        - 0.0
+        - -5.0
+        - 0.0
+        - 0.0
+        - 0.0
+      push_down_20N:
+        wrench_N_Nmm:
+        - 0.0
+        - 0.0
+        - -20.0
+        - 0.0
+        - 0.0
+        - 0.0
+      push_side_10N:
+        wrench_N_Nmm:
+        - 10.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
 - match: combined__neck_yaw_to_pitch_link
   kind: printed
   line: print:combined__neck_yaw_to_pitch_link
@@ -404,8 +468,8 @@ parts:
   make_buy: context
   quantity: 1
   contains:
-  - line: sleeve:3.6x2.2x4.5
-    name: 304 steel compression sleeve 3.6 x 2.2 x 4.5 mm (outer x inner x length)
+  - line: sleeve:3.6x2.2x3.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
     quantity: 2
     make_buy: buy
     spec:
@@ -413,7 +477,7 @@ parts:
       standard: 304 stainless compression sleeve
       outer_dia_mm: 3.6
       inner_dia_mm: 2.2
-      length_mm: 4.5
+      length_mm: 3.5
     supplier: unknown
     part_number: unknown
   section: Neck / head

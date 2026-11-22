@@ -116,6 +116,13 @@ def _why(exc):
     return f"{type(exc).__name__}: {str(exc)[:300]}{where}"
 
 
+def cpu_seconds():
+    """CPU seconds (user + system) of this process and its finished subprocesses (mount_check, render)."""
+    import resource
+    a, b = resource.getrusage(resource.RUSAGE_SELF), resource.getrusage(resource.RUSAGE_CHILDREN)
+    return a.ru_utime + a.ru_stime + b.ru_utime + b.ru_stime
+
+
 def _run_one(ctx, fn, scope):
     """fn(ctx) with ctx.scope = scope (the neighbour list follows the scope); (result, None) or (None, failure line)."""
     keep, nb = ctx.scope, ctx._nb
@@ -185,7 +192,7 @@ def run_checks_here(ctx, checks, names, out_file, cache=None):
         tmp.replace(out_file)                   # never a half-written file for the parent to read
     dump()                                      # an empty result file: the parent can tell a crash in setup from one in a check
     for name in names:
-        t0 = time.time()
+        t0, c0 = time.time(), cpu_seconds()
         print(f"[{name}] started on {len(ctx.scope)} parts", file=sys.stderr, flush=True)
         res, why = _run_one(ctx, checks[name]["run"], ctx.scope)
         bad = {}
@@ -202,6 +209,7 @@ def run_checks_here(ctx, checks, names, out_file, cache=None):
             res.setdefault("bad_events", {})["parts_failed"] = len(bad)
             print(f"[{name}] failed on {len(bad)} part(s): " + "; ".join(f"{n}: {w}" for n, w in list(bad.items())[:3]), file=sys.stderr, flush=True)
         res["seconds"] = round(time.time() - t0, 1)
+        res["cpu_s"] = round(cpu_seconds() - c0, 1)     # far below seconds = the process waited (starved, blocked), not computed
         res["peak_gib"] = gib_of_maxrss(resource.getrusage(resource.RUSAGE_SELF))
         out["checks"][name] = res
         if cache is not None:
@@ -550,7 +558,7 @@ def main(argv=None):
     try:
         code, _, _ = spawn(["--_plan", str(plan_f)], plan_f)
     except StopRun:
-        end_child(stop["child"], None)
+        end_child(stop["child"], None)[0]
         sys.exit(f"run.py: {stop['why']} while planning the scope")
     if code or not plan_f.exists():
         sys.exit(code or 1)
@@ -653,10 +661,12 @@ def main(argv=None):
                 got = read_child(tmp) or dict(checks={}, solids={}, other_solids={}, seconds={})
                 absorb(got); out.update(got["checks"])
                 on = next((n for n in todo if n not in got["checks"]), None)
-                stack = end_child(stop["child"], Path(str(tmp) + ".stack"))
+                stack, cpu = end_child(stop["child"], Path(str(tmp) + ".stack"))
                 if on:
+                    done_cpu = sum(v.get("cpu_s") or 0.0 for v in got["checks"].values())
                     out[on] = dict(failed=f"{stop['why']} after {round(time.time() - t_run[0], 1)} s in this check", stopped_in=stack,
-                                   seconds=round(time.time() - t_run[0], 1), per_part={}, worst_cases=[], bad_events={}, evidence=[], notes="")
+                                   seconds=round(time.time() - t_run[0], 1), cpu_s=None if cpu is None else round(max(0.0, cpu - done_cpu), 1),
+                                   per_part={}, worst_cases=[], bad_events={}, evidence=[], notes="")
                 rep["checks"].update(out)
                 raise
             got = read_child(tmp)
@@ -746,20 +756,26 @@ class StopRun(Exception):
 
 
 def end_child(p, stack_file):
-    """Stop a running child: ask for its Python stack (SIGUSR1, written by faulthandler), then end it. The stack's text or None."""
+    """Stop a running child: ask for its Python stack (SIGUSR1, written by faulthandler), then end it. (stack text or None,
+    CPU seconds the child used in all, or None when it was already reaped)."""
     import signal
-    stack = None
-    if p is not None and p.poll() is None:
+    stack, cpu = None, None
+    if p is not None:
+        if p.poll() is None:
+            try:
+                p.send_signal(signal.SIGUSR1)
+                time.sleep(0.7)
+            except OSError:
+                pass
+            p.kill()
         try:
-            p.send_signal(signal.SIGUSR1)
-            time.sleep(0.7)
-        except OSError:
+            _, _, ru = os.wait4(p.pid, 0)
+            cpu = ru.ru_utime + ru.ru_stime
+        except ChildProcessError:
             pass
-        p.kill()
-        p.wait()
     if stack_file is not None and stack_file.exists():
         stack = stack_file.read_text()[-3000:] or None
-    return stack
+    return stack, cpu
 
 
 def hold_label(out_dir, label):
@@ -801,8 +817,10 @@ def summary(rep, top=6):
         print(f"  screening solids more than 5 % off the recorded part volume (overlaps / distances with them are approximate): "
               + ", ".join(f"{n} {v['diff_pct']:+.0f} % ({v['how']})" for n, v in sorted(off.items())))
     for name, r in rep["checks"].items():
+        waited = (r.get("seconds") or 0) > 30 and r.get("cpu_s") is not None and r["cpu_s"] < 0.5 * r["seconds"]
+        cpu_note = f" (CPU {r['cpu_s']} s of {r['seconds']} s: the process waited, starved or blocked, rather than computed)" if waited else ""
         if r.get("failed"):
-            print(f"[{name}] FAILED: {r['failed']}")
+            print(f"[{name}] FAILED: {r['failed']}{cpu_note}")
             if r.get("stopped_in"):
                 import re
                 frames = re.findall(r'File "(.+?)", line (\d+) in (\S+)', r["stopped_in"])   # faulthandler: innermost first
@@ -817,7 +835,7 @@ def summary(rep, top=6):
         ca = r.get("cached")
         how = (f"cached: inputs unchanged since {ca['from_run_at']} (label {ca['label']}, ran {r['seconds']} s)" if ca
                else f"{r['seconds']} s, peak {r.get('peak_gib', '?')} GiB (tree {r.get('tree_peak_gib', '?')})")
-        print(f"[{name}] {how}; counts: {bad or '-'}")
+        print(f"[{name}] {how}{cpu_note}; counts: {bad or '-'}")
         # standing 0 mm gaps without overlap are contact by design (shell and sleeve seats): counted, kept in the report only
         standing0 = [c for c in r["worst_cases"] if c["unit"].endswith("distance") and c.get("pose") == "standing" and c["value"] == 0
                     and not c.get("overlap_mm3")]
