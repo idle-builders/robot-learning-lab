@@ -606,18 +606,6 @@ parts:
   make_buy: context
   quantity: 1
   contains:
-  - line: sleeve:3.6x2.2x4
-    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
-    quantity: 2
-    make_buy: buy
-    spec:
-      kind: sleeve
-      standard: 304 stainless compression sleeve
-      outer_dia_mm: 3.6
-      inner_dia_mm: 2.2
-      length_mm: 4.0
-    supplier: unknown
-    part_number: unknown
   - line: sleeve:3.6x2.2x4.15
     name: 304 steel compression sleeve 3.6 x 2.2 x 4.15 mm (outer x inner x length)
     quantity: 2
@@ -630,6 +618,72 @@ parts:
       length_mm: 4.15
     supplier: unknown
     part_number: unknown
+    notes: case front ear screws (plate + rib)
+  - line: sleeve:3.6x2.2x4
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.0
+    supplier: unknown
+    part_number: unknown
+    notes: case rear ear screws
+  - line: sleeve:3.6x2.2x1.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.25 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.25
+    supplier: unknown
+    part_number: unknown
+    notes: medial knee screws (cheek at the spot face)
+  - line: sleeve:3.6x2.2x1.26
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.26 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.26
+    supplier: unknown
+    part_number: unknown
+    notes: lateral knee screws (flat cheek)
+  - line: sleeve:4.5x3.2x2.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.58
+    supplier: unknown
+    part_number: unknown
+    notes: front shell-post tip walls (shell screw clamp, nut bears on it)
+  - line: sleeve:4.5x3.2x1.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 1.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 1.58
+    supplier: unknown
+    part_number: unknown
+    notes: rear shell-post tip walls (shell screw clamp, nut bears on it)
   section: Hip
 - match: L_thigh_roll_flip
   kind: printed
@@ -642,6 +696,88 @@ parts:
     up: -z
     up_source: mirror of R_thigh_roll_flip (-z stays -z), confirmed by its designer 2026-11-20; material as R_thigh_roll_flip
     material: Bambu PAHT-CF
+  fem:
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), origin offset x
+      negated, stall cases about the L joint with the R magnitude, mesh size and materials as R. Checked by fem_setup on the left part. The R setup''s own
+      _doc follows. Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case''s 2 lower ear screws per face (face0 = front, face1
+      = rear; M2 into the STS3250 aluminium case); load: the knee case''s 2 medial + 2 lateral screws (mirrored pairs at y -3 / 11, z 143) (rigid: the ST3025
+      case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).'
+    mesh_h_mm: 1.2
+    bonded:
+    - part: L_thigh_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: L_knee
+      offset_mm:
+      - 20.0
+      - 0.0
+      - 18.65
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      case_front_screws:
+        contact:
+        - L_A13_roll_face0_PA2x3_0
+        - L_A13_roll_face0_PA2x3_1
+        gap_mm: 2.0
+      case_rear_screws:
+        contact:
+        - L_A13_roll_face1_PA2x3_0
+        - L_A13_roll_face1_PA2x3_1
+        gap_mm: 2.0
+    load:
+      contact:
+      - L_knee_ST3025_PA2x8_0
+      - L_knee_ST3025_PA2x8_1
+      - L_knee_ST3025_PA2x8_lat0
+      - L_knee_ST3025_PA2x8_lat1
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - -0.0
+        - -6.0
+        - 39.23
+        - 1960.0
+        - -680.0
+        - -140.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - -20.0
+        - -25.0
+        - 58.84
+        - 2940.0
+        - -1380.0
+        - -480.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - -15.0
+        - -18.75
+        - 44.13
+        - 2205.0
+        - -1035.0
+        - -360.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - -30.0
+        - -37.5
+        - 88.26
+        - 4410.0
+        - -2070.0
+        - -720.0
+      knee_stall:
+        stall:
+          joint: L_knee
+          torque_Nmm: 3922.7
+      roll_stall:
+        stall:
+          joint: L_hip_roll
+          torque_Nmm: 4900.0
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
   section: Hip
 - match: L_thigh_roll_flip_steel_sleeves
   kind: hardware
@@ -650,18 +786,6 @@ parts:
   make_buy: context
   quantity: 1
   contains:
-  - line: sleeve:3.6x2.2x4
-    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
-    quantity: 2
-    make_buy: buy
-    spec:
-      kind: sleeve
-      standard: 304 stainless compression sleeve
-      outer_dia_mm: 3.6
-      inner_dia_mm: 2.2
-      length_mm: 4.0
-    supplier: unknown
-    part_number: unknown
   - line: sleeve:3.6x2.2x4.15
     name: 304 steel compression sleeve 3.6 x 2.2 x 4.15 mm (outer x inner x length)
     quantity: 2
@@ -674,6 +798,72 @@ parts:
       length_mm: 4.15
     supplier: unknown
     part_number: unknown
+    notes: case front ear screws (plate + rib)
+  - line: sleeve:3.6x2.2x4
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.0
+    supplier: unknown
+    part_number: unknown
+    notes: case rear ear screws
+  - line: sleeve:3.6x2.2x1.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.25 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.25
+    supplier: unknown
+    part_number: unknown
+    notes: medial knee screws (cheek at the spot face)
+  - line: sleeve:3.6x2.2x1.26
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.26 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.26
+    supplier: unknown
+    part_number: unknown
+    notes: lateral knee screws (flat cheek)
+  - line: sleeve:4.5x3.2x2.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.58
+    supplier: unknown
+    part_number: unknown
+    notes: front shell-post tip walls (shell screw clamp, nut bears on it)
+  - line: sleeve:4.5x3.2x1.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 1.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 1.58
+    supplier: unknown
+    part_number: unknown
+    notes: rear shell-post tip walls (shell screw clamp, nut bears on it)
   section: Hip
 - match: R_hip_pitch_to_roll_roll_flip
   kind: printed
@@ -933,6 +1123,87 @@ parts:
     up: +x
     up_source: mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip
     material: Bambu PAHT-CF
+  fem:
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), origin offset x
+      negated, stall cases about the L joint with the R magnitude, mesh size and materials as R. Checked by fem_setup on the left part. The R setup''s own
+      _doc follows. Roll-flip Stage 5 (hip pitch to roll). Support: the 4 pitch-horn screws; load: the roll horn / idler screws (A9 hip M3x4, 4 horn + 3 idler
+      since 2026-11-22: the (56, 183) idler screw gave way to the case stub''s insertion slot). Migrated from roll_flip_checks.fem_specs stage5_roll_flip.'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: L_hip_pitch_to_roll_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: L_hip_roll
+      offset_mm:
+      - 19.0
+      - 19.2
+      - 0.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      pitch_horn_screws:
+        contact:
+        - L_A13_pitch_horn_M3x12_0
+        - L_A13_pitch_horn_M3x12_1
+        - L_A13_pitch_horn_M3x12_2
+        - L_A13_pitch_horn_M3x12_3
+        gap_mm: 2.0
+    load:
+      contact:
+      - L_A9_hip_M3x4_0_0
+      - L_A9_hip_M3x4_0_1
+      - L_A9_hip_M3x4_0_2
+      - L_A9_hip_M3x4_0_3
+      - L_A9_hip_M3x4_1_0
+      - L_A9_hip_M3x4_1_1
+      - L_A9_hip_M3x4_1_2
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - -0.0
+        - -6.0
+        - 39.23
+        - 2150.0
+        - -790.0
+        - -165.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - -22.0
+        - -26.0
+        - 58.84
+        - 3300.0
+        - -1650.0
+        - -580.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - -16.5
+        - -19.5
+        - 44.13
+        - 2475.0
+        - -1237.5
+        - -435.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - -33.0
+        - -39.0
+        - 88.26
+        - 4950.0
+        - -2475.0
+        - -870.0
+      roll_stall:
+        stall:
+          joint: L_hip_roll
+          torque_Nmm: 4900.0
+      pitch_stall:
+        stall:
+          joint: L_hip_pitch
+          torque_Nmm: 3922.7
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
   section: Hip
 - match: L_hip_pitch_to_roll_roll_flip_steel_sleeves
   kind: hardware
@@ -1127,7 +1398,9 @@ assembly:
       True -> True, max overlap 19.8 -> 0.0 mm3'
   - id: right_leg:p030
     subassembly: right_leg
-    part: R_shin_back_hard_cover
+    part:
+    - R_shin_back_hard_cover
+    - R_shin_back_hard_cover_steel_sleeves
     direction:
     - 0.0
     - -1.0
@@ -1185,7 +1458,9 @@ assembly:
       [-0.0, 0.0, 1.0]): path contact 19.5 -> 0.0 mm out, seat released True -> True, max overlap 19.8 -> 0.0 mm3'
   - id: left_leg:p030
     subassembly: left_leg
-    part: L_shin_back_hard_cover
+    part:
+    - L_shin_back_hard_cover
+    - L_shin_back_hard_cover_steel_sleeves
     direction:
     - -0.0
     - -1.0

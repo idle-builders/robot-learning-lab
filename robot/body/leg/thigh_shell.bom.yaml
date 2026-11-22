@@ -49,3 +49,50 @@ generators:
   notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws.
   after:
   - thigh-shell
+parts:
+- match: R_shin_back_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.75
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.75 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.75
+    supplier: unknown
+    part_number: unknown
+  notes: Under the four PA2x8 heads of the shin back cover's side mounts (thigh_shell.py shin-cover, cover_mounts), pressed into
+    the bosses from the counterbore floor to the boss end, which seats on the shin frame's side wall.
+  generator: shin-cover
+  section: Knee
+- match: L_shin_back_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.75
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.75 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.75
+    supplier: unknown
+    part_number: unknown
+  notes: Under the four PA2x8 heads of the shin back cover's side mounts (thigh_shell.py shin-cover, cover_mounts), pressed into
+    the bosses from the counterbore floor to the boss end, which seats on the shin frame's side wall.
+  generator: shin-cover
+  section: Knee
