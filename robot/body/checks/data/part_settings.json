@@ -906,7 +906,7 @@
           }
         },
         "shoulder_u": {
-          "_doc": "Stage 1 as the owner's blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid patch (the STS3250's aluminium case ties horn and idler; the wrench acts at their centroid). Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "_doc": "Stage 1 as the owner's blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid load body, the idler's sites with a free rotation about the roll axis (free_rotation_about_joint): the STS3250 idler is a bearing that carries forces and off-axis moments but no roll torque, so the roll torque goes through the horn arm. Variant shoulder_u_horn_only (idler carries nothing) is the harsh bound. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
           "load": [
             {
               "holes": {
@@ -930,7 +930,8 @@
                 "r_max_mm": 5.0,
                 "rim_mm": 2.0
               },
-              "rigid": true
+              "rigid": true,
+              "free_rotation_about_joint": "R_shoulder_roll"
             }
           ],
           "materials": [
@@ -982,7 +983,8 @@
                 "r_max_mm": 5.0,
                 "rim_mm": 2.0
               },
-              "rigid": true
+              "rigid": true,
+              "free_rotation_about_joint": "R_shoulder_roll"
             }
           ],
           "materials": [
@@ -1004,6 +1006,28 @@
               }
             }
           }
+        },
+        "shoulder_u_horn_only": {
+          "_doc": "Harsh bound of shoulder_u: only the roll horn's sleeve sites carry the wrench (the idler carries nothing, not even forces). shoulder_u models the idler as a bearing (free about the roll axis). Run with --fem-variant shoulder_u_horn_only.",
+          "load": [
+            {
+              "holes": {
+                "of": "R_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ],
+          "mesh_h_mm": 0.9
         }
       },
       "load_cases_doc": "Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -1305,7 +1329,7 @@
           }
         },
         "shoulder_u": {
-          "_doc": "Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "_doc": "Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u. Supports: the main setup's roll-case sleeve patch with gap 3.0 mm: at the case-y far holes the case face is the strip 2.2 mm below the raised panel the -y arm rests on, so gap 2.0 caught only the +y pair (review 2026-11-22).",
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
@@ -1328,6 +1352,27 @@
             "converged": true,
             "finer_level_not_run": "h 0.7: the 1.2 -> 0.9 p99 change is under 5 %",
             "at_h_0p9": "recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1"
+          },
+          "supports": {
+            "roll_case": {
+              "holes": {
+                "of": "R_shoulder_roll_to_yaw_combined_steel_sleeves",
+                "mate": [
+                  "upper__R_roll_C047_case"
+                ],
+                "gap_mm": 3.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0,
+                "axis_within_deg": {
+                  "axis": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "deg": 20
+                }
+              }
+            }
           }
         }
       },
@@ -7183,7 +7228,7 @@
           }
         },
         "shoulder_u": {
-          "_doc": "Stage 1 as the owner's blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid patch (the STS3250's aluminium case ties horn and idler; the wrench acts at their centroid). Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "_doc": "Stage 1 as the owner's blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json, built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn AND at the new roll rear idler, one rigid load body, the idler's sites with a free rotation about the roll axis (free_rotation_about_joint): the STS3250 idler is a bearing that carries forces and off-axis moments but no roll torque, so the roll torque goes through the horn arm. Variant shoulder_u_horn_only (idler carries nothing) is the harsh bound. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
           "load": [
             {
               "holes": {
@@ -7207,7 +7252,8 @@
                 "r_max_mm": 5.0,
                 "rim_mm": 2.0
               },
-              "rigid": true
+              "rigid": true,
+              "free_rotation_about_joint": "L_shoulder_roll"
             }
           ],
           "materials": [
@@ -7259,7 +7305,8 @@
                 "r_max_mm": 5.0,
                 "rim_mm": 2.0
               },
-              "rigid": true
+              "rigid": true,
+              "free_rotation_about_joint": "L_shoulder_roll"
             }
           ],
           "materials": [
@@ -7281,6 +7328,28 @@
               }
             }
           }
+        },
+        "shoulder_u_horn_only": {
+          "_doc": "Harsh bound of shoulder_u: only the roll horn's sleeve sites carry the wrench (the idler carries nothing, not even forces). shoulder_u models the idler as a bearing (free about the roll axis). Run with --fem-variant shoulder_u_horn_only.",
+          "load": [
+            {
+              "holes": {
+                "of": "L_shoulder_pitch_to_roll_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_main_horn"
+                ],
+                "gap_mm": 2.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0
+              },
+              "rigid": true
+            }
+          ],
+          "materials": [
+            "Bambu PAHT-CF",
+            "Bambu PETG-CF"
+          ],
+          "mesh_h_mm": 0.9
         }
       },
       "load_cases_doc": "Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4 kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved to the load centroid in the stage's frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches = the old hand-typed ARM_LOAD_WRENCHES (short arm, history)."
@@ -7549,7 +7618,7 @@
           }
         },
         "shoulder_u": {
-          "_doc": "Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.",
+          "_doc": "Stage 2 as the simplified green U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json): supports = the 4 M2 far-hole sleeves at the roll case (sleeves along y, same spec as the main setup), load = today's 4 yaw-case sleeves, rigid. Load cases = the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u. Supports: the main setup's roll-case sleeve patch with gap 3.0 mm: at the case-y far holes the case face is the strip 2.2 mm below the raised panel the -y arm rests on, so gap 2.0 caught only the +y pair (review 2026-11-22).",
           "materials": [
             "Bambu PAHT-CF",
             "Bambu PETG-CF"
@@ -7572,6 +7641,27 @@
             "converged": true,
             "finer_level_not_run": "h 0.7: the 1.2 -> 0.9 p99 change is under 5 %",
             "at_h_0p9": "recovery over 8310 wrenches: PAHT-CF p99 max 35.8 MPa, strength ratio min 2.46 (median 7.87), layer ratio min 3.38, displacement max 1.42 mm; PETG-CF ratio min 1.64 (median 5.26), layer 2.02, displacement 2.25 mm; 0 wrenches below 1"
+          },
+          "supports": {
+            "roll_case": {
+              "holes": {
+                "of": "L_shoulder_roll_to_yaw_combined_steel_sleeves",
+                "mate": [
+                  "upper__L_roll_C047_case"
+                ],
+                "gap_mm": 3.0,
+                "r_max_mm": 5.0,
+                "rim_mm": 2.0,
+                "axis_within_deg": {
+                  "axis": [
+                    0,
+                    1,
+                    0
+                  ],
+                  "deg": 20
+                }
+              }
+            }
           }
         }
       },
