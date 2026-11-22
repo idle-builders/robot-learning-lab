@@ -297,7 +297,7 @@ def build_interface_joints(MR, common, rec4=None):
 
 def stage1_moved_rails(common):
     """Stage 1 (the chain's unedited STEP) with the bores of the moved stage 4 rail sites filled and the bores of their new sites
-    drilled: the old bore (dia 4.0, from the valley y 25.9 to the rail face y 35.4) is filled outside the battery pockets (the bore ran
+    drilled: the old bore (dia 3.98, from the valley y 25.9 to the rail face y 35.4) is filled outside the battery pockets (the bore ran
     through the web between two pockets); the new bore is the old one's size, from the sleeve's inner end to the rail face
     (the threaded sleeve sits in it, press fit unchanged). Prints the volume added and removed."""
     from build123d import Cylinder, Pos, import_step
@@ -307,7 +307,7 @@ def stage1_moved_rails(common):
     y0 = common.STAGE4_RAIL_Y0
     spec = common.stage_interface_specs()[STAGE1]
     r_od, length = next((b["r_od"], b["length"]) for b in spec["aux_bores"] if abs(b["center"][1] - 33.6) < 1e-6 and b["r_id"] > 1.2)
-    r_bore, y_in = 2.0, 33.6 - length / 2 - 0.2          # measured bore radius of the STEP; 0.2 mm of bore beyond the sleeve end
+    r_bore, y_in = 1.99, 33.6 - length / 2 - 0.2          # bore radius of the STEP's old rail bores (holes check: dia 3.98); 0.2 mm of bore beyond the sleeve end
     old = common.legacy_stage4_rail_sites()
     new = [s for s in common.stage4_rail_sites() if s[1] not in common.STAGE4_RAIL_Z]
     assert len(old) == len(new) == 2, (old, new)
