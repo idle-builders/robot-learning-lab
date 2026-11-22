@@ -585,6 +585,14 @@ removed sleeves). Both sent to the BOM session. Data items sent on: the 31 dangl
 the 10 arm and shin covers whose manifest text names PETG, marked seeded; print directions left to the designers. Reports:
 `.cache/work/cad-speed/checks/triage-{A,B,C,D,E,F,G}/report.json` (recreated by the commands above).
 
+Rerun after the stage-4 carrier, head carrier and ankle coupler merges (same manifest path, sha 314067c7e493, 22 Nov evening): every
+check ran again without a stall or a failure (batches 325 / 254 / 824 s wall incl. 10 / 81 / 627 s slot wait, peaks 3.9 / 4.5 / 4.0
+GB; geometry 68 s, gaps 138 s, clearance 186 s). Counts that moved: sliver faces 270 -> 296, bed sharp contact corners 258 -> 290
+and centre of mass outside the contact hull 12 -> 14, thin features under 1 line 315 -> 320, overhang bridges over limit 18 -> 16 and
+floating ceilings 192 -> 201, free sharp edges 11374 -> 12059, unchamfered mating bed runs 107 -> 93 (19 parts), mass difference
+-63.1 -> -62.8 g; the rest unchanged. New screening solid off by more than 5 %: R / L ankle coupler sleeves +6.3 % (closed mesh vs
+reference). Reports `triage-re{1,2,3}`.
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a
