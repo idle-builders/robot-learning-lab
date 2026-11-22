@@ -29,6 +29,7 @@ from build123d import (
 from common import (
     ART,
     MATERIALS,
+    MIC_TAPER,
     STAGE_LINKS,
     STAGE_PART_BASENAMES,
     bevel_3d_edges,
@@ -66,7 +67,7 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
     specs = stage_interface_specs()[stage_key]
     cut_tools = []
     keep_out = []
-    for role_key in ("support", "load"):
+    for role_key in [r for r in ("support", "load", "camera", "mic") if r in specs]:
         grp = specs[role_key]
         centres = grp["centres"]
         normals = grp.get("normals", [grp["normal"]] * len(centres))
@@ -81,6 +82,9 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
                 # The sleeve is as long as the plate is thick (flush, no counterbore, M-evmrv6): ribs and walls that rise above the
                 # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
                 keep_out.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
+            if role_key == "camera":
+                # the M2 head sits on the sleeve's rear end: ribs keep a 0.4 mm ring around it clear for head and driver
+                keep_out.append(cyl_along(pt + h * n, n, 1.75 + 0.4, 5.0))
             if stage_key == "stage1_neck_root_cradle" and role_key == "support":
                 cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
@@ -110,7 +114,7 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
 def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
     specs = stage_interface_specs()[stage_key]
     cyls = []
-    for role_key in ("support", "load"):
+    for role_key in [r for r in ("support", "load", "camera", "mic") if r in specs]:
         grp = specs[role_key]
         centres = grp["centres"]
         normals = grp.get("normals", [grp["normal"]] * len(centres))
@@ -416,14 +420,24 @@ def build_stage4(family: str) -> Solid:
     for w in wins:
         f_main = (f_main - w).faces()[0]
 
-    s_plate = extrude_xy_to_y(f_main, -12.90, -11.40)
+    import head_holes as HH
+    y_front, y_rear = HH.plate_faces()      # where the camera / compute spacers rest (supplier parts)
+    specs4 = stage_interface_specs()["stage4_head_sensor_compute_carrier"]
+    for role in ("load", "camera"):         # material all round each sleeve: an ear where the profile ends too close
+        g = specs4[role]
+        for c in g["centres"]:
+            # @lore 0.7 mm rim: 0.6 left a ring thinner than one 0.62 mm print line (walls under one line 45 -> 107 mm2)
+            ear = Pos(float(c[0]), float(c[2])) * Circle(float(g["sleeve_ro"]) + 0.7)
+            if (ear - f_main).area > 0.05:
+                f_main = (f_main + ear).faces()[0]
+    s_plate = extrude_xy_to_y(f_main, y_front, y_rear)
 
     # 2. Dorsal stiffening rib network in the collision-free rear zone Y in [-11.40, -10.15]
     # staying strictly outside the 4 compute_FF4_spacer seats and clear of lightening windows:
-    rib1 = extrude_xy_to_y(fillet_2d_face(Pos(-0.7, 442.0) * Rectangle(5.6, 52.0), r_default=1.5), -11.40, -10.15)
-    rib2 = extrude_xy_to_y(fillet_2d_face(Pos(-1.5, 425.0) * Rectangle(21.0, 3.6), r_default=1.2), -11.40, -10.15)
-    rib3 = extrude_xy_to_y(fillet_2d_face(Pos(-1.0, 442.5) * Rectangle(60.0, 4.4), r_default=1.2), -11.40, -10.15)
-    rib4 = extrude_xy_to_y(fillet_2d_face(Pos(0.0, 471.5) * Rectangle(62.0, 4.2), r_default=1.2), -11.40, -10.15)
+    rib1 = extrude_xy_to_y(fillet_2d_face(Pos(-0.7, 442.0) * Rectangle(5.6, 52.0), r_default=1.5), y_rear, y_rear + 1.25)
+    rib2 = extrude_xy_to_y(fillet_2d_face(Pos(-1.5, 425.0) * Rectangle(21.0, 3.6), r_default=1.2), y_rear, y_rear + 1.25)
+    rib3 = extrude_xy_to_y(fillet_2d_face(Pos(-1.0, 442.5) * Rectangle(60.0, 4.4), r_default=1.2), y_rear, y_rear + 1.25)
+    rib4 = extrude_xy_to_y(fillet_2d_face(Pos(0.0, 471.5) * Rectangle(62.0, 4.2), r_default=1.2), y_rear, y_rear + 1.25)
 
     # 3. Radial head-skin mounting lugs at X in [-45.5, -43.2] and [43.2, 45.5], Y in [-17.2, -11.4], Z in [447.2, 454.8]
     f_lug = fillet_2d_face(
@@ -438,26 +452,26 @@ def build_stage4(family: str) -> Solid:
     # 4. Integrated one-piece right microphone carrier wing (replaces microphone_compact_tab_v23 + mic_foot_M2x3_0/1)
     # Front bridge (X in [43.0, 48.97], Y in [-12.90, -11.40], Z in [455.2, 462.4] to clear head-skin upper curve)
     f_mic_br = fillet_2d_face(Pos(45.985, 458.8) * Rectangle(5.97, 7.2), r_default=1.2, r_inner=1.6)
-    s_mic_br = extrude_xy_to_y(f_mic_br, -12.90, -11.40)
+    s_mic_br = extrude_xy_to_y(f_mic_br, y_front, y_rear)
 
     # Side wing (X in [46.97, 48.97], stepped back to Y >= -7.8 above Z = 462.4 to clear original_profile_head_skin_v23)
     pts_mic_side = [
-        (-12.90, 455.2),
+        (y_front, 455.2),
         (4.50, 455.2),
-        (4.50, 471.2),
-        (-1.50, 471.2),
+        (4.50, MIC_TAPER['z1']),
+        (-1.50, MIC_TAPER['z1']),
         (-7.80, 462.4),
-        (-12.90, 462.4),
+        (y_front, 462.4),
     ]
     f_mic_side = fillet_2d_face(
         Polygon(*pts_mic_side, align=None),
         r_default=1.2,
         r_inner=1.8,
-        skip_xy=[(-12.90, 455.2), (-12.90, 462.4)],
+        skip_xy=[(y_front, 455.2), (y_front, 462.4)],
     )
     s_mic_side = extrude_xy_to_x(f_mic_side, 46.97, 48.97)
     # Taper top outer corner (Z >= 467.2, X >= 47.82) to match original_profile_head_skin_v23 inner contour
-    cut_skin_taper = Pos(48.55, 0.0, 469.5) * Box(1.5, 16.0, 4.6)
+    cut_skin_taper = Pos(MIC_TAPER['x0'] + 0.75, 0.0, (MIC_TAPER['z0'] + MIC_TAPER['z1']) / 2) * Box(1.5, 16.0, MIC_TAPER['z1'] - MIC_TAPER['z0'])
     s_mic_side = Solid((s_mic_side - cut_skin_taper).wrapped)
 
     raw = Solid((s_plate + rib1 + rib2 + rib3 + rib4 + s_lug_l + s_lug_r + s_mic_br + s_mic_side).wrapped)
