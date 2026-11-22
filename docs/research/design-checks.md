@@ -579,6 +579,21 @@ unscoped, shoulder U body (manifest 639d0069ed6c): 124 s wall, selection 30 s, m
 5.5 GiB under a 6 GB cap; 218 screws analysed, 47 with an engagement shortfall, 32 with a hole offset over 0.1 mm, 121
 with a clamp gap over 0.05 mm, 125 sleeves without a screw, 87 mount-hole faces with unused holes.
 
+Other checks unscoped (2026-11-22, T-c4sy9d). `assembly` did not stall (74 s for its one assembly, the right leg,
+42 steps), but stack dumps showed the same two traps: `_screw_info` probing screws on `ctx.solid()` (0.03 mm STEP
+tessellation) and `run.py`'s reference volume fusing every scoped multi-solid STEP. Every check that calls `ctx.solid()`
+on its scope or on what lies near it inherits them in an unscoped run: on the scope `gaps`, `mass`, `clearance`,
+`static_audit`, `fits` (printed parts only: `edges`, `holes`, `walls`, `heat`, `overhang`), on neighbours or paths
+`driver_access`, `fastener_motion`, `range_sweep`, the `assembly` insertion booleans. One rule in
+`core.screen_solid` and `run.py` covers all of them: a part outside the STEP roles (bought) with a STEP over 5 MB takes the
+coarse path even when scoped (power supervisor 78 MB, ROCK4D 44, B0196 26, B0410 22, ST3025 outputs 12, precharge board
+9.5, foot roll cases 7.8, head skin and collar 5.5, microphone 5.3). Printed parts and servo cases keep the fine
+tessellation. `assembly` selects screws on `screwlib.screen()`. A `native_step` that resolves nowhere
+(`R_toe_lateral_sensor`) crashed unscoped `mass` in `sha()`; it now counts as no STEP and the mesh is used. Timed
+unscoped on the shoulder U body: `assembly` 29 s (was 104 s; one more screw not named, 9 vs 8, from the coarse selection),
+`mass` 83 s (crashed before; solids for 192 parts), peaks 1.8 / 3.4 GiB. The first run after a servo STEP changes still
+fuses its reference volume once (cached afterwards).
+
 ## Fastener heads and tips over motion (2026-11-19)
 
 `clearance`, `fit` and `collision_sweep` leave fasteners out, which hid a real collision on roll-flip Stage 4: the upper STS3250 case-ear PA2 heads (`R_A13_roll_face1_PA2x3_2/_3`, x 45.75 / 66.25, z 181.7) overlap `R_hip_pitch_to_roll_roll_flip` at every roll angle. `fastener_motion` measures each screw (scoped links plus screws touching a scoped part) as a solid against non-fastener parts on other links over the pose set, optionally the range of the joints named with `--joints`: overlap (manifold boolean, split into head, shank and the last 3 mm tip), minimum distance, worst pose and location, and the overlap at that pose against the part's full manifest mesh (the screening solid reads about 9 % low on the hip part: 2.04 against 2.245 mm3). A second measure is at standing: screw head volume inside a same-link part or its steel sleeves (above 1 mm3), which flags screw models placed inside their own plate (stale heads of `R_A13_roll_face0/1_PA2x3_*` inside the thigh connector sleeves, 5.5 - 7.6 of 12.5 mm3). Steel sleeves are not cross-link neighbours (their boolean costs minutes). Checked on `R_thigh_roll_flip`: the face1 heads at z 181.7 overlap the hip part 2.2 mm3 at standing, 6.2 mm3 at hip roll -45; an exact OCC boolean of the two STEP solids at standing gives 2.254 mm3. Scores, not verdicts.
