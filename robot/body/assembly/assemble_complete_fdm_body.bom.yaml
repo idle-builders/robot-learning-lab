@@ -2516,3 +2516,11 @@ defects:
     L mirrored); checks reject it and screen the open mesh, 41252 vs 32983 mm3 (+25.1 %): overlaps against these cases are over-stated (found
     by the whole-body check triage (T-zfejzf), 2026-11-22)'
   fix: native_step_offset_mm [12, 0, 0] (R) / [-12, 0, 0] (L) in the builder that writes these rows, or a re-exported STEP
+- id: nut-role-body-shell
+  kind: other
+  parts:
+  - upper__cowl_M2_nut_*
+  field: role
+  why: the manifest gives these bought M2 hex nuts role body_shell; checks that read the role treat them as covers (the definition declares them
+    hardware, spec nut, printed false)
+  fix: the builder writes role nominal_hardware (or fastener) for them; until then the checks use the declared kind (design-check tooling session)
