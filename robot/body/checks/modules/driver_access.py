@@ -6,7 +6,7 @@ clear the body (data/tools.json: drive and blade per head type and thread, with 
 against every other non-hardware part and steel sleeve at standing (screening solids; body shells included): obstruction
 volume (mm3) over the whole path and over the first 40 mm the blade and hand need, the share of the path volume it fills, and the first obstructing part with its distance along the path from the head top. A screw whose head
 cannot be reached shows as a large obstruction at a short distance, not as a verdict. Other screws' heads are not in the path
-solids. Generalises the arm / roll-flip insertion rays of the earlier per-study scripts and the disc rays of mount_check."""
+solids. Parts on another limb than the screw's are left out (posed away or not attached while it is driven). Generalises the arm / roll-flip insertion rays of the earlier per-study scripts and the disc rays of mount_check."""
 from __future__ import annotations
 
 import time
@@ -42,12 +42,17 @@ def measure_screw(ctx, name, info, T, nodes, WB, box, tdata):
     # candidates: parts whose standing bounds the path comes within the radius of (axis samples every 5 mm)
     ts = np.arange(0.0, length + 5.0, 5.0)
     samp = head[None] + ts[:, None] * out[None]
-    cand = {}
+    cand, other_limb = {}, []
+    limb = ctx.body.limb_of()
+    own = limb.get(p["owning_link"])
     for n in nodes:
         lo, hi = WB[n]
         if np.any((samp > lo - radius - 0.5).all(1) & (samp < hi + radius + 0.5).all(1)):
-            Tn = T[ctx.body.parts[n]["owning_link"]]
-            cand[n] = Tn
+            lk = ctx.body.parts[n]["owning_link"]
+            if own and limb.get(lk) and limb[lk] != own:
+                other_limb.append(n)              # on another limb: posed away or not attached while this screw is driven
+                continue
+            cand[n] = T[lk]
     solids = {}
     for n, Tn in cand.items():
         ctx.solid(n)
@@ -56,7 +61,7 @@ def measure_screw(ctx, name, info, T, nodes, WB, box, tdata):
     near = SL.driver_path(head, out, radius, min(length, pc["min_length_mm"]), solids, pc["start_offset_mm"])   # the blade and the hand behind it
     row.update(obstruction_within_min_length_mm3=near["obstruction_mm3"], first_distance_within_min_length_mm=near["first_distance_mm"],
                drive=kind, drive_size=size, blade_dia_mm=blade, path_length_mm=round(length, 1), tool_source=src,
-               candidates=len(cand), **res)
+               candidates=len(cand), other_limb_parts_left_out=sorted(other_limb), **res)
     return row
 
 
@@ -100,6 +105,7 @@ def run(ctx):
                 screws_not_measured=len(errs)),
                 evidence=[], screws_not_measured=errs,
                 notes=f"cylinder of the tool blade diameter from {tdata['path']['start_offset_mm']} mm above the head top outward, "
-                      f"{tdata['path']['min_length_mm']:g} mm to the exit of the body's bounding box (max {tdata['path']['max_length_mm']:g}); standing state; "
+                      f"{tdata['path']['min_length_mm']:g} mm to the exit of the body's bounding box (max {tdata['path']['max_length_mm']:g}, a long precision driver blade, assumption); standing state; "
+                      f"parts on another limb than the screw's left out (other_limb_parts_left_out); "
                       f"obstruction = sum of exact booleans against each part's screening solid (body shells included; a voxel-filled open shell can be off in volume, see solid_volume_off_over_5pct); "
                       "other screw heads not in the path; tool data and its sources in data/tools.json (blade diameters are assumptions)")

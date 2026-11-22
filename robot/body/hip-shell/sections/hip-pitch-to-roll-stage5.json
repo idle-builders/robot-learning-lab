@@ -1,6 +1,6 @@
 {
  "title": "Stage 5 screw connections",
- "suptitle": "R_hip_pitch_to_roll_roll_flip (yellow Stage 5, pitch link): land on the ST3025 wheel face, arms on the measured roll horn / idler faces with a 0.10 mm running fit, rear top corner chamfered clear of the back shell",
+ "suptitle": "R_hip_pitch_to_roll_roll_flip (yellow Stage 5, pitch link): land on the ST3025 wheel face, arms on the measured roll horn / idler faces with a 0.10 mm running fit, rear top corner chamfered clear of the back shell; rear arm slotted for the case's stub, 3 idler screws (owner 2026-11-22)",
  "focus": "R_hip_pitch_to_roll_roll_flip",
  "clip": [
   [
@@ -36,7 +36,7 @@
   },
   {
    "axis": 2,
-   "value": 190.0,
+   "value": 184.0,
    "uv": [
     0,
     1
@@ -51,10 +51,10 @@
      36
     ]
    ],
-   "title": "SECTION B-B at z 190 (roll axis, horn / idler screws), seen from +z"
+   "title": "SECTION B-B at z 184 (stub insertion slot, below the roll axis), seen from +z"
   }
  ],
- "body": "mass 11.52 g PAHT-CF (was 12.40) + 12 steel sleeves 4.50 g (was 4.68)\nmating faces measured (holes open inside them): horn y -12.0, idler y 25.25,\n  wheel x 61.0; U inside 37.45 vs the 37.25 stack (was 36.60: 0.65 interference)\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 into the ST3025 wheel: engaged 2.935-2.95 of 2.95\n    (land on the wheel face, hub recess r 6.0 open into the sleeve bores)\n  4 x M3x8 horn / 4 x M3x8 idler: 0.10 mm free gap per side, the screws\n    close it: engaged 2.5 / 2.1 clamped (2.4 / 2.0 free); sleeves 4.6 / 5.15\n  sleeve bores teardropped (print up -x); arm-to-plate gussets 2.5\ngaps: H-cage plates 1.45 mm (roll -45..25; was 1.29); roll case 0.60;\n  Stage 6 green 1.20 (library); center_back_shell 0.75 over pitch -58..45 x\n  yaw -30..30 (was 83.5 mm3 at pitch 45 / yaw -30): rear chamfer y 19.5..31.5\nFEM (roll_flip_checks, layer x), min p99 strength ratio, roll stall:\n  Bambu PAHT-CF 3.41 (was 3.61), legacy PETG-CF 2.51 (was 2.70);\n  without the rear chamfer 3.64 / 2.69; peak 86.7 MPa at the front arm root\n  (was 81-98 at the hub-flat corner, now r 1.5); press support 89-93 %",
+ "body": "mass 11.57 g PAHT-CF + 11 steel sleeves 4.19 g (was 11.52 g + 12, 4.50 g)\nmating faces measured: horn y -12.0, idler y 25.25, wheel x 61.0\nscrews (stack = L - 0.5 - reference, from the defined holes):\n  4 x M3x12 into the ST3025 wheel: engaged 2.935-2.95 of 2.95\n  4 x M3x8 horn / 3 x M3x8 idler (owner 2026-11-22: the (56, 183)\n    idler screw dropped, its sleeve too): 0.10 mm free gap per side\nstub slot (rear arm inner face): the case's rear stub (r 3.0, to\n  y 25.80) rises along +z in a slot x 52.8..59.2, floor y 25.95 (0.60\n  deep), from the arm's lower edge (lead-in 0.6 per side) into the\n  centre hole; servo unit insertion path overlap 0 mm3 (was 7.8 mm3,\n  first contact 15.3 mm before the seat)\nidler load, 6 kg x 1.5 g: about 180 N radial, 39 N axial: per screw\n  60 N shear / 13 N pull with 3 (45 / 10 with 4)\nFEM (layer x), min p99 strength ratio: Bambu PAHT-CF 3.41 heavy /\n  3.43 roll stall (was 3.42 / 3.39), legacy PETG-CF 2.50 roll stall\n  (was 2.49); peak 88 MPa at the front arm root",
  "callouts": {
   "secx": [
    {
@@ -93,14 +93,14 @@
     ]
    },
    {
-    "text": "rear arm 0.10 off the idler face\n(y 25.25), seat y 30.5",
+    "text": "stub slot 0.60 deep,\nx 52.8..59.2 (no sleeve\nat (56, 183) any more)",
     "xy": [
-     63.0,
-     28.0
+     56.0,
+     25.7
     ],
     "at": [
-     55.0,
-     14.0
+     38.0,
+     8.0
     ]
    }
   ]

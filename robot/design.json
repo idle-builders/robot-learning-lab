@@ -99,7 +99,7 @@
       "section": "Shoulder",
       "study_id": "shoulder-roll-u-connectors",
       "result_id": "shoulder-roll-u-connectors",
-      "version": "731143cda",
+      "version": "3f17d3a05",
       "selected_on": "2026-11-20",
       "status": "user_selected_shoulder_u_connectors",
       "user_statement": "Much better the two U connectors look clean now. Continue (then: select now, before the shell redesign)",
@@ -170,5 +170,5 @@
     "Torso / shell": "cove50-torso-fdm-combined",
     "Waist / pelvis": "cove50-torso-fdm-combined"
   },
-  "body_manifest_chain": "The selected body = the roll-flip body (artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json, built by robot/body/leg/roll_flip_checks.py) with the shoulder U connectors applied by robot/body/arm/shoulder_clevis.py manifest. After the roll-flip body is regenerated, run `.venv/bin/python -B robot/body/arm/shoulder_clevis.py manifest` to carry the change into the selected body."
+  "body_manifest_chain": "The selected body = the roll-flip body (artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json, built by robot/body/leg/roll_flip_checks.py) with the shoulder U connectors applied by robot/body/arm/shoulder_clevis.py manifest. After the roll-flip body is regenerated, run `.venv/bin/python -B robot/body/arm/shoulder_clevis.py manifest` to carry the change into the selected body. When the arm's joint frames or the roll servo placement change in the roll-flip body, first rerun `.venv/bin/python -B robot/body/arm/shoulder_clevis.py build` (the U connectors and their sleeves are built against those frames), then `manifest`."
 }

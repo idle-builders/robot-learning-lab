@@ -37,10 +37,12 @@ STUDIES = {
 
 
 def command(study, label=None):
-    """The run that recreates a study's FEM report. 2 h: the arm's hand-load envelope (8310 wrenches per case) takes about 50 min for the 8 arm parts."""
+    """The run that recreates a study's FEM report. 4 h: the arm's hand-load envelope (8310 wrenches per case, 3 materials) took 3030 s
+    (R stages 1-4, quiet machine: 338 + 771 + 1924) to 5250 s (R, 4 parallel jobs; stage 4 alone 4103 s) for one side, so about
+    6000 s for both sides on a quiet machine and about 10500 s under the allowed parallel load."""
     s = STUDIES[study]
     label = label or study
-    return (f"python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 7200 -- .venv/bin/python -B robot/body/checks/run.py --parts '{",".join(s["parts"])}' "
+    return (f"python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 14400 -- .venv/bin/python -B robot/body/checks/run.py --parts '{",".join(s["parts"])}' "
             f"--checks fem,fem_setup --label {label}")
 
 

@@ -8,7 +8,7 @@
                        "owning_link": "{S}pitch_link", "name": "{S}A13_pitch_horn_M3x12_{i}", "head": "ISO 7380-1"},
     "A9_roll_horn": {"standard_part": "{S}roll_upper_horn_reference", "holes": ["STS3250.horn+y.1", "STS3250.horn+y.2", "STS3250.horn+y.3", "STS3250.horn+y.4"],
                      "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_0_{i}", "head": "ISO 7380-1"},
-    "A9_roll_idler": {"standard_part": "{S}roll_passive_idler_reference", "holes": ["STS3250.idler-y.1", "STS3250.idler-y.2", "STS3250.idler-y.3", "STS3250.idler-y.4"],
+    "A9_roll_idler": {"standard_part": "{S}roll_passive_idler_reference", "holes": ["STS3250.idler-y.1", "STS3250.idler-y.2", "STS3250.idler-y.4"],
                       "owning_link": "{S}pitch_link", "name": "{S}A9_hip_M3x4_1_{i}", "head": "ISO 7380-1"}
    }
   },
@@ -48,15 +48,6 @@
                 "owning_link": "{S}yaw_link", "name": "{S}A14_yaw_M3x14_{i}", "head": "ISO 4762"},
     "A14_front": {"standard_part": "{S}hip_pitch_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2", "ST3025.case+z.3"],
                   "owning_link": "{S}yaw_link", "name": "{S}A14_front_PA2x4_{i}", "head": "ISO 7380-1"}
-   }
-  },
-  "torso_stage4_rail": {
-   "_doc": "Stage 4 IMU/ADC carrier rails to Stage 1 printed pilots (Idle T-htfaaz). Sites: robot/body/torso/common.py stage4_rail_sites (hole ids stage1_rail:rail.N = the pilot openings on Stage 1's rail face). The carrier rail carries the full-thickness flush sleeve, head on its outer face. Built by robot/body/torso/torso_screws.py, which labels the thread-forming screws PA2 (plastic pilot).",
-   "sides": [""],
-   "clamped": ["combined__stage4_rear_imu_adc_carrier", "combined__stage4_rear_imu_adc_carrier_steel_sleeves"],
-   "groups": {
-    "rail": {"standard_part": "stage1_rail", "holes": ["rail.0", "rail.1", "rail.2", "rail.3", "rail.4", "rail.5"],
-             "owning_link": "torso", "name": "stage4_rail_PA2x{L}_{i}", "head": "ISO 4762"}
    }
   },
   "torso_stage4_imu_board": {

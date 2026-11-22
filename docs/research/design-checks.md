@@ -425,12 +425,12 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | stage4 IMU / ADC carrier, 4 beyond | same | free along +-z; 6 of 14 sleeves empty, coaxial with chassis sleeves at x +-11.2 / +-33.6, z 304 / 335 | real CAD gap: 6 screws missing |
 | lower yaw servo cases, 47 / 49 beyond each | same | gap 0.04 mm, 1235 mm2 within 1 mm of the chassis pocket; free along -x and -y (L; +x / -y R): only its own idler, 35 mm3; no hardware within 2 mm, none in the waist-pelvis source design either; none of the case's 8 defined mount holes has a screw | real design gap: the whole leg hangs on a pocket seat |
 | upper dorsal / core cells 01-07 with insulators and fins | contact-only | captured in all six directions, min about 100 mm3 (+z, chassis) | artefact: held by the honeycomb pocket, which the graph does not model |
-| pelvis cells 08 / 09 with insulator and fin (groups) | same | 0.83 mm from the cradle; free along +-y (0 mm3); cradle mesh note: floor under the lower cell removed, "hold that cell at its ends" until the CAD pass | real design gap (known, pending the cradle CAD pass) |
+| pelvis cells 08 / 09 with insulator and fin (groups) | same | 0.83 mm from the cradle; free along +-y (0 mm3); cradle mesh note: floor under the lower cell removed, "hold that cell at its ends" until the CAD pass | real design gap (known, pending the cradle CAD pass). 22 Nov: the lower cell has no cradle wall over its whole lower half (ring at r + 0.85 + 0.8 mm: wall only at 15-60 and 120-165 deg) and the sleeve (y -27..32) is shorter than the cells (y -29..41); retention goes into the cradle B-rep pass (T-3npyjq follow-up) |
 | head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gap: head skin has no mount. B0196 standoffs: artefact (T-bv7bwe): the 4 `B0196_M2_FF5_spacer_*_v23` are in the manifest (role `spacer`), but `mount_check.HARDWARE_ROLES` lacked `spacer`, so the graph dropped them; fixed, camera and plate screw join through each spacer (8 / 8 ring points) |
 | B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | artefact (T-bv7bwe): same `spacer` role fix; B0410 now reaches the core by screw |
-| fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing |
-| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect) |
-| chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified) |
+| fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing. Fixed 22 Nov (T-3npyjq, `robot/body/assembly/held_parts.py`): the compute M2.5x30 nuts floated 2.0 mm off the bridge standoffs, where the 2 mm fan bridge plate was never modelled; plate added (4 flush sleeves), fan screwed to it by its two upper holes (M3x16); fan stack reaches the core by screw |
+| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect); needs screw lands on the neck yaw-to-pitch link (T-3npyjq follow-up) |
+| chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified). Fixed 22 Nov (T-3npyjq): printed with the front shell on the X2D second nozzle; rebuilt to fill its pocket (0.00 mm, 0.04 mm3 to the shell), reaches the core by contact (bonded) |
 | palms (new 20 Nov), palm upper and fingers | palm lower screwed (wrist screws from bounds); palm upper and fingers contact-only | the hand servo case and horn have no mesh, so no joint edge can form | artefact: mesh-less hand servo |
 | forearm front covers | contact-only | L_fore_front_M3x8_187 inside the forearm (12 points), 1.07 mm from the cover | unresolved: screw placed before the shell morph, or missing hole |
 | Radian heatsink + TIM | contact-only | 0.11 mm from ROCK4D, TIM 0.0, guard 0.5 mm, no screw | unresolved: intended hold (adhesive TIM, guard clip) not in the CAD |
@@ -447,6 +447,15 @@ After the `spacer` role fix (T-bv7bwe, same body): 2 isolated (chest indicator r
 the core (12 parts: pelvis cells 08 / 09, fan stack), 151 by contact only (the head skin now hangs on B0196 by contact), 35
 contact-only break points; edges screw 172 (+8 through the 8 F-F standoffs), contact 372.
 
+Held parts (T-3npyjq, 22 Nov, `robot/body/assembly/held_parts.py build`, swapped in by `roll_flip_checks.py manifest`):
+fan bridge plate (1307 mm3 PAHT-CF, 2 mm, sleeves 4.5 / 3.2 x2 and 3.9 / 2.7 x2): press support 83-89 % (flat), boss wall min 1.75 mm,
+one 0.05 mm wall tip (2.8 mm2) where the lead-guide cut-out meets the air opening, bed contact 655 mm2; the fan's lower right screw stack
+is gone (the Radian fins stand 0.6 mm in front of the plate there). The fan model's corner counterbores (3.7 mm) leave the plate sleeves
+facing a pocket: mount_check reads +3.7 mm sleeve-to-fan on both plate screws. center_front_low_L/R_M2x10 (r1 front-shell screws whose
+shelves motor_refit removed) dropped. R_roll_servo_case_reference: vendor solid 2 rebuilt from its outer shell (7 void shells, +17 mm3),
+invalid solids 1 -> 0. Connectivity on the patched selected body: isolated head_neck_collar only; groups not reaching the core: pelvis cells
+08 and 09 (2 x 3 parts); 156 contact-only, 38 break points; edges screw 185, contact 387, sleeve 33, joint 34.
+
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
 2.6 mm, no thread). Past the stage-1 end there is no room for a nut: at the front pairs (cradle x +-17, z 271.5; stage 3
@@ -455,6 +464,36 @@ at the rear pairs (cradle x +-11.2 / +-33.6; stage 4 x -33.6 / +-11.2, z 304 / 3
 cells 02-05: axis free about 3 mm at r <= 1.2 mm, cell or pocket wall at r 2.0 mm from the exit (M2 nut corners r 2.3).
 Fastening them needs a design choice (threaded insert instead of the stage-1 steel sleeve, bores moved off the cells,
 or another joint); the cradle's two sleeves at x +-16, z 252 have no partner on their axis.
+
+Threaded stage-1 sleeves (owner 2026-11-22, T-bv7bwe; `robot/body/torso/torso_screws.py build`, chain step `torso-screws`).
+The stage-1 sleeve of each pair becomes an internally threaded 304 sleeve of the same outer diameter and length (press fit
+unchanged); screw from the carrier side, no nut; the shortest ISO 4762 length that fully engages the threaded sleeve with
+its tip 0.3 mm clear of the cells, fins and boards; head seated on the outermost surface under it. Placed 8 of 16:
+| pairs | screw | threaded sleeve | engagement (plan / mount_check) | tip past sleeve | tip margin to cells |
+|---|---|---|---|---|---|
+| cradle rear x +-11.2, +-33.6 (4) | M2 x 8 | M2, 3.3 OD x 2.8 | 2.8 / 2.75 mm | 1.85 mm | 0.95 mm |
+| stage 4 x -33.6, +11.2, z 304 / 335 (4) | M2.5 x 10 | M2.5, 3.9 OD x 3.0 | 3.0 / 2.75 mm | 0.2 mm | 1.9 mm |
+Skipped (recorded in `records.json` `interface_joints`): the 6 front pairs (cradle x +-17, stage 3 x +-17): the existing
+stage-1 sleeves overlap cells 06 / 07 by 10.2 mm3 each side (exact mesh boolean; the chassis itself 0), only 1.9 / 2.3 of
+3.8 mm of the sleeve is 0.3 mm clear; and stage 4 x -11.2 z 304 / 335: a 4.5 x 2.5 mm head on the carrier face meets the
+IMU / ADC board 0.45 mm above it. The printed carrier faces stand 0.10 mm (cradle) and 0.35 mm (stage 4) proud of the
+clearance sleeve ends, so the heads bear on PAHT-CF, not on the sleeve. The stage-1 sleeve part is now the shell-pass
+STEP minus the 8 threaded positions (41 -> 33; its shoulder pitch sleeves stay at x +-42.4, not common.py's +-30.4).
+The cradle sleeves at x +-16, z 252 are the cradle half of the front-shell lower mount (boss present, about 50 % ring
+cover); the front shell's posts and its M2x10 screws sit at z 224, where the cradle has neither boss nor sleeve: a
+centre-front-shell design item, not a leftover.
+
+Checks, scoped `--parts 'combined__stage[1-4]_*'`, before -> after: connectivity contact-only break points 38 -> 35,
+parts reaching the core by contact only 153 -> 147, screw edges 172 -> 177 (cradle and stage 4 now screwed to stage 1),
+isolated 2 -> 2, groups 3 -> 3; screws 26 -> 34, engagement shortfall 8 -> 8 (none of the new ones), hole offset > 0.1 mm
+0 -> 0 (new: <= 0.002 mm), head seat gap of the new screws 0.0 mm, sleeves without screw 48 -> 32, screws with a clamp gap
+> 0.05 mm 20 -> 28 (the 8 new: stage-4 carrier to chassis 0.05-4.0 mm, cradle to chassis 0.05 mm, existing carrier
+geometry); bom lines 191 -> 195 (M2 x 8 ISO 4762 x4, M2.5 x 10 ISO 4762 x4, two threaded sleeve lines x4 each, supplier
+unknown), quantity differences 0 -> 0, sleeves in CAD 276 -> 266 (STEP count 274 -> 266); press: sleeves with support
+< 90 % 51 -> 43 and tool obstruction 41 -> 33 (the 8 removed clearance sleeves; the threaded sleeves are not in `press`,
+which reads only `*_steel_sleeves` parts); fit_class and gaps unchanged (67 pairs, 2 standing overlaps). `mount_check`
+lists the chassis as a clamped hole without sleeve for the new screws: it links sleeves to parts by the `_steel_sleeves`
+name only.
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 
@@ -548,6 +587,21 @@ scene). Not a per-screw reload and not an O(screws x parts) loop: candidates are
 unscoped, shoulder U body (manifest 639d0069ed6c): 124 s wall, selection 30 s, mount_check 85 s in 8 chunks, tree peak
 5.5 GiB under a 6 GB cap; 218 screws analysed, 47 with an engagement shortfall, 32 with a hole offset over 0.1 mm, 121
 with a clamp gap over 0.05 mm, 125 sleeves without a screw, 87 mount-hole faces with unused holes.
+
+Other checks unscoped (2026-11-22, T-c4sy9d). `assembly` did not stall (74 s for its one assembly, the right leg,
+42 steps), but stack dumps showed the same two traps: `_screw_info` probing screws on `ctx.solid()` (0.03 mm STEP
+tessellation) and `run.py`'s reference volume fusing every scoped multi-solid STEP. Every check that calls `ctx.solid()`
+on its scope or on what lies near it inherits them in an unscoped run: on the scope `gaps`, `mass`, `clearance`,
+`static_audit`, `fits` (printed parts only: `edges`, `holes`, `walls`, `heat`, `overhang`), on neighbours or paths
+`driver_access`, `fastener_motion`, `range_sweep`, the `assembly` insertion booleans. One rule in
+`core.screen_solid` and `run.py` covers all of them: a part outside the STEP roles (bought) with a STEP over 5 MB takes the
+coarse path even when scoped (power supervisor 78 MB, ROCK4D 44, B0196 26, B0410 22, ST3025 outputs 12, precharge board
+9.5, foot roll cases 7.8, head skin and collar 5.5, microphone 5.3). Printed parts and servo cases keep the fine
+tessellation. `assembly` selects screws on `screwlib.screen()`. A `native_step` that resolves nowhere
+(`R_toe_lateral_sensor`) crashed unscoped `mass` in `sha()`; it now counts as no STEP and the mesh is used. Timed
+unscoped on the shoulder U body: `assembly` 29 s (was 104 s; one more screw not named, 9 vs 8, from the coarse selection),
+`mass` 83 s (crashed before; solids for 192 parts), peaks 1.8 / 3.4 GiB. The first run after a servo STEP changes still
+fuses its reference volume once (cached afterwards).
 
 ## Fastener heads and tips over motion (2026-11-19)
 

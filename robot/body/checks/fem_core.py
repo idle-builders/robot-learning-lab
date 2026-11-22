@@ -41,7 +41,8 @@ A setup is data in data/part_settings.json under part_settings[part]["fem"]:
                                                             legacy hand-typed coordinates (kept only to reproduce old numbers)
         | [PATCH, PATCH]                                    union
 A material of the table can be {"fem": {"factor_of_part_material": f}}: f times the part's own Hooke matrix (the old torso sleeve-zone stiffness, named option).
-Any PATCH dict can carry "rigid": true. Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
+Any PATCH dict can carry "rigid": true. A member of a rigid load union can carry "free_rotation_about_joint": J: its nodes follow the rigid motion plus a free,
+unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
 at the origin, direct solve) and the wrench acts on that reference node: the load patch cannot bend between its sites. Support: the nodes are fixed, which already is a fixed rigid body (the flag changes nothing).
 Run option ctx.fem_rigid_load (run.py --fem-rigid-load) makes the stored load patch rigid for a comparison run. Run option: ctx.fem_mesh_h (run.py --fem-mesh-h) replaces mesh_h_mm of every setup (mesh convergence).
 The layer normal is the part's decided print direction (process.up, the print setup, sign irrelevant for the orthotropic axis), the manifest frame is the frame of all coordinates.
@@ -507,7 +508,7 @@ def spd_solve(A, rhs, method, B=None):
     return np.column_stack(out)
 
 
-def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=None, field_path=None, field_case=None, solver=None, rigid_load=False, envelopes=None):
+def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=None, field_path=None, field_case=None, solver=None, rigid_load=False, envelopes=None, release=None):
     """Static solve: moved from motor-refit/fem_refit.solve (same maths, same outputs) with the material table from
     data/materials.json: mesh material ids 0 / 2 = the setup's bonded materials (bonded = slot_materials(setup)), 1 = the polymer.
     envelopes = {case: (W (n, 6), labels, summary)}: a load case that stands for many wrenches (arm_loads.envelope); its row is the standard row of the
@@ -545,6 +546,8 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         # theta x r = -skew(r) theta with skew(r) = [[0,-rz,ry],[rz,0,-rx],[-ry,rx,0]]
         sk = np.zeros((len(ln), 3, 3)); sk[:, 0, 1], sk[:, 0, 2] = -r[:, 2], r[:, 1]; sk[:, 1, 0], sk[:, 1, 2] = r[:, 2], -r[:, 0]; sk[:, 2, 0], sk[:, 2, 1] = -r[:, 1], r[:, 0]
         R = -sk
+        if release is not None and method == "spsolve":
+            raise ValueError("a load patch with a released rotation needs the amg path")
         if method == "spsolve":     # the old path: one direct solve of the 6-DOF-augmented system
             rows = [other]; cols = [np.arange(no)]; vals = [np.ones(no)]
             for a_ in range(3):
@@ -558,15 +561,24 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         else:
             # Schur complement on the 6 reference DOFs (the dense reference rows defeat AMG on the augmented system): Koo X = Kor (6 AMG-CG solves),
             # S = Krr - Kor^T X, reference motion u_r = S^-1 e_i, other nodes u_o = -X u_r; identical to the direct solve of the augmented system
-            Tl = np.zeros((len(ldofs), 6))
+            nref = 6 + (release is not None)
+            Tl = np.zeros((len(ldofs), nref))
             for a_ in range(3):
                 Tl[a_::3, a_] = 1.0
-                Tl[a_::3, 3:] = R[:, a_, :]
+                Tl[a_::3, 3:6] = R[:, a_, :]
+            if release is not None:
+                # release = {"nodes": node ids, "axis": a, "point": p}: those load nodes may also turn about the axis through p by an extra, unloaded
+                # reference DOF phi (u_i += phi a x (x_i - p)): a bearing (servo idler) that carries forces and off-axis moments but no torque about its axis
+                a_ax = np.asarray(release["axis"], float); a_ax = a_ax / np.linalg.norm(a_ax)
+                sel = np.isin(ln, np.asarray(release["nodes"]))
+                tang = np.cross(a_ax[None, :], points[ln] - np.asarray(release["point"], float)[None, :])
+                for a_ in range(3):
+                    Tl[a_::3, 6] = np.where(sel, tang[:, a_], 0.0)
             Kc = K.tocsr()
             Kor = np.asarray(Kc[other][:, ldofs] @ Tl)
             Krr = Tl.T @ (Kc[ldofs][:, ldofs] @ Tl)
             X = spd_solve(Kc[other][:, other], Kor, method, B=rigid_modes(points)[other])
-            Ur = np.linalg.inv(Krr - Kor.T @ X)
+            Ur = np.linalg.inv(Krr - Kor.T @ X)[:, :6]    # the 6 unit wrenches load the first 6 reference DOFs; a released DOF carries no load
             u_basis[other] = -X @ Ur
             u_basis[ldofs] = Tl @ Ur
     # equilibrium: the clamped nodes' reaction (K u at the fixed DOFs, moment about the origin) must equal minus the applied wrench

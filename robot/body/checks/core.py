@@ -139,20 +139,36 @@ def _step_fits(m, b):
         and np.abs(m.bounds - b).max() < 3.0
 
 
+FINE_STEP_MAX_MB = 5.0
+
+
+def _mb(step):
+    try:
+        return BL.src(step).stat().st_size / 1e6
+    except OSError:
+        return 0.0
+
+
 def screen_solid(body, n, changed):
     """Closed screening solid of part n in the manifest frame and how it was made. Order: native STEP tessellation;
     else the part's own mesh when it is already a closed manifold (decimated only within 1.5 % of its volume); only an
     open mesh gets the voxel fill / hull of roll_flip_checks.closed(), which can be far off (+-50 % on open covers)."""
     p = body.parts[n]
     step = p.get("native_step")
+    if step and not BL.src(step).exists():          # a STEP reference that resolves nowhere (R_toe_lateral_sensor): the mesh
+        step = None
     role = p.get("role")
-    tol = 0.03 if n in changed else 0.1             # unchanged parts: coarser screening mesh, faster sweep
-    if step and not p.get("placement_offset_mm") and (n in changed or role in STEP_ROLES):
+    # a scoped part gets the fine STEP tessellation, except a bought part (role outside STEP_ROLES) with a big STEP:
+    # supplier boards hold thousands of component solids (power supervisor 78 MB, ROCK4D 44, B0196 26, B0410 22) and
+    # an unscoped run scopes every part, so it never finished (T-c4sy9d, 2026-11-20); those take the coarse path
+    fine = n in changed and not (step and role not in STEP_ROLES and _mb(step) > FINE_STEP_MAX_MB)
+    tol = 0.03 if fine else 0.1                     # unchanged parts: coarser screening mesh, faster sweep
+    if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
         fail_key = f"{SOLID_VERSION}:{n}:{sha(BL.src(step))[:16]}:{tol}"
         failed = _failed()
         if fail_key in failed and n not in changed:
             step = None
-    if step and not p.get("placement_offset_mm") and (n in changed or role in STEP_ROLES):
+    if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
         b = np.array(p["bounds_mm"], float)
         why = None
         # a servo STEP may hold its housing as several small solids (ST3025: 11 pieces, one over 4000 mm3): when the

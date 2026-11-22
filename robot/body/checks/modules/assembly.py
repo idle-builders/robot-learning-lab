@@ -14,7 +14,9 @@ largest sampled t with overlap, refined by bisection to 0.01 mm: where the part 
 maximum overlap along the path (mm3) with the part that has it, and the overlap at the final position (seat, t = 0). Thin
 obstacles thinner than the sample step can be stepped over; a refinement of the first hit only.
 Screw step: driver path (driver_access.measure_screw: tool blade cylinder from the head outward, data/tools.json) against the
-parts assembled at that step only; `closed_in_by` lists parts named later in the order that would block the same path.
+parts assembled at that step only; `closed_in_by` lists parts named later in the order that would block the same path (body shells
+going on later over the screw are listed apart, `covered_later_by`: covering screws is what a cover does). The path length and the
+other-limb rule are driver_access's (data/tools.json).
 Also per screw the parts it touches that are not assembled yet at its step. Coverage: parts and screws on the assembly's links
 that no step names. Measurements only."""
 from __future__ import annotations
@@ -32,6 +34,7 @@ from checks.registry import register
 
 ORDER_FILE = DATA / "assembly_order.json"
 EPS_MM3 = 1e-3
+COVER_ROLE = "body_shell"
 
 
 def load_order(path=None):
@@ -135,7 +138,7 @@ def _screw_info(ctx, T, k, node_names, WB):
             continue
         Tn = T[ctx.body.parts[n]["owning_link"]]
         try:
-            inside = ctx.solid(n)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])
+            inside = SL.screen(ctx, n)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])   # a selection: coarse solid (T-c4sy9d)
         except Exception:  # noqa: BLE001
             continue
         if inside.sum() >= 2:
@@ -195,8 +198,11 @@ def walk(ctx, order, name, scope=None, max_mm=None, step_mm=None):
                 r = DA.measure_screw(ctx, k, info, T, assembled, WB, box, tdata)
                 rl = DA.measure_screw(ctx, k, info, T, assembled + later, WB, box, tdata) if "error" not in r else r
                 if "error" not in r:
-                    r["closed_in_by"] = sorted({b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])})
-                    r["closed_in_mm3"] = round(rl["obstruction_mm3"] - r["obstruction_mm3"], 3)
+                    new = {b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])}
+                    cover = {n for n in new if parts[n].get("role") == COVER_ROLE}     # a cover going on over its screws is the order working
+                    r["closed_in_by"] = sorted(new - cover)
+                    r["covered_later_by"] = sorted(cover)
+                    r["closed_in_mm3"] = round(sum(b["mm3"] for b in rl.get("by_part", []) if b["part"] in new - cover), 3)
                 r["touches_not_yet_assembled"] = [n for n in info["touched"] if n not in assembled]
                 screws[k] = r
             ok = [r for r in screws.values() if "error" not in r]
@@ -205,6 +211,7 @@ def walk(ctx, order, name, scope=None, max_mm=None, step_mm=None):
                        first_part=next((r["first_part"] for r in ok if r["first_part"]), None),
                        obstruction_within_min_length_mm3=max([r["obstruction_within_min_length_mm3"] for r in ok], default=0.0),
                        closed_in_by=sorted({p for r in ok for p in r.get("closed_in_by", [])}),
+                       covered_later_by=sorted({p for r in ok for p in r.get("covered_later_by", [])}),
                        touches_not_yet_assembled=sorted({p for r in screws.values() for p in r["touches_not_yet_assembled"]}))
         row["seconds"] = round(time.time() - t0, 1)
         out.append(row)
@@ -264,6 +271,7 @@ def run(ctx):
                 bad_events=dict(assemblies=len(sel), steps=len(steps), part_steps_with_contact_on_path=sum(1 for r in steps if r.get("first_contact_mm")),
                                 screw_steps_with_obstruction=sum(1 for r in steps if r.get("obstruction_mm3", 0) > 0),
                                 screw_steps_closed_in_by_later_part=sum(1 for r in steps if r.get("closed_in_by")),
+                                screw_steps_covered_later_by_shell=sum(1 for r in steps if r.get("covered_later_by")),
                                 seeded_steps=sum(1 for r in steps if r.get("seeded")),
                                 parts_not_named=len(cov["parts_not_named"]), screws_not_named=len(cov["screws_not_named"]),
                                 scoped_parts_in_no_assembly=sum(1 for n in ctx.scope if not per[n]["named_in_assembly"])),

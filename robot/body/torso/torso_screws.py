@@ -15,14 +15,21 @@ This script rebuilds the stage 3 carrier and its sleeves from build_torso_carrie
 standard-parts.json sleeve.bore_for; head on the outer face), and drops the stale torso_mate parts. Positions come from
 common.stage_interface_specs and common.STAGE3_*; nothing is typed here.
 
-Stage 4 IMU/ADC carrier (Idle T-htfaaz): outer face on the boards' back face (layer gaps 0.10 -> 0.00 mm), the 6 rail screws (PA2,
-heads on the outer face outside the board footprints, full-thickness flush sleeves) land in printed pilots added to Stage 1's rails
-(Stage 1's 6 dorsal sleeves dropped: the receiving side carries no sleeve; the unscripted Stage 1 STEP is edited in place here, the
-chain script of T-dgz6qv should take the pilots over), the 8 board screws end in printed pilots of bosses on the plate's rear face
-(sleeves dropped: the clamped part is the board). Screw lengths from screw_plan.py, board sites from the boards' own STEP.
+Stage interface joints (T-bv7bwe, owner 2026-11-22: threaded steel sleeves): each stage-1 aux bore that is coaxial with a
+cradle / stage 3 / stage 4 bore gets an internally threaded steel sleeve in place of its clearance sleeve (same outer diameter
+and length) and an ISO 4762 screw from the carrier side, no nut; the screw is the shortest stocked length that fully engages
+the threaded sleeve with its tip MARGIN_MM clear of the cells, fins and boards of the torso section. A pair is skipped (and
+recorded with the reason in records.json `interface_joints`) when the stage-1 sleeve itself runs into a cell or the head meets
+a board. `plan` prints those plans without writing CAD.
+
+Stage 4 IMU/ADC carrier (Idle T-htfaaz): the outer face sits on the boards' back face (layer gaps 0.10 -> 0.00 mm). The 6 rail
+pairs are stage interface joints as above (carrier side: full-thickness flush clearance sleeves from Stage 1's rail face to the
+outer face, heads on it); the two on x -11.2 sat under the IMU / ADC boards, so common.stage4_rail_sites moves them to the strip
+between the boards and Stage 1 moves with them: the old bores are filled, the pockets re-cut, new bores drilled and the old sleeve
+solids dropped (the unscripted Stage 1 STEP is edited here; the chain script of T-dgz6qv should take this over). The 8 board
+screws end in printed pilots in bosses on the plate's rear face (PA2, lengths from screw_plan.py, sites from the boards' STEP).
 
   recreate:  .venv/bin/python -B robot/body/torso/torso_screws.py build   (parts + records.json in OUT)
-             .venv/bin/python -B robot/body/torso/torso_screws.py screws  (only the stage 4 screws, against the last build)
              .venv/bin/python -B robot/body/torso/torso_screws.py apply   (patch the roll-flip variant manifest)
 """
 from __future__ import annotations
@@ -44,10 +51,8 @@ OUT = ROOT / "artifacts/robot/body/torso/torso-screws"
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
 STAGE3 = "stage3_front_power_electronics_carrier"
 PART, SLEEVES = f"combined__{STAGE3}", f"combined__{STAGE3}_steel_sleeves"
-STAGE4, STAGE1 = "stage4_rear_imu_adc_carrier", "stage1_center_torso_spine_chassis"
+STAGE4 = "stage4_rear_imu_adc_carrier"
 PART4, SLEEVES4 = f"combined__{STAGE4}", f"combined__{STAGE4}_steel_sleeves"
-PART1, SLEEVES1 = f"combined__{STAGE1}", f"combined__{STAGE1}_steel_sleeves"
-PA2_PILOT_DIA, RAIL_PILOT_DEPTH = 1.6, 5.6    # PA2 thread-forming pilot: 80 % of the 2.0 major diameter; depth below the tip of the PA2x12
 LEGACY_BOARD_SCREWS = ("IMU_M2x6_", "ADC_M2x6_")
 STALE = ("torso_mate_",)      # torso_mate_<n>_M3x16_socket_screw / _rear_M3_washer / _front_M3_washer / _M3_hex_nut
 
@@ -70,85 +75,279 @@ def build():
     recs[SLEEVES4] = MR.save(SLEEVES4, sleeves4.wrapped, "purchased")
     recs[SLEEVES4]["mass_kg"] = round(recs[SLEEVES4]["volume_mm3"] * 7.93e-6, 6)
     recs[SLEEVES4]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
-    src1 = stage1_source()
-    body1, sleeves1 = stage1_pilots(src1)
-    recs[PART1] = MR.save(PART1, body1.wrapped, "printed")
-    recs[SLEEVES1] = MR.save(SLEEVES1, sleeves1.wrapped, "purchased")
-    recs[SLEEVES1]["mass_kg"] = round(recs[SLEEVES1]["volume_mm3"] * 7.93e-6, 6)
-    recs[SLEEVES1]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
-    screws = stage4_screws(recs)
-    (OUT / "records.json").write_text(json.dumps(dict(records=recs, screws=screws, stage1_source=src1), indent=1) + "\n")
-    print("wrote", OUT / "records.json", {k: v["volume_mm3"] for k, v in recs.items()}, len(screws), "screws", flush=True)
+    recs[PART1] = MR.save(PART1, stage1_moved_rails(common).wrapped, "printed")
+    new_parts, joints = build_interface_joints(MR, common, recs[PART4])
+    recs.update({k: v for k, v in new_parts.items() if k == STAGE1_SLEEVES})
+    added = {k: v for k, v in new_parts.items() if k != STAGE1_SLEEVES}
+    screws = stage4_board_screws(recs)
+    (OUT / "records.json").write_text(json.dumps(dict(records=recs, added=added, screws=screws, interface_joints=joints), indent=1) + "\n")
+    print("wrote", OUT / "records.json", {k: v["volume_mm3"] for k, v in recs.items()}, flush=True)
+    for j in joints:
+        print(" ", j["joint"], j["status"], j.get("screw"), j.get("engagement_mm"), j.get("tip_margin_mm"), j.get("why", ""), flush=True)
 
 
-def stage1_source() -> dict:
-    """The unedited Stage 1 part + sleeves of the roll-flip variant manifest (paths); after `apply` the manifest points at OUT, then
-    the paths recorded by the earlier build are used."""
-    man = json.loads(VARIANT.read_text())
-    ent = {p["name"]: p for p in man["parts"]}
-    res = {k: ent[k]["native_step"] for k in (PART1, SLEEVES1)}
-    if any(v.startswith(str(OUT.relative_to(ROOT))) for v in res.values()):
-        res = json.loads((OUT / "records.json").read_text())["stage1_source"]
+# ------------------------------------------------------------------------------------------- stage interface joints
+# Owner 2026-11-22 (T-bv7bwe): the stage-1 side sleeve of each stage-1 / carrier interface pair becomes an internally
+# threaded steel sleeve (same outer diameter and length, so the press fit in the chassis hole is unchanged); the clearance
+# sleeve stays on the carrier side; the screw goes in from the carrier side, no nut.
+STAGE1 = "stage1_center_torso_spine_chassis"
+STAGE1_SLEEVES = f"combined__{STAGE1}_steel_sleeves"
+PART1 = f"combined__{STAGE1}"
+MATES = ("stage2_lower_pelvis_battery_cradle", STAGE3, STAGE4)
+SECTION = ROOT / "artifacts/robot/body/torso/combined/assembly-parts.json"    # torso section manifest (cells, fins, boards)
+SLEEVE_SOURCE = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"   # chain step before this one
+# thread by sleeve bore (clearance r_id): major / minor (ISO 724, the threaded sleeve's modelled bore), ISO 4762 socket
+# head diameter / height and the stocked lengths (ISO 4762 preferred lengths)
+THREADS = {1.05: dict(thread="M2", major=2.0, minor=1.567, head_d=3.8, head_h=2.0, lengths=(3, 4, 5, 6, 8, 10, 12, 16, 20)),
+           1.30: dict(thread="M2.5", major=2.5, minor=2.013, head_d=4.5, head_h=2.5, lengths=(4, 5, 6, 8, 10, 12, 16, 20))}
+MARGIN_MM = 0.3          # clearance kept from a cell can, fin, board or other part (screw tip, head, threaded sleeve)
+
+
+def interface_pairs(common):
+    """Coaxial stage-1 / carrier bore pairs from common.stage_interface_specs: the stage-1 aux bore and the mating carrier
+    bore on the same y axis. Each with the stage-1 span, the carrier span and the direction from the head to the tip."""
+    import numpy as np
+    spec = common.stage_interface_specs()
+    s1 = [b for b in spec[STAGE1]["aux_bores"] if tuple(b["normal"]) == (0.0, 1.0, 0.0)]
+    out = []
+    for st in MATES:
+        k = 0
+        for b in spec[st]["support_bores"] + spec[st]["load_bores"] + spec[st].get("aux_bores", []):
+            if tuple(b["normal"]) != (0.0, 1.0, 0.0):
+                continue
+            a = next((a for a in s1 if abs(a["center"][0] - b["center"][0]) < 0.05 and abs(a["center"][2] - b["center"][2]) < 0.05), None)
+            if a is None or abs(a["r_id"] - b["r_id"]) > 1e-6:
+                continue
+            ya, yb = a["center"][1], b["center"][1]
+            d = 1.0 if ya > yb else -1.0                                   # head on the carrier, tip toward stage 1
+            span = lambda q: (q["center"][1] - q["length"] / 2, q["center"][1] + q["length"] / 2)
+            sa, sb = span(a), span(b)
+            out.append(dict(joint=f"{st.split('_')[0]}_{k}", mate=st, s1=a, mate_bore=b, d=d,
+                            seat=sb[0] if d > 0 else sb[1],                 # carrier sleeve outer end: the head seat
+                            s1_entry=sa[0] if d > 0 else sa[1], s1_exit=sa[1] if d > 0 else sa[0],
+                            x=a["center"][0], z=a["center"][2], th=THREADS[round(a["r_id"], 2)]))
+            k += 1
+    return out
+
+
+def _ring_hits(meshes, x, z, ys, r):
+    """Names of the meshes that contain any point of rings of radius r (16 points) around the y axis at (x, z), y in ys."""
+    import numpy as np
+    a = np.linspace(0, 2 * np.pi, 17)[:-1]
+    pts = np.array([[x + r * np.cos(t), y, z + r * np.sin(t)] for y in ys for t in a])
+    hit = set()
+    for n, (me, lo, hi) in meshes.items():
+        if np.any(pts.max(0) < lo) or np.any(pts.min(0) > hi):
+            continue
+        if me.contains(pts).any():
+            hit.add(n)
+    return hit
+
+
+def _section_meshes():
+    """Torso section parts that a screw tip, head or threaded sleeve must keep MARGIN_MM from: cells, insulators, fins,
+    boards and modules (the carriers, chassis and sleeves are the clamped stack and are handled by the spans)."""
+    import numpy as np
+    sys.path.insert(0, str(ROOT / "robot/body/checks"))
+    from checks import bodylib as BL
+    man = json.loads(SECTION.read_text())
+    out = {}
+    for p in (man["parts"] if isinstance(man, dict) else man):
+        if p.get("owning_link") != "torso" or not p.get("mesh") or BL.is_fastener(p["name"], p):
+            continue
+        # body shells: outside the stack (heads and tips stay > 4 mm from them); an open shell's hull would cover the torso
+        if p["role"] in ("printed_structural_carrier", "compression_limit_sleeves", "body_shell") or p["name"].startswith("combined__"):
+            continue
+        try:
+            me = BL.load_mesh(p["mesh"])
+        except Exception:  # noqa: BLE001
+            print(f"WARNING torso screws: {p['name']} mesh not loaded, not in the clearance test", flush=True)
+            continue
+        if not me.is_watertight:          # open mesh (boards, servo cases): holes filled, else its convex hull (conservative)
+            m2 = me.copy(); m2.fill_holes()
+            me = m2 if m2.is_watertight else me.convex_hull
+        out[p["name"]] = (me, me.bounds[0] - 1, me.bounds[1] + 1)
+    return out
+
+
+def _carrier_meshes(rebuilt: dict | None = None):
+    """The mating carriers as the chain carries them (shell-pass manifest), the rebuilt ones (name -> record) in place of
+    theirs: the head seats on their outer face."""
+    sys.path.insert(0, str(ROOT / "robot/body/checks"))
+    from checks import bodylib as BL
+    ps = {p["name"]: dict(p, **(rebuilt or {}).get(p["name"], {})) for p in json.loads(SLEEVE_SOURCE.read_text())["parts"]}
+    return {st: BL.load_mesh(ps[f"combined__{st}"]["mesh"]) for st in MATES}
+
+
+def head_seat(j, carriers):
+    """Outermost surface under the head annulus (between the clearance sleeve and the head rim): the sleeve end, or the
+    carrier face where it stands proud of the sleeve."""
+    import numpy as np
+    d, x, z = j["d"], j["x"], j["z"]
+    r = 0.5 * (j["mate_bore"]["r_od"] + j["th"]["head_d"] / 2)
+    a = np.linspace(0, 2 * np.pi, 9)[:-1]
+    o = np.array([[x + r * np.cos(t), j["seat"] - d * 20.0, z + r * np.sin(t)] for t in a])
+    loc, ri, _ = carriers[j["mate"]].ray.intersects_location(o, np.tile([0.0, d, 0.0], (len(o), 1)))
+    first = [min(loc[ri == i][:, 1] * d) * d for i in range(len(o)) if np.any(ri == i)]
+    out = min([j["seat"] * d] + [f * d for f in first if abs(f - j["seat"]) < 3.0]) * d
+    return float(out)
+
+
+def plan_joint(j, meshes, carriers=None):
+    """Threaded sleeve length, screw length, engagement and margins of one pair; status 'placed' or 'skipped' with why."""
+    import numpy as np
+    if carriers is not None:
+        j = dict(j, sleeve_end=j["seat"], seat=head_seat(j, carriers))
+    th, d, x, z = j["th"], j["d"], j["x"], j["z"]
+    r_od, L_s1 = j["s1"]["r_od"], j["s1"]["length"]
+    step = 0.1
+    # threaded sleeve: the stage-1 sleeve's own span; its outer wall must keep MARGIN_MM from every part in `meshes`
+    ys = np.arange(0, L_s1 + 1e-9, step) * d + j["s1_entry"]
+    first_hit = next((i for i, y in enumerate(ys) if _ring_hits(meshes, x, z, [y], r_od + MARGIN_MM)), None)
+    free_len = L_s1 if first_hit is None else step * first_hit
+    res = dict(joint=j["joint"], mate=j["mate"], axis_mm=[round(x, 2), round(z, 2)], thread=th["thread"],
+               threaded_sleeve=dict(od_mm=round(2 * r_od, 2), length_mm=L_s1, bore_mm=th["minor"],
+                                    span_y_mm=sorted([round(j["s1_entry"], 2), round(j["s1_exit"], 2)])))
+    hit_sleeve = sorted(_ring_hits(meshes, x, z, ys, r_od))
+    if hit_sleeve or free_len < L_s1 - 1e-6:
+        res.update(status="skipped", free_sleeve_length_mm=round(float(free_len), 2),
+                   why=f"stage-1 sleeve span reaches {', '.join(hit_sleeve) or 'a part'} (free {free_len:.2f} of {L_s1} mm at "
+                       f"{MARGIN_MM} mm margin): the bore must move off it before a threaded sleeve can go in")
+        return res
+    # head: socket head cylinder from the seat outward must be clear
+    hy = j["seat"] - d * np.arange(0.1, th["head_h"] + 1e-9, step)
+    hit_head = sorted(_ring_hits(meshes, x, z, hy, th["head_d"] / 2 + MARGIN_MM) | _ring_hits(meshes, x, z, hy, 0.5))
+    if hit_head:
+        res.update(status="skipped", why=f"screw head ({th['head_d']} x {th['head_h']} mm) on the carrier face meets {', '.join(hit_head)}")
+        return res
+    # tip limit: the shank (major radius + margin) beyond the threaded sleeve exit must keep clear of the parts
+    beyond = np.arange(step, 12.0, step)
+    lim = next((t for t in beyond if _ring_hits(meshes, x, z, [j["s1_exit"] + d * t], th["major"] / 2 + MARGIN_MM)), 12.0) - step
+    need = d * (j["s1_exit"] - j["seat"])                                   # screw length that reaches the sleeve exit
+    ok = [L for L in th["lengths"] if L <= need + lim + 1e-9]
+    full = [L for L in ok if L >= need - 1e-9]
+    if not ok:
+        res.update(status="skipped", why="no stocked length fits")
+        return res
+    L = full[0] if full else ok[-1]
+    tip = j["seat"] + d * L
+    eng = min(L_s1, max(0.0, d * (tip - j["s1_entry"])))
+    res.update(status="placed", screw_length_mm=L, screw=f"torso_iface_{j['joint']}_{th['thread'].replace('.', 'p')}x{L}",
+               engagement_mm=round(eng, 2), engagement_of_sleeve_pct=round(100 * eng / L_s1, 1),
+               tip_beyond_sleeve_mm=round(d * (tip - j["s1_exit"]), 2),
+               tip_margin_mm=round(lim - d * (tip - j["s1_exit"]) + MARGIN_MM, 2), head_seat_y_mm=round(j["seat"], 2),
+               carrier_face_proud_of_sleeve_mm=round(d * (j.get("sleeve_end", j["seat"]) - j["seat"]), 2))
     return res
 
 
-def stage1_pilots(src: dict):
-    """Stage 1 with printed pilots at the 6 rail screw sites and without its 6 dorsal rail sleeves (decision M: the receiving side
-    is a printed pilot, no sleeve). The old bores (stage_interface_specs aux_bores on Y = 33.6) are filled inside the rail
-    (the battery pockets stay open) and the pilots (PA2, dia 1.6, RAIL_PILOT_DEPTH deep from the rail face) drilled at the new sites."""
-    from build123d import Compound, Cylinder, Pos, import_step
-    import common
-    from checks import bodylib
-    body = max(import_step(str(bodylib.src(src[PART1]))).solids(), key=lambda x: x.volume)
-    sl = import_step(str(bodylib.src(src[SLEEVES1]))).solids()
-    spec1 = common.stage_interface_specs()[STAGE1]
-    old = [b["center"] for b in spec1["support_bores"] + spec1["load_bores"] + spec1.get("aux_bores", [])
-           if abs(b["center"][1] - 33.6) < 1e-6 and abs(b["normal"][1]) > 0.9]
+def build_interface_joints(MR, common, rec4=None):
+    """Threaded stage-1 sleeves + screws for every interface pair that has room; the stage-1 clearance sleeve part
+    without the threaded positions (and without the sleeves of the stage 4 rail sites that moved). rec4: record of the rebuilt
+    stage 4 carrier. Returns ({part: record}, [joint plan])."""
+    from build123d import Compound
+    meshes, carriers = _section_meshes(), _carrier_meshes({PART4: rec4} if rec4 else None)
+    pairs = interface_pairs(common)
+    plans = [plan_joint(j, meshes, carriers) for j in pairs]
+    pairs = [dict(j, seat=p["head_seat_y_mm"]) if p["status"] == "placed" else j for j, p in zip(pairs, plans)]
+    import numpy as np
+    from build123d import import_step
+    from checks import bodylib as BL
+    placed = [np.array(j["s1"]["center"], float) for j, p in zip(pairs, plans) if p["status"] == "placed"]
+    # the stage-1 clearance sleeves the chain carries (shell-pass manifest; the shoulder pitch sleeves there sit at x +-42.4,
+    # not at common.stage_interface_specs' +-30.4), minus the sleeves that become threaded
+    src = next(p for p in json.loads(SLEEVE_SOURCE.read_text())["parts"] if p["name"] == STAGE1_SLEEVES)["native_step"]
+    sols = list(import_step(str(BL.src(src))).solids())
+    def centre(s):
+        bb = s.bounding_box(); return np.array([(bb.min.X + bb.max.X) / 2, (bb.min.Y + bb.max.Y) / 2, (bb.min.Z + bb.max.Z) / 2])
+    legacy = [np.array([x, 33.6, z]) for x, z in common.legacy_stage4_rail_sites()]
+    keep = [s for s in sols if min((np.linalg.norm(centre(s) - c) for c in placed + legacy), default=9.0) > 0.2]
+    moved = [c for c in placed if any(abs(c[0] - x) < 0.05 and abs(c[2] - z) < 0.05 for x, z in common.stage4_rail_sites() if z not in common.STAGE4_RAIL_Z)]
+    if len(sols) - len(keep) != len(placed) - len(moved) + len(legacy):     # the moved sites have no solid in the STEP yet
+        raise SystemExit(f"stage-1 sleeve STEP {src}: {len(sols) - len(keep)} solids dropped at {len(placed)} threaded positions "
+                         f"({len(moved)} of them moved rail sites) + {len(legacy)} old rail sites")
+    out = {STAGE1_SLEEVES: MR.save(STAGE1_SLEEVES, Compound(children=keep).wrapped, "purchased")}
+    out[STAGE1_SLEEVES]["sleeve_source"] = (f"{src} minus the {len(placed)} threaded interface positions (T-bv7bwe) and the {len(legacy)} "
+                                            "old stage 4 rail sites (T-htfaaz)")
+    out[STAGE1_SLEEVES]["mass_kg"] = round(out[STAGE1_SLEEVES]["volume_mm3"] * 7.93e-6, 6)
+    out[STAGE1_SLEEVES]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    for j, p in zip(pairs, plans):
+        if p["status"] != "placed":
+            continue
+        th, d, x, z = j["th"], j["d"], j["x"], j["z"]
+        b = j["s1"]
+        sl = common.aligned_cylinder(b["center"], b["normal"], b["r_od"], b["length"]).cut(
+            common.aligned_cylinder(b["center"], b["normal"], th["minor"] / 2, b["length"] + 0.4))
+        sn = f"stage1_iface_threaded_sleeve_{j['joint']}_{th['thread'].replace('.', 'p')}"
+        out[sn] = dict(MR.save(sn, sl.wrapped, "purchased"), role="threaded_sleeve", owning_link="torso",
+                       hardware_spec=dict(kind="threaded_sleeve", thread=th["thread"], outer_dia_mm=round(2 * b["r_od"], 2),
+                                          length_mm=b["length"], material="304 stainless steel (as the clearance sleeves)",
+                                          press_fit="same outer diameter as the clearance sleeve it replaces"))
+        out[sn]["mass_kg"] = round(out[sn]["volume_mm3"] * 7.93e-6, 6)
+        L = p["screw_length_mm"]
+        head_c = (x, j["seat"] - d * th["head_h"] / 2, z)
+        shank_c = (x, j["seat"] + d * L / 2, z)
+        scr = common.aligned_cylinder(head_c, (0.0, 1.0, 0.0), th["head_d"] / 2, th["head_h"]).fuse(
+            common.aligned_cylinder(shank_c, (0.0, 1.0, 0.0), th["major"] / 2, L))
+        out[p["screw"]] = dict(MR.save(p["screw"], scr.wrapped, "purchased"), role="fastener", owning_link="torso",
+                               hardware_spec=dict(kind="screw", standard="ISO 4762 socket head cap screw", thread=th["thread"],
+                                                  length_mm=L, threaded_into=sn, clamps=[j["mate"], STAGE1]))
+        p["threaded_sleeve_part"] = sn
+    return out, plans
+
+
+def stage1_moved_rails(common):
+    """Stage 1 (the chain's unedited STEP) with the bores of the moved stage 4 rail sites filled and the bores of their new sites
+    drilled: the old bore (dia 4.0, from the valley y 25.9 to the rail face y 35.4) is filled outside the battery pockets (the bore ran
+    through the web between two pockets); the new bore is the old one's size, from the sleeve's inner end to the rail face
+    (the threaded sleeve sits in it, press fit unchanged). Prints the volume added and removed."""
+    from build123d import Cylinder, Pos, import_step
+    from checks import bodylib as BL
+    src = next(p for p in json.loads(SLEEVE_SOURCE.read_text())["parts"] if p["name"] == PART1)["native_step"]
+    body = max(import_step(str(BL.src(src))).solids(), key=lambda x: x.volume)
     y0 = common.STAGE4_RAIL_Y0
-    assert len(old) == 6, old
-    fills = [common.aligned_cylinder((c[0], y0 - 2.6, c[2]), (0.0, 1.0, 0.0), 1.99, 5.2) for c in old]
+    spec = common.stage_interface_specs()[STAGE1]
+    r_od, length = next((b["r_od"], b["length"]) for b in spec["aux_bores"] if abs(b["center"][1] - 33.6) < 1e-6 and b["r_id"] > 1.2)
+    r_bore, y_in = 2.0, 33.6 - length / 2 - 0.2          # measured bore radius of the STEP; 0.2 mm of bore beyond the sleeve end
+    old = common.legacy_stage4_rail_sites()
+    new = [s for s in common.stage4_rail_sites() if s[1] not in common.STAGE4_RAIL_Z]
+    assert len(old) == len(new) == 2, (old, new)
     pockets = [Pos(c["center"][0], c["center"][1], 301.8) * Cylinder(10.95, 76.0)
                for c in common.HONEYCOMB_9CELL_BATTERY_LAYOUT if c["stage"] == STAGE1]
-    body = body.fuse(*fills).cut(*pockets)
-    pilots = [common.aligned_cylinder((x, y0 - RAIL_PILOT_DEPTH / 2 + 0.5, z), (0.0, 1.0, 0.0), PA2_PILOT_DIA / 2, RAIL_PILOT_DEPTH + 1.0)
-              for x, z in common.stage4_rail_sites()]
-    body = max(body.cut(*pilots).solids(), key=lambda x: x.volume)
-    keep = [q for q in sl if not any(abs(q.center().X - c[0]) < 0.3 and abs(q.center().Z - c[2]) < 0.3 and abs(q.center().Y - c[1]) < 0.3
-                                     for c in old)]
-    assert len(keep) == len(sl) - 6, (len(keep), len(sl))
-    return body, Compound(children=keep)
+    fills = [common.aligned_cylinder((x, (25.9 + y0) / 2, z), (0.0, 1.0, 0.0), r_bore + 0.05, y0 - 25.9) for x, z in old]
+    holes = [common.aligned_cylinder((x, (y_in + y0 + 0.5) / 2, z), (0.0, 1.0, 0.0), r_bore, y0 + 0.5 - y_in) for x, z in new]
+    fills = [f.cut(*pockets) for f in fills]                # only the part of the old bore outside the battery pockets is filled
+    out = max(body.fuse(*fills).cut(*holes).solids(), key=lambda x: x.volume)
+    print(f"stage 1 moved rail bores: {out.cut(body).volume:.2f} mm3 added (old bores filled), {body.cut(out).volume:.2f} mm3 removed "
+          f"(new bores: at most {sum(h.volume for h in holes):.2f} mm3)", flush=True)
+    return out
 
 
-def stage4_screws(recs: dict) -> list[dict]:
-    """The 6 rail + 8 board screws as manifest entries (screw_plan.py plans, envelope meshes written next to the parts)."""
+def stage4_board_screws(recs: dict) -> list[dict]:
+    """The 8 IMU / ADC board screws as manifest entries (screw_plan.py plans, envelope meshes written next to the parts): M2 PA2
+    thread-forming screws from the boards' outer side into printed pilots of the carrier bosses."""
     import numpy as np
     import trimesh
     import common
     import screw_plan as SP
     rho = SP.standards()["density_g_cm3"]
-    meshes = {n: trimesh.Trimesh(*[np.load(ROOT / recs[n]["mesh"])[k] for k in ("vertices", "faces")], process=False) for n in (PART4, SLEEVES4)}
+    carrier = np.load(ROOT / recs[PART4]["mesh"])
+    meshes = {PART4: trimesh.Trimesh(carrier["vertices"], carrier["faces"], process=False)}
     sites = common.stage4_board_sites()
-    y0, y1 = common.STAGE4_RAIL_Y0, common.STAGE4_FRONT_Y
-    holes, boards = [], {}
-    for i, (x, z) in enumerate(common.stage4_rail_sites()):      # Stage 1 pilot openings on the rail face
-        holes.append(dict(hole_id=f"stage1_rail:rail.{i}", opening=[x, y0, z], axis_out=[0.0, 1.0, 0.0], thread="M2", terminal_material="plastic",
-                          depth_mm=RAIL_PILOT_DEPTH, reference_engagement_mm=2.0 * 2.0))
+    y1 = common.STAGE4_FRONT_Y
+    holes = []
     for part in common.STAGE4_BOARDS:                              # PCB slab: back face to the far end of the mount hole
         hs = [h for h in sites if h["board"] == part]
         (xa, xb), (za, zb), top = hs[0]["board_x"], hs[0]["board_z"], max(h["y_top"] for h in hs)
-        boards[part] = trimesh.creation.box(extents=[xb - xa, top - hs[0]["y_seat"], zb - za],
+        meshes[part] = trimesh.creation.box(extents=[xb - xa, top - hs[0]["y_seat"], zb - za],
                                             transform=trimesh.transformations.translation_matrix([(xa + xb) / 2, (top + hs[0]["y_seat"]) / 2, (za + zb) / 2]))
         for i, h in enumerate(hs):
             holes.append(dict(hole_id=f"{part}:pcb.{i}", opening=[h["x"], h["y_seat"], h["z"]], axis_out=[0.0, 1.0, 0.0], thread="M2",
                               terminal_material="plastic", depth_mm=y1 - common.STAGE4_BOSS_REAR_Y, reference_engagement_mm=2.0 * 2.0))
     iface = dict(holes=holes)
-    mesh = lambda n: {**meshes, **boards}[n]
     out = []
-    for conn in ("torso_stage4_rail", "torso_stage4_imu_board", "torso_stage4_adc_board"):
-        for pl in SP.plan_connector(None, iface, conn, "", mesh=mesh):
-            # thread-forming screws into the printed pilots: the standards table has no PA2 head series, the M2 series is used
-            pl.update(thread_label="PA2", family="PA")
-            pl["name"] = pl["name"].replace("{L}", f"{pl['length_mm']:g}")
+    for conn in ("torso_stage4_imu_board", "torso_stage4_adc_board"):
+        for pl in SP.plan_connector(None, iface, conn, "", mesh=lambda n: meshes[n]):
+            pl.update(thread_label="PA2", family="PA")            # the standards table has no PA2 head series, the M2 series is used
             pl["bom_group"] = f"{pl['group']}_PA2x{pl['length_mm']:g}"
             m = SP.screw_mesh(pl)
             f = OUT / "parts" / f"{pl['name']}.npz"
@@ -159,7 +358,7 @@ def stage4_screws(recs: dict) -> list[dict]:
                 mesh=str(f.relative_to(ROOT)), mesh_sha256=hashlib.sha256(f.read_bytes()).hexdigest(), mesh_units="mm",
                 bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
                 volume_mm3=round(float(m.volume), 3), mass_kg=round(float(m.volume) * rho / 1000.0, 7),
-                material=f"{pl['head_standard']} {lbl} into {pl['hole_id']} (printed pilot, dia {PA2_PILOT_DIA}); head dia "
+                material=f"{pl['head_standard']} {lbl} into {pl['hole_id']} (printed pilot, dia {common.PA2_PILOT_DIA}); head dia "
                          f"{pl['head_dia_mm']} x {pl['head_height_mm']}, shank dia 2, {pl['point_mm']} mm point (envelope)",
                 color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                 overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly", inspection_reference=False,
@@ -173,40 +372,39 @@ def stage4_screws(recs: dict) -> list[dict]:
     return out
 
 
-def screws_only():
-    """Regenerate the stage 4 screws against the parts of the last build (records.json)."""
-    data = json.loads((OUT / "records.json").read_text())
-    data["screws"] = stage4_screws(data["records"])
-    (OUT / "records.json").write_text(json.dumps(data, indent=1) + "\n")
-
-
 def swap_parts(parts):
-    """The manifest part list with the stage 1, 3 and 4 carriers + sleeves replaced by the rebuilt ones, the stale torso_mate
-    hardware dropped and the stage 4 screws generated (the 8 legacy IMU / ADC screws are replaced in place by the generated ones
-    of the same name, the 6 rail screws are appended). Without the build output the manifest stays buildable (unedited parts, stale
-    hardware kept) and says so."""
+    """The manifest part list with the stage 1 (rail bores), 3 and 4 carriers + sleeves replaced by the rebuilt ones, the stale
+    torso_mate hardware dropped and the 8 stage 4 board screws replaced by the generated ones. Without the build output the manifest stays buildable (unedited stage 3, stale parts kept) and says so."""
     if not (OUT / "records.json").exists():
-        print(f"WARNING torso screws: {(OUT / 'records.json').relative_to(ROOT)} missing, the UNEDITED stage 1 / 3 / 4 carriers and the "
+        print(f"WARNING torso screws: {(OUT / 'records.json').relative_to(ROOT)} missing, the UNEDITED stage 3 carrier and the "
               "stale torso_mate parts stay in the manifest; run `.venv/bin/python -B robot/body/torso/torso_screws.py build` "
-              "(T-nh6ytf, T-htfaaz) first")
+              "(T-nh6ytf) first")
         return parts
-    data = json.loads((OUT / "records.json").read_text())
-    recs = data["records"]
-    new = {q["name"]: q for q in data.get("screws", [])}
+    doc = json.loads((OUT / "records.json").read_text())
+    recs, added = doc["records"], doc.get("added", {})
+    new = {q["name"]: q for q in doc.get("screws", [])}           # stage 4 board screws replace the legacy ones of the same name
     res = []
     for p in parts:
-        if p["name"].startswith(STALE):
+        if p["name"].startswith(STALE) or p["name"] in added:     # added: re-applied below (idempotent)
+            continue
+        if p["name"] in new:
+            res.append(new.pop(p["name"]))
+            continue
+        if p["name"].startswith(LEGACY_BOARD_SCREWS):
             continue
         if p["name"] in recs:
             q = dict(p); q.update(recs[p["name"]]); q.pop("native_step_offset_mm", None); q.pop("placement_offset_mm", None)
-            q["torso_screws"] = "rebuilt by robot/body/torso/torso_screws.py (T-nh6ytf, T-htfaaz)"
+            q["torso_screws"] = "rebuilt by robot/body/torso/torso_screws.py (T-nh6ytf)"
             res.append(q)
-        elif p["name"] in new:
-            res.append(new.pop(p["name"]))
-        elif p["name"].startswith(LEGACY_BOARD_SCREWS):
-            continue
         else:
             res.append(p)
+    tmpl = next((p for p in res if p["name"] == STAGE1_SLEEVES), None)
+    for n, rec in added.items():                 # threaded stage-1 sleeves and their screws (T-bv7bwe)
+        q = {k: v for k, v in (tmpl or {}).items() if k in ("color", "display_group", "display_groups", "parent_assembly",
+                                                              "inspection_reference", "overlay_id")}
+        q.update(name=n, **rec)
+        q["torso_screws"] = "added by robot/body/torso/torso_screws.py (T-bv7bwe: threaded stage-1 interface sleeves)"
+        res.append(q)
     return res + list(new.values())
 
 
@@ -221,11 +419,14 @@ def apply(variant: Path = VARIANT, out: Path | None = None):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("phase", choices=["build", "screws", "apply"])
+    ap.add_argument("phase", choices=["build", "apply", "plan"])
     ap.add_argument("--variant", default=str(VARIANT))
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
-    if a.phase == "apply":
-        apply(Path(a.variant), Path(a.out) if a.out else None)
+    if a.phase == "plan":                        # the interface joint plans only (no CAD written)
+        import common
+        ms = _section_meshes()
+        cs = _carrier_meshes()
+        print(json.dumps([plan_joint(j, ms, cs) for j in interface_pairs(common)], indent=1))
     else:
-        build() if a.phase == "build" else screws_only()
+        build() if a.phase == "build" else apply(Path(a.variant), Path(a.out) if a.out else None)

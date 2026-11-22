@@ -1,6 +1,7 @@
 """collision_sweep: part-to-part collision over a joint's range: the joint over its full range, each neighbouring joint over its range at the
 joint's ends and middle, and pairwise range corners (motor-refit pose_set). Pairs of non-fastener parts near the joint that involve a scoped part:
-max overlap (mm3, exact mesh boolean), minimum clearance (mm), poses overlapping, worst pose. Same-link pairs once at neutral.
+max overlap (mm3, exact mesh boolean), minimum clearance (mm), poses overlapping, worst pose. Same-link pairs once at neutral. Pairs of parts on
+two different limbs (the other leg, an arm) are left out, as in range_sweep: their contacts are WBC self-collision limits; counted per joint.
 Moved from motor-refit/collision_sweep.py."""
 from __future__ import annotations
 
@@ -19,6 +20,8 @@ SKIP_ROLES = {"cut_material", "adhesive_allocation", "authored_harness", "candid
 
 def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
     body, t0 = ctx.body, time.time()
+    limb = body.limb_of()
+    other_limb = set()
     o = np.array(body.joints[jn]["origin_world_mm"], float)
     names = []
     for n, p in body.parts.items():
@@ -40,6 +43,10 @@ def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
                 if a not in scope and b not in scope:
                     continue
                 pb = body.parts[b]
+                la, lb = limb.get(pa["owning_link"]), limb.get(pb["owning_link"])
+                if la and lb and la != lb:
+                    other_limb.add((a, b))
+                    continue
                 same = pa["owning_link"] == pb["owning_link"]
                 if same and pi > 0:
                     continue
@@ -63,7 +70,8 @@ def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
                 row["min_clearance_mm"] = min(row["min_clearance_mm"], clear)
     rows = sorted(results.values(), key=lambda r: (-r["max_overlap_mm3"], r["min_clearance_mm"]))
     rows = [r for r in rows if r["max_overlap_mm3"] > 0.05 or r["min_clearance_mm"] < 1.0]
-    return dict(poses=len(poses), parts=len(names), adjacent=[x["name"] for x in adj], contacts=rows, seconds=round(time.time() - t0, 1))
+    return dict(poses=len(poses), parts=len(names), adjacent=[x["name"] for x in adj], contacts=rows, other_limb_pairs_left_out=len(other_limb),
+                seconds=round(time.time() - t0, 1))
 
 
 def merge_pair_cases(cases):
@@ -106,4 +114,4 @@ def run(ctx):
     return dict(per_part=per_part, per_joint=per_joint, worst_cases=cases[:20],
                 bad_events=dict(joints_swept=len(joints), overlapping_pairs=n_over,
                                 overlapping_pairs_across_links=sum(1 for same in over.values() if not same)),
-                evidence=[], notes=f"step {step} deg; poses = joint range + neighbours' ranges + corners; pairs limited to those with a scoped part; contacts listed above 0.05 mm3 or below 1 mm clearance")
+                evidence=[], notes=f"step {step} deg; poses = joint range + neighbours' ranges + corners; pairs limited to those with a scoped part; pairs on two different limbs left out (WBC self-collision limits, as range_sweep); contacts listed above 0.05 mm3 or below 1 mm clearance")
