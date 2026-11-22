@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / "robot/body/leg"))
 import roll_flip_checks as R  # noqa: E402  (sets up kit, leg_motion, motor-refit paths)
 from checks import bodylib as BL
 from checks import cachefs
+from checks import resultcache
 
 kit = R.kit
 WORK = ROOT / ".cache/work/cad-speed"          # reports: this checkout's own
@@ -43,6 +44,7 @@ _SHA_NEW: dict = {}
 def sha(path: Path) -> str:
     """sha256 of a file, remembered by (absolute path, size, mtime_ns) across runs."""
     global _SHA
+    resultcache.note(path)                  # an input of the running check (checks/resultcache.py)
     if not _SHA:
         _SHA = cachefs.read_json(_SHA_FILE, {}) or {}
     st = path.stat()

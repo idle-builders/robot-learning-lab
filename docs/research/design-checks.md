@@ -707,6 +707,26 @@ by resident memory (owner 2026-11-22; at the time 4 jobs used 9.3 GB of 24 GB ca
 unchanged (truth rows). Not covered by a scenario: a child crash in native code (no fault found that triggers one on demand),
 the memory-cap path (memguard's own), and the exact `fit` / `fem` numbers beyond the baseline equality.
 
+Follow-up the same day (owner 2026-11-22): no job count in memguard, as many runs as fit in the 24 GB, and a result cache
+(`checks/resultcache.py`). memguard counts a running job at its full `--limit-gb` for its first 60 s, then at the peak memory
+of its process tree (without the warm-up, ten jobs started together would all fit at 0.1 GB each). The cache stores each
+check's result with the inputs recorded while it ran (files read by the check child and its Python subprocesses, STEPs
+handed to OpenCascade / gmsh, the set of body definition files, the run options, the code it loaded) and reuses it while every
+recorded file keeps its sha256; up to 8 input versions per check and scope, so going back to an earlier candidate finds its
+results. Measured on the selected body:
+
+| Scenario | Result |
+|---|---|
+| light run on `R_thigh_roll_flip`, again with nothing changed | 17.6 s computed, 5.2 s cached, identical results |
+| fem + screws + fit_class + driver_access on the same part, again | 133.7 s computed, 5.2 s cached, identical results |
+| a neighbour's / the part's own STEP and mesh rewritten in place 1.5 mm closer, manifest byte-identical (hip pitch-to-roll connector, knee ST3025 case through its moved path, front thigh shell, the part itself) | 0 of 24 check results differ from a `--no-cache` run; the checks that read the changed files ran again, `clearance` stayed cached where the changed part is on the scoped part's own link (not paired) |
+| the files restored | all 6 checks cached again (earlier input version) |
+| six light runs started at once on six parts, other sessions' jobs running | all done in 65 s, slot waits 0-26 s, peak resident memory of every guarded job on the machine 7.6 GB |
+
+The light checks share one child, so each records what that child read up to its end: a neighbour's edit also reruns
+`geometry` and `mass` of the scoped part (seconds; never stale). Heavy checks and each FEM part run in a child of their own,
+so their inputs are their own. 5.2 s is the floor: start-up, plan and the input hashes.
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a

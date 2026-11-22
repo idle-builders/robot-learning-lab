@@ -96,12 +96,13 @@ def truth_pair(man_path, a, b):
 
 
 # ------------------------------------------------------------------------------------------------ running run.py
-def run_tool(label, args, manifest=None, limit_gb=4, timeout_s=900, env=None, no_wait=False):
-    """run.py under memguard; dict(rc, wall_s, wait_s, exec_s, report, log)."""
+def run_tool(label, args, manifest=None, limit_gb=4, timeout_s=900, env=None, no_wait=False, cache=False):
+    """run.py under memguard; dict(rc, wall_s, wait_s, exec_s, report, log). cache=False passes --no-cache: the scenarios
+    measure what the checks compute; the cache scenarios turn it on."""
     cmd = ["python3", MEMGUARD] + (["--no-wait"] if no_wait else []) + ["--limit-gb", str(limit_gb), "--timeout-s", str(timeout_s), "--", PY, "-B", RUN, "--label", label]
     if manifest:
         cmd += ["--manifest", rel(Path(manifest))]
-    cmd += args
+    cmd += args + ([] if cache else ["--no-cache"])
     t0 = time.time()
     p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=env)
     wall = time.time() - t0
@@ -238,6 +239,125 @@ def s_cold(sid):
     c = run_tool(sid + "-cold", args, env=dict(os.environ, LAB_SHARED_CACHE=str(cold)), timeout_s=1200)
     w = run_tool(sid + "-shared", args, timeout_s=1200)
     return dict(cold=basics(c), shared=basics(w))
+
+
+TIMING = {"seconds", "peak_gib", "tree_peak_gib", "exact_seconds", "cached", "mesh_seconds"}
+
+
+def strip_timing(x):
+    if isinstance(x, dict):
+        return {k: strip_timing(v) for k, v in x.items() if k not in TIMING}
+    return [strip_timing(v) for v in x] if isinstance(x, list) else x
+
+
+def results_of(rep):
+    """{check: result without timing / cache fields} of a report."""
+    return {n: strip_timing(c) for n, c in (rep or {}).get("checks", {}).items()} if isinstance(rep, dict) else {}
+
+
+@scenario("cache-repeat", "speed", "result cache: the light run again with nothing changed (computed run, then cached run): seconds, same results")
+def s_cache_repeat(sid):
+    a = run_tool(sid + "-computed", ["--parts", THIGH, "--checks", LIGHT])
+    b = run_tool(sid + "-cached", ["--parts", THIGH, "--checks", LIGHT], cache=True)
+    cached = sorted(n for n, c in (b["report"] or {}).get("checks", {}).items() if c.get("cached"))
+    return dict(computed_exec_s=a["exec_s"], cached_exec_s=b["exec_s"], checks_cached=cached, of=len((b["report"] or {}).get("checks", {})),
+                results_identical=results_of(a["report"]) == results_of(b["report"]), rc=[a["rc"], b["rc"]],
+                valid=a["rc"] == 0 and b["rc"] == 0 and bool(results_of(a["report"])))
+
+
+@scenario("cache-repeat-heavy", "speed", "result cache on the expensive checks of one part (fem, screws, fit_class): computed, then cached")
+def s_cache_heavy(sid):
+    args = ["--parts", THIGH, "--checks", "fem,screws,fit_class,driver_access"]
+    a = run_tool(sid + "-computed", args, limit_gb=6, timeout_s=1800)
+    b = run_tool(sid + "-cached", args, limit_gb=6, timeout_s=1800, cache=True)
+    rb = (b["report"] or {}).get("checks", {})
+    fem_cached = [p for p, r in ((rb.get("fem") or {}).get("per_part") or {}).items()]
+    return dict(computed_exec_s=a["exec_s"], cached_exec_s=b["exec_s"], checks_cached=sorted(n for n, c in rb.items() if c.get("cached")),
+                fem_parts=fem_cached, results_identical=results_of(a["report"]) == results_of(b["report"]),
+                differing=sorted(n for n in results_of(a["report"]) if results_of(a["report"]).get(n) != results_of(b["report"]).get(n)), rc=[a["rc"], b["rc"]])
+
+
+def _shift_in_place(name, vec):
+    """Rewrite the selected manifest's STEP and mesh of part `name` in place, moved by vec (mm): the manifest stays byte
+    for byte the same, only the files' content changes. Returns {path: original bytes} to restore."""
+    import numpy as np
+    import trimesh
+    from build123d import Compound, Location, export_step, import_step
+    sys.path.insert(0, str(ROOT))
+    from infra.storage.blob_store import ensure        # the file the tool reads (a moved path resolves to its new name)
+    p = part(json.loads(selected_manifest().read_text()), name)
+    keep = {}
+    if p.get("native_step"):
+        f = Path(ensure(ROOT / p["native_step"])); keep[f] = f.read_bytes()
+        sh = import_step(str(f))
+        export_step(Compound(children=[x.moved(Location(tuple(vec))) for x in sh.solids()]), str(f))
+    f = Path(ensure(ROOT / p["mesh"])); keep[f] = f.read_bytes()
+    if f.suffix == ".npz":
+        z = dict(np.load(f)); z["vertices"] = np.asarray(z["vertices"], float) + np.asarray(vec, float)
+        with open(f, "wb") as fh:
+            np.savez(fh, **z)
+    else:
+        m = trimesh.load(f, force="mesh"); m.apply_translation(vec); m.export(f)
+    return keep
+
+
+@scenario("cache-stale-hunt", "truth", "result cache never serves a stale result: a neighbour's (and the part's own) STEP + mesh rewritten "
+          "in place 1.5 mm closer, manifest unchanged; the cached run must equal a --no-cache run, check by check")
+def s_stale(sid):
+    import numpy as np
+    m = json.loads(selected_manifest().read_text())
+    targets = [THIGH_NB, "R_knee_ST3025_case", "R_thigh_shell_front", THIGH]
+    run_tool(sid + "-prime", ["--parts", THIGH, "--checks", LIGHT + ",fit_class"], cache=True)     # store results of the unchanged body
+    out = {}
+    ca = np.asarray(part(m, THIGH)["bounds_mm"]).mean(0)
+    for t in targets:
+        cb = np.asarray(part(m, t)["bounds_mm"]).mean(0)
+        u = (ca - cb) / (np.linalg.norm(ca - cb) or 1.0) if t != THIGH else np.array([0.0, 0.0, -1.0])
+        keep = _shift_in_place(t, (1.5 * u).round(3).tolist())
+        try:
+            c = run_tool(f"{sid}-cached", ["--parts", THIGH, "--checks", LIGHT + ",fit_class"], cache=True)
+            n = run_tool(f"{sid}-fresh", ["--parts", THIGH, "--checks", LIGHT + ",fit_class"])
+        finally:
+            for f, b in keep.items():
+                f.write_bytes(b)
+        rc_, rn = results_of(c["report"]), results_of(n["report"])
+        out[t] = dict(cached=sorted(k for k, v in (c["report"] or {}).get("checks", {}).items() if v.get("cached")),
+                      rerun=sorted(k for k, v in (c["report"] or {}).get("checks", {}).items() if not v.get("cached")),
+                      stale=sorted(k for k in rn if rc_.get(k) != rn.get(k)), cached_exec_s=c["exec_s"], fresh_exec_s=n["exec_s"],
+                      rc=[c["rc"], n["rc"]], checks_compared=len(rn), valid=c["rc"] == 0 and n["rc"] == 0 and len(rn) > 0)
+    back = run_tool(f"{sid}-restored", ["--parts", THIGH, "--checks", LIGHT + ",fit_class"], cache=True)
+    return dict(per_mutated_part=out, stale_results_total=sum(len(v["stale"]) for v in out.values()),
+                after_restore_cached=sorted(k for k, v in (back["report"] or {}).get("checks", {}).items() if v.get("cached")))
+
+
+@scenario("memguard-burst", "speed", "six light runs started at once (six parts): memguard without a job count, admitted by memory")
+def s_burst(sid):
+    import threading
+    parts = [THIGH, THIGH_NB, ARM, "R_shin_combined", "R_foot_monocoque_combined", "combined__stage1_center_torso_spine_chassis"]
+    res, peak = {}, [0.0]
+    stop = threading.Event()
+
+    def sample():                          # resident memory of every memguard job on the machine (this and other sessions)
+        sys.path.insert(0, str(ROOT / "infra/tools"))
+        import memguard as MG
+        while not stop.is_set():
+            kids, rss = MG._ps_tree()
+            out = subprocess.run(["ps", "-Ao", "pid=,command="], capture_output=True, text=True).stdout
+            tot = sum(MG._tree_kb(int(l.split()[0]), kids, rss) for l in out.splitlines()
+                      if len(l.split()) > 2 and l.split()[2].endswith("memguard.py") and "python" in l.split()[1].lower())
+            peak[0] = max(peak[0], tot / 1048576)
+            time.sleep(1)
+    smp = threading.Thread(target=sample); smp.start()
+    t0 = time.time()
+
+    def go(i, p):
+        res[i] = run_tool(f"{sid}-{i}", ["--parts", p, "--checks", LIGHT])
+    th = [threading.Thread(target=go, args=(i, p)) for i, p in enumerate(parts)]
+    [x.start() for x in th]; [x.join() for x in th]
+    stop.set(); smp.join()
+    return dict(wall_all_s=round(time.time() - t0, 1), waits_s=[res[i]["wait_s"] for i in range(len(parts))],
+                exec_s=[res[i]["exec_s"] for i in range(len(parts))], rc=[res[i]["rc"] for i in range(len(parts))],
+                peak_resident_all_guarded_jobs_gb=round(peak[0], 2))
 
 
 @scenario("changed-since-noop", "speed", "--changed-since last-run straight after a run of the same part: what it selects, how fast")

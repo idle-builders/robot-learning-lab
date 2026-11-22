@@ -149,7 +149,7 @@ def isolate(ctx, name, fn, scope, why):
     return res, bad
 
 
-def run_checks_here(ctx, checks, names, out_file):
+def run_checks_here(ctx, checks, names, out_file, cache=None):
     """Child mode: run the named checks in this process; the result file is rewritten after each check. A check that raises
     is retried without the parts it fails on (isolate): their failures are listed in `failed_parts`, the rest is measured."""
     import faulthandler
@@ -200,6 +200,14 @@ def run_checks_here(ctx, checks, names, out_file):
         res["seconds"] = round(time.time() - t0, 1)
         res["peak_gib"] = gib_of_maxrss(resource.getrusage(resource.RUSAGE_SELF))
         out["checks"][name] = res
+        if cache is not None:
+            from checks import resultcache as RC
+            if RC.enabled() and RC.storable(res):
+                try:
+                    k = RC.key(cache["manifest"], name, ctx.scope, cache["options"])
+                    RC.store(k, name, ctx.scope, RC.snapshot(checks[name]["run"]), RC.sets_now(), res, cache["label"])
+                except Exception as exc:  # noqa: BLE001  a result that cannot be stored is only not cached
+                    print(f"[{name}] result not cached: {_why(exc)}", file=sys.stderr, flush=True)
         dump()
         print(f"[{name}] done in {res['seconds']} s", file=sys.stderr, flush=True)
     from checks.core import save_sha
@@ -287,7 +295,7 @@ def estimate(run, n_parts, poses):
                 continue
             k = max(1, len(r.get("scope", {}).get("parts", [])))
             for c, v in r.get("checks", {}).items():
-                if c in run and v.get("seconds") and not v.get("failed"):
+                if c in run and v.get("seconds") and not v.get("failed") and not v.get("cached"):
                     samples.setdefault(c, []).append((r.get("pose_set") == poses, v["seconds"] / (1 if c in WHOLE_TIMED else k)))
     out = {}
     for c, xs in samples.items():
@@ -324,6 +332,22 @@ def make_plan(a, man, split):
                fem_parts=[n for n in names if FC.merged_setup(ctx, n, a.fem_variant)] if "fem" in run else [],
                keys={n: S.part_key(ctx.body.parts[n]) for n in names + nbs}, last_file=str(S.LAST / (man.stem + ".json")))
     plan["estimate"] = estimate(run, len(names), a.poses)
+    plan["cached"], plan["fem_cached"], plan["cache_misses"] = {}, {}, {}
+    from checks import resultcache as RC
+    if RC.enabled() and not a.no_cache:
+        mrel, opts = str(man.relative_to(ROOT)), RC.options_of(a)
+        for n in run:
+            if n == "fem":
+                for p in plan["fem_parts"]:
+                    res, e = RC.lookup(RC.key(mrel, "fem", [p], opts))
+                    if res is not None:
+                        plan["fem_cached"][p] = dict(result=res, at=e["at"], label=e["label"])
+                continue
+            res, e = RC.lookup(RC.key(mrel, n, names, opts))
+            if res is not None:
+                plan["cached"][n] = dict(result=res, at=e["at"], label=e["label"], inputs=len(e["deps"]))
+            else:
+                plan["cache_misses"][n] = e
     save_sha()
     Path(a._plan).write_text(json.dumps(plan, default=float))
 
@@ -375,6 +399,8 @@ def main(argv=None):
     ap.add_argument("--process", action="append", default=[], help="KEY=VALUE replacing the print setup of every printed part in scope "
                     "(cross-evaluation, not stored): nozzle_mm, layer_height_mm, line_width_mm, material, printer, up, plate_yaw_deg")
     ap.add_argument("--label")
+    ap.add_argument("--no-cache", action="store_true", help="run every check even when its inputs are unchanged since a stored result "
+                    "(checks/resultcache.py; CHECKS_RESULT_CACHE=0 does the same)")
     ap.add_argument("--_scope", help=argparse.SUPPRESS)   # child mode: exact scoped part names
     ap.add_argument("--_out", help=argparse.SUPPRESS)     # child mode: result file
     ap.add_argument("--_plan", help=argparse.SUPPRESS)    # child mode: write the plan (scope, applicable checks) to this file
@@ -395,9 +421,13 @@ def main(argv=None):
     if a._plan:
         return make_plan(a, man, split)
     if a._out:                           # child: run the named checks on the exact scope
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from checks import resultcache as RC
+        RC.install()                     # record every input from here on, before any check module is imported
         ctx, checks, _ = child_ctx(a, man, split)
         ctx.scope = split(a._scope)
-        run_checks_here(ctx, checks, split(a.checks), a._out)
+        run_checks_here(ctx, checks, split(a.checks), a._out,
+                        cache=dict(manifest=str(man.relative_to(ROOT)), options=RC.options_of(a), label=label_of(a, split)))
         return
     me = [sys.executable, "-B", str(Path(__file__).resolve())]
     label = label_of(a, split)
@@ -459,11 +489,21 @@ def main(argv=None):
     if pl.get("nothing_changed"):
         return
     names, run = pl["names"], pl["run"]
-    est = pl.get("estimate", {})
+    cached = {n: c for n, c in pl.get("cached", {}).items() if n in run}
+    if cached:
+        print(f"cached (inputs unchanged): " + ", ".join(f"{n} (from {c['at'][11:16]}, {c['inputs']} inputs)" for n, c in cached.items())
+              + (f"; rerun: {', '.join(f'{n} ({w})' for n, w in pl.get('cache_misses', {}).items())}" if pl.get("cache_misses") else ""),
+              file=sys.stderr, flush=True)
+    fem_cached = pl.get("fem_cached", {})
+    est = {n: e for n, e in pl.get("estimate", {}).items() if n not in pl.get("cached", {})}
     tot, p90 = sum(e["s"] for e in est.values()), sum(e["p90_s"] for e in est.values())
     heavy = [n for n in run if n in HEAVY]
-    msg = (f"plan: {len(names)} part(s), {len(run)} check(s){' (heavy: ' + ', '.join(heavy) + ')' if heavy else ''}; "
-           f"earlier runs suggest about {tot:.0f} s (p90 {p90:.0f} s)" + (f", no history for {', '.join(n for n in run if n not in est)}" if len(est) < len(run) else ""))
+    nohist = [n for n in run if n not in est and n not in cached]
+    if run and len(cached) == len(run) and "fem" not in run:
+        cost = "all cached"
+    else:
+        cost = f"earlier runs suggest about {tot:.0f} s (p90 {p90:.0f} s)" + (f", no history for {', '.join(nohist)}" if nohist else "")
+    msg = f"plan: {len(names)} part(s), {len(run)} check(s){' (heavy: ' + ', '.join(heavy) + ')' if heavy else ''}; " + cost
     if deadline > 0:
         left = deadline - time.time()
         msg += f"; {left:.0f} s left before memguard stops it"
@@ -569,7 +609,10 @@ def main(argv=None):
 
     t_run = [time.time()]
     # light group first, then heavies in order; every finished check is written to the report at once
-    groups = [[n for n in run if n not in HEAVY]] + [[n] for n in run if n in HEAVY]
+    for n, c in cached.items():                 # results whose inputs are unchanged: not run again
+        rep["checks"][n] = dict(c["result"], cached=dict(from_run_at=c["at"], label=c["label"], inputs=c["inputs"]))
+    todo_run = [n for n in run if n not in cached]
+    groups = [[n for n in todo_run if n not in HEAVY]] + [[n] for n in todo_run if n in HEAVY]
     try:
         for grp in [g for g in groups if g]:
             write(running=grp)
@@ -577,7 +620,11 @@ def main(argv=None):
             if grp == ["fem"]:
                 t0, per = time.time(), {}
                 for n in pl["fem_parts"]:
-                    per[n] = child(["fem"], [n], f"fem-{n}")["fem"]
+                    if n in fem_cached:
+                        per[n] = dict(fem_cached[n]["result"], cached=dict(from_run_at=fem_cached[n]["at"], label=fem_cached[n]["label"]))
+                        print(f"[fem] {n}: cached (inputs unchanged since {fem_cached[n]['at']})", file=sys.stderr, flush=True)
+                    else:
+                        per[n] = child(["fem"], [n], f"fem-{n}")["fem"]
                     m = merge_fem(per)
                     m.update(seconds=round(time.time() - t0, 1), peak_gib=max(r.get("peak_gib") or 0 for r in per.values()),
                              tree_peak_gib=max(r.get("tree_peak_gib") or 0 for r in per.values()))
@@ -684,7 +731,10 @@ def summary(rep, top=6):
         for why, ns in by_why.items():
             print(f"[{name}] FAILED for {len(ns)} part(s) ({', '.join(ns[:4])}{' ...' if len(ns) > 4 else ''}): {why}")
         bad = ", ".join(f"{k} {v}" for k, v in r["bad_events"].items())
-        print(f"[{name}] {r['seconds']} s, peak {r.get('peak_gib', '?')} GiB (tree {r.get('tree_peak_gib', '?')}); counts: {bad or '-'}")
+        ca = r.get("cached")
+        how = (f"cached: inputs unchanged since {ca['from_run_at']} (label {ca['label']}, ran {r['seconds']} s)" if ca
+               else f"{r['seconds']} s, peak {r.get('peak_gib', '?')} GiB (tree {r.get('tree_peak_gib', '?')})")
+        print(f"[{name}] {how}; counts: {bad or '-'}")
         # standing 0 mm gaps without overlap are contact by design (shell and sleeve seats): counted, kept in the report only
         standing0 = [c for c in r["worst_cases"] if c["unit"].endswith("distance") and c.get("pose") == "standing" and c["value"] == 0
                     and not c.get("overlap_mm3")]
