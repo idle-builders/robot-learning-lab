@@ -798,6 +798,7 @@ RF_IN_WALL_X = (40.4, 43.45)         # inboard wall (outer x = the case-envelope
 RF_IN_WINDOW = (22.0, 160.5, RF_OUT_WALL_TOP - 3.0)   # inboard wall window: y size, z from .. to (rounded 3.5)
 RF_OUT_WINDOW = (21.0, 13.0)         # outboard wall window (its lower edge 1 mm above the bridge, 3 mm under the wall top)
 RF_KEY_CORNER_R = 1.0               # (history) pocket corner radius; the key pockets now have square corners with reliefs
+RF_BED_EDGE_CHAMFER = 0.45          # 45 deg chamfer on the plates' top inner edges (bed side, on the case-ear faces)
 RF_KEY_RELIEF_R = 0.45              # dog-bone relief radius at the key pockets' lower corners (about the corner point)
 RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
@@ -1401,7 +1402,12 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
     #    is flat already, 2.98 mm proud of the seat)
     seat_m = rf_med_seat_x()
     spots = [rf_spot_face(RF_CHEEK_X0 - 5.0, seat_m, s["opening"][1], s["opening"][2]) for s in screws if s["group"] == "knee_case"]
-    res = rf_unify(largest_solid(cut_all(res, spots)))
+    # 45 deg chamfer along the plates' top inner edges (z RF_PLATE_TOP, on the case-ear faces): the top is the print bed
+    # (up -z) and the bevel left 5-6 mm of that bed outline square on the mating ear face (elephant foot)
+    c = RF_BED_EDGE_CHAMFER
+    bed = [poly_prism_x([(yf_in + 0.01, RF_PLATE_TOP - c), (yf_in + 0.01, RF_PLATE_TOP + 0.01), (yf_in - c, RF_PLATE_TOP + 0.01)], 30.0, 80.0),
+           poly_prism_x([(yr_in - 0.01, RF_PLATE_TOP - c), (yr_in + c, RF_PLATE_TOP + 0.01), (yr_in - 0.01, RF_PLATE_TOP + 0.01)], 30.0, 80.0)]
+    res = rf_unify(largest_solid(cut_all(res, spots + bed)))
     return res, sleeves
 
 
@@ -1562,18 +1568,28 @@ def rf_density(material: str) -> float:
     return json.loads((RF_CHECK_DATA / "materials.json").read_text())[material]["density_g_cm3"] * 1e-3
 
 
-def rf_polymer_density(pname: str) -> tuple[str, float]:
-    """(material, g/mm3) of a printed part from its `process.material` setting as the checks read it: the part's body
-    definition (this builder's .bom.yaml) over checks/data/part_settings.json (checks/ctx.overlay_definitions; the settings
-    moved into the definitions on 2026-11-22, part_settings.json no longer holds these parts)."""
+def rf_part_material(pname: str) -> str:
+    """`process.material` of a printed part from its body definition (robot/**/<builder>.bom.yaml, via robot/body/bom/
+    definitions.py), else checks/data/part_settings.json. No manifest is read: the roll-flip variant manifest is the output
+    of a later chain step (roll_flip_checks.py manifest), so a clean chain has none yet when this builder runs."""
     import json
     import sys
-    if str(ROOT / "robot/body") not in sys.path:
-        sys.path.insert(0, str(ROOT / "robot/body"))
-    from checks.ctx import overlay_definitions
-    s, _, _ = overlay_definitions(json.loads((RF_CHECK_DATA / "part_settings.json").read_text()),
-                                  ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json")
-    mat = s[pname]["process"]["material"]
+    bom = str(ROOT / "robot/body/bom")
+    if bom not in sys.path:
+        sys.path.insert(0, bom)
+    import definitions as DEF
+    e = DEF.load().claims([pname]).get(pname) or {}
+    mat = (e.get("process") or {}).get("material")
+    if not mat:
+        mat = ((json.loads((RF_CHECK_DATA / "part_settings.json").read_text()).get(pname) or {}).get("process") or {}).get("material")
+    if not mat:
+        raise SystemExit(f"{pname}: no process.material in its body definition or part_settings.json")
+    return mat
+
+
+def rf_polymer_density(pname: str) -> tuple[str, float]:
+    """(material, g/mm3) of a printed part from its `process.material` setting as the checks read it (rf_part_material)."""
+    mat = rf_part_material(pname)
     return mat, rf_density(mat)
 
 

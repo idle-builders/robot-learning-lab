@@ -73,16 +73,10 @@ NAMES = ("R_thigh_shell_front", "R_thigh_shell_back")
 
 
 def shell_material(name):
-    """(material, density g/mm3) of shell part `name`: its print setting as the checks read it (body definition first,
-    then checks/data/part_settings.json; checks/ctx.overlay_definitions) and the density from checks/data/materials.json."""
-    sys.path.insert(0, str(R.ROOT / "robot/body"))
-    from checks.core import DATA
-    from checks.ctx import overlay_definitions
-    s, _, _ = overlay_definitions(json.loads((DATA / "part_settings.json").read_text()), R.VARIANT)
-    mat = ((s.get(name) or {}).get("process") or {}).get("material")
-    if not mat:
-        raise SystemExit(f"{name}: no process.material in its definition or part_settings.json")
-    return mat, json.loads((DATA / "materials.json").read_text())[mat]["density_g_cm3"] * 1e-3
+    """(material, density g/mm3) of shell part `name`: its print setting from its body definition, else
+    checks/data/part_settings.json (B.rf_part_material, no manifest read), density from checks/data/materials.json."""
+    mat = B.rf_part_material(name)
+    return mat, B.rf_density(mat)
 
 
 def sec_hull(body, names, z, extra=()):
