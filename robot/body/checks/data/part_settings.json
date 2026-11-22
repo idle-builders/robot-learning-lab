@@ -1316,7 +1316,7 @@
           ],
           "mesh_h_mm": 1.2,
           "convergence": {
-            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets; Idle T-2e49mv)",
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets)",
             "levels": [
               {
                 "h_from": "1.2",
@@ -7560,7 +7560,7 @@
           ],
           "mesh_h_mm": 1.2,
           "convergence": {
-            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets; Idle T-2e49mv)",
+            "manifest": "artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (stiffened green: 7.0 / 6.0 mm arms, plate to the end-face plane, root fillets)",
             "levels": [
               {
                 "h_from": "1.2",
