@@ -303,11 +303,28 @@ def build_stage3_front_power_electronics_carrier(family: str):
         Pos(x, common.STAGE3_MP_BOSS_Y[2], z) * Rot(90, 0, 0) * Cylinder(2.8, mp_len)
         for x, z in ((-7.0, 332.0), (37.0, 301.0))
     ]
+    # flat press counter faces (common.STAGE3_PRESS_FLANGE_*): disc around each sleeve end the anvil rests on
+    fr, ft = common.STAGE3_PRESS_FLANGE_R, common.STAGE3_PRESS_FLANGE_T
+    ps_xz = ((48.5, 280.8), (-11.5, 280.8), (48.0, 364.0), (-11.0, 364.0))
+    mp_xz = ((-7.0, 332.0), (37.0, 301.0))
+    spine_xz = ((-17.0, 288.0), (-17.0, 338.0), (17.0, 288.0), (17.0, 338.0))
+    ar = common.STAGE3_ANVIL_COLUMN_R
+
+    def clipped(flange, own_xz, ymid, h):
+        # keep the flange outside every other sleeve's anvil column (dia 10 + clearance), a cylinder along the sleeve axis (y)
+        others = [Pos(x, ymid, z) * Rot(90, 0, 0) * Cylinder(ar, h + 2.0)
+                  for x, z in ps_xz + mp_xz + spine_xz if (x, z) != own_xz]
+        return flange.cut(*others)
+
+    ps_flanges = [clipped(Pos(x, common.STAGE3_PS_BOSS_Y[0] + ft / 2, z) * Rot(90, 0, 0) * Cylinder(fr, ft),
+                          (x, z), common.STAGE3_PS_BOSS_Y[0] + ft / 2, ft) for x, z in ps_xz]
+    mp_flanges = [clipped(Pos(x, common.STAGE3_MP_BOSS_Y[1] - 0.96, z) * Rot(90, 0, 0) * Cylinder(fr, 1.92),      # the deck's thickness, rear face flush
+                          (x, z), common.STAGE3_MP_BOSS_Y[1] - 0.96, 1.92) for x, z in mp_xz]
     side_bridges = [
         Pos(-18.0, -22.1, 316.5) * Box(5.0, 15.2, 30.0),
         Pos( 55.0, -22.1, 316.5) * Box(5.0, 15.2, 30.0),
     ]
-    s3 = rear_frame.fuse(*ps_bosses, *rearward_core_brackets, front_plate, *mp_bosses, *side_bridges)
+    s3 = rear_frame.fuse(*ps_bosses, *ps_flanges, *rearward_core_brackets, front_plate, *mp_bosses, *mp_flanges, *side_bridges)
 
     cuts3 = [
         # Rear nut-access windows in rear_frame coaxial with the 2 Main Precharge PCB mounts (-7.0, 332.0) and (37.0, 301.0):
