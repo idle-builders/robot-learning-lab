@@ -42,7 +42,8 @@ A setup is data in data/part_settings.json under part_settings[part]["fem"]:
         | [PATCH, PATCH]                                    union
 A material of the table can be {"fem": {"factor_of_part_material": f}}: f times the part's own Hooke matrix (the old torso sleeve-zone stiffness, named option).
 Any PATCH dict can carry "rigid": true. A member of a rigid load union can carry "free_rotation_about_joint": J: its nodes follow the rigid motion plus a free,
-unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
+unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Several members may: the members naming
+one joint are one bearing (one released rotation), each further joint adds its own; a released member that selects no node stops with a message naming it. Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
 at the origin, direct solve) and the wrench acts on that reference node: the load patch cannot bend between its sites. Support: the nodes are fixed, which already is a fixed rigid body (the flag changes nothing).
 Run option ctx.fem_rigid_load (run.py --fem-rigid-load) makes the stored load patch rigid for a comparison run. Run option: ctx.fem_mesh_h (run.py --fem-mesh-h) replaces mesh_h_mm of every setup (mesh convergence).
 The layer normal is the part's decided print direction (process.up, the print setup, sign irrelevant for the orthotropic axis), the manifest frame is the frame of all coordinates.
@@ -53,6 +54,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 
 import numpy as np
@@ -259,8 +261,10 @@ def get_mesh(ctx, part, setup):
     f = CACHE / "fem-mesh" / f"{key}.npz"
     d = cachefs.load_npz(f) if f.exists() else None
     if d is not None:
+        say(f"mesh h {h:g} from the cache ({len(d['points'])} nodes, {len(d['tet'])} tets)")
         return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part}, setup)
     t0 = time.time()
+    say(f"meshing h {h:g} (gmsh, {len(steps)} STEP files)")
     try:
         mesh = LL().mesh_compound_steps(steps, [], h_max=h)
     except (ValueError, RuntimeError, Exception) as e:   # noqa: BLE001  gmsh raises plain exceptions
@@ -268,6 +272,7 @@ def get_mesh(ctx, part, setup):
         steps[0] = ("polymer", cleaned_step(steps[0][1]))
         mesh = LL().mesh_compound_steps(steps, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
     cachefs.savez(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+    say(f"meshed: {len(mesh['points'])} nodes, {len(mesh['tet'])} tets in {time.time() - t0:.0f} s")
     return apply_regions(ctx, mesh | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
 
 
@@ -450,6 +455,42 @@ def patch(ctx, mesh, spec):
     return w, info, mask
 
 
+def released_rotations(ctx, mesh, load, where):
+    """Released rotations of a load union: one per joint named by a member's free_rotation_about_joint (the members naming one joint are one bearing),
+    [dict(joint, axis, point, nodes, members)], or None. A released member whose patch selects no node raises, naming `where`, the member and its patch."""
+    groups = {}
+    for i, x in enumerate(load if isinstance(load, list) else [load]):
+        if not (isinstance(x, dict) and x.get("free_rotation_about_joint")):
+            continue
+        j = x["free_rotation_about_joint"]
+        spec = {k: v for k, v in x.items() if k != "free_rotation_about_joint"}
+        w, _, _ = patch(ctx, mesh, spec)
+        if not (w > 0).any():
+            raise ValueError(f"{where}: load member {i} (free_rotation_about_joint {j}) selects no node of the part; its patch: {json.dumps(spec)}")
+        jr = ctx.body.joints[j]
+        g = groups.setdefault(j, dict(joint=j, axis=jr["axis_world_neutral"], point=jr["origin_world_mm"], nodes=[], members=[]))
+        g["nodes"].append(np.flatnonzero(w > 0)); g["members"].append(i)
+    return [dict(g, nodes=np.unique(np.concatenate(g["nodes"]))) for g in groups.values()] or None
+
+
+# ------------------------------------------------------------------------------------------------ progress
+_PROGRESS = dict(check="fem", part=None, t0=None, last=0.0)
+
+
+def progress_start(part, check="fem"):
+    _PROGRESS.update(check=check, part=part, t0=time.time(), last=0.0)
+
+
+def say(msg, every_s=None):
+    """A progress line on stderr, "[fem] PART +s: msg" (seconds since progress_start of the part); every_s: at most one such line per every_s seconds.
+    Only stderr: the results do not change."""
+    t = time.time() - (_PROGRESS["t0"] or time.time())
+    if every_s and t - _PROGRESS["last"] < every_s:
+        return
+    _PROGRESS["last"] = t
+    print(f"[{_PROGRESS['check']}] {_PROGRESS['part'] or ''} +{t:.0f} s: {msg}", file=sys.stderr, flush=True)
+
+
 # ------------------------------------------------------------------------------------------------ solver
 def wrench_of(ctx, case, origin=None):
     """6-vector at the origin: given directly, a joint stall, or {"transfer": {F_N, M_Nm, scale, from_mm, lever}} = a force / moment given at from_mm,
@@ -490,6 +531,7 @@ def spd_solve(A, rhs, method, B=None):
     "amg" = conjugate gradients (relative residual CG_RTOL) preconditioned by pyamg smoothed aggregation, B = near-nullspace."""
     if method == "spsolve":
         SOLVE_LOG.append(dict(solver="spsolve"))
+        say(f"direct solve (SuperLU, {A.shape[0]} unknowns, {rhs.shape[1]} right-hand sides)")
         return spsolve(A.tocsc(), rhs)
     import pyamg
     from scipy.sparse.linalg import cg
@@ -500,9 +542,11 @@ def spd_solve(A, rhs, method, B=None):
         n = [0]
         def tick(_x, n=n):
             n[0] += 1
+        t0 = time.time()
         x, info = cg(A, rhs[:, i], rtol=CG_RTOL, maxiter=2000, M=M, callback=tick)
         if info != 0:
             raise RuntimeError(f"CG did not converge (info {info})")
+        say(f"CG solve {i + 1}/{rhs.shape[1]}: {n[0]} iterations, {time.time() - t0:.1f} s ({A.shape[0]} unknowns)")
         out.append(x); its.append(n[0]); res.append(float(np.linalg.norm(A @ x - rhs[:, i]) / max(np.linalg.norm(rhs[:, i]), 1e-300)))
     SOLVE_LOG.append(dict(solver="amg-cg", rhs=len(its), cg_iterations=its, true_relative_residual_max=max(res), rtol=CG_RTOL))
     return np.column_stack(out)
@@ -511,6 +555,7 @@ def spd_solve(A, rhs, method, B=None):
 def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=None, field_path=None, field_case=None, solver=None, rigid_load=False, envelopes=None, release=None):
     """Static solve: moved from motor-refit/fem_refit.solve (same maths, same outputs) with the material table from
     data/materials.json: mesh material ids 0 / 2 = the setup's bonded materials (bonded = slot_materials(setup)), 1 = the polymer.
+    release = released_rotations(...): load nodes that may also turn about a joint axis, one unloaded reference DOF per entry (rigid load only).
     envelopes = {case: (W (n, 6), labels, summary)}: a load case that stands for many wrenches (arm_loads.envelope); its row is the standard row of the
     wrench with the highest p99 plus "envelope" = distributions over all n wrenches (envelope_row)."""
     ll = LL()
@@ -523,10 +568,14 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
     if (0 in used and "metal" not in bonded) or (2 in used and "steel" not in bonded):
         raise ValueError("mesh has bonded companions whose material the setup does not name")
     Ds = [hooke(bonded.get("metal", material), ln_axis, material), hooke(material, ln_axis), hooke(bonded.get("steel", material), ln_axis, material)]
+    t0 = time.time()
     K, vol, B, _ = ll.assemble_chunked(points, tet, Ds, mat_ids)
+    say(f"{material}, layer normal {'xyz'[ln_axis]}: stiffness assembled ({len(points)} nodes, {len(tet)} tets) in {time.time() - t0:.0f} s")
     nd = 3 * len(points)
     u_basis = np.zeros((nd, 6))
     method = solver or os.environ.get("CHECKS_FEM_SOLVER", "amg")
+    if release and not rigid_load:
+        raise ValueError("a released rotation (free_rotation_about_joint) needs a rigid load patch")
     if not rigid_load:
         unit = []
         for i in range(6):
@@ -546,7 +595,7 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         # theta x r = -skew(r) theta with skew(r) = [[0,-rz,ry],[rz,0,-rx],[-ry,rx,0]]
         sk = np.zeros((len(ln), 3, 3)); sk[:, 0, 1], sk[:, 0, 2] = -r[:, 2], r[:, 1]; sk[:, 1, 0], sk[:, 1, 2] = r[:, 2], -r[:, 0]; sk[:, 2, 0], sk[:, 2, 1] = -r[:, 1], r[:, 0]
         R = -sk
-        if release is not None and method == "spsolve":
+        if release and method == "spsolve":
             raise ValueError("a load patch with a released rotation needs the amg path")
         if method == "spsolve":     # the old path: one direct solve of the 6-DOF-augmented system
             rows = [other]; cols = [np.arange(no)]; vals = [np.ones(no)]
@@ -561,19 +610,21 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         else:
             # Schur complement on the 6 reference DOFs (the dense reference rows defeat AMG on the augmented system): Koo X = Kor (6 AMG-CG solves),
             # S = Krr - Kor^T X, reference motion u_r = S^-1 e_i, other nodes u_o = -X u_r; identical to the direct solve of the augmented system
-            nref = 6 + (release is not None)
-            Tl = np.zeros((len(ldofs), nref))
+            rel = release or []
+            Tl = np.zeros((len(ldofs), 6 + len(rel)))
             for a_ in range(3):
                 Tl[a_::3, a_] = 1.0
                 Tl[a_::3, 3:6] = R[:, a_, :]
-            if release is not None:
-                # release = {"nodes": node ids, "axis": a, "point": p}: those load nodes may also turn about the axis through p by an extra, unloaded
-                # reference DOF phi (u_i += phi a x (x_i - p)): a bearing (servo idler) that carries forces and off-axis moments but no torque about its axis
-                a_ax = np.asarray(release["axis"], float); a_ax = a_ax / np.linalg.norm(a_ax)
-                sel = np.isin(ln, np.asarray(release["nodes"]))
-                tang = np.cross(a_ax[None, :], points[ln] - np.asarray(release["point"], float)[None, :])
+            for k, g in enumerate(rel):
+                # g = {"nodes": node ids, "axis": a, "point": p}: those load nodes may also turn about the axis through p by an extra, unloaded
+                # reference DOF phi_k (u_i += phi_k a x (x_i - p)): a bearing (servo idler) that carries forces and off-axis moments but no torque about its axis
+                a_ax = np.asarray(g["axis"], float); a_ax = a_ax / np.linalg.norm(a_ax)
+                sel = np.isin(ln, np.asarray(g["nodes"]))
+                if not sel.any():
+                    raise ValueError(f"released rotation about {g.get('joint')}: none of its {len(g['nodes'])} nodes is a free load node (all clamped by a support)")
+                tang = np.cross(a_ax[None, :], points[ln] - np.asarray(g["point"], float)[None, :])
                 for a_ in range(3):
-                    Tl[a_::3, 6] = np.where(sel, tang[:, a_], 0.0)
+                    Tl[a_::3, 6 + k] = np.where(sel, tang[:, a_], 0.0)
             Kc = K.tocsr()
             Kor = np.asarray(Kc[other][:, ldofs] @ Tl)
             Krr = Tl.T @ (Kc[ldofs][:, ldofs] @ Tl)
@@ -610,6 +661,7 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
                           max_displacement_mm=round(float(np.linalg.norm(u, axis=1).max()), 4), reaction_plus_wrench_pct=chk_,
                           peak_vm_location_mm=np.round(centers[imax], 1).tolist())
     for case, (W, labels, summary) in (envelopes or {}).items():
+        say(f"{material}, layer normal {'xyz'[ln_axis]}: envelope {case}, {len(W)} wrenches")
         env = envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, ref_z, centers, ll.VON_MISES)
         k = env.pop("_worst_index")
         sub = solve_rows_from_basis(dict(worst=np.asarray(W[k], float)), react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh, field_path, field_case if field_case != case else "worst")
@@ -711,6 +763,7 @@ def envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, r
     p99, pz, peak, disp = (np.empty(n) for _ in range(4))
     env = np.zeros(S.shape[1], np.float32)
     for a in range(0, n, chunk):
+        say(f"  {a}/{n} wrenches", every_s=15)
         w = np.asarray(W[a:a + chunk], np.float32)
         st = np.einsum("ni,iec->nec", w, S)
         vm = _vm_batch(st)
