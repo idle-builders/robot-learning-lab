@@ -516,6 +516,58 @@ fit overlaps 3 -> 3 pairs, identical (own sleeves 0.498 mm3, both pitch cases 54
 sleeve M2.5 4 -> 6, rail clearance sleeves 3.9 x 2.6 x 5.8 / x 3.0 and the 8 board sleeves 3.2 x 2.1 x 2.2 dropped,
 3.9 x 2.6 x 6.6 x 6 added).
 
+## Whole-body run of the other checks (2026-11-22, T-zfejzf)
+
+Every check outside screws / sleeves / fits, connectivity, fem and slicer, run unscoped on the selected body
+(`assembly-parts-shoulder-u-shells.json`; scope = 193 non-hardware parts, 62 of them printed, 42 with a print direction) under
+memguard 6 GB (clearance 8 GB) and `caffeinate -i`, 4 batches in parallel with other sessions' jobs. Wall times are of the batch
+child, without memguard's slot wait; peak = the child's resident set. Counts only: the findings are not triaged here (owner
+2026-11-22: reliability and data first; the design triage is in the Idle children of T-zfejzf).
+
+Why the first unscoped runs looked stalled (13:40-14:12). Not the code alone: the laptop went to sleep twice during the runs
+(pmset: 13:41 and 13:58:23-14:11:49, 806 s), and the part each job was on when it slept carried the time (heat on
+`center_front_shell` 1001 s, walls on the stage1 chassis 804 s, overhang on the stage3 carrier 995 s, all 0.1-17 s awake). Long
+runs go under `caffeinate -i` (as the body rebuild). Real causes, found from `CHECKS_STACK_DUMP_S` dumps and a per-part timing run,
+fixed in `1599e4209`:
+- `geometry` B-rep audited every part with a STEP, unscoped also the 52 bought parts (supplier STEPs up to 80 MB: power supervisor
+  board, ROCK4D 45, ST3025 cases 15 each, thousands of component solids): no part finished in 1800 s, the stack sat in the edge loop
+  (`_face_normal_at`). It now audits printed parts and made roles (cut stock, produced backing / holder, manufactured) and lists the
+  bought ones with their STEP size (`bought_not_audited`). It also died on the first of 23 scoped `native_step` paths that resolve
+  nowhere (FileNotFoundError): now counted (`dangling_native_step`) and skipped like a mesh-only part.
+- `gaps` measured every pair twice when both parts are scoped (2322 evaluations, ~400 s warm): memoised.
+- `clearance` re-measured every pair at every pose, also pairs whose two links did not move relative to each other (torso parts over
+  leg poses). Such a pair now takes its standing result (overlap and distance are invariant under a common rigid motion; checked
+  against the old code on the chassis + R shoulder connector: identical except one no-finding row at the 5 mm cap that the world-axis
+  box prefilter had let through when the shoulder pitch turned both links), 32 -> 5 s there.
+- `bed` crashed the whole check on the pelvis cradle (seeded +z: only 0.001 mm2 faces the bed, `min()` of no islands): now a row with
+  0 mm2 contact.
+
+| Check | Wall s | Peak GB | Counts (bad events) | Worst items |
+|---|---|---|---|---|
+| geometry | 56 (45 check; before the fix: none audited in 1800 s, then a crash at 32 s) | 1.6 | 51 audited, 52 bought not audited, 23 dangling STEP; 0 invalid solids, 270 sliver faces, 456 micro-edges, 66 acute wedges, 160 G1 steps, 244 unrounded corners, 0 over build volume, 10 parts with part/sleeve overlap > 0.05 mm3, 8 severed load-path branches, 2 STEPs without a solid | palm lower R / L: STEP holds 326 faces, no solid; forearm R / L 80.6 mm3 part-vs-own-sleeve overlap, L hip yaw-to-pitch 1.13 mm3, neck yaw-to-pitch link 0.77 mm3 |
+| mass | 5.5 (24.8 when it builds the solids) | 2.6 | 37 printed parts compared, 0 without material | manifest masses are volume x 1.22 g/cm3 (legacy fast_check), PAHT-CF is 1.06: -63.1 g over the 37; chassis 95.69 vs 83.28 g, foot monocoque 36.77 vs 31.94 g each |
+| print_setup | 0.0 | 2.9 | 62 printed: 20 without print direction, 18 -> 8 without material, 22 without STEP, 28 directions and 24 materials seeded | still without material: centre front and back shells, head skin, chest indicator relief, 4 foot boot / sole shells |
+| fem_setup | 69 | 3.1 | 42 printed parts without a setup, 1 setup not checked, 2 supports sharing nodes with the load, 13 setups on a seeded print direction, 2 disagreeing with `layer_normal_axes`, 0 empty patches | smallest patches 308 / 310 mm2 (shoulder roll-to-yaw roll-case support) |
+| gaps | 146 | 2.4 | 135 parts overlapping at standing | foot boot shell R / L 0.0 mm to the foot monocoque |
+| static_audit | 2.4 | 2.4 | 60 overlapping pairs at standing | foot boot shell vs monocoque 10973 / 10570 mm3, foot sole shell vs sensor pocket pad 6526 mm3 each side |
+| shell_offset | 2.3 | 2.4 | 2 shells with a `covers` setting | thigh shell back R 0.11 mm, front R 0.16 mm min inner-wall offset |
+| heat | 45 | 2.3 | 62 parts, 20 in contact with a source, 41 within 3 mm, 41 contact / 89 near pairs | margin to HDT 1.8 MPa -2 C: thigh shell front R / L (2.5 mm from the knee ST3025) and, once seeded PETG-CF, the 4 upper-arm covers; every PAHT-CF part >= +85 C |
+| bed | 28 | 2.7 | 42 parts: 1 with small islands, 258 sharp contact corners, 12 with the centre of mass outside the contact hull | pelvis cradle 0 mm2 on the bed (seeded +z), fingers 10.7 mm2, head compute carrier 15.7 mm2 in 2 islands |
+| walls | 3.3 (7.8 after) | 2.7 | 62 parts: 18 -> 8 without line width, walls under 1 line 31 -> 35, under 2 lines 44 -> 49, gaps under 1 line 26 -> 29 (the 10 seeded covers now measured) | stage1 chassis 0.004 mm wall, 6374 mm2 under one 0.62 mm line; pelvis cradle 1995 mm2 |
+| small_features | 19 | 3.2 | 42 parts: 315 thin features under 1 line, 550 under 2, 389 Z steps under a layer, 1 internal void, 35 parts with support standing on the part | stage1 chassis 0.011 mm feature, 980 mm2 of support on the part |
+| overhang | 42 | 3.5 | 42 parts: 40 with area beyond the limit, 18 bridges over the limit, 192 floating ceilings, 35 with support on mating faces | stage3 carrier 5593 mm2 beyond 70 deg (seeded -y), chassis 4210 mm2, head compute carrier 3781 mm2 |
+| edges | 43 | 3.9 | 40 parts: 11374 free sharp edges, 2823 on mating faces, 4074 sharp corners, 200 soft kinks | chassis 8865 mm of free sharp edge, head skin 6667 mm |
+| elephant_foot | 3 | 3.9 | 42 parts: 25 with a mating bed edge, 20 unchamfered, 107 unchamfered runs | stage4 carrier 155 mm unchamfered on its own sleeves' wall, shin R / L 79 mm |
+| clearance (`--poses key`) | 200 (184 check) | 3.9 | 82 poses (leg key + arm / neck / torso region), 23029 pairs: 290 pairs with new overlap, 393 pose-pair events over 20 mm3 | R palm lower vs R shin 2404 mm3 (key: leg out), L sensor pocket pad vs R foot roll case 1475 mm3; clearance keeps cross-limb pairs, the sweeps leave them out |
+| render | 12 | 0.5 | 0 render errors | six-side drawing written |
+
+Screening solids more than 5 % off their reference in every batch: upper L / R pitch C047 case +25.1 % (STEP frame mismatch, closed
+mesh used), stage1 chassis sleeves -7.0 % (decimated mesh). Data items sent on: the 31 dangling `native_step` paths of the manifest
+(foot sensor stack 18, cut actuators 5, forearm cover nuts 8), the legacy-density masses and the palm STEPs to the BOM session
+(T-ghvncz); part / sleeve overlaps to the screws and fittings work. Seeded in `part_settings.json` (`e5c670637`): Bambu PETG-CF on
+the 10 arm and shin covers whose manifest text names PETG, marked seeded; print directions left to the designers. Reports:
+`.cache/work/cad-speed/checks/triage-{A,B,C,D,E,F,G}/report.json` (recreated by the commands above).
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a
