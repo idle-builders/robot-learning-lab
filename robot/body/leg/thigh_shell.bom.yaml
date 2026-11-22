@@ -17,6 +17,8 @@ generators:
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   - artifacts/robot/body/ape-proportions/assembly-parts.json
+  - robot/body/leg/build_upper_hip_connectors.bom.yaml
+  - robot/body/checks/data/materials.json
   outputs:
   - artifacts/robot/body/leg/roll-flip/parts/thigh_shell_edges.npz
   - artifacts/robot/body/leg/roll-flip/parts
@@ -24,7 +26,8 @@ generators:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   notes: Replaces the four thigh hard covers with the blue thigh shells (THIGH_SHELL_MANIFEST / THIGH_SHELL_OUT redirect it). Surface parameters
-    SURF are code constants; fit-surface is not part of the rebuild.
+    SURF are code constants; fit-surface is not part of the rebuild. Shell material and density come from each shell's
+    process.material (its definition entry) and checks/data/materials.json.
   after:
   - roll-flip-manifest
 - id: shin-cover
@@ -35,6 +38,8 @@ generators:
   - shin-cover
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - robot/body/leg/build_upper_hip_connectors.bom.yaml
+  - robot/body/checks/data/materials.json
   outputs:
   - artifacts/robot/body/leg/roll-flip/parts
   - artifacts/robot/body/leg/roll-flip/parts/moved

@@ -4,7 +4,7 @@ One shell per leg on R_roll_link, in two halves (front / back, split at y 8 like
 Stage 4 posts. It encloses the hanging roll case and the new Stage 4 and covers the roll and knee joints; only the yellow
 pitch-to-roll arms enter it from above.
 
-Built from today's thigh hard covers (two halves split at y 8, PETG / PC, 2.1 mm wall, M3 into captive nuts in the
+Built from today's thigh hard covers (two halves split at y 8, 2.1 mm wall; material and density from the part's print setting, M3 into captive nuts in the
 Stage 4 posts), re-fitted:
   - outer skin (owner 2026-11-17/19): superellipse rings, round from the knee to mid-thigh and closer to the parts around
     the roll case and Stage 4 at the top; each of the seven ring parameters is one natural cubic spline in z through 1-5
@@ -62,7 +62,6 @@ GAP, WALL = 1.5, 2.1              # inner clearance to covered parts, wall thick
 Z0, TOP_Z = 116.0, 206.5          # tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
 WINDOW = 5.0                      # each station hulls the sections within +- WINDOW mm (no waviness)
 ROLL_RANGE, CLEAR = (-45.0, 25.0), 1.5
-DENSITY = 1.27e-3                 # g/mm3, PETG / PC hard cover (as today's covers)
 NTH = 144
 CENTRE = np.array([55.0, 5.0])
 COVERED = ("R_thigh_roll_flip", "R_roll_servo_case_reference", "R_knee_ST3025_case",
@@ -70,6 +69,19 @@ COVERED = ("R_thigh_roll_flip", "R_roll_servo_case_reference", "R_knee_ST3025_ca
 # (the knee output horn is on R_shin and ends at z 132.4, below Z0: it is not covered; hulling it made a lip at the knee end)
 TODAY = ("R_thigh_front_hard_cover", "R_thigh_back_hard_cover")
 NAMES = ("R_thigh_shell_front", "R_thigh_shell_back")
+
+
+def shell_material(name):
+    """(material, density g/mm3) of shell part `name`: its print setting as the checks read it (body definition first,
+    then checks/data/part_settings.json; checks/ctx.overlay_definitions) and the density from checks/data/materials.json."""
+    sys.path.insert(0, str(R.ROOT / "robot/body"))
+    from checks.core import DATA
+    from checks.ctx import overlay_definitions
+    s, _, _ = overlay_definitions(json.loads((DATA / "part_settings.json").read_text()), R.VARIANT)
+    mat = ((s.get(name) or {}).get("process") or {}).get("material")
+    if not mat:
+        raise SystemExit(f"{name}: no process.material in its definition or part_settings.json")
+    return mat, json.loads((DATA / "materials.json").read_text())[mat]["density_g_cm3"] * 1e-3
 
 
 def sec_hull(body, names, z, extra=()):
@@ -770,10 +782,12 @@ def build():
         dropped = round(float(sum(abs(p.volume) for p in parts) - abs(mm.volume)), 2)   # slivers of the boss / hole cuts
         for side, msh in (("R", mm), ("L", kit.mirror_x(mm))):
             nm = side + name[1:]
+            mat, rho = shell_material(nm)
             f = OUT / f"{nm}.stl"; msh.export(f)
             out[nm] = dict(mesh=str(f.relative_to(R.ROOT)), mesh_sha256=hashlib.sha256(f.read_bytes()).hexdigest(),
                            bounds_mm=[np.round(msh.bounds[0], 2).tolist(), np.round(msh.bounds[1], 2).tolist()],
-                           volume_mm3=round(float(msh.volume), 1), mass_g=round(float(msh.volume) * DENSITY, 2),
+                           volume_mm3=round(float(msh.volume), 1), mass_g=round(float(msh.volume) * rho, 2),
+                           material=mat, density_g_cm3=round(rho * 1e3, 3),
                            dropped_fragments_mm3=dropped, watertight=bool(msh.is_watertight))
         print(name, out["R" + name[1:]], flush=True)
     # manifest: replace today's four thigh covers by the two shells per leg
@@ -785,8 +799,9 @@ def build():
     for nm, r in out.items():
         keep.append(dict(name=nm, owning_link=f"{nm[0]}_roll_link", role="body_shell", mesh=r["mesh"], mesh_sha256=r["mesh_sha256"],
                          mesh_units="mm", bounds_mm=r["bounds_mm"], mass_kg=round(r["mass_g"] / 1000, 5), color=[47, 111, 208, 255],
-                         material="PETG / polycarbonate hard-shell cover (as today's thigh covers)",
-                         mass_basis="closed mesh volume x 1.27 g/cm3", roll_flip="blue thigh shell (thigh_shell.py)"))
+                         material=f"{r['material']} hard-shell cover (process.material of the part's print setting)",
+                         mass_basis=f"closed mesh volume x {r['density_g_cm3']:g} g/cm3 ({r['material']}, checks/data/materials.json)",
+                         roll_flip="blue thigh shell (thigh_shell.py)"))
     man["parts"] = keep
     man["roll_flip"]["thigh_shell"] = dict(replaces=list(TODAY) + ["L" + n[1:] for n in TODAY], source=str(Path(__file__).relative_to(R.ROOT)),
                                            gap_mm=GAP, wall_mm=WALL, roll_range_deg=list(ROLL_RANGE), slot_clearance_mm=CLEAR)
@@ -1244,8 +1259,12 @@ def shin_cover():
     for p in man["parts"]:
         if p["name"] in out:
             p.setdefault("trim_source_mesh", p["mesh"]); p.setdefault("trim_source_sha256", p["mesh_sha256"])
+            mat, rho = shell_material(p["name"])
             p.update(mesh=out[p["name"]]["mesh"], mesh_sha256=out[p["name"]]["mesh_sha256"], mesh_units="mm",
                      bounds_mm=out[p["name"]]["bounds_mm"], volume_mm3=out[p["name"]]["volume_mm3"],
+                     mass_kg=round(out[p["name"]]["volume_mm3"] * rho / 1000, 6),
+                     material=f"{mat} hard-shell cover (process.material of the part's print setting)",
+                     mass_basis=f"mesh volume x {rho * 1e3:g} g/cm3 ({mat}, checks/data/materials.json)",
                      roll_flip="top-back cut along the knee axis to clear the thigh over the knee range (thigh_shell.py shin-cover)")
             p.pop("native_step", None); p.pop("native_step_sha256", None)
             p["roll_flip"] += "; mounted by 4 PA2x8 through side bosses into the shin frame's side walls (shin_cover_mounts)"
