@@ -1,9 +1,9 @@
-import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=menu-below-20261122';
+import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=body-view-20261122';
 import {designEvidence} from './design-evidence.js?v=fem-pictures-20261024';
 import {esc, briefText, evidenceText, shortText} from './readable.js?v=studies-final-20261020';
-import {mountCatalog} from './catalog.js?v=menu-below-20261122';
-import {createCadViewer} from './cad-viewer.js?v=no-page-pan-20261120';
-import {mountStudyBom} from './design-bom.js?v=mechanism-names-20261021';
+import {mountCatalog} from './catalog.js?v=body-view-20261122';
+import {createCadViewer} from './cad-viewer.js?v=body-view-20261122';
+import {mountStudyBom} from './design-bom.js?v=body-view-20261122';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 // Where this version's sources are: a folder at a commit, or a history tag to check out.
 const sourceLine = row => {
@@ -51,7 +51,9 @@ export async function mountDesignDetail(host, row, section, widgets, current) {
     .sort((a, b) => (modelOrder.get(a.path) ?? currentPaths.length) - (modelOrder.get(b.path) ?? currentPaths.length));
   const files = row.assets.filter(item => item.kind === 'data');
   const images = row.assets.filter(item => item.kind === 'image');
-  const otherSections = row.sections.filter(s => s.payload?.kind !== 'design_catalog');
+  // A generated body view (robot/body/bom/publish_body.py) feeds the part view, the CAD BOM and the CAD part card.
+  const bodyView = row.sections.find(s => s.payload?.kind === 'body_view')?.payload || null;
+  const otherSections = row.sections.filter(s => !['design_catalog', 'body_view'].includes(s.payload?.kind));
   host.classList.add('catalog-page', 'single-study');
   host.innerHTML = `<div class="meta"><span>${esc(section === 'All' ? row.design_sections.join(' · ') : section)}</span><span>${row.archived_at ? 'Archived design study' : 'Design study'}</span></div><h2>${esc(designStudyName(row))}</h2>${row.archived_at ? `<div class="card"><strong>Archived · retained for reference</strong><p>${esc(row.archive_reason)}</p></div>` : group?.options[0]?.use_context ? `<div class="card"><strong>Use of this study</strong><p>${esc(group.options[0].use_context)}</p></div>` : ''}<div class="study-strip"><span>One design variant</span><span>${row.versions.length === 1 ? 'One version' : `${row.versions.length} versions`}${row.id === row.study_id ? '' : ' · viewing an earlier version'}</span><span>${models.length} CAD scenes</span><details class="text-more"><summary>Study overview</summary>${evidenceText(row.observation || row.summary,3)}</details>${sourceLine(row)}</div>
     <div class="exploration-bar"><label for="design-version">Version<select id="design-version">${[...row.versions].sort((a,b)=>String(b.version_at||'').localeCompare(String(a.version_at||''))).map(v=>`<option value="${esc(v.id)}" ${v.id === row.id ? 'selected' : ''} title="${esc(v.legacy_version ? `Published as ${v.legacy_version}` : '')}">${esc(String(v.version_at||'').slice(0,10))} · commit ${esc(String(v.source_commit||v.study_version||'').slice(0,7))}${v.id === row.study_id ? ' · current' : ''}</option>`).join('')}</select></label><div class="preference-actions"><button id="prefer-study" type="button">Select for ${esc(section === 'All' ? row.design_sections[0] : section)}</button><span id="preference-status" role="status"></span></div></div>${groups.length ? '<div id="focused-designs"></div>' : ''}
@@ -79,7 +81,8 @@ export async function mountDesignDetail(host, row, section, widgets, current) {
   async function showGroup() {
     const generation = ++groupGeneration;
     mounted?.dispose(); mounted = null;
-    const options = group.options.map(option => withCad({...option, title: designStudyName({title: option.title, study_version: row.study_version})}, row.assets));
+    const options = group.options.map(option => withCad({...option, title: designStudyName({title: option.title, study_version: row.study_version})}, row.assets))
+      .map(option => bodyView && option.cad ? {...option, cad: {...option.cad, body_view: bodyView}} : option);
     const result = await mountCatalog(host.querySelector('#focused-designs'), row.id,
       {title: group.title, description: '', groups: [{...group, options}]}, {compact: true});
     if (!active || !current() || generation !== groupGeneration) { result.dispose(); return; }
@@ -95,7 +98,9 @@ export async function mountDesignDetail(host, row, section, widgets, current) {
   if (row.archived_at) {prefButton.disabled=true;prefButton.textContent='Archived · restore before selecting';}
   if(widgets.selection[prefSection]===row.study_id){prefButton.textContent=`Selected for ${prefSection}`;prefButton.disabled=true;}
   prefButton.onclick=async()=>{try{await widgets.select(prefSection,row.study_id);if(current()){prefButton.textContent=`Selected for ${prefSection}`;prefButton.disabled=true;host.querySelector('#preference-status').textContent='Saved to robot/design.json';}}catch(error){host.querySelector('#preference-status').textContent=error.message;}};
-  const bomView = await mountStudyBom(host.querySelector('#study-bom'), row.id, () => active && current());
+  // A part opened in the part view is selected in the study's CAD view too (same names as the GLB nodes).
+  const selectInCad = name => host.querySelector('#focused-designs .design-option')?.dispatchEvent(new CustomEvent('cad-select-part', {bubbles: true, detail: {name}}));
+  const bomView = await mountStudyBom(host.querySelector('#study-bom'), row.id, () => active && current(), bodyView, selectInCad);
   if (groups.length && active && current()) await showGroup();
   if (!active || !current()) return {dispose() {active = false; events.abort(); mounted?.dispose(); bomView.dispose();}};
   if (models.length) {

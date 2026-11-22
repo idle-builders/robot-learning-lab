@@ -18,7 +18,8 @@ def check_render(manifest, out_dir, timeout):
     code = ("import sys; from pathlib import Path; sys.path.insert(0, %r); sys.path.insert(0, %r); "
             "import owner_case_views as V; V.OUT = Path(%r); V.main()"
             % (str(ROOT / "robot/body/hip-shell"), str(ROOT / "robot/body/hip-shell/sections"), str(out_dir)))
-    env = dict(os.environ, HIP_MANIFEST=str(Path(manifest).resolve().relative_to(ROOT)), MPLBACKEND="Agg")
+    mp = Path(manifest).resolve()
+    env = dict(os.environ, HIP_MANIFEST=str(mp.relative_to(ROOT) if mp.is_relative_to(ROOT) else mp), MPLBACKEND="Agg")
     try:
         r = subprocess.run([sys.executable, "-B", "-c", code], env=env, capture_output=True, text=True, timeout=timeout)
         res = dict(png=str((Path(out_dir) / "case-all-sides.png").relative_to(ROOT)), returncode=r.returncode,

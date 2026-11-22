@@ -9,28 +9,45 @@
  "head_types": {
   "countersunk": {
    "drive": "hex_key",
-   "match": "name matches _CS<digits> or countersunk",
-   "source": "ISO 10642 hex socket countersunk (head-type recognition; drive sizes: see tools)"
+   "match": "head standard ISO 10642, else name matches _CS<digits> or countersunk",
+   "source": "ISO 10642 hex socket countersunk (head-type recognition; drive sizes: see tools)",
+   "standards": [
+    "ISO 10642"
+   ]
   },
   "pan_phillips": {
    "drive": "phillips",
-   "match": "thread family PA* (self-tapping screws for plastic)",
-   "source": "ISO 7049 / DIN 7981 pan head cross recess (head-type recognition; drive sizes: see tools)"
+   "match": "head standard ISO 7045 / 7049 / DIN 7981, else thread family PA* (self-tapping screws for plastic)",
+   "source": "ISO 7049 / DIN 7981 pan head cross recess (head-type recognition; drive sizes: see tools)",
+   "standards": [
+    "ISO 7045",
+    "ISO 7049",
+    "DIN 7981"
+   ]
   },
   "flange_button": {
    "drive": "hex_key",
-   "match": "name contains NBK",
-   "source": "assumption: hex socket as the button head (head-type recognition; drive sizes: see tools)"
+   "match": "head standard ISO 7380-2, else name contains NBK",
+   "source": "assumption: hex socket as the button head (head-type recognition; drive sizes: see tools)",
+   "standards": [
+    "ISO 7380-2"
+   ]
   },
   "button": {
    "drive": "hex_key",
-   "match": "metric thread, head height under 0.7 x thread diameter and head diameter about 1.9 x thread diameter",
-   "source": "ISO 7380-1 hex socket button head (head-type recognition; drive sizes: see tools)"
+   "match": "head standard ISO 7380-1, else metric thread, head height under 0.7 x thread diameter",
+   "source": "ISO 7380-1 hex socket button head (head-type recognition; drive sizes: see tools)",
+   "standards": [
+    "ISO 7380-1"
+   ]
   },
   "socket_cap": {
    "drive": "hex_key",
-   "match": "metric thread, head height about the thread diameter",
-   "source": "ISO 4762 hex socket head cap (head-type recognition; drive sizes: see tools)"
+   "match": "head standard ISO 4762, else metric thread with head height about the thread diameter",
+   "source": "ISO 4762 hex socket head cap (head-type recognition; drive sizes: see tools)",
+   "standards": [
+    "ISO 4762"
+   ]
   }
  },
  "tools": {
@@ -74,10 +91,13 @@
     "pan_phillips": {
      "PA2": "PH0",
      "PA2.5": "PH1",
-     "PA3": "PH1"
+     "PA3": "PH1",
+     "M2": "PH0",
+     "M2.5": "PH1",
+     "M3": "PH1"
     }
    },
-   "size_source": "assumption by analogy: ISO 7045 cross-recess numbers are 0 for M2 and 1 for M2.5 / M3 (type Z table, https://cdefasteners.com/sites/default/files/product-specs/meti7045pozi.pdf); the PA self-tapping screws are not ISO 7045 parts, so their recess sizes are an assumption until the screws' own data sheet or a measurement replaces them",
+   "size_source": "M2 PH0 / M2.5 PH1 / M3 PH1: ISO 7045 cross-recess numbers (0 for M2, 1 for M2.5 / M3, type Z table, https://cdefasteners.com/sites/default/files/product-specs/meti7045pozi.pdf; the H recess of the same numbers is assumed). PA2 / PA2.5 / PA3: assumption by analogy with ISO 7045; the PA self-tapping screws are not ISO 7045 parts, so their recess sizes are an assumption until the screws' own data sheet or a measurement replaces them",
    "blade_dia_mm": {
     "PH0": 3.0,
     "PH1": 4.0,

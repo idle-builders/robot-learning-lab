@@ -1,0 +1,1047 @@
+# Cove-50 body definition for robot/body/leg/roll_flip_checks.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file. Both manifest generators also
+# read the torso / foot / hip-yaw screws, held-parts and neck-collar records they swap in (TS/FS/HYS/HP/NC.swap_parts).
+schema: cove50-body-definition/1
+definition: roll-flip-checks
+owner: (set by the owning session)
+generators:
+- id: roll-flip-manifest-bootstrap
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/roll_flip_checks.py
+  - manifest
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - artifacts/robot/body/leg/roll-flip/cad-manifest.json
+  - artifacts/robot/body/torso/torso-screws/records.json
+  - artifacts/robot/body/leg/foot-screws/records.json
+  - artifacts/robot/body/leg/hip-yaw-screws/records.json
+  - artifacts/robot/body/assembly/held-parts/records.json
+  - artifacts/robot/body/assembly/neck-collar/records.json
+  outputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/body/leg/roll-flip/parts/moved
+  manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  notes: 'Bootstrap pass: ankle_coupler_screws.py build reads the coupler from this manifest, and this manifest swaps in the coupler that build
+    writes (circular). Without records.json it keeps the unedited coupler and prints a WARNING.'
+  after:
+  - roll-flip-cad
+  writes_into: &id001
+  - artifacts/robot/body/neck-head/parts
+  - artifacts/robot/body/neck-head/combined
+- id: roll-flip-manifest
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/roll_flip_checks.py
+  - manifest
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - artifacts/robot/body/leg/roll-flip/cad-manifest.json
+  - artifacts/robot/body/torso/torso-screws/records.json
+  - artifacts/robot/body/leg/foot-screws/records.json
+  - artifacts/robot/body/leg/hip-yaw-screws/records.json
+  - artifacts/robot/body/assembly/held-parts/records.json
+  - artifacts/robot/body/assembly/neck-collar/records.json
+  - artifacts/robot/body/leg/ankle-coupler-screws/records.json
+  outputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  notes: Rewrites the variant from the shell-pass manifest with the edited coupler swapped in and the hip / coupler screws generated from their
+    defined holes.
+  after:
+  - ankle-coupler-screws
+  writes_into: *id001
+parts:
+- match:
+  - L_A13_pitch_horn_M3x12_0
+  - L_A13_pitch_horn_M3x12_1
+  - L_A13_pitch_horn_M3x12_2
+  - L_A13_pitch_horn_M3x12_3
+  - R_A13_pitch_horn_M3x12_0
+  - R_A13_pitch_horn_M3x12_1
+  - R_A13_pitch_horn_M3x12_2
+  - R_A13_pitch_horn_M3x12_3
+  kind: hardware
+  line: hw:M3-x-12-ISO-7380-1
+  name: M3 x 12 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 12.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 12 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 12 ISO 7380-1
+  material: ISO 7380-1 M3x12 into ST3025.horn+z.1 (aluminium); head dia 5.7 x 1.65, shank dia 3, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_A9_hip_M3x4_0_0
+  - L_A9_hip_M3x4_0_1
+  - L_A9_hip_M3x4_0_2
+  - L_A9_hip_M3x4_0_3
+  - L_A9_hip_M3x4_1_0
+  - L_A9_hip_M3x4_1_1
+  - L_A9_hip_M3x4_1_2
+  - R_A9_hip_M3x4_0_0
+  - R_A9_hip_M3x4_0_1
+  - R_A9_hip_M3x4_0_2
+  - R_A9_hip_M3x4_0_3
+  - R_A9_hip_M3x4_1_0
+  - R_A9_hip_M3x4_1_1
+  - R_A9_hip_M3x4_1_2
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 14
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_A13_roll_face0_PA2x3_0
+  - L_A13_roll_face0_PA2x3_1
+  - L_A13_roll_face1_PA2x3_0
+  - L_A13_roll_face1_PA2x3_1
+  - R_A13_roll_face0_PA2x3_0
+  - R_A13_roll_face0_PA2x3_1
+  - R_A13_roll_face1_PA2x3_0
+  - R_A13_roll_face1_PA2x3_1
+  kind: hardware
+  line: hw:M2-x-8-ISO-7380-1
+  name: M2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 8 ISO 7380-1
+  material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_knee_ST3025_PA2x8_0
+  - L_knee_ST3025_PA2x8_1
+  - L_knee_ST3025_PA2x8_lat0
+  - L_knee_ST3025_PA2x8_lat1
+  - R_knee_ST3025_PA2x8_0
+  - R_knee_ST3025_PA2x8_1
+  - R_knee_ST3025_PA2x8_lat0
+  - R_knee_ST3025_PA2x8_lat1
+  kind: hardware
+  line: hw:M2-x-5-ISO-7380-1
+  name: M2 x 5 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 5.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 5 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 5 ISO 7380-1
+  material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_B13_output_NBK_M3x4_H0p8_0
+  - L_B13_output_NBK_M3x4_H0p8_1
+  - L_B13_output_NBK_M3x4_H0p8_2
+  - L_B13_output_NBK_M3x4_H0p8_3
+  - L_ankle_pitch_horn_M3x6_0
+  - L_ankle_pitch_horn_M3x6_1
+  - L_ankle_pitch_horn_M3x6_2
+  - L_ankle_pitch_horn_M3x6_3
+  - L_ankle_pitch_idler_M3x6_0
+  - L_ankle_pitch_idler_M3x6_1
+  - L_ankle_pitch_idler_M3x6_2
+  - L_ankle_pitch_idler_M3x6_3
+  - R_B13_output_NBK_M3x4_H0p8_0
+  - R_B13_output_NBK_M3x4_H0p8_1
+  - R_B13_output_NBK_M3x4_H0p8_2
+  - R_B13_output_NBK_M3x4_H0p8_3
+  - R_ankle_pitch_horn_M3x6_0
+  - R_ankle_pitch_horn_M3x6_1
+  - R_ankle_pitch_horn_M3x6_2
+  - R_ankle_pitch_horn_M3x6_3
+  - R_ankle_pitch_idler_M3x6_0
+  - R_ankle_pitch_idler_M3x6_1
+  - R_ankle_pitch_idler_M3x6_2
+  - R_ankle_pitch_idler_M3x6_3
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 24
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Ankle / foot
+- match:
+  - L_B13_front_PA2x6_0
+  - L_B13_front_PA2x6_1
+  - R_B13_front_PA2x6_0
+  - R_B13_front_PA2x6_1
+  kind: hardware
+  line: hw:M2-x-6-ISO-7045
+  name: M2 x 6 ISO 7045
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 6.0
+    standard: ISO 7045
+    head_dia_mm: 4.0
+    head_height_mm: 1.6
+    label: M2 x 6 ISO 7045
+  supplier: unknown
+  part_number: M2 x 6 ISO 7045
+  material: ISO 7045 M2x6 into ST3215.case+y.4 (plastic); head dia 4.0 x 1.6, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Ankle / foot
+- match:
+  - L_B13_rear_PA2x6_0
+  - L_B13_rear_PA2x6_1
+  - R_B13_rear_PA2x6_0
+  - R_B13_rear_PA2x6_1
+  kind: hardware
+  line: hw:M2-x-8-ISO-7045
+  name: M2 x 8 ISO 7045
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 8.0
+    standard: ISO 7045
+    head_dia_mm: 4.0
+    head_height_mm: 1.6
+    label: M2 x 8 ISO 7045
+  supplier: unknown
+  part_number: M2 x 8 ISO 7045
+  material: ISO 7045 M2x8 into ST3215.case-y.4 (plastic); head dia 4.0 x 1.6, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Ankle / foot
+- match:
+  - L_A14_yaw_M3x14_0
+  - L_A14_yaw_M3x14_1
+  - L_A14_yaw_M3x14_2
+  - L_A14_yaw_M3x14_3
+  - R_A14_yaw_M3x14_0
+  - R_A14_yaw_M3x14_1
+  - R_A14_yaw_M3x14_2
+  - R_A14_yaw_M3x14_3
+  kind: hardware
+  line: hw:M3-x-16-ISO-4762
+  name: M3 x 16 ISO 4762
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 16.0
+    standard: ISO 4762
+    head_dia_mm: 5.5
+    head_height_mm: 3.0
+    label: M3 x 16 ISO 4762
+  supplier: unknown
+  part_number: M3 x 16 ISO 4762
+  material: ISO 4762 M3x16 into ST3215.horn+y.1 (aluminium); head dia 5.5 x 3.0, shank dia 3, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_A14_front_PA2x4_0
+  - L_A14_front_PA2x4_1
+  - L_A14_front_PA2x4_2
+  - R_A14_front_PA2x4_0
+  - R_A14_front_PA2x4_1
+  - R_A14_front_PA2x4_2
+  kind: hardware
+  line: hw:M2-x-6-ISO-7380-1
+  name: M2 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 6
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 6 ISO 7380-1
+  material: ISO 7380-1 M2x6 into ST3025.case+z.1 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk
+  - L_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk
+  - R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk
+  - R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk
+  kind: hardware
+  line: hw:M3-x-16-ISO-10642
+  name: M3 x 16 ISO 10642
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 16.0
+    standard: ISO 10642
+    head_dia_mm: 6.72
+    head_height_mm: 1.86
+    label: M3 x 16 ISO 10642
+  supplier: unknown
+  part_number: M3 x 16 ISO 10642
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_Thigh_carrier_shell_thigh_front_1_nut
+  - L_Thigh_carrier_shell_thigh_front_2_nut
+  - L_Thigh_rear_carrier_shell_thigh_back_1_nut
+  - L_Thigh_rear_carrier_shell_thigh_back_2_nut
+  - R_Thigh_carrier_shell_thigh_front_1_nut
+  - R_Thigh_carrier_shell_thigh_front_2_nut
+  - R_Thigh_rear_carrier_shell_thigh_back_1_nut
+  - R_Thigh_rear_carrier_shell_thigh_back_2_nut
+  kind: hardware
+  line: hw:M2.5-hex-nut-ISO-4032
+  name: M2.5 hex nut ISO 4032
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: nut
+    thread: M2.5
+    standard: ISO 4032
+    across_flats_mm: 5.0
+    label: M2.5 hex nut ISO 4032
+  supplier: unknown
+  part_number: M2.5 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
+  - L_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+  - R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
+  - R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+  kind: hardware
+  line: hw:M3-x-12-ISO-10642
+  name: M3 x 12 ISO 10642
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 12.0
+    standard: ISO 10642
+    head_dia_mm: 6.72
+    head_height_mm: 1.86
+    label: M3 x 12 ISO 10642
+  supplier: unknown
+  part_number: M3 x 12 ISO 10642
+  material: ISO 10642 M3x12 (hex socket countersunk, head flush with the shell skin) into the ISO 4032 M3 nut in the Stage 4 post; head dk 6.72
+    (theoretical) x k 1.86, shank dia 3, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match: R_thigh_shell_front_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x9.2
+    name: 304 steel compression sleeve 4.5 x 3.2 x 9.2 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 9.2
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x9.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 9.4 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 9.4
+    supplier: unknown
+    part_number: unknown
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match: L_thigh_shell_front_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x9.2
+    name: 304 steel compression sleeve 4.5 x 3.2 x 9.2 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 9.2
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x9.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 9.4 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 9.4
+    supplier: unknown
+    part_number: unknown
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match: R_thigh_shell_back_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 6 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 6.0
+    supplier: unknown
+    part_number: unknown
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match: L_thigh_shell_back_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 6 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 6.0
+    supplier: unknown
+    part_number: unknown
+  generator: roll-flip-manifest-bootstrap
+  section: Hip
+- match:
+  - L_shin_back_cover_PA2x8_0
+  - L_shin_back_cover_PA2x8_1
+  - L_shin_back_cover_PA2x8_2
+  - L_shin_back_cover_PA2x8_3
+  - R_shin_back_cover_PA2x8_0
+  - R_shin_back_cover_PA2x8_1
+  - R_shin_back_cover_PA2x8_2
+  - R_shin_back_cover_PA2x8_3
+  kind: hardware
+  line: hw:PA2-x-8-ISO-7380-1
+  name: PA2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 8 ISO 7380-1
+  material: 'PA2x8 self-tapping, through the shin back cover''s side boss into a dia 1.7 pilot hole in the shin frame''s side wall (PA2 family
+    envelope: head dia 3.5 x 1.3, shank dia 2, 0.6 mm point)'
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: roll-flip-manifest-bootstrap
+  section: Knee
+assembly:
+  steps:
+  - id: right_leg:s004
+    subassembly: right_leg
+    screw:
+    - R_A14_yaw_M3x14_0
+    - R_A14_yaw_M3x14_1
+    - R_A14_yaw_M3x14_2
+    - R_A14_yaw_M3x14_3
+    direction: screw axis
+    after:
+    - right_leg:p003
+    status: seeded
+    derived: 4 screw(s) whose touched chain parts are all placed after R_hip_yaw_to_pitch_combined; driver path vs placed parts
+  - id: right_leg:s006
+    subassembly: right_leg
+    screw:
+    - R_A14_front_PA2x4_0
+    - R_A14_front_PA2x4_1
+    - R_A14_front_PA2x4_2
+    direction: screw axis
+    after:
+    - right_leg:p005
+    status: seeded
+    derived: 3 screw(s) whose touched chain parts are all placed after R_hip_pitch_ST3025_case; driver path vs placed parts
+  - id: right_leg:s009
+    subassembly: right_leg
+    screw:
+    - R_A13_pitch_horn_M3x12_0
+    - R_A13_pitch_horn_M3x12_1
+    - R_A13_pitch_horn_M3x12_2
+    - R_A13_pitch_horn_M3x12_3
+    direction: screw axis
+    after:
+    - right_leg:p008
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the 4 Stage 5 to pitch output M3x12 (ST3025.horn+z.1..4), driven along -x into
+      the wheel once Stage 5 sits on it'
+  - id: right_leg:s011
+    subassembly: right_leg
+    screw:
+    - R_A9_hip_M3x4_1_0
+    - R_A9_hip_M3x4_1_1
+    - R_A9_hip_M3x4_1_2
+    direction: screw axis
+    after:
+    - right_leg:p010
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (3 idler screws since 2026-11-22:
+      the (56, 183) one gave way to the stub''s insertion slot; screw(s) whose touched chain parts are all placed after R_roll_passive_idler_reference;
+      driver path vs placed parts)'
+  - id: right_leg:s012
+    subassembly: right_leg
+    screw:
+    - R_A9_hip_M3x4_0_0
+    - R_A9_hip_M3x4_0_1
+    - R_A9_hip_M3x4_0_2
+    - R_A9_hip_M3x4_0_3
+    direction: screw axis
+    after:
+    - right_leg:s011
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit sits in the U (4 screw(s) whose touched chain
+      parts are all placed after R_roll_upper_horn_reference; driver path vs placed parts)'
+  - id: right_leg:s014
+    subassembly: right_leg
+    screw:
+    - R_A13_roll_face0_PA2x3_0
+    - R_A13_roll_face0_PA2x3_1
+    direction: screw axis
+    after:
+    - right_leg:p013
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the 2 lower front ear screws (STS3250.case+y.3 / .4), driven along +y once the
+      H-cage is on the case'
+  - id: right_leg:s015
+    subassembly: right_leg
+    screw:
+    - R_A13_roll_face1_PA2x3_0
+    - R_A13_roll_face1_PA2x3_1
+    direction: screw axis
+    after:
+    - right_leg:s014
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the 2 lower rear ear screws (STS3250.case-y.3 / .4), driven along -y'
+  - id: right_leg:s017
+    subassembly: right_leg
+    screw:
+    - R_knee_ST3025_PA2x8_0
+    - R_knee_ST3025_PA2x8_1
+    - R_knee_ST3025_PA2x8_lat0
+    - R_knee_ST3025_PA2x8_lat1
+    direction: screw axis
+    after:
+    - right_leg:p016
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): 2 medial (ST3025.case+z.4 / .5, from -x) + 2 lateral (case-z.1 / .2, from +x) M2
+      knee screws'
+  - id: right_leg:p018
+    subassembly: right_leg
+    part:
+    - R_thigh_shell_back
+    - R_thigh_shell_back_steel_sleeves
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - right_leg:s017
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): thigh shells last: the back half with its pressed boss sleeves along -y onto the
+      rear posts'
+  - id: right_leg:s019
+    subassembly: right_leg
+    screw: R_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
+    with:
+    - R_Thigh_rear_carrier_shell_thigh_back_1_nut
+    direction: screw axis
+    after:
+    - right_leg:p018
+    status: designer
+    derived: 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts
+  - id: right_leg:s020
+    subassembly: right_leg
+    screw: R_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+    with:
+    - R_Thigh_rear_carrier_shell_thigh_back_2_nut
+    direction: screw axis
+    after:
+    - right_leg:s019
+    status: designer
+    derived: 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver path vs placed parts
+  - id: right_leg:p021
+    subassembly: right_leg
+    part:
+    - R_thigh_shell_front
+    - R_thigh_shell_front_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - -0.0
+    after:
+    - right_leg:s020
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the front half with its pressed boss sleeves along +y onto the front posts'
+  - id: right_leg:s022
+    subassembly: right_leg
+    screw: R_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk
+    with:
+    - R_Thigh_carrier_shell_thigh_front_1_nut
+    direction: screw axis
+    after:
+    - right_leg:p021
+    status: designer
+    derived: 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts
+  - id: right_leg:s023
+    subassembly: right_leg
+    screw: R_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk
+    with:
+    - R_Thigh_carrier_shell_thigh_front_2_nut
+    direction: screw axis
+    after:
+    - right_leg:s022
+    status: designer
+    derived: 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver path vs placed parts
+  - id: right_leg:s031
+    subassembly: right_leg
+    screw:
+    - R_shin_back_cover_PA2x8_0
+    - R_shin_back_cover_PA2x8_1
+    - R_shin_back_cover_PA2x8_2
+    - R_shin_back_cover_PA2x8_3
+    direction: screw axis
+    after:
+    - right_leg:p030
+    status: seeded
+    derived: 4 screw(s) whose touched chain parts are all placed after R_shin_back_hard_cover; driver path vs placed parts; moved after s031 (its
+      part R_shin_back_hard_cover blocked that screw's driver path, 9.508 mm3)
+  - id: right_leg:s038
+    subassembly: right_leg
+    screw:
+    - R_B13_output_NBK_M3x4_H0p8_0
+    - R_B13_output_NBK_M3x4_H0p8_1
+    - R_B13_output_NBK_M3x4_H0p8_2
+    - R_B13_output_NBK_M3x4_H0p8_3
+    direction: screw axis
+    after:
+    - right_leg:p037
+    status: seeded
+    derived: 4 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_main_horn; driver path vs placed parts
+  - id: right_leg:s040
+    subassembly: right_leg
+    screw:
+    - R_B13_front_PA2x6_0
+    - R_B13_front_PA2x6_1
+    direction: screw axis
+    after:
+    - right_leg:p039
+    status: seeded
+    derived: 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case; driver path vs placed parts
+  - id: right_leg:s041
+    subassembly: right_leg
+    screw:
+    - R_B13_rear_PA2x6_0
+    - R_B13_rear_PA2x6_1
+    direction: screw axis
+    after:
+    - right_leg:s040
+    status: seeded
+    derived: 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case; driver path vs placed parts
+  - id: left_leg:s004
+    subassembly: left_leg
+    screw:
+    - L_A14_yaw_M3x14_0
+    - L_A14_yaw_M3x14_1
+    - L_A14_yaw_M3x14_2
+    - L_A14_yaw_M3x14_3
+    direction: screw axis
+    after:
+    - left_leg:p003
+    status: seeded
+    derived: 'mirror of right_leg s04 (R_ <-> L_, x negated): 4 screw(s) whose touched chain parts are all placed after R_hip_yaw_to_pitch_combined;
+      driver path vs placed parts'
+  - id: left_leg:s006
+    subassembly: left_leg
+    screw:
+    - L_A14_front_PA2x4_0
+    - L_A14_front_PA2x4_1
+    - L_A14_front_PA2x4_2
+    direction: screw axis
+    after:
+    - left_leg:p005
+    status: seeded
+    derived: 'mirror of right_leg s06 (R_ <-> L_, x negated): 3 screw(s) whose touched chain parts are all placed after R_hip_pitch_ST3025_case;
+      driver path vs placed parts'
+  - id: left_leg:s009
+    subassembly: left_leg
+    screw:
+    - L_A13_pitch_horn_M3x12_0
+    - L_A13_pitch_horn_M3x12_1
+    - L_A13_pitch_horn_M3x12_2
+    - L_A13_pitch_horn_M3x12_3
+    direction: screw axis
+    after:
+    - left_leg:p008
+    status: seeded
+    derived: 'mirror of right_leg s08b (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the 4 Stage 5 to pitch output
+      M3x12 (ST3025.horn+z.1..4), driven along -x into the wheel once Stage 5 sits on it'
+  - id: left_leg:s011
+    subassembly: left_leg
+    screw:
+    - L_A9_hip_M3x4_1_0
+    - L_A9_hip_M3x4_1_1
+    - L_A9_hip_M3x4_1_2
+    direction: screw axis
+    after:
+    - left_leg:p010
+    status: seeded
+    derived: 'mirror of right_leg s10 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit
+      sits in the U (3 idler screws since 2026-11-22: the (56, 183) one gave way to the stub''s insertion slot; screw(s) whose touched chain parts
+      are all placed after R_roll_passive_idler_reference; driver path vs placed parts)'
+  - id: left_leg:s012
+    subassembly: left_leg
+    screw:
+    - L_A9_hip_M3x4_0_0
+    - L_A9_hip_M3x4_0_1
+    - L_A9_hip_M3x4_0_2
+    - L_A9_hip_M3x4_0_3
+    direction: screw axis
+    after:
+    - left_leg:s011
+    status: seeded
+    derived: 'mirror of right_leg s12 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): horn / idler screws once the unit
+      sits in the U (4 screw(s) whose touched chain parts are all placed after R_roll_upper_horn_reference; driver path vs placed parts)'
+  - id: left_leg:s014
+    subassembly: left_leg
+    screw:
+    - L_A13_roll_face0_PA2x3_0
+    - L_A13_roll_face0_PA2x3_1
+    direction: screw axis
+    after:
+    - left_leg:p013
+    status: seeded
+    derived: 'mirror of right_leg s14 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the 2 lower front ear screws (STS3250.case+y.3
+      / .4), driven along +y once the H-cage is on the case'
+  - id: left_leg:s015
+    subassembly: left_leg
+    screw:
+    - L_A13_roll_face1_PA2x3_0
+    - L_A13_roll_face1_PA2x3_1
+    direction: screw axis
+    after:
+    - left_leg:s014
+    status: seeded
+    derived: 'mirror of right_leg s15 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the 2 lower rear ear screws (STS3250.case-y.3
+      / .4), driven along -y'
+  - id: left_leg:s017
+    subassembly: left_leg
+    screw:
+    - L_knee_ST3025_PA2x8_0
+    - L_knee_ST3025_PA2x8_1
+    - L_knee_ST3025_PA2x8_lat0
+    - L_knee_ST3025_PA2x8_lat1
+    direction: screw axis
+    after:
+    - left_leg:p016
+    status: seeded
+    derived: 'mirror of right_leg s18 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): 2 medial (ST3025.case+z.4 / .5,
+      from -x) + 2 lateral (case-z.1 / .2, from +x) M2 knee screws'
+  - id: left_leg:p018
+    subassembly: left_leg
+    part:
+    - L_thigh_shell_back
+    - L_thigh_shell_back_steel_sleeves
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
+    after:
+    - left_leg:s017
+    status: seeded
+    derived: 'mirror of right_leg p19 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): thigh shells last: the back half
+      with its pressed boss sleeves along -y onto the rear posts'
+  - id: left_leg:s019
+    subassembly: left_leg
+    screw: L_Thigh_rear_carrier_shell_thigh_back_1_M3x12_countersunk
+    with:
+    - L_Thigh_rear_carrier_shell_thigh_back_1_nut
+    direction: screw axis
+    after:
+    - left_leg:p018
+    status: seeded
+    derived: 'mirror of right_leg s20 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver
+      path vs placed parts'
+  - id: left_leg:s020
+    subassembly: left_leg
+    screw: L_Thigh_rear_carrier_shell_thigh_back_2_M3x12_countersunk
+    with:
+    - L_Thigh_rear_carrier_shell_thigh_back_2_nut
+    direction: screw axis
+    after:
+    - left_leg:s019
+    status: seeded
+    derived: 'mirror of right_leg s21 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_back; driver
+      path vs placed parts'
+  - id: left_leg:p021
+    subassembly: left_leg
+    part:
+    - L_thigh_shell_front
+    - L_thigh_shell_front_steel_sleeves
+    direction:
+    - -0.0
+    - 1.0
+    - -0.0
+    after:
+    - left_leg:s020
+    status: seeded
+    derived: 'mirror of right_leg p22 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the front half with its pressed
+      boss sleeves along +y onto the front posts'
+  - id: left_leg:s022
+    subassembly: left_leg
+    screw: L_Thigh_carrier_shell_thigh_front_1_M3x16_countersunk
+    with:
+    - L_Thigh_carrier_shell_thigh_front_1_nut
+    direction: screw axis
+    after:
+    - left_leg:p021
+    status: seeded
+    derived: 'mirror of right_leg s23 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver
+      path vs placed parts'
+  - id: left_leg:s023
+    subassembly: left_leg
+    screw: L_Thigh_carrier_shell_thigh_front_2_M3x16_countersunk
+    with:
+    - L_Thigh_carrier_shell_thigh_front_2_nut
+    direction: screw axis
+    after:
+    - left_leg:s022
+    status: seeded
+    derived: 'mirror of right_leg s24 (R_ <-> L_, x negated): 1 screw(s) whose touched chain parts are all placed after R_thigh_shell_front; driver
+      path vs placed parts'
+  - id: left_leg:s031
+    subassembly: left_leg
+    screw:
+    - L_shin_back_cover_PA2x8_0
+    - L_shin_back_cover_PA2x8_1
+    - L_shin_back_cover_PA2x8_2
+    - L_shin_back_cover_PA2x8_3
+    direction: screw axis
+    after:
+    - left_leg:p030
+    status: seeded
+    derived: 'mirror of right_leg s28 (R_ <-> L_, x negated): 4 screw(s) whose touched chain parts are all placed after R_shin_back_hard_cover;
+      driver path vs placed parts; moved after s031 (its part L_shin_back_hard_cover blocked that screw''s driver path, 9.508 mm3)'
+  - id: left_leg:s038
+    subassembly: left_leg
+    screw:
+    - L_B13_output_NBK_M3x4_H0p8_0
+    - L_B13_output_NBK_M3x4_H0p8_1
+    - L_B13_output_NBK_M3x4_H0p8_2
+    - L_B13_output_NBK_M3x4_H0p8_3
+    direction: screw axis
+    after:
+    - left_leg:p037
+    status: seeded
+    derived: 'mirror of right_leg s36 (R_ <-> L_, x negated): 4 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_main_horn;
+      driver path vs placed parts'
+  - id: left_leg:s040
+    subassembly: left_leg
+    screw:
+    - L_B13_front_PA2x6_0
+    - L_B13_front_PA2x6_1
+    direction: screw axis
+    after:
+    - left_leg:p039
+    status: seeded
+    derived: 'mirror of right_leg s38 (R_ <-> L_, x negated): 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case;
+      driver path vs placed parts'
+  - id: left_leg:s041
+    subassembly: left_leg
+    screw:
+    - L_B13_rear_PA2x6_0
+    - L_B13_rear_PA2x6_1
+    direction: screw axis
+    after:
+    - left_leg:s040
+    status: seeded
+    derived: 'mirror of right_leg s39 (R_ <-> L_, x negated): 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case;
+      driver path vs placed parts'
+  - id: right_leg:ankle-horn-M3x6
+    screw:
+    - R_ankle_pitch_horn_M3x6_0
+    - R_ankle_pitch_horn_M3x6_1
+    - R_ankle_pitch_horn_M3x6_2
+    - R_ankle_pitch_horn_M3x6_3
+    direction: screw axis
+    subassembly: right_leg
+    after:
+    - right_leg:p036
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after R_ankle_coupler_combined; driver path vs placed parts
+  - id: right_leg:ankle-idler-M3x6
+    screw:
+    - R_ankle_pitch_idler_M3x6_0
+    - R_ankle_pitch_idler_M3x6_1
+    - R_ankle_pitch_idler_M3x6_2
+    - R_ankle_pitch_idler_M3x6_3
+    direction: screw axis
+    subassembly: right_leg
+    after:
+    - right_leg:ankle-horn-M3x6
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after R_ankle_coupler_combined; driver path vs placed parts
+  - id: left_leg:ankle-horn-M3x6
+    screw:
+    - L_ankle_pitch_horn_M3x6_0
+    - L_ankle_pitch_horn_M3x6_1
+    - L_ankle_pitch_horn_M3x6_2
+    - L_ankle_pitch_horn_M3x6_3
+    direction: screw axis
+    subassembly: left_leg
+    after:
+    - left_leg:p036
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after L_ankle_coupler_combined; driver path vs placed parts
+  - id: left_leg:ankle-idler-M3x6
+    screw:
+    - L_ankle_pitch_idler_M3x6_0
+    - L_ankle_pitch_idler_M3x6_1
+    - L_ankle_pitch_idler_M3x6_2
+    - L_ankle_pitch_idler_M3x6_3
+    direction: screw axis
+    subassembly: left_leg
+    after:
+    - left_leg:ankle-horn-M3x6
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after L_ankle_coupler_combined; driver path vs placed parts

@@ -25,12 +25,13 @@ def table():
 
 
 def sources(ctx, tab=None):
-    """{part: (kind, kind entry)} of the heat sources in the manifest: by role, moved by by_part."""
+    """{part: (kind, kind entry)} of the heat sources in the manifest: the parts whose body definition declares
+    `heat_source: {kind: ...}` (robot/**/<builder>.bom.yaml, via ctx.settings); the kinds (temperatures and their sources)
+    are the shared table data/heat_sources.json."""
     tab = tab or table()
-    role = {r: k for k, v in tab["kinds"].items() for r in v["roles"]}
     out = {}
-    for n, p in ctx.parts.items():
-        k = tab.get("by_part", {}).get(n, role.get(p.get("role")))
+    for n in ctx.parts:
+        k = (ctx._settings.get(n, {}).get("heat_source") or {}).get("kind")
         if k:
             out[n] = (k, tab["kinds"][k])
     return out

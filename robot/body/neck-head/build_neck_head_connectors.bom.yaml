@@ -1,0 +1,1575 @@
+# Cove-50 body definition for robot/body/neck-head/build_neck_head_connectors.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: build-neck-head-connectors
+owner: (set by the owning session)
+generators:
+- id: section-build-neck-head-connectors
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/neck-head/build_neck_head_connectors.py
+  rebuild: false
+  outputs:
+  - artifacts/robot/body/neck-head
+  notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
+    producer table; confirm before running).'
+parts:
+- match: combined__neck_root_cradle
+  kind: printed
+  line: print:combined__neck_root_cradle
+  name: combined__neck_root_cradle
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - y
+    up: -y
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XZ Cradle & Spine Frame on Build Plate (layer normal Y)''; chosen by bed contact, then least
+      overhang (bed mm2, overhang>45deg mm2) {''+y'': (5.6, 378.4), ''-y'': (68.8, 310.7)}'
+    seeded_keys:
+    - up
+  loadpath_slices:
+    axis: x
+    range_mm:
+    - -24.0
+    - -4.0
+    n_slices: 12
+    set_by: 'builder/opus 2026-11-19: dominant axis and span between the centroids of the FEM support holes and load holes (first reading, not
+      designer-confirmed)'
+  fem:
+    _doc: 'Old neck-head fem_evaluate stage1_neck_root_cradle (''combined'' family): head wrench at [-4.0, -2.0, 445.0] transferred to the load
+      patch centroid with stage scale 0.55 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named mating screws
+      / servo parts (holes patches, follow the part); the pressed-in sleeves are steel bore-collar regions (0.85 mm around each sleeve bore of
+      the companion part; the companions are not bonded in the mesh). Variants legacy_coordinates / legacy_coordinates_coarse keep the old hand-typed
+      bolt sites and capsule collars.'
+    mesh_h_mm: 2.2
+    origin_mm: load_centroid
+    load_cases:
+      upright_gravity_1g:
+        transfer:
+          F_N:
+          - 0.5
+          - -1.8
+          - -3.5
+          M_Nm:
+          - 0.14
+          - 0.06
+          - 0.05
+          scale: 0.55
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      dynamic_nod_turn_3g:
+        transfer:
+          F_N:
+          - 4.5
+          - -7.5
+          - -11.0
+          M_Nm:
+          - 0.48
+          - 0.32
+          - 0.42
+          scale: 0.55
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      fall_recovery_head_6g:
+        transfer:
+          F_N:
+          - 10.5
+          - -16.0
+          - -21.0
+          M_Nm:
+          - 0.95
+          - 0.68
+          - 0.62
+          scale: 0.55
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      adverse_neck_stall:
+        transfer:
+          F_N:
+          - 13.0
+          - 14.5
+          - -12.0
+          M_Nm:
+          - 1.25
+          - 0.85
+          - 1.15
+          scale: 0.55
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    bonded: []
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: combined__neck_root_cradle_steel_sleeves
+          r_extra_mm: 0.85
+          end_extra_mm: 0.35
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -29.0
+                - 25.0
+                - 347.5
+              - - -21.0
+                - 25.0
+                - 347.5
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 3.1
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -6.5
+                - 30.5
+                - 356.75
+              - - -6.5
+                - 30.5
+                - 362.25
+              - - 6.5
+                - 30.5
+                - 356.75
+              - - 6.5
+                - 30.5
+                - 362.25
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 2.6
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - -29.0
+                - 25.0
+                - 347.5
+              - - -21.0
+                - 25.0
+                - 347.5
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 4.0
+              r_mm: 4.05
+          - box:
+              x:
+              - -20.5
+              - -11.5
+              y:
+              - 25.0
+              - 34.0
+              z:
+              - 357.8
+              - 360.2
+        load:
+        - capsules:
+            sites:
+            - - -6.5
+              - 30.5
+              - 356.75
+            - - -6.5
+              - 30.5
+              - 362.25
+            - - 6.5
+              - 30.5
+              - 356.75
+            - - 6.5
+              - 30.5
+              - 362.25
+            normals:
+            - - 0.0
+              - 1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 4.0
+            r_mm: 3.45
+      legacy_coordinates_coarse:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -29.0
+                - 25.0
+                - 347.5
+              - - -21.0
+                - 25.0
+                - 347.5
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 3.1
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -6.5
+                - 30.5
+                - 356.75
+              - - -6.5
+                - 30.5
+                - 362.25
+              - - 6.5
+                - 30.5
+                - 356.75
+              - - 6.5
+                - 30.5
+                - 362.25
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 2.6
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - -29.0
+                - 25.0
+                - 347.5
+              - - -21.0
+                - 25.0
+                - 347.5
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 4.0
+              r_mm: 4.05
+          - box:
+              x:
+              - -20.5
+              - -11.5
+              y:
+              - 25.0
+              - 34.0
+              z:
+              - 357.8
+              - 360.2
+        load:
+        - capsules:
+            sites:
+            - - -6.5
+              - 30.5
+              - 356.75
+            - - -6.5
+              - 30.5
+              - 362.25
+            - - 6.5
+              - 30.5
+              - 356.75
+            - - 6.5
+              - 30.5
+              - 362.25
+            normals:
+            - - 0.0
+              - 1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 4.0
+            r_mm: 3.45
+        mesh_h_mm: 4.3
+    supports:
+      torso_anchor_screws:
+        holes:
+          mate:
+          - neck_anchor_M3x16_CSK_1_v21
+          - neck_anchor_M3x16_CSK_3_v21
+          gap_mm: 2.0
+          r_max_mm: 2.6
+          rim_mm: 2.0
+    load:
+      holes:
+        mate:
+        - upper__neck_yaw_case_XM335
+        gap_mm: 2.0
+        r_max_mm: 2.0
+        rim_mm: 2.0
+    open_difference: 'Old neck-head numbers (the old script''s own mesh, 1573-5440 nodes) are history, not reproduced (owner 2026-11-18); the
+      stored setup is proven by fem_setup (per-side and per-mating-part patch areas) and mesh convergence. Differences measured earlier, all four
+      stages together: Old script rerun on today''s STEP (its own coarser mesher, 1573-5440 nodes) vs this module: legacy_coordinates at h 2.2
+      (11921-57248 nodes) p99 +24..+66 %, peak +20..+142 %, disp +44..+111 %; legacy_coordinates_coarse (h chosen to approach the old node count,
+      4534-15704 nodes) p99 +10..+31 %, peak +4..+52 %, disp +20..+42 %. Applied wrenches match the old ones exactly (stage scale, lever 0.45,
+      load-centroid origin); old patch nodes 143-884 vs 299-1511 here. One change tested: mesh size (fine -> coarse) cut the gap by about half,
+      so mesher/patch node selection of the old coarse mesh is the remaining cause. Stored vs legacy (same fine mesh, steel collars from the sleeve
+      bores instead of hand-typed sites): patches larger (areas 366-794 vs 139-1091 mm2), stage 3 is 43-64 % lower p99, stage 1 +145..+156 % p99
+      vs old. The legacy variant''s stage-1 support also clamps the Z = 359 mm shelf of the power carrier mounting (box x -20.5..-11.5, y 25..34,
+      z 357.8..360.2, the old Common_power_carrier_mounting_r33 contact); the stored setup drops it because that part is not in the manifest,
+      so stage 1 stored is less supported than the old one. Mesh convergence of the stored setup, h 2.2 -> finer, nodes 11921 -> 16536 (h 1.6):
+      p99 +0.2..+3.2 %, peak -4.5..+60.5 %, max displacement +3.3..+5.1 % (ranges over 4 load cases x 3 materials).'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695 (the part's STEP and sleeves
+        are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
+      result: '2.2 -> 1.6: p99 +0.2..+3.2 %, displacement +3.3..+5.1 %; stored h 2.2 (< 5 %)'
+      stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Torso
+- match: combined__neck_root_cradle_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x3
+    name: 304 steel compression sleeve 4.5 x 3.3 x 3 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  section: Torso
+- match: combined__neck_yaw_to_pitch_link_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x3.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 8
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+  section: Neck / head
+- match: combined__neck_pitch_to_head_cradle
+  kind: printed
+  line: print:combined__neck_pitch_to_head_cradle
+  name: combined__neck_pitch_to_head_cradle
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    up: -z
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XY Right-Side U-Cradle Loop on Build Plate (layer normal Z)''; chosen by bed contact, then least
+      overhang (bed mm2, overhang>45deg mm2) {''+z'': (119.7, 170.1), ''-z'': (178.4, 166.9)}'
+    seeded_keys:
+    - up
+  loadpath_slices:
+    axis: y
+    range_mm:
+    - -11.0
+    - 14.0
+    n_slices: 12
+    set_by: 'builder/opus 2026-11-19: dominant axis and span between the centroids of the FEM support holes and load holes (first reading, not
+      designer-confirmed)'
+  fem:
+    _doc: 'Old neck-head fem_evaluate stage3_neck_pitch_to_head_cradle (''combined'' family): head wrench at [-4.0, -2.0, 445.0] transferred to
+      the load patch centroid with stage scale 1.0 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named mating
+      screws / servo parts (holes patches, follow the part); the pressed-in sleeves are steel bore-collar regions (0.85 mm around each sleeve
+      bore of the companion part; the companions are not bonded in the mesh). Variants legacy_coordinates / legacy_coordinates_coarse keep the
+      old hand-typed bolt sites and capsule collars.'
+    mesh_h_mm: 2.2
+    origin_mm: load_centroid
+    load_cases:
+      upright_gravity_1g:
+        transfer:
+          F_N:
+          - 0.5
+          - -1.8
+          - -3.5
+          M_Nm:
+          - 0.14
+          - 0.06
+          - 0.05
+          scale: 1.0
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      dynamic_nod_turn_3g:
+        transfer:
+          F_N:
+          - 4.5
+          - -7.5
+          - -11.0
+          M_Nm:
+          - 0.48
+          - 0.32
+          - 0.42
+          scale: 1.0
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      fall_recovery_head_6g:
+        transfer:
+          F_N:
+          - 10.5
+          - -16.0
+          - -21.0
+          M_Nm:
+          - 0.95
+          - 0.68
+          - 0.62
+          scale: 1.0
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      adverse_neck_stall:
+        transfer:
+          F_N:
+          - 13.0
+          - 14.5
+          - -12.0
+          M_Nm:
+          - 1.25
+          - 0.85
+          - 1.15
+          scale: 1.0
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    bonded: []
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: combined__neck_pitch_to_head_cradle_steel_sleeves
+          r_extra_mm: 0.85
+          end_extra_mm: 0.35
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -10.75
+                - 14.5
+                - 391.5
+              - - -10.75
+                - 14.5
+                - 401.0
+              - - -5.25
+                - 14.5
+                - 391.5
+              - - -5.25
+                - 14.5
+                - 401.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 2.6
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - -1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 3.0
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - -10.75
+                - 14.5
+                - 391.5
+              - - -10.75
+                - 14.5
+                - 401.0
+              - - -5.25
+                - 14.5
+                - 391.5
+              - - -5.25
+                - 14.5
+                - 401.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 4.0
+              r_mm: 3.45
+        load:
+        - capsules:
+            sites:
+            - - 0.0
+              - -12.9
+              - 413.0
+            - - 0.0
+              - -12.9
+              - 419.0
+            normals:
+            - - 0.0
+              - -1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 4.0
+            r_mm: 3.85
+      legacy_coordinates_coarse:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - -10.75
+                - 14.5
+                - 391.5
+              - - -10.75
+                - 14.5
+                - 401.0
+              - - -5.25
+                - 14.5
+                - 391.5
+              - - -5.25
+                - 14.5
+                - 401.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 2.6
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - -1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 3.35
+              r_mm: 3.0
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - -10.75
+                - 14.5
+                - 391.5
+              - - -10.75
+                - 14.5
+                - 401.0
+              - - -5.25
+                - 14.5
+                - 391.5
+              - - -5.25
+                - 14.5
+                - 401.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 4.0
+              r_mm: 3.45
+        load:
+        - capsules:
+            sites:
+            - - 0.0
+              - -12.9
+              - 413.0
+            - - 0.0
+              - -12.9
+              - 419.0
+            normals:
+            - - 0.0
+              - -1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 4.0
+            r_mm: 3.85
+        mesh_h_mm: 4.4
+    supports:
+      pitch_case_screws:
+        holes:
+          mate:
+          - upper__neck_pitch_case_XM335
+          - upper__neck_head_M2x5_0
+          - upper__neck_head_M2x5_1
+          - upper__neck_head_M2x5_2
+          - upper__neck_head_M2x5_3
+          gap_mm: 2.0
+          r_max_mm: 2.0
+          rim_mm: 2.0
+    load:
+      holes:
+        mate:
+        - combined__head_sensor_compute_carrier
+        gap_mm: 2.0
+        r_max_mm: 3.0
+        rim_mm: 2.0
+    open_difference: 'Old neck-head numbers (the old script''s own mesh, 1573-5440 nodes) are history, not reproduced (owner 2026-11-18); the
+      stored setup is proven by fem_setup (per-side and per-mating-part patch areas) and mesh convergence. Differences measured earlier, all four
+      stages together: Old script rerun on today''s STEP (its own coarser mesher, 1573-5440 nodes) vs this module: legacy_coordinates at h 2.2
+      (11921-57248 nodes) p99 +24..+66 %, peak +20..+142 %, disp +44..+111 %; legacy_coordinates_coarse (h chosen to approach the old node count,
+      4534-15704 nodes) p99 +10..+31 %, peak +4..+52 %, disp +20..+42 %. Applied wrenches match the old ones exactly (stage scale, lever 0.45,
+      load-centroid origin); old patch nodes 143-884 vs 299-1511 here. One change tested: mesh size (fine -> coarse) cut the gap by about half,
+      so mesher/patch node selection of the old coarse mesh is the remaining cause. Stored vs legacy (same fine mesh, steel collars from the sleeve
+      bores instead of hand-typed sites): patches larger (areas 366-794 vs 139-1091 mm2), stage 3 is 43-64 % lower p99, stage 1 +145..+156 % p99
+      vs old. Mesh convergence of the stored setup, h 2.2 -> finer, nodes 17589 -> 26371 (h 1.6): p99 +2.9..+4.4 %, peak +0.3..+29.0 %, max displacement
+      +6.3..+8.1 % (ranges over 4 load cases x 3 materials). fem_setup on the roll-flip manifest: the support and load patches share 137 nodes
+      (15.5 mm2, 3.5 % of the load patch): the load sites next to the support screws are partly clamped. Open.'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695 (the part's STEP and sleeves
+        are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
+      result: '2.2 -> 1.6: p99 +2.9..+4.4 %, displacement +6.3..+8.1 %; stored h 2.2 (< 5 %)'
+      stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Neck / head
+- match: combined__neck_pitch_to_head_cradle_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2.5
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.5
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.3x3.3x3
+    name: 304 steel compression sleeve 4.3 x 3.3 x 3 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.3
+      inner_dia_mm: 3.3
+      length_mm: 3.0
+    supplier: unknown
+    part_number: unknown
+  section: Neck / head
+- match: combined__head_sensor_compute_carrier
+  kind: printed
+  line: print:combined__head_sensor_compute_carrier
+  name: combined__head_sensor_compute_carrier
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - y
+    up: -y
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XZ Carrier Plate & Dorsal Ribs Flat on Build Plate (layer normal Y)''; chosen by bed contact,
+      then least overhang (bed mm2, overhang>45deg mm2) {''+y'': (17.3, 3858.2), ''-y'': (14.9, 3801.1)}; SIGN AMBIGUOUS'
+    seeded_keys:
+    - up
+  loadpath_slices:
+    axis: z
+    range_mm:
+    - 417.0
+    - 452.0
+    n_slices: 12
+    set_by: 'builder/opus 2026-11-19: dominant axis and span between the centroids of the FEM support holes and load holes (first reading, not
+      designer-confirmed)'
+  fem:
+    _doc: 'Old neck-head fem_evaluate stage4_head_sensor_compute_carrier (''combined'' family): head wrench at [-4.0, -2.0, 445.0] transferred
+      to the load patch centroid with stage scale 0.75 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named
+      mating screws / servo parts (holes patches, follow the part); the pressed-in sleeves are steel bore-collar regions (0.85 mm around each
+      sleeve bore of the companion part; the companions are not bonded in the mesh). Variants legacy_coordinates / legacy_coordinates_coarse keep
+      the old hand-typed bolt sites and capsule collars.'
+    mesh_h_mm: 2.2
+    origin_mm: load_centroid
+    load_cases:
+      upright_gravity_1g:
+        transfer:
+          F_N:
+          - 0.5
+          - -1.8
+          - -3.5
+          M_Nm:
+          - 0.14
+          - 0.06
+          - 0.05
+          scale: 0.75
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      dynamic_nod_turn_3g:
+        transfer:
+          F_N:
+          - 4.5
+          - -7.5
+          - -11.0
+          M_Nm:
+          - 0.48
+          - 0.32
+          - 0.42
+          scale: 0.75
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      fall_recovery_head_6g:
+        transfer:
+          F_N:
+          - 10.5
+          - -16.0
+          - -21.0
+          M_Nm:
+          - 0.95
+          - 0.68
+          - 0.62
+          scale: 0.75
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+      adverse_neck_stall:
+        transfer:
+          F_N:
+          - 13.0
+          - 14.5
+          - -12.0
+          M_Nm:
+          - 1.25
+          - 0.85
+          - 1.15
+          scale: 0.75
+          from_mm:
+          - -4.0
+          - -2.0
+          - 445.0
+          lever: 0.45
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    bonded: []
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: combined__head_sensor_compute_carrier_steel_sleeves
+          r_extra_mm: 0.85
+          end_extra_mm: 0.35
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 1.85
+              r_mm: 4.2
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 17.6677
+                - -12.9
+                - 425.8503
+              - - 17.6647
+                - -12.9
+                - 474.8643
+              - - -40.3223
+                - -12.9
+                - 425.8613
+              - - -40.3133
+                - -12.9
+                - 474.8483
+              - - -36.0
+                - -12.9
+                - 441.0
+              - - -36.0
+                - -12.9
+                - 471.0
+              - - -6.0
+                - -12.9
+                - 441.0
+              - - -6.0
+                - -12.9
+                - 471.0
+              - - 7.0
+                - -12.9
+                - 444.1662
+              - - 7.0
+                - -12.9
+                - 472.1662
+              - - 35.0
+                - -12.9
+                - 444.1662
+              - - 35.0
+                - -12.9
+                - 472.1662
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 1.85
+              r_mm: 3.9
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 2.5
+              r_mm: 4.85
+          - box:
+              x:
+              - -6.0
+              - 6.0
+              y:
+              - null
+              - -12.3
+              z:
+              - 409.0
+              - 423.0
+        load:
+        - capsules:
+            sites:
+            - - 17.6677
+              - -12.9
+              - 425.8503
+            - - 17.6647
+              - -12.9
+              - 474.8643
+            - - -40.3223
+              - -12.9
+              - 425.8613
+            - - -40.3133
+              - -12.9
+              - 474.8483
+            - - -36.0
+              - -12.9
+              - 441.0
+            - - -36.0
+              - -12.9
+              - 471.0
+            - - -6.0
+              - -12.9
+              - 441.0
+            - - -6.0
+              - -12.9
+              - 471.0
+            - - 7.0
+              - -12.9
+              - 444.1662
+            - - 7.0
+              - -12.9
+              - 472.1662
+            - - 35.0
+              - -12.9
+              - 444.1662
+            - - 35.0
+              - -12.9
+              - 472.1662
+            normals:
+            - - 0.0
+              - 1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 2.5
+            r_mm: 4.55
+      legacy_coordinates_coarse:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PAHT_CF_wet
+        - legacy_fdm_PETG_CF
+        bonded: []
+        regions:
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 1.85
+              r_mm: 4.2
+        - material: Steel 304 sleeve
+          where:
+            capsules:
+              sites:
+              - - 17.6677
+                - -12.9
+                - 425.8503
+              - - 17.6647
+                - -12.9
+                - 474.8643
+              - - -40.3223
+                - -12.9
+                - 425.8613
+              - - -40.3133
+                - -12.9
+                - 474.8483
+              - - -36.0
+                - -12.9
+                - 441.0
+              - - -36.0
+                - -12.9
+                - 471.0
+              - - -6.0
+                - -12.9
+                - 441.0
+              - - -6.0
+                - -12.9
+                - 471.0
+              - - 7.0
+                - -12.9
+                - 444.1662
+              - - 7.0
+                - -12.9
+                - 472.1662
+              - - 35.0
+                - -12.9
+                - 444.1662
+              - - 35.0
+                - -12.9
+                - 472.1662
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -0.35
+              - 1.85
+              r_mm: 3.9
+        supports:
+          bolts:
+          - capsules:
+              sites:
+              - - 0.0
+                - -12.9
+                - 413.0
+              - - 0.0
+                - -12.9
+                - 419.0
+              normals:
+              - - 0.0
+                - 1.0
+                - 0.0
+              proj_mm:
+              - -1.0
+              - 2.5
+              r_mm: 4.85
+          - box:
+              x:
+              - -6.0
+              - 6.0
+              y:
+              - null
+              - -12.3
+              z:
+              - 409.0
+              - 423.0
+        load:
+        - capsules:
+            sites:
+            - - 17.6677
+              - -12.9
+              - 425.8503
+            - - 17.6647
+              - -12.9
+              - 474.8643
+            - - -40.3223
+              - -12.9
+              - 425.8613
+            - - -40.3133
+              - -12.9
+              - 474.8483
+            - - -36.0
+              - -12.9
+              - 441.0
+            - - -36.0
+              - -12.9
+              - 471.0
+            - - -6.0
+              - -12.9
+              - 441.0
+            - - -6.0
+              - -12.9
+              - 471.0
+            - - 7.0
+              - -12.9
+              - 444.1662
+            - - 7.0
+              - -12.9
+              - 472.1662
+            - - 35.0
+              - -12.9
+              - 444.1662
+            - - 35.0
+              - -12.9
+              - 472.1662
+            normals:
+            - - 0.0
+              - 1.0
+              - 0.0
+            proj_mm:
+            - -1.0
+            - 2.5
+            r_mm: 4.55
+        mesh_h_mm: 4.8
+    supports:
+      tongue:
+      - holes:
+          mate:
+          - combined__neck_pitch_to_head_cradle
+          gap_mm: 2.0
+          r_max_mm: 3.0
+          rim_mm: 2.0
+      - contact:
+        - combined__neck_pitch_to_head_cradle
+        gap_mm: 0.5
+    load:
+      holes:
+        mate:
+        - ROCK4D_official
+        - B0410_supplier_native_v23
+        - B0196_supplier_native_v23
+        gap_mm: 2.0
+        r_max_mm: 2.0
+        rim_mm: 2.0
+    open_difference: 'Old neck-head numbers (the old script''s own mesh, 1573-5440 nodes) are history, not reproduced (owner 2026-11-18); the
+      stored setup is proven by fem_setup (per-side and per-mating-part patch areas) and mesh convergence. Differences measured earlier, all four
+      stages together: Old script rerun on today''s STEP (its own coarser mesher, 1573-5440 nodes) vs this module: legacy_coordinates at h 2.2
+      (11921-57248 nodes) p99 +24..+66 %, peak +20..+142 %, disp +44..+111 %; legacy_coordinates_coarse (h chosen to approach the old node count,
+      4534-15704 nodes) p99 +10..+31 %, peak +4..+52 %, disp +20..+42 %. Applied wrenches match the old ones exactly (stage scale, lever 0.45,
+      load-centroid origin); old patch nodes 143-884 vs 299-1511 here. One change tested: mesh size (fine -> coarse) cut the gap by about half,
+      so mesher/patch node selection of the old coarse mesh is the remaining cause. Stored vs legacy (same fine mesh, steel collars from the sleeve
+      bores instead of hand-typed sites): patches larger (areas 366-794 vs 139-1091 mm2), stage 3 is 43-64 % lower p99, stage 1 +145..+156 % p99
+      vs old. Mesh convergence of the stored setup, h 2.2 -> finer, nodes 57248 -> 83447 (h 1.8; h 1.6 would exceed the 6 GB cap): p99 +3.3..+5.8
+      %, peak -23.4..-14.4 %, max displacement +5.4..+6.2 % (ranges over 4 load cases x 3 materials). fem_setup on the roll-flip manifest: support
+      and load share 13 nodes (0.5 mm2).'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695 (the part's STEP and sleeves
+        are identical in the motor-refit manifest it first ran on, sha e8b9ae95)
+      result: '2.2 -> 1.8 (1.6 exceeds the 6 GB cap): p99 +3.3..+5.8 %, displacement +5.4..+6.2 %; not below 5 % for every case; stored h 2.2'
+      stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+  section: Neck / head
+- match: combined__head_sensor_compute_carrier_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.5x2.2x2
+    name: 304 steel compression sleeve 3.5 x 2.2 x 2 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.5
+      inner_dia_mm: 2.2
+      length_mm: 2.0
+    supplier: unknown
+    part_number: unknown
+  section: Neck / head
+- match:
+  - upper__neck_root_M2x6_0
+  - upper__neck_root_M2x6_1
+  - upper__neck_root_M2x6_2
+  - upper__neck_root_M2x6_3
+  kind: hardware
+  line: hw:M2-x-5-ISO-7380-1
+  name: M2 x 5 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec: &id001
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 5.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 5 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 5 ISO 7380-1
+  material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Torso
+- match:
+  - upper__neck_head_M2x5_0
+  - upper__neck_head_M2x5_1
+  - upper__neck_head_M2x5_2
+  - upper__neck_head_M2x5_3
+  kind: hardware
+  line: hw:M2-x-5-ISO-7380-1
+  name: M2 x 5 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec: *id001
+  supplier: unknown
+  part_number: M2 x 5 ISO 7380-1
+  material: ISO 7380-1 M2x5 into ST3025.case+z.4 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
+- match:
+  - upper__neck_pitch_horn_M2x5_0
+  - upper__neck_pitch_horn_M2x5_1
+  - upper__neck_pitch_horn_M2x5_2
+  - upper__neck_pitch_horn_M2x5_3
+  - upper__neck_yaw_horn_M2x5_0
+  - upper__neck_yaw_horn_M2x5_1
+  - upper__neck_yaw_horn_M2x5_2
+  - upper__neck_yaw_horn_M2x5_3
+  kind: hardware
+  line: hw:M2-x-8-ISO-7380-1
+  name: M2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 8 ISO 7380-1
+  material: ISO 7380-1 M2x8 into STS3250.case+y.3 (aluminium); head dia 3.5 x 1.3, shank dia 2, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
+- match:
+  - compute_M2p5_CS30_0
+  - compute_M2p5_CS30_1
+  kind: hardware
+  line: hw:M2.5-x-30-ISO-10642
+  name: M2.5 x 30 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2.5
+    family: M
+    length_mm: 30.0
+    standard: ISO 10642
+    head_dia_mm: 5.5
+    head_height_mm: 1.5
+    label: M2.5 x 30 ISO 10642
+  supplier: unknown
+  part_number: M2.5 x 30 ISO 10642
+  material: ISO 10642 M2.5x30 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
+- match:
+  - compute_M2p5_CS10_2
+  - compute_M2p5_CS10_3
+  kind: hardware
+  line: hw:M2.5-x-10-ISO-10642
+  name: M2.5 x 10 ISO 10642
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M2.5
+    family: M
+    length_mm: 10.0
+    standard: ISO 10642
+    head_dia_mm: 5.5
+    head_height_mm: 1.5
+    label: M2.5 x 10 ISO 10642
+  supplier: unknown
+  part_number: M2.5 x 10 ISO 10642
+  material: ISO 10642 M2.5x10 into thread (steel); head dia 5.0 x 1.25, shank dia 2.5, 0.5 mm point (envelope)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
+- match:
+  - B0196_plate_M2x4_0
+  - B0196_plate_M2x4_1
+  - B0196_plate_M2x4_2
+  - B0196_plate_M2x4_3
+  - B0410_plate_M2x4_0
+  - B0410_plate_M2x4_1
+  - B0410_plate_M2x4_2
+  - B0410_plate_M2x4_3
+  kind: hardware
+  line: hw:M2-x-4-ISO-7380-1
+  name: M2 x 4 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 4.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 4 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 4 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  section: Neck / head
+assembly:
+  steps:
+  - id: torso:p010
+    subassembly: torso
+    part:
+    - combined__neck_root_cradle
+    - combined__neck_root_cradle_steel_sleeves
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p009
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via combined__stage1_center_torso_spine_chassis_steel_sleeves); direction:
+      no placed neighbour: straight down (-z); direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 26.5 -> 16.5 mm out,
+      seat released True -> True, max overlap 10.6 -> 191.8 mm3; moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier
+      16.5 mm out, 191.755 mm3)'
+  - id: torso:s035
+    subassembly: torso
+    screw:
+    - upper__neck_root_M2x6_0
+    - upper__neck_root_M2x6_1
+    - upper__neck_root_M2x6_2
+    - upper__neck_root_M2x6_3
+    direction: screw axis
+    after:
+    - torso:p034
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__neck_yaw_case_XM335; driver path vs placed parts
+  - id: neck_head:s003
+    subassembly: neck_head
+    screw:
+    - upper__neck_yaw_horn_M2x5_0
+    - upper__neck_yaw_horn_M2x5_1
+    - upper__neck_yaw_horn_M2x5_2
+    - upper__neck_yaw_horn_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p002
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after combined__neck_yaw_to_pitch_link; driver path vs placed parts
+  - id: neck_head:s005
+    subassembly: neck_head
+    screw:
+    - upper__neck_pitch_horn_M2x5_0
+    - upper__neck_pitch_horn_M2x5_1
+    - upper__neck_pitch_horn_M2x5_2
+    - upper__neck_pitch_horn_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p004
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__neck_pitch_front_horn; driver path vs placed parts
+  - id: neck_head:p007
+    subassembly: neck_head
+    part:
+    - combined__neck_pitch_to_head_cradle
+    - combined__neck_pitch_to_head_cradle_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - neck_head:p006
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via upper__neck_pitch_case_XM335); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (upper__neck_head_M2x5), head to tip when the part carries the head, else reversed'
+  - id: neck_head:s008
+    subassembly: neck_head
+    screw:
+    - upper__neck_head_M2x5_0
+    - upper__neck_head_M2x5_1
+    - upper__neck_head_M2x5_2
+    - upper__neck_head_M2x5_3
+    direction: screw axis
+    after:
+    - neck_head:p007
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after combined__neck_pitch_to_head_cradle; driver path vs placed parts
+  - id: neck_head:p015
+    subassembly: neck_head
+    part:
+    - combined__head_sensor_compute_carrier
+    - combined__head_sensor_compute_carrier_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - neck_head:p014
+    status: seeded
+    derived: 'graph order, fastened distance 6 from what is present (via combined__neck_pitch_to_head_cradle); direction: mean screw direction
+      of 2 screw(s) joining it to placed parts (neck_M3x6_countersunk), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 5.5 -> 0.0 mm out, seat released True -> True, max overlap 27.6 -> 0.0 mm3; direction
+      searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 34.5 mm out, seat released True -> True, max overlap 277.9 -> 3416.1
+      mm3'
+  - id: neck_head:s030
+    subassembly: neck_head
+    screw:
+    - compute_M2p5_CS10_2
+    - compute_M2p5_CS10_3
+    with:
+    - compute_FF4_spacer_2
+    - compute_FF4_spacer_3
+    - compute_rear_nut_2
+    - compute_rear_nut_3
+    - compute_rear_washer_2
+    - compute_rear_washer_3
+    direction: screw axis
+    after:
+    - neck_head:s029
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after ROCK4D_official; driver path vs placed parts; moved after s028 (its part ROCK4D_official
+      blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+  - id: neck_head:s033
+    subassembly: neck_head
+    screw:
+    - B0410_plate_M2x4_0
+    - B0410_plate_M2x4_1
+    - B0410_plate_M2x4_2
+    - B0410_plate_M2x4_3
+    with:
+    - B0410_M2_FF5_spacer_2_v23
+    - B0410_M2_FF5_spacer_3_v23
+    direction: screw axis
+    after:
+    - neck_head:s032
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0410_supplier_native_v23; driver path vs placed parts; moved after s018 (its
+      part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23 blocked
+      that screw's driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3)
+  - id: neck_head:s034
+    subassembly: neck_head
+    screw: compute_M2p5_CS30_0
+    with:
+    - compute_FF4_spacer_0
+    - fan_bridge_nut_0
+    direction: screw axis
+    after:
+    - neck_head:s033
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after fan_bridge_standoff_0; driver path vs placed parts; moved after s028 (its part
+      ROCK4D_official blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path,
+      11.298 mm3)
+  - id: neck_head:s035
+    subassembly: neck_head
+    screw: compute_M2p5_CS30_1
+    with:
+    - compute_FF4_spacer_1
+    - fan_bridge_nut_1
+    direction: screw axis
+    after:
+    - neck_head:s034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after heatsink_nonpreloaded_guard; driver path vs placed parts; moved after s026 (its
+      part heatsink_nonpreloaded_guard blocked that screw's driver path, 136.949 mm3); moved after s028 (its part ROCK4D_official blocked that
+      screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+  - id: neck_head:s038
+    subassembly: neck_head
+    screw:
+    - B0196_plate_M2x4_0
+    - B0196_plate_M2x4_1
+    - B0196_plate_M2x4_2
+    - B0196_plate_M2x4_3
+    with:
+    - B0196_M2_FF5_spacer_0_v23
+    - B0196_M2_FF5_spacer_1_v23
+    - B0196_M2_FF5_spacer_2_v23
+    - B0196_M2_FF5_spacer_3_v23
+    direction: screw axis
+    after:
+    - neck_head:s037
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after B0196_supplier_native_v23; driver path vs placed parts; moved after s024 (its
+      part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23 blocked
+      that screw's driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3)

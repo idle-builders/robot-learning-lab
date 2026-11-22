@@ -1,33 +1,24 @@
-"""Draft and maintain the assembly order (data/assembly_order.json) of the whole body from the connectivity graph
-(checks/modules/connectivity.py), then confirm steps from an assembly check report.
+"""Draft assembly steps for the body definitions (robot/**/<builder>.bom.yaml) from the connectivity graph
+(checks/modules/connectivity.py). It never edits a definition: it writes proposals, per owning definition file, into
+.cache/work/bom/assembly-proposals/<builder>.proposal.yaml for the owner to review and paste into its `assembly.steps`.
 
-Each assembly carries its `plan` (data): `links` (owning links whose parts it builds), `after` (assemblies built before it,
-present at its start), `base` (parts present at its start), optional `include` / `exclude` (part-name globs), `last_roles`
-(roles that go on last, default body_shell), `mirror_of` (an assembly on the other side: its steps are copied with R_ <-> L_
-in the names and x negated in the directions, then extended). Assignment: every non-hardware part goes to the first assembly
-in build order whose plan takes it.
+  PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/assembly_seed.py propose [--names a,b] [--search] [--manifest PATH]
 
-  seed     PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/assembly_seed.py seed [--names a,b] [--fresh] [--search] [--manifest PATH]
-  reorder  PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/assembly_seed.py reorder --report REPORT   (a blocked screw's obstacle moves after it)
-  confirm  PYTHONPATH=robot/body .venv/bin/python -B robot/body/checks/assembly_seed.py confirm --report .cache/work/cad-speed/checks/<label>/report.json
-
-seed keeps every existing step (designer-ordered ones and earlier drafts; --fresh drops the seeded ones of the named
-assemblies first) and inserts what is missing:
+A subassembly's `plan` (in its definition) says what belongs to it: `links`, `include` / `exclude` globs, `roles`,
+`exclude_roles`, `last_roles` (default body_shell), `mirror_of` (an empty subassembly starts as the mirror of the other side:
+R_ <-> L_ in the names, x negated). Every non-hardware part goes to the first subassembly in build order whose plan takes it.
+For what no declared step names it proposes:
 - parts by fastened distance from what is present (Dijkstra on the connectivity edges, contact edges cost 10, ties by name),
-  each right after the step that places its predecessor on that path, each printed part together with its steel sleeves;
+  each right after the step that places its predecessor on that path (`after`), each printed part with its steel sleeves;
   parts of `last_roles` at the end; parts the graph does not reach before them;
-- screws right after the first step at which every part they join is in place (graph screw edges; screws the graph does not
-  model, e.g. the `*_screw_<i>` proxies, by ring points inside the coarse solids; a screw joining nothing goes after the
-  part nearest its head), grouped by name stem;
-- nuts, washers, spacers and threaded sleeves as `with` on the step of the screw whose axis runs through them, else of the
-  part they sit in, else of the nearest part; parts without a mesh as `with` on the step of the nearest part.
-Part direction of a new step: the mean screw direction of the screws that join it to what is placed (head to tip when the
-part carries the head, else reversed), else toward the centroid of its placed neighbours snapped to the nearest axis.
---search: for every seeded part step whose path is blocked, try the seeded direction and the six axis directions with the
-assembly check's own sweep against what is placed, keep the one with the clearest path (no contact, then least overlap).
-New steps are `seeded` with `derived` (how); confirm turns a seeded step into `confirmed` (with the measurement) when the
-check report shows its insertion path touching no part over the whole range (parts that already overlap at the final
-position, CAD interference, must let go within the range), or its driver path free and not (screw; parts that would close it in later are named: drive it before them). Designer-ordered steps (neither seeded nor confirmed) are left as they are."""
+- screws (parts declared as hardware with spec kind screw) right after the first step at which every part they join is in
+  place (graph screw edges, else ring points inside the coarse solids; a screw joining nothing after the part nearest its head);
+- nuts, washers, spacers and inserts as `with` on the step of the screw whose axis runs through them, else of the part they
+  sit in, else of the nearest part; parts without a mesh as `with` on the step of the nearest part.
+Part direction: the mean screw direction of the screws that join it to what is placed (head to tip when the part carries the
+head, else reversed), else toward the centroid of its placed neighbours snapped to an axis. --search: for blocked seeded
+steps, the clearest of the seeded and the six axis directions by the assembly check's own sweep (proposed as changed_steps).
+Whether a step is supported is measured by the assembly check and shown in ASSEMBLY.md, not stored."""
 from __future__ import annotations
 
 import argparse
@@ -47,7 +38,6 @@ from checks import screwlib as SL  # noqa: E402
 from checks.core import ROOT  # noqa: E402
 from checks.modules import assembly as A  # noqa: E402
 
-ORDER_FILE = A.ORDER_FILE
 SKIP_ROLES = set()          # every part goes in somewhere (owner 2026-11-22: 0 parts without a step)
 AXES = [np.array(v, float) for v in ([1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1])]
 
@@ -397,10 +387,15 @@ class Seeder:
         return log
 
 
-def renumber(order):
-    for a in order["assemblies"].values():
-        for i, st in enumerate(a["steps"]):
-            st["id"] = f"{'p' if 'part' in st else 's'}{i + 1:03d}"
+def new_ids(order):
+    """Ids for the steps the proposer added (id None): <assembly>:new-<n>, n past every id already used."""
+    for an, a in order["assemblies"].items():
+        k = 0
+        for st in a["steps"]:
+            if st.get("id") is None:
+                k += 1
+                st["id"] = f"{an}:new-{k:03d}"
+                st["_new"] = True
 
 
 def mirror_into(order, src, dst, names):
@@ -470,186 +465,79 @@ def search_directions(S, order, seq, names_to_search):
     return changed
 
 
-def cmd_seed(a):
+def cmd_propose(a):
+    """Draft steps for what no declared step names, and (--search) better directions for blocked seeded steps; write them as
+    YAML snippets per owning definition file into --out (default .cache/work/bom/assembly-proposals/). Edits no definition."""
+    import yaml
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import definitions as DEF
     man = Path(a.manifest) if a.manifest else ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
-    order = json.loads(ORDER_FILE.read_text())
-    seq = A.build_order(order)
-    todo = a.names.split(",") if a.names else seq
+    D = DEF.load()
+    names0 = [p["name"] for p in json.loads(Path(man).read_text())["parts"]]
+    A.use_claims(names0, D)
     S = Seeder(man)
     names = list(S.raw)
-    if a.fresh:
-        for n in todo:
-            order["assemblies"][n]["steps"] = [s for s in order["assemblies"][n]["steps"] if not s.get("seeded")]
+    claims = A._CLAIMS
+    order = D.order(names)
+    seq = A.build_order(order)
+    todo = a.names.split(",") if a.names else seq
     for n in todo:
         src = order["assemblies"][n].get("plan", {}).get("mirror_of")
-        if src and (a.fresh or not order["assemblies"][n]["steps"]):
+        if src and not order["assemblies"][n]["steps"]:
             mirror_into(order, src, n, names)
+            for st in order["assemblies"][n]["steps"]:
+                st["id"] = None
+    before = {n: [dict(st) for st in order["assemblies"][n]["steps"]] for n in seq}
     mine, left = S.assign(order, seq)
     present = set()
-    report = {}
     for n in seq:
         asm = order["assemblies"][n]
         if n in todo:
-            missing = S.seed(order, n, mine[n], present)
-            report[n] = dict(parts_added=len(missing))
+            S.seed(order, n, mine[n], present)
         present |= set(A.resolve(S.parts, asm.get("base", []))) | {x for st in asm["steps"] for x in A.resolve(S.parts, st.get("part"))}
-    unplaced_screws = S.place_screws(order, seq)
-    renumber(order)
+    unplaced = S.place_screws(order, seq)
+    new_ids(order)
     hw = S.attach_hardware(order, seq)
-    if a.search:
-        report["directions_changed_by_search"] = search_directions(S, order, seq, todo)
-    renumber(order)
-    for asm in order["assemblies"].values():
-        asm["steps"] = [{k: v for k, v in s.items() if v is not None or k == "id"} for s in asm["steps"]]
-    ORDER_FILE.write_text(json.dumps(order, indent=1) + "\n")
-    cov = dict(nodes_no_plan_takes=left, screws_not_placed=unplaced_screws, hardware_unplaced=[k for k, v in hw.items() if v.startswith("no placement")])
+    changed = search_directions(S, order, seq, todo) if a.search else 0
+    out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
+    per_file, edits = {}, {}
     for n in seq:
-        st = order["assemblies"][n]["steps"]
-        report.setdefault(n, {}).update(steps=len(st), seeded=sum(1 for s in st if s.get("seeded")), confirmed=sum(1 for s in st if s.get("confirmed")),
-                                        designer=sum(1 for s in st if not s.get("seeded") and not s.get("confirmed")))
-    print(json.dumps(dict(report=report, **cov, hardware_attached=len(hw)), indent=1))
-
-
-def cmd_reorder(a):
-    """Move the part that blocks a screw's driver path to just after that screw (with the screw steps that need it), where
-    the order allows: the blocking part X is placed earlier in the same assembly, the screw does not join X, and every part
-    placed between X and the screw is fastened (graph edge, not contact) to something other than X that is placed before it."""
-    man = Path(a.manifest) if a.manifest else ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
-    rep = json.loads(Path(a.report).read_text())["checks"]["assembly"]
-    order = json.loads(ORDER_FILE.read_text())
-    S = Seeder(man)
-    names = list(S.raw)
-    moved, skipped = [], []
-    for an, w in rep["assemblies"].items():
-        asm = order["assemblies"].get(an)
-        if asm is None:
-            continue
-        for r in w["steps"]:
-            if r["kind"] != "screw" or not r.get("obstruction_mm3"):
-                continue
-            ids = [st.get("id") for st in asm["steps"]]
-            if r["id"] not in ids:
-                continue
-            si = ids.index(r["id"])
-            blockers = []
-            for sr in r.get("screws", {}).values():
-                for b in sr.get("by_part", []) or []:
-                    if b["part"] not in blockers:
-                        blockers.append(b["part"])
-            touched = set().union(*[S.screw_parts.get(k, set()) for k in A.resolve(names, asm["steps"][si].get("screw"))])
-            if not touched:
-                skipped.append(f"{an}:{r['id']}: the screw joins nothing in the graph (no reorder can make it hold anything)")
-                continue
-            for X in blockers:
-                xi = next((i for i, st in enumerate(asm["steps"][:si]) if X in A.resolve(names, st.get("part"))), None)
-                grp_x = set(A.resolve(names, asm["steps"][xi].get("part"))) if xi is not None else set()
-                if xi is None or grp_x & touched:
-                    skipped.append(f"{an}:{r['id']}: blocker {X} " + ("(or the group it moves with) is joined by the screw" if xi is not None else "not placed earlier in this assembly"))
-                    continue
-                between = [n for st in asm["steps"][xi + 1:si] for n in A.resolve(S.parts, st.get("part")) if n in S.node_set]
-                placed_before = set(A.resolve(S.parts, asm.get("base", []))) | {n for m in A.prerequisites(order, an) for n in A.named_in(names, order["assemblies"][m])}
-                placed_before |= {n for st in asm["steps"][:xi] for n in A.resolve(S.parts, st.get("part"))}
-                ok, why = True, ""
-                for n in between:
-                    fast = [m for m, c in S.adj.get(n, []) if c < 10 and m != X and m in placed_before]
-                    if not fast:
-                        ok, why = False, f"{n} hangs on {X} only"; break
-                    placed_before.add(n)
-                if not ok:
-                    skipped.append(f"{an}:{r['id']}: blocker {X}: {why}"); continue
-                # X's step and the screw steps between that join X move to just after the screw step
-                grp = [xi] + [i for i in range(xi + 1, si) if "screw" in asm["steps"][i]
-                              and any(X in S.screw_parts.get(k, set()) for k in A.resolve(names, asm["steps"][i].get("screw")))]
-                block = [asm["steps"][i] for i in grp]
-                for st in block:
-                    st["derived"] = (st.get("derived") or "") + f"; moved after {r['id']} (its part {X} blocked that screw's driver path, {r['obstruction_mm3']} mm3)"
-                rest = [st for i, st in enumerate(asm["steps"]) if i not in grp]
-                at = rest.index(asm["steps"][si]) + 1
-                asm["steps"] = rest[:at] + block + rest[at:]
-                moved.append(f"{an}:{r['id']}: {X} (+{len(block) - 1} screw steps) moved after it")
-                break
-    # parts touched on the way in by a part placed earlier in the same assembly: move the part to just before that one,
-    # when it is fastened to something placed before it (or to nothing), so it does not hang on the part it now precedes
-    for an, w in rep["assemblies"].items():
-        asm = order["assemblies"].get(an)
-        if asm is None:
-            continue
-        for r in w["steps"]:
-            Q = r.get("path_first_part")
-            if r["kind"] != "part" or not r.get("path_first_contact_mm") or not Q:
-                continue
-            ids = [st.get("id") for st in asm["steps"]]
-            if r["id"] not in ids:
-                continue
-            pi = ids.index(r["id"])
-            qi = next((i for i, st in enumerate(asm["steps"][:pi]) if Q in A.resolve(names, st.get("part"))), None)
-            if qi is None:
-                skipped.append(f"{an}:{r['id']}: blocker {Q} not placed earlier in this assembly"); continue
-            P = [n for n in A.resolve(S.parts, asm["steps"][pi].get("part")) if n in S.node_set]
-            if {S.parts[n].get("role") for n in P} & set(asm.get("plan", {}).get("last_roles", ["body_shell"])):
-                skipped.append(f"{an}:{r['id']}: {P[0]} is a cover (last_roles): it stays last"); continue
-            placed_before = set(A.resolve(S.parts, asm.get("base", []))) | {n for m in A.prerequisites(order, an) for n in A.named_in(names, order["assemblies"][m])}
-            placed_before |= {n for st in asm["steps"][:qi] for n in A.resolve(S.parts, st.get("part"))}
-            fast = [m for n in P for m, c in S.adj.get(n, []) if c < 10 and m not in P]
-            if fast and not set(fast) & placed_before:
-                skipped.append(f"{an}:{r['id']}: {P[0]} is fastened only to parts placed after {Q}"); continue
-            st = asm["steps"].pop(pi)
-            st["derived"] = (st.get("derived") or "") + f"; moved before {Q} (it touched {Q} {r['path_first_contact_mm']} mm out, {r.get('max_overlap_mm3')} mm3)"
-            asm["steps"].insert(qi, st)
-            moved.append(f"{an}:{r['id']}: {P[0]} moved before {Q}")
-    renumber(order)
-    ORDER_FILE.write_text(json.dumps(order, indent=1) + "\n")
-    print(json.dumps(dict(moved=moved, skipped=skipped), indent=1))
-
-
-def cmd_confirm(a):
-    rep = json.loads(Path(a.report).read_text())
-    if not rep.get("complete", True):
-        raise SystemExit("report is incomplete (complete: false)")
-    res = rep["checks"]["assembly"]
-    order = json.loads(ORDER_FILE.read_text())
-    day = datetime.date.today().isoformat()
-    label = Path(a.report).parent.name
-    n_conf, n_kept, n_back = 0, 0, 0
-    for name, w in res["assemblies"].items():
-        steps = {s.get("id"): s for s in order["assemblies"].get(name, {}).get("steps", [])}
-        for r in w["steps"]:
-            st = steps.get(r["id"])
-            by_check = str(st.get("confirmed", "")).startswith("assembly check") if st else False
-            if st is None or not (st.get("seeded") or by_check) or r.get("error"):
-                continue
-            if r["kind"] == "part":
-                rel = r.get("seat_parts_released_at_mm")
-                ok = r.get("path_first_contact_mm") is None and (rel is None or rel < (r.get("path_mm") or 60) - 1e-9)
-                txt = (f"assembly check {day} ({label}): insertion path along {r['direction']} touches nothing over {r.get('path_mm')} mm"
-                       + (f"; seat overlap {r.get('seat_overlap_mm3')} mm3 with {', '.join(r.get('seat_overlap_by_part') or [])} (CAD interference) let go at {rel} mm" if rel else ""))
+        prev = None
+        old = {st.get("id"): st for st in before[n]}
+        for st in order["assemblies"][n]["steps"]:
+            first = (A.resolve(names, st.get("part") or st.get("screw")) or [None])[0]
+            f = (claims.get(first) or {}).get("file") or order["assemblies"][n].get("file")
+            if st.pop("_new", False):
+                row = {k: st[k] for k in ("id", "part", "screw", "with", "direction") if k in st}
+                row = dict(row, subassembly=n, after=[prev] if prev else [], status="seeded", derived=st.get("derived", ""))
+                per_file.setdefault(f, []).append(row)
             else:
-                ok = not r.get("screw_errors") and r.get("obstruction_mm3", 1) == 0
-                txt = (f"assembly check {day} ({label}): driver path free (0 mm3) at this step"
-                       + (f"; drive it before {', '.join(r['closed_in_by'][:4])} go in (they close the path)" if r.get("closed_in_by") else "")
-                       + (f"; covered later by {', '.join(r['covered_later_by'][:4])}" if r.get("covered_later_by") else ""))
-            if ok:
-                if not by_check:
-                    n_conf += 1
-                st.pop("seeded", None); st["confirmed"] = txt
-            elif by_check:
-                st.pop("confirmed", None); st["seeded"] = True
-                st["derived"] = (st.get("derived") or "") + f"; confirmation withdrawn {day} ({label}): no longer clear"
-                n_back += 1
-            else:
-                n_kept += 1
-    ORDER_FILE.write_text(json.dumps(order, indent=1) + "\n")
-    print(json.dumps(dict(confirmed_now=n_conf, confirmation_withdrawn=n_back, still_seeded=n_kept), indent=1))
+                o = old.get(st.get("id"), {})
+                ch = {k: st[k] for k in ("direction", "with") if st.get(k) != o.get(k) and k in st}
+                if ch:
+                    edits.setdefault(st.get("file") or f, []).append(dict(id=st["id"], change=ch))
+            prev = st["id"]
+    for f, rows in list(per_file.items()) + [(f, None) for f in edits if f not in per_file]:
+        doc = {}
+        if rows:
+            doc["new_steps"] = rows
+        if edits.get(f):
+            doc["changed_steps"] = edits[f]
+        (out / (Path(f).name.replace(".bom.yaml", "") + ".proposal.yaml")).write_text(
+            f"# Proposal for {f} (robot/body/checks/assembly_seed.py propose): paste what you accept into its assembly.steps.\n"
+            + yaml.safe_dump(doc, sort_keys=False, width=140))
+    print(json.dumps(dict(files=sorted(set(per_file) | set(edits)), new_steps=sum(len(r) for r in per_file.values()),
+                          changed_steps=sum(len(r) for r in edits.values()), directions_searched=changed, parts_no_plan_takes=left,
+                          screws_not_placed=unplaced, out=str(out)), indent=1))
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("seed"); s.add_argument("--names"); s.add_argument("--fresh", action="store_true"); s.add_argument("--search", action="store_true"); s.add_argument("--manifest")
-    c = sub.add_parser("confirm"); c.add_argument("--report", required=True)
-    r = sub.add_parser("reorder"); r.add_argument("--report", required=True); r.add_argument("--manifest")
+    p = sub.add_parser("propose"); p.add_argument("--names"); p.add_argument("--search", action="store_true"); p.add_argument("--manifest")
+    p.add_argument("--out", default=str(ROOT / ".cache/work/bom/assembly-proposals"))
     a = ap.parse_args()
-    {"seed": cmd_seed, "confirm": cmd_confirm, "reorder": cmd_reorder}[a.cmd](a)
+    cmd_propose(a)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,41 @@ FASTENER_KEEP = "compression_limit_sleeves"
 SHELL_ROLE = "body_shell"
 
 
+SETTING_BLOCKS = ("process", "expected_hardware", "fit_classes", "covers", "exact_fit", "loadpath_slices", "geometry_thresholds", "fem", "edges", "heat_source")
+
+
+def overlay_definitions(part_settings, manifest):
+    """Per-part settings for the checks: the part's body definition (robot/**/<builder>.bom.yaml, its parts entry blocks
+    process / expected_hardware / fit_classes / covers / exact_fit / loadpath_slices / geometry_thresholds / fem / edges)
+    first, data/part_settings.json for what the definition does not say yet (migration, phase 2 of T-ghvncz). Returns
+    (settings, source {part: {block: 'definition <file> parts[i]' | 'part_settings.json'}}, definition_of {part: (file, entry)})."""
+    import sys as _sys
+    from checks.core import ROOT as _ROOT
+    out = json.loads(json.dumps(part_settings))
+    src, dof = {}, {}
+    try:
+        _sys.path.insert(0, str(_ROOT / "robot/body/bom"))
+        import definitions as DEF
+        man = json.loads(open(manifest).read())
+        names = [p["name"] for p in man["parts"]] if isinstance(man.get("parts"), list) else list(man.get("parts", {}))
+        claims = DEF.load().claims(names)
+    except Exception:  # noqa: BLE001  (no definitions readable: part_settings.json alone)
+        claims = {}
+    for n, e in claims.items():
+        tag = f"{e['file']} parts[{e['index']}] line {e['line']}"
+        dof[n] = (e["file"], tag)
+        for k in SETTING_BLOCKS:
+            if k in e:
+                out.setdefault(n, {})[k] = e[k]
+                src.setdefault(n, {})[k] = f"definition {tag}"
+    for n, v in part_settings.items():
+        if n.startswith("_"):
+            continue
+        for k in v:
+            src.setdefault(n, {}).setdefault(k, "part_settings.json")
+    return out, src, dof
+
+
 class Ctx:
     def __init__(self, manifest, scope, poses="key", search_mm=5.0, exact_press=False, render_timeout=240.0, out_dir=None, include_shells=False):
         self.include_shells = include_shells
@@ -30,8 +65,12 @@ class Ctx:
         self._poses = {}
         self._nb = None
         S = json.loads((DATA / "part_settings.json").read_text())
-        self._settings = S
+        self._settings, self.settings_source, self.definition_of = overlay_definitions(S, self.manifest)
         self.process_override = {}      # run.py --process KEY=VALUE: applied to the process of every printed part (cross-evaluation)
+
+    def definition(self, n):
+        """(definition file, entry) that claims part n, or (None, None)."""
+        return self.definition_of.get(n, (None, None))
 
     @property
     def parts(self):

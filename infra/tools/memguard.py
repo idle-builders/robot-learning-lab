@@ -11,9 +11,12 @@ FEM, trace scoring); a 2026-11-08 run had one python process grow to about
 --timeout-s also stops the tree after that many seconds of wall time (exit 124),
 so a hung gmsh / OCC call fails fast with a message instead of running for hours.
 
-Parallel budget (owner 2026-11-20, docs/operations/working-rules.md): before starting, memguard waits for a slot so
-that at most MEMGUARD_MAX_JOBS (4) guarded jobs run on the machine and their --limit-gb caps sum to at most
-MEMGUARD_BUDGET_GB (24). Running and waiting jobs register in ~/.cache/memguard (claimed under a file lock, dead pids
+Parallel budget (docs/operations/working-rules.md): before starting, memguard waits until the new job fits in memory:
+the memory the running guarded jobs hold plus the new job's --limit-gb is at most MEMGUARD_BUDGET_GB (24). No job count
+(owner 2026-11-22: "allow as many runs as fit in the memory limit"; with a 4-job count a 16 s light check waited 269 s
+while the 4 running jobs used 1.7 GB). A running job holds its full --limit-gb for its first MEMGUARD_WARMUP_S (60) s,
+since it has not grown yet (without this, ten jobs started together would all fit at 0.1 GB each), and after that the
+peak resident memory of its process tree so far (memguard writes it to the registry every few seconds). Running and waiting jobs register in ~/.cache/memguard (claimed under a file lock, dead pids
 ignored); memguard processes of older copies of this script that do not register are counted from `ps` with their own
 --limit-gb. Shell wrappers whose command line merely contains "memguard.py" are never counted. --no-wait skips the
 wait (for a job that must start now); the timeout clock starts when the job starts, not while it waits.
@@ -31,7 +34,7 @@ import time
 from pathlib import Path
 
 SLOTS = Path.home() / ".cache" / "memguard"
-MAX_JOBS = int(os.environ.get("MEMGUARD_MAX_JOBS", "4"))
+WARMUP_S = float(os.environ.get("MEMGUARD_WARMUP_S", "60"))
 BUDGET_GB = float(os.environ.get("MEMGUARD_BUDGET_GB", "24"))
 
 
@@ -45,8 +48,10 @@ def _alive(pid: int) -> bool:
         return True
 
 
-def _running_jobs() -> list[float]:
-    """Caps (GB) of the guarded jobs running now: registered running slots + unregistered memguard python processes."""
+def _running_jobs() -> list[tuple[int, float, float]]:
+    """(pid, cap GB, GB it holds in the budget) of the guarded jobs running: registered running slots (their cap in the first
+    WARMUP_S seconds, then the larger of their recorded peak and their resident memory now) and unregistered memguard
+    python processes of older copies of this script (their cap)."""
     reg = {}
     for f in SLOTS.glob("*.json"):
         try:
@@ -57,7 +62,8 @@ def _running_jobs() -> list[float]:
             reg[int(d["pid"])] = d
         else:
             f.unlink(missing_ok=True)
-    caps = [float(d["limit_gb"]) for d in reg.values() if d.get("state") == "running"]
+    jobs = {pid: float(d["limit_gb"]) for pid, d in reg.items() if d.get("state") == "running"}
+    unregistered = set()
     out = subprocess.run(["ps", "-Ao", "pid=,command="], capture_output=True, text=True).stdout
     for line in out.splitlines():
         pid_s, _, cmd = line.strip().partition(" ")
@@ -69,8 +75,34 @@ def _running_jobs() -> list[float]:
         if pid == os.getpid() or pid in reg:
             continue
         m = re.search(r"--limit-gb\s+([0-9.]+)", cmd)
-        caps.append(float(m.group(1)) if m else 12.0)
-    return caps
+        jobs[pid] = float(m.group(1)) if m else 12.0
+        unregistered.add(pid)
+    kids, rss = _ps_tree()
+    now, out = time.time(), []
+    for pid, cap in jobs.items():
+        d = reg.get(pid, {})
+        if pid in unregistered or now - float(d.get("since", now)) < WARMUP_S:
+            held = cap
+        else:
+            held = min(cap, max(float(d.get("peak_gb", 0.0)), _tree_kb(pid, kids, rss) / 1048576))
+        out.append((pid, cap, held))
+    return out
+
+
+def _oldest_waiter(since: float) -> float | None:
+    """--limit-gb of the live job that has waited longest, if it started waiting before `since` (this job's own start)."""
+    best = None
+    for f in SLOTS.glob("*.json"):
+        try:
+            d = json.loads(f.read_text())
+        except (OSError, ValueError):
+            continue
+        pid = int(d.get("pid", 0))
+        if pid == os.getpid() or d.get("state") != "waiting" or not _alive(pid) or float(d.get("since", since)) >= since:
+            continue
+        if best is None or float(d["since"]) < best[0]:
+            best = (float(d["since"]), float(d["limit_gb"]))
+    return best[1] if best else None
 
 
 def _claim_slot(limit_gb: float, args: list[str]) -> Path | None:
@@ -86,8 +118,13 @@ def _claim_slot(limit_gb: float, args: list[str]) -> Path | None:
     while True:
         fcntl.flock(lock, fcntl.LOCK_EX)
         try:
-            caps = _running_jobs()
-            if len(caps) < MAX_JOBS and sum(caps) + limit_gb <= BUDGET_GB:
+            jobs = _running_jobs()
+            used = sum(r for _, _, r in jobs)
+            # fairness: a job may start ahead of the longest-waiting other job only if that one still fits after it, so a big
+            # job is not starved by a stream of small ones fitting into the gaps (memory-only admission, 2026-11-22)
+            ahead = _oldest_waiter(t0)
+            room = limit_gb + (ahead if ahead is not None else 0.0)
+            if used + limit_gb <= BUDGET_GB and (ahead is None or used + room <= BUDGET_GB):
                 me.write_text(json.dumps(dict(pid=os.getpid(), limit_gb=limit_gb, state="running", since=time.time(),
                                               cwd=os.getcwd(), cmd=" ".join(args[:6]))))
                 if said:
@@ -97,13 +134,13 @@ def _claim_slot(limit_gb: float, args: list[str]) -> Path | None:
         finally:
             fcntl.flock(lock, fcntl.LOCK_UN)
         if time.time() - said > 300:
-            print(f"memguard: waiting for a slot ({len(caps)} jobs, {sum(caps):.0f} GB of caps running; "
-                  f"budget {MAX_JOBS} jobs / {BUDGET_GB:.0f} GB)", file=sys.stderr)
+            print(f"memguard: waiting for memory ({len(jobs)} jobs running hold {used:.1f} GB, caps {sum(c for _, c, _ in jobs):.0f} GB; "
+                  f"budget {BUDGET_GB:.0f} GB = held + this cap {limit_gb:g})", file=sys.stderr)
             said = time.time()
         time.sleep(5)
 
 
-def tree_rss_kb(root: int) -> int:
+def _ps_tree() -> tuple[dict, dict]:
     out = subprocess.run(["ps", "-Ao", "pid=,ppid=,rss="], capture_output=True, text=True).stdout
     kids, rss = {}, {}
     for line in out.splitlines():
@@ -113,12 +150,20 @@ def tree_rss_kb(root: int) -> int:
         pid, ppid, r = map(int, parts)
         kids.setdefault(ppid, []).append(pid)
         rss[pid] = r
+    return kids, rss
+
+
+def _tree_kb(root: int, kids: dict, rss: dict) -> int:
     total, stack = 0, [root]
     while stack:
         p = stack.pop()
         total += rss.get(p, 0)
         stack.extend(kids.get(p, []))
     return total
+
+
+def tree_rss_kb(root: int) -> int:
+    return _tree_kb(root, *_ps_tree())
 
 
 def main() -> int:
@@ -142,19 +187,29 @@ def main() -> int:
         return 2
     slot = _claim_slot(limit_gb, args) if wait else None
     try:
-        return _run(args, limit_gb, timeout_s)
+        return _run(args, limit_gb, timeout_s, slot)
     finally:
         if slot is not None:
             slot.unlink(missing_ok=True)
 
 
-def _run(args: list[str], limit_gb: float, timeout_s: float | None) -> int:
-    proc = subprocess.Popen(args, start_new_session=True)
-    peak = 0
+def _run(args: list[str], limit_gb: float, timeout_s: float | None, slot: Path | None = None) -> int:
     t0 = time.time()
+    env = dict(os.environ)
+    if timeout_s is not None:       # the job may stop itself cleanly before this (robot/body/checks/run.py does, 20 s ahead)
+        env["MEMGUARD_DEADLINE"] = f"{t0 + timeout_s:.1f}"
+    proc = subprocess.Popen(args, start_new_session=True, env=env)
+    peak, told = 0, 0.0
     while proc.poll() is None:
-        kb = tree_rss_kb(proc.pid)
+        kb = tree_rss_kb(proc.pid)             # the job's tree: what --limit-gb caps
         peak = max(peak, kb)
+        if slot is not None and time.time() - told > 5:     # the budget reads the peak after the warm-up
+            try:
+                d = json.loads(slot.read_text()); d["peak_gb"] = round(peak / 1048576, 3)
+                tmp = slot.with_suffix(".tmp"); tmp.write_text(json.dumps(d)); tmp.replace(slot)
+            except (OSError, ValueError):
+                pass
+            told = time.time()
         over_time = timeout_s is not None and time.time() - t0 > timeout_s
         if kb > limit_gb * 1024 * 1024 or over_time:
             why = (f"{time.time() - t0:.0f} s > {timeout_s:.0f} s timeout" if over_time

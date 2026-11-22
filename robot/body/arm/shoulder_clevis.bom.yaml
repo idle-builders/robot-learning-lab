@@ -1,0 +1,1059 @@
+# Cove-50 body definition for robot/body/arm/shoulder_clevis.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: shoulder-clevis
+owner: (set by the owning session)
+generators:
+- id: shoulder-clevis-cad
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/shoulder_clevis.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/actuators/interfaces/sources/feetech_sts3250.step
+  - artifacts/cove50-strength/complete-fdm-body-20261106/parts
+  - robot/body/checks/data/part_settings.json
+  - robot/body/checks/data/materials.json
+  outputs:
+  - artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json
+  - artifacts/robot/body/arm/shoulder-clevis/parts
+  resources:
+    timeout_s: 1800
+  notes: Shoulder U connectors and the STS3250 roll idler (B-rep), placed against the roll-flip body. Selected for Shoulder at f5dc4f036 (study
+    shoulder-roll-u-connectors).
+  after:
+  - shin-cover
+- id: shoulder-clevis-manifest
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/shoulder_clevis.py
+  - manifest
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - artifacts/robot/body/arm/shoulder-clevis/cad-manifest.json
+  outputs:
+  - artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json
+  - artifacts/robot/body/arm/shoulder-clevis/standing-overlaps.json
+  manifest_out: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json
+  resources:
+    timeout_s: 1800
+  notes: 'Applies the shoulder U connectors to the roll-flip body: per side a roll idler, generated M3x8 x4, M3x6 x4, M2x12 x4; removes the roll
+    case''s 4 PA2 and the two upper-arm cover posts with their M3 screws and nuts. body_manifest_chain in robot/design.json.'
+  after:
+  - shoulder-clevis-cad
+parts:
+- match: R_shoulder_pitch_to_roll_combined
+  kind: printed
+  line: print:R_shoulder_pitch_to_roll_combined
+  name: R_shoulder_pitch_to_roll_combined
+  make_buy: make
+  quantity: 1
+  generator: shoulder-clevis-cad
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - x
+    up: +x
+    material_alternatives:
+    - Bambu PETG-CF
+    up_source: 'designed (robot/body/arm/shoulder_clevis.py): the blue U is printed on its pitch-hub face (the horn side, x 82.625 on the R part),
+      up = +x (outward, along the pitch axis). Six axis directions compared with run.py --process up=... (overhang, bed, holes, walls; .cache/work/cad-speed/checks/shoulder-u-s1-up*):
+      +x is the only one with a flat bed face AND every bridge under the 40 mm limit (bed 478 mm2 one island, centre of mass 10.7 mm high; beyond-70-deg
+      area 728 mm2, mostly the bar underside 3.4 mm above the bed (short support), widest bridge 35.1 mm; support on mating faces 59 mm2; the
+      4 pitch sleeves stand vertical). Seeded -y: 611 mm2, 55.6 mm bridge over the limit at 41.6 mm height, 189 mm2 of support on the idler face;
+      +y the same mirrored; -x / -z no flat bed face; +z 449 mm2 but 9.8 mm2 bed contact (centre of mass outside it). FEM at h 1.2 (recovery,
+      PAHT-CF): layer normal x worst strength ratio 4.24 / layer ratio 6.04 vs y 4.16 / 5.56: no strength cost'
+  loadpath_slices:
+    axis: x
+    range_mm:
+    - 73.0
+    - 128.0
+    n_slices: 12
+  fem:
+    _doc: 'Arm stage 1 (R_shoulder_pitch_to_roll). Supports: the 4 pressed-in sleeve sites at the shoulder-pitch horn (the pitch C047 main horn;
+      the rear idler has no sleeve site on this part); load: the 4 sleeve sites at the roll C047 main horn (the old stage_interface_specs called
+      this interface the roll motor case; in today''s roll-flip body the sites touch the roll output horn, the roll case is on stage 2). Load
+      cases: the arm load envelope (load_cases_doc); the old ARM_LOAD_WRENCHES are the variant short_arm_wrenches. Sleeve sites come from the
+      sleeve companion part''s bores, so they follow the part. Regions: 304 steel collars 0.7 mm around every sleeve bore (0.25 mm beyond the
+      ends); no metal seat regions (the parts carry no metal inserts except the sleeves; the polymer under the Al servo cases is polymer). The
+      load patch is rigid (all its nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend
+      independently.'
+    mesh_h_mm: 1.2
+    origin_mm: load_centroid
+    materials:
+    - Bambu PAHT-CF
+    - Bambu PETG-CF
+    - legacy_fdm_PAHT_CF_dry
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+          r_extra_mm: 0.7
+          end_extra_mm: 0.25
+    supports:
+      pitch_horn:
+        holes:
+          of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+          mate:
+          - upper__R_pitch_C047_main_horn
+          gap_mm: 2.0
+          r_max_mm: 5.0
+          rim_mm: 2.0
+    load:
+      holes:
+        of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+        mate:
+        - upper__R_roll_C047_main_horn
+        gap_mm: 2.0
+        r_max_mm: 5.0
+        rim_mm: 2.0
+      rigid: true
+    load_cases:
+      manip_1p5kg_reach:
+        hand_envelope:
+          force_N: 14.71
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      support_4kg_1g:
+        hand_envelope:
+          force_N: 39.23
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      recovery_4kg_1p5g:
+        hand_envelope:
+          force_N: 58.84
+          hand_parts:
+          - R_palm_*
+          - R_left_finger
+          - R_right_finger
+          stage_link: R_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+    open_difference: 'Old arm numbers are history (owner 2026-11-18; the old arm fem_evaluate report is not in the tree, its sites were 12-48
+      mm off today''s parts), not reproduced; proven by fem_setup (patches on the sleeve sites, per-side / per-mate areas, 0 shared support/load
+      nodes) and mesh convergence on the roll-flip manifest (sha256 068f6436...). Load patch rigid (decision M-chnfz7: master-slave elimination
+      with a 6-DOF reference node at the load centroid, direct solve; the support is fixed = already rigid). Mesh convergence, change to the next
+      finer level (all cases, materials): 1.2: p99 -0.9..+4.1 % and displacement +6.3..+8.3 % to h 0.9 (2.2->1.6 +1.9..+5.5, 1.6->1.2 +5.3..+10.2).
+      At the stored h: recovery p99 196 MPa (strength ratio 0.45), peak 379, displacement 7.2 mm (9756 nodes). At the converged level the part
+      is overloaded for these cases (p99 above the strength reference in every case). Differences to the old script: wrench at the load patch
+      centroid; patches follow the sleeve bores next to the named mating parts; steel collars 0.7 mm around the sleeve bores; no metal seat regions
+      (M-vnzq43); default material Bambu datasheet. Today''s load sites touch the roll output horn (old: roll motor case); the pitch rear idler
+      has no sleeve site on this part.'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695
+      levels:
+      - h_from: '2.2'
+        h_to: '1.6'
+        p99_change_pct: +1.9..+5.5
+        peak_change_pct: -5.6..+21.0
+        max_displacement_change_pct: +4.0..+6.2
+      - h_from: '1.6'
+        h_to: '1.2'
+        p99_change_pct: +5.3..+10.2
+        peak_change_pct: -10.0..+73.0
+        max_displacement_change_pct: +9.6..+13.6
+      - h_from: '1.2'
+        h_to: '0.9'
+        p99_change_pct: -0.9..+4.1
+        peak_change_pct: -30.8..+5.8
+        max_displacement_change_pct: +6.3..+8.3
+      stored_h_rule: first level whose p99 change to the next finer level is < 5 % (all load cases x materials); the peak is one element and is
+        not part of the rule
+      stored_h_result: '1.2: p99 -0.9..+4.1 % and displacement +6.3..+8.3 % to h 0.9 (2.2->1.6 +1.9..+5.5, 1.6->1.2 +5.3..+10.2)'
+      converged: true
+    variants:
+      short_arm_wrenches:
+        load_cases:
+          manip_1p5kg_reach:
+            wrench_N_Nmm:
+            - 4.5
+            - -6.0
+            - -20.5
+            - 980.0
+            - 1450.0
+            - 340.0
+          support_4kg_1g:
+            wrench_N_Nmm:
+            - 8.0
+            - -12.0
+            - 39.23
+            - 1480.0
+            - 2150.0
+            - 460.0
+          recovery_4kg_1p5g:
+            wrench_N_Nmm:
+            - 16.0
+            - -20.0
+            - 58.84
+            - 2180.0
+            - 3150.0
+            - 680.0
+          heavy_6kg_1g:
+            wrench_N_Nmm:
+            - 20.0
+            - -24.0
+            - 58.84
+            - 2450.0
+            - 3480.0
+            - 780.0
+      any_direction:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+      cone_45:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+      shoulder_u:
+        _doc: 'Stage 1 as the owner''s blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json,
+          built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the
+          sleeve sites at the roll main horn AND at the new roll rear idler, one rigid load body, the idler''s sites with a free rotation about
+          the roll axis (free_rotation_about_joint): the STS3250 idler is a bearing that carries forces and off-axis moments but no roll torque,
+          so the roll torque goes through the horn arm. Variant shoulder_u_horn_only (idler carries nothing) is the harsh bound. Load cases =
+          the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.'
+        load:
+        - holes:
+            of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__R_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        - holes:
+            of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__R_roll_C047_rear_idler
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+          free_rotation_about_joint: R_shoulder_roll
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 0.9
+        convergence:
+          manifest: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build)
+          levels:
+          - h_from: '0.9'
+            h_to: '0.7'
+            nodes: 17649 -> 32677
+            p99_change_pct: +2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)
+            p99_layer_tension_change_pct: +1.5 (max)
+            max_displacement_change_pct: +5.4 (max)
+          earlier_geometry: 'the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
+          stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+          stored_h_result: '0.9'
+          converged: true
+          at_h_0p7: 'recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72
+            mm, 0 wrenches below 1'
+      shoulder_u_convergence:
+        _doc: 'Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.'
+        load:
+        - holes:
+            of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__R_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        - holes:
+            of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__R_roll_C047_rear_idler
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+          free_rotation_about_joint: R_shoulder_roll
+        materials:
+        - Bambu PAHT-CF
+        load_cases:
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - R_palm_*
+              - R_left_finger
+              - R_right_finger
+              stage_link: R_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 30.0
+      shoulder_u_horn_only:
+        _doc: 'Harsh bound of shoulder_u: only the roll horn''s sleeve sites carry the wrench (the idler carries nothing, not even forces). shoulder_u
+          models the idler as a bearing (free about the roll axis). Run with --fem-variant shoulder_u_horn_only.'
+        load:
+        - holes:
+            of: R_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__R_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 0.9
+    load_cases_doc: 'Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4
+      kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder
+      line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved
+      to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
+      the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
+      = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
+- match: R_shoulder_pitch_to_roll_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.4
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x2.4
+    name: 304 steel compression sleeve 4.5 x 3.3 x 2.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 2.4
+    supplier: unknown
+    part_number: unknown
+  generator: shoulder-clevis-cad
+  section: Shoulder
+- match: L_shoulder_pitch_to_roll_combined
+  kind: printed
+  line: print:L_shoulder_pitch_to_roll_combined
+  name: L_shoulder_pitch_to_roll_combined
+  make_buy: make
+  quantity: 1
+  generator: shoulder-clevis-cad
+  process:
+    printer: Bambu X2D
+    up: -x
+    material: Bambu PAHT-CF
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XZ Roll-Case Flange Bed (layer normal Y)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+y'': (8.0, 487.9), ''-y'': (205.8, 266.8)}; material from manifest text ''Bambu PAHT-CF / PA12-CF (1.22 g/cm3)
+      or PETG-CF (1.25 g/cm3)'''
+    seeded_keys:
+    - material
+    layer_normal_axes:
+    - x
+    up_source: 'designed (robot/body/arm/shoulder_clevis.py): the blue U is printed on its pitch-hub face (the horn side, x -82.625, mirror of
+      the R part), up = -x (outward, along the pitch axis). Six axis directions compared with run.py --process up=... (overhang, bed, holes, walls;
+      .cache/work/cad-speed/checks/shoulder-u-s1-up*): -x is the only one with a flat bed face AND every bridge under the 40 mm limit (bed 478
+      mm2 one island, centre of mass 10.7 mm high; beyond-70-deg area 728 mm2, mostly the bar underside 3.4 mm above the bed (short support),
+      widest bridge 35.1 mm; support on mating faces 59 mm2; the 4 pitch sleeves stand vertical). Seeded -y: 611 mm2, 55.6 mm bridge over the
+      limit at 41.6 mm height, 189 mm2 of support on the idler face; +y the same mirrored; -x / -z no flat bed face; +z 449 mm2 but 9.8 mm2 bed
+      contact (centre of mass outside it). FEM at h 1.2 (recovery, PAHT-CF): layer normal x worst strength ratio 4.24 / layer ratio 6.04 vs y
+      4.16 / 5.56: no strength cost'
+  fem:
+    mesh_h_mm: 1.2
+    origin_mm: load_centroid
+    materials:
+    - Bambu PAHT-CF
+    - Bambu PETG-CF
+    - legacy_fdm_PAHT_CF_dry
+    regions:
+    - material: Steel 304 sleeve
+      where:
+        bore_collars:
+          of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+          r_extra_mm: 0.7
+          end_extra_mm: 0.25
+    supports:
+      pitch_horn:
+        holes:
+          of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+          mate:
+          - upper__L_pitch_C047_main_horn
+          gap_mm: 2.0
+          r_max_mm: 5.0
+          rim_mm: 2.0
+    load:
+      holes:
+        of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+        mate:
+        - upper__L_roll_C047_main_horn
+        gap_mm: 2.0
+        r_max_mm: 5.0
+        rim_mm: 2.0
+      rigid: true
+    load_cases:
+      manip_1p5kg_reach:
+        hand_envelope:
+          force_N: 14.71
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      support_4kg_1g:
+        hand_envelope:
+          force_N: 39.23
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+      recovery_4kg_1p5g:
+        hand_envelope:
+          force_N: 58.84
+          hand_parts:
+          - L_palm_*
+          - L_left_finger
+          - L_right_finger
+          stage_link: L_shoulder_pitch_link
+          step_deg: 15.0
+          directions: 96
+          cone_deg: 30.0
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), clamp
+      axes mirrored, mesh size and materials as R. Checked by fem_setup on the left part; the R setup''s own _doc follows. Arm stage 1 (R_shoulder_pitch_to_roll).
+      Supports: the 4 pressed-in sleeve sites at the shoulder-pitch horn (the pitch C047 main horn; the rear idler has no sleeve site on this
+      part); load: the 4 sleeve sites at the roll C047 main horn (the old stage_interface_specs called this interface the roll motor case; in
+      today''s roll-flip body the sites touch the roll output horn, the roll case is on stage 2). Load cases: the arm load envelope (load_cases_doc);
+      the old ARM_LOAD_WRENCHES are the variant short_arm_wrenches. Sleeve sites come from the sleeve companion part''s bores, so they follow
+      the part. Regions: 304 steel collars 0.7 mm around every sleeve bore (0.25 mm beyond the ends); no metal seat regions (the parts carry no
+      metal inserts except the sleeves; the polymer under the Al servo cases is polymer). The load patch is rigid (all its nodes follow one rigid-body
+      motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend independently.'
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part
+      (see its open_difference). Left stress should match the R part within mesh noise.'
+    variants:
+      short_arm_wrenches:
+        load_cases:
+          manip_1p5kg_reach:
+            wrench_N_Nmm:
+            - -4.5
+            - -6.0
+            - -20.5
+            - 980.0
+            - -1450.0
+            - -340.0
+          support_4kg_1g:
+            wrench_N_Nmm:
+            - -8.0
+            - -12.0
+            - 39.23
+            - 1480.0
+            - -2150.0
+            - -460.0
+          recovery_4kg_1p5g:
+            wrench_N_Nmm:
+            - -16.0
+            - -20.0
+            - 58.84
+            - 2180.0
+            - -3150.0
+            - -680.0
+          heavy_6kg_1g:
+            wrench_N_Nmm:
+            - -20.0
+            - -24.0
+            - 58.84
+            - 2450.0
+            - -3480.0
+            - -780.0
+      any_direction:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+      cone_45:
+        load_cases:
+          manip_1p5kg_reach:
+            hand_envelope:
+              force_N: 14.71
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          support_4kg_1g:
+            hand_envelope:
+              force_N: 39.23
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 45.0
+      shoulder_u:
+        _doc: 'Stage 1 as the owner''s blue U (owner decisions 2026-11-20; candidate artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json,
+          built by robot/body/arm/shoulder_clevis.py): supports = the 4 sleeve sites at the pitch main horn (unchanged interface); load = the
+          sleeve sites at the roll main horn AND at the new roll rear idler, one rigid load body, the idler''s sites with a free rotation about
+          the roll axis (free_rotation_about_joint): the STS3250 idler is a bearing that carries forces and off-axis moments but no roll torque,
+          so the roll torque goes through the horn arm. Variant shoulder_u_horn_only (idler carries nothing) is the harsh bound. Load cases =
+          the arm load envelope of the main setup. Run with --manifest <candidate> --fem-variant shoulder_u.'
+        load:
+        - holes:
+            of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__L_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        - holes:
+            of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__L_roll_C047_rear_idler
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+          free_rotation_about_joint: L_shoulder_roll
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 0.9
+        convergence:
+          manifest: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build)
+          levels:
+          - h_from: '0.9'
+            h_to: '0.7'
+            nodes: 17649 -> 32677
+            p99_change_pct: +2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)
+            p99_layer_tension_change_pct: +1.5 (max)
+            max_displacement_change_pct: +5.4 (max)
+          earlier_geometry: 'the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
+          stored_h_rule: first level whose p99 change to the next finer level is < 5 %
+          stored_h_result: '0.9'
+          converged: true
+          at_h_0p7: 'recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72
+            mm, 0 wrenches below 1'
+      shoulder_u_convergence:
+        _doc: 'Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.'
+        load:
+        - holes:
+            of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__L_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        - holes:
+            of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__L_roll_C047_rear_idler
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+          free_rotation_about_joint: L_shoulder_roll
+        materials:
+        - Bambu PAHT-CF
+        load_cases:
+          recovery_4kg_1p5g:
+            hand_envelope:
+              force_N: 58.84
+              hand_parts:
+              - L_palm_*
+              - L_left_finger
+              - L_right_finger
+              stage_link: L_shoulder_pitch_link
+              step_deg: 15.0
+              directions: 96
+              cone_deg: 30.0
+      shoulder_u_horn_only:
+        _doc: 'Harsh bound of shoulder_u: only the roll horn''s sleeve sites carry the wrench (the idler carries nothing, not even forces). shoulder_u
+          models the idler as a bearing (free about the roll axis). Run with --fem-variant shoulder_u_horn_only.'
+        load:
+        - holes:
+            of: L_shoulder_pitch_to_roll_combined_steel_sleeves
+            mate:
+            - upper__L_roll_C047_main_horn
+            gap_mm: 2.0
+            r_max_mm: 5.0
+            rim_mm: 2.0
+          rigid: true
+        materials:
+        - Bambu PAHT-CF
+        - Bambu PETG-CF
+        mesh_h_mm: 0.9
+    load_cases_doc: 'Load cases (owner decision 2026-11-20): each case is a hand-tip force of the case magnitude (1.5 kg x 1 g, 4 kg x 1 g, 4
+      kg x 1.5 g; the old heavy_6kg_1g had the same 58.84 N as recovery and is the recovery envelope) within a +-30 deg push cone around the hand-to-shoulder
+      line, over every arm pose (15 deg grid over the manifest ranges), capped where a servo of the chain would pass its stall (motor map), moved
+      to the load centroid in the stage''s frame (checks/arm_loads.py). The fem check evaluates every wrench on the unit-wrench basis and reports
+      the distribution and the worst pose / direction. Variants: any_direction and cone_45 = stress context (not requirements); short_arm_wrenches
+      = the old hand-typed ARM_LOAD_WRENCHES (short arm, history).'
+  section: Shoulder
+- match: L_shoulder_pitch_to_roll_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x3.4
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.4
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.3x2.4
+    name: 304 steel compression sleeve 4.5 x 3.3 x 2.4 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.3
+      length_mm: 2.4
+    supplier: unknown
+    part_number: unknown
+  generator: shoulder-clevis-cad
+  section: Shoulder
+- match:
+  - upper__L_roll_C047_rear_idler
+  - upper__R_roll_C047_rear_idler
+  kind: included
+  line: servo-horns-idlers
+  name: Servo horns and idlers (supplied with each servo)
+  make_buy: included
+  quantity: 2
+  notes: Come in the servo box; listed so every CAD part has a line.
+  generator: shoulder-clevis-cad
+  section: Shoulder
+- match:
+  - L_shoulder_u_roll_horn_screw_0
+  - L_shoulder_u_roll_horn_screw_1
+  - L_shoulder_u_roll_horn_screw_2
+  - L_shoulder_u_roll_horn_screw_3
+  - R_shoulder_u_roll_horn_screw_0
+  - R_shoulder_u_roll_horn_screw_1
+  - R_shoulder_u_roll_horn_screw_2
+  - R_shoulder_u_roll_horn_screw_3
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+  section: Shoulder
+- match:
+  - L_shoulder_u_roll_idler_screw_0
+  - L_shoulder_u_roll_idler_screw_1
+  - L_shoulder_u_roll_idler_screw_2
+  - L_shoulder_u_roll_idler_screw_3
+  - R_shoulder_u_roll_idler_screw_0
+  - R_shoulder_u_roll_idler_screw_1
+  - R_shoulder_u_roll_idler_screw_2
+  - R_shoulder_u_roll_idler_screw_3
+  kind: hardware
+  line: hw:M3-x-6-ISO-7380-1
+  name: M3 x 6 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 6 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 6 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+  section: Shoulder
+- match:
+  - L_shoulder_u_roll_case_ny_screw_0
+  - L_shoulder_u_roll_case_ny_screw_1
+  - L_shoulder_u_roll_case_py_screw_0
+  - L_shoulder_u_roll_case_py_screw_1
+  - R_shoulder_u_roll_case_ny_screw_0
+  - R_shoulder_u_roll_case_ny_screw_1
+  - R_shoulder_u_roll_case_py_screw_0
+  - R_shoulder_u_roll_case_py_screw_1
+  kind: hardware
+  line: hw:M2-x-12-ISO-7380-1
+  name: M2 x 12 ISO 7380-1
+  make_buy: buy
+  quantity: 8
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 12.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: M2 x 12 ISO 7380-1
+  supplier: unknown
+  part_number: M2 x 12 ISO 7380-1
+  material: ISO 7380-1 M2x12 into STS3250.case+y.3 (aluminium)
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
+    form. Supplier: no repo source (unknown).'
+  generator: shoulder-clevis-cad
+  section: Shoulder
+assembly:
+  subassemblies:
+  - name: right_arm
+    plan:
+      links:
+      - R_shoulder_pitch_link
+      - R_shoulder_roll_link
+      - R_upper_arm
+      - R_forearm
+      - R_right_finger
+      - R_left_finger
+    doc: 'Right arm with hand, built in place on the torso''s shoulder pitch servo: shoulder U, roll / yaw servos, upper arm, elbow, forearm,
+      hand; covers last.'
+    after:
+    - torso
+  - name: left_arm
+    plan:
+      links:
+      - L_shoulder_pitch_link
+      - L_shoulder_roll_link
+      - L_upper_arm
+      - L_forearm
+      - L_right_finger
+      - L_left_finger
+      mirror_of: right_arm
+    doc: 'Left arm with hand: the mirror of right_arm (R_ <-> L_, x negated), extended where the sides differ.'
+    after:
+    - torso
+  steps:
+  - id: right_arm:p001
+    subassembly: right_arm
+    part:
+    - R_shoulder_pitch_to_roll_combined
+    - R_shoulder_pitch_to_roll_combined_steel_sleeves
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__R_pitch_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__R_pitch_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4309.4 -> 0.0 mm3'
+  - id: right_arm:s008
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_case_ny_screw_0
+    - R_shoulder_u_roll_case_ny_screw_1
+    direction: screw axis
+    after:
+    - right_arm:p007
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: right_arm:s009
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_case_py_screw_0
+    - R_shoulder_u_roll_case_py_screw_1
+    direction: screw axis
+    after:
+    - right_arm:s008
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: right_arm:p010
+    subassembly: right_arm
+    part: upper__R_roll_C047_rear_idler
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - right_arm:s009
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__R_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (R_shoulder_u_roll_idler_screw), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 41.5 -> 6.5 mm out, seat released True -> True, max overlap 1038.0 -> 473.3 mm3'
+  - id: right_arm:s011
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_idler_screw_0
+    - R_shoulder_u_roll_idler_screw_1
+    - R_shoulder_u_roll_idler_screw_2
+    - R_shoulder_u_roll_idler_screw_3
+    direction: screw axis
+    after:
+    - right_arm:p010
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_roll_C047_rear_idler; driver path vs placed parts
+  - id: right_arm:s016
+    subassembly: right_arm
+    screw:
+    - R_shoulder_u_roll_horn_screw_0
+    - R_shoulder_u_roll_horn_screw_1
+    - R_shoulder_u_roll_horn_screw_2
+    - R_shoulder_u_roll_horn_screw_3
+    direction: screw axis
+    after:
+    - right_arm:p015
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__R_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__R_roll_C047_main_horn blocked that screw's driver path, 476.051 mm3)
+  - id: left_arm:p001
+    subassembly: left_arm
+    part:
+    - L_shoulder_pitch_to_roll_combined
+    - L_shoulder_pitch_to_roll_combined_steel_sleeves
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
+    status: seeded
+    derived: 'graph order, fastened distance 1 from what is present (via upper__L_pitch_C047_case); direction: mean screw direction of 1 screw(s)
+      joining it to placed parts (upper__L_pitch_central_rocker_M3x6), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [-1.0, -0.0, -0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 4310.8 -> 0.0 mm3'
+  - id: left_arm:s008
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_case_ny_screw_0
+    - L_shoulder_u_roll_case_ny_screw_1
+    direction: screw axis
+    after:
+    - left_arm:p007
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: left_arm:s009
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_case_py_screw_0
+    - L_shoulder_u_roll_case_py_screw_1
+    direction: screw axis
+    after:
+    - left_arm:s008
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_shoulder_roll_to_yaw_combined; driver path vs placed parts
+  - id: left_arm:p010
+    subassembly: left_arm
+    part: upper__L_roll_C047_rear_idler
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - left_arm:s009
+    status: seeded
+    derived: 'graph order, fastened distance 3 from what is present (via upper__L_roll_C047_case); direction: mean screw direction of 4 screw(s)
+      joining it to placed parts (L_shoulder_u_roll_idler_screw), head to tip when the part carries the head, else reversed; direction searched
+      (six axes vs the seeded [0.0, -1.0, -0.001]): path contact 41.5 -> 6.5 mm out, seat released True -> True, max overlap 1037.9 -> 473.3 mm3'
+  - id: left_arm:s011
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_idler_screw_0
+    - L_shoulder_u_roll_idler_screw_1
+    - L_shoulder_u_roll_idler_screw_2
+    - L_shoulder_u_roll_idler_screw_3
+    direction: screw axis
+    after:
+    - left_arm:p010
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_roll_C047_rear_idler; driver path vs placed parts
+  - id: left_arm:s016
+    subassembly: left_arm
+    screw:
+    - L_shoulder_u_roll_horn_screw_0
+    - L_shoulder_u_roll_horn_screw_1
+    - L_shoulder_u_roll_horn_screw_2
+    - L_shoulder_u_roll_horn_screw_3
+    direction: screw axis
+    after:
+    - left_arm:p015
+    status: seeded
+    derived: 4 screw(s) whose joined parts are all placed after upper__L_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
+      part upper__L_roll_C047_main_horn blocked that screw's driver path, 464.326 mm3)

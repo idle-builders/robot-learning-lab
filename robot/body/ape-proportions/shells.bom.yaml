@@ -1,0 +1,79 @@
+# Cove-50 body definition for robot/body/ape-proportions/shells.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: ape-proportions-shells
+owner: (set by the owning session)
+generators:
+- id: shell-pass
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/ape-proportions/shells.py
+  - artifacts/robot/body/ape-proportions/assembly-parts.json
+  - artifacts/robot/body/ape-proportions/shell-pass
+  inputs:
+  - artifacts/robot/body/ape-proportions/assembly-parts.json
+  outputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - artifacts/robot/body/ape-proportions/shell-pass/parts
+  - artifacts/robot/body/ape-proportions/shell-pass/report.json
+  manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  resources:
+    limit_gb: 12
+    timeout_s: 3600
+  notes: 'Voxel sweep of the hip and ankle target ranges; the script''s docstring runs it under memguard --limit-gb 12 (not applied here: the
+    chain runs every step at the memguard default unless a step''s limit is approved). shells.py was modified 2026-11-15 06:47, after the selected
+    shell-pass manifest (06:44). 12 GB cap: at 6 GB memguard stopped build.py while gmsh meshed the hip pitch-to-roll sleeves STEP (2026-11-20);
+    shells.py documents 12 GB. Approved by the owner 2026-11-20.'
+  after:
+  - ape-proportions
+parts:
+- match: R_foot_boot_shell
+  kind: printed
+  line: print:R_foot_boot_shell
+  name: R_foot_boot_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+- match: L_foot_boot_shell
+  kind: printed
+  line: print:L_foot_boot_shell
+  name: L_foot_boot_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+assembly:
+  steps:
+  - id: right_leg:p049
+    subassembly: right_leg
+    part: R_foot_boot_shell
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
+    after:
+    - right_leg:p048
+    status: seeded
+    derived: 'graph order, fastened distance 63 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case,
+      R_foot_monocoque_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0
+      -> 38.5 mm out, seat released True -> True, max overlap 8439.9 -> 12986.6 mm3; moved before R_sensor_pocket_pad_v19 (it touched R_sensor_pocket_pad_v19
+      38.5 mm out, 12986.622 mm3); moved before R_mid_medial_sensor (it touched R_mid_medial_sensor 35.5 mm out, 10560.735 mm3)'
+  - id: left_leg:p049
+    subassembly: left_leg
+    part: L_foot_boot_shell
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
+    after:
+    - left_leg:p048
+    status: seeded
+    derived: 'mirror of right_leg p42 (R_ <-> L_, x negated): graph order, fastened distance 63 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_B13_C047_foot_roll_case, R_foot_monocoque_combined), snapped to the nearest axis; direction
+      searched (six axes vs the seeded [-0.0, 0.0, -1.0]): path contact 60.0 -> 38.5 mm out, seat released True -> True, max overlap 8945.1 ->
+      13392.6 mm3; moved before L_sensor_pocket_pad_v19 (it touched L_sensor_pocket_pad_v19 38.5 mm out, 13392.561 mm3); moved before L_mid_medial_sensor
+      (it touched L_mid_medial_sensor 35.5 mm out, 10728.712 mm3)'

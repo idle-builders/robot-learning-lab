@@ -62,6 +62,12 @@ def source_version(row, require_committed):
 
     Returns (commit, ISO commit date). Design sources must be committed first; other
     results record HEAD and mark uncommitted sources with a '+dirty' suffix."""
+    snap = (row.get("snapshot") or {}).get("commit")
+    if snap:
+        # built from a consistent snapshot (robot/body/bom/publish_body.py: definitions as committed at this commit, a manifest
+        # whose files hash-match): that commit is the version; uncommitted work elsewhere in the checkout is not in the record
+        commit = git_text("rev-parse", "--verify", f"{snap}^{{commit}}")
+        return commit, git_text("show", "-s", "--format=%cI", commit)
     paths = source_paths(row)
     for path in paths:
         if Path(path).is_absolute() or ".." in Path(path).parts or not (ROOT / path).exists():

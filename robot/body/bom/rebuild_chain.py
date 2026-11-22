@@ -1,16 +1,19 @@
 """Recreate the selected body manifest from scripts and inputs in an isolated copy, and compare it with the selected one.
 
-The ordered builder steps are data: robot/body/bom/chain.json. This script
+The ordered builder steps are derived from the body definitions (robot/**/<builder>.bom.yaml: each generator's command,
+inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed by the assembly check, the BOM, the bom
+check of the target (robot/design.json body_manifest) and the design-dashboard record written to a file
+(robot/body/bom/publish_body.py; the main checkout publishes it with `publish_body.py --publish`). This script
 
-  setup      makes WORK/repo: a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
+  setup [--commit REV]  makes WORK/repo (code from REV via git archive when given, else the working tree): a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
              .tools, ...), with .venv, .tools, data and .artifact-store linked from the main checkout, and an artifacts/
              tree in which every top-level folder and every artifacts/robot/* folder except body is a link to the main
-             checkout's, artifacts/robot/body/{arm,neck-head,torso} and the leg section outputs are links (read-only
-             inputs, chain.json section_inputs), and the folders the chain writes start empty. Scripts derive ROOT from
+             checkout's, the outputs of the section builders (generators with rebuild false) are links (read-only
+             inputs: outputs of the definitions' generators with rebuild false), and the folders the chain writes start empty. Scripts derive ROOT from
              __file__, so every output lands inside the copy.
   --dry-run  lists the steps and checks that every declared input resolves (on disk, through infra/storage/path-moves.json,
              or as a file an earlier step writes) without running anything.
-  --step ID  runs one step in the copy under infra/tools/memguard.py (waits while the heavy-job budget is full: 4 jobs or 24 GB of caps).
+  --step ID  runs one step in the copy under infra/tools/memguard.py (memguard waits for a slot in the heavy-job budget itself).
   run        runs every step from --from ID (default the first) in order and stops at the first failure.
   compare    compares the copy's manifests with the main checkout's live ones (the final one also records whether the
              selected manifest changed since the snapshot taken at setup): part names added / removed, native STEP and mesh sha256 (raw and content: STEP
@@ -43,7 +46,58 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-CHAIN = json.loads((Path(__file__).resolve().parent / "chain.json").read_text())
+MEMGUARD = dict(limit_gb=6, timeout_s=900)          # per-step default; a generator's `resources` override it
+
+
+def derived_chain():
+    """The rebuild as data, derived from the body definitions (robot/**/<builder>.bom.yaml, robot/body/bom/definitions.py):
+    generators with rebuild true in the order their declared inputs and outputs give; read-only section folders = outputs of
+    generators with rebuild false; produced folders = the shortest folder of each rebuild output under artifacts/robot/body
+    that neither holds nor lies in a read-only output; writable copies = their `writes_into`. Then the BOM tool's own steps on
+    the target (robot/design.json body_manifest): the assembly check, the BOM, the bom check, and the dashboard record
+    (robot/body/bom/publish_body.py --out; publishing happens from the main checkout with --publish)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import definitions as DEF
+    D = DEF.load()
+    order = D.generator_order()
+    ro = [o for g in D.generators if not g.get("rebuild", True) and not g.get("presentation") for o in g.get("outputs", []) if o.startswith("artifacts/")]
+    produced, copied, steps = [], [], []
+    for gid in order:
+        g = D.generator(gid)
+        steps.append(dict(id=gid, command=g["command"], inputs=g.get("inputs", []), outputs=g.get("outputs", []), in_place_edits=g.get("in_place_edits", []),
+                          manifest_out=g.get("manifest_out"), file=g["file"], **(g.get("resources") or {})))
+        for o in g.get("outputs", []):
+            parts = o.split("/")
+            for k in range(4, len(parts) + 1):
+                pre = "/".join(parts[:k])
+                if not pre.startswith("artifacts/robot/body/"):
+                    continue
+                if any(r == pre or r.startswith(pre + "/") or pre.startswith(r + "/") for r in ro):
+                    if not any(pre.startswith(r + "/") for r in ro):
+                        continue
+                    if any(r.startswith(pre + "/") or r == pre for r in ro):
+                        continue
+                if pre not in produced:
+                    produced.append(pre)
+                break
+        copied += [w for w in g.get("writes_into", []) if w not in copied]
+    target = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    M = ["--manifest", target]
+    steps += [dict(id="assembly-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "assembly", "--label", "assembly"],
+                   inputs=[target], outputs=[".cache/work/cad-speed/checks/assembly/report.json"], in_place_edits=[], manifest_out=None, timeout_s=1800, file="(BOM tool)"),
+              dict(id="bom", command=[".venv/bin/python", "-B", "robot/body/bom/build.py"] + M, inputs=[target], outputs=[".cache/work/bom"], in_place_edits=[],
+                   manifest_out=None, limit_gb=4, timeout_s=600, file="(BOM tool)"),
+              dict(id="bom-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "bom", "--label", "bom"],
+                   inputs=[target], outputs=[".cache/work/cad-speed/checks/bom/report.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=900, file="(BOM tool)"),
+              # the dashboard record of the selected body from the same definitions and these outputs; in the copy it is only
+              # written to a file (publish_body.py refuses --publish outside the main checkout): publish from main with --publish
+              dict(id="dashboard-record", command=[".venv/bin/python", "-B", "robot/body/bom/publish_body.py", "--manifest", target, "--out", ".cache/work/bom/dashboard-record.json"],
+                   inputs=[target], outputs=[".cache/work/bom/dashboard-record.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=600, file="(BOM tool)")]
+    return dict(target_manifest=target, memguard=MEMGUARD, steps=steps, findings=D.findings,
+                section_inputs=dict(linked_read_only=ro, produced_by_chain=produced, copied_writable=copied))
+
+
+CHAIN = derived_chain()
 WORK = Path(os.environ.get("BODY_REBUILD_WORK", ROOT / ".cache/work/body-rebuild"))
 REPO = WORK / "repo"
 RUNS = WORK / "runs.json"
@@ -74,7 +128,7 @@ def own_paths() -> tuple[list[str], list[str]]:
 
 
 def link_except(rel: str, produced: list[str], copied: list[str] = ()):
-    """Link ROOT/rel into the copy; when a chain output lies inside it (arm/shoulder-clevis inside arm), make rel a real
+    """Link ROOT/rel into the copy; when a chain output lies inside it (a produced folder inside a section folder), make rel a real
     folder and link its children one by one: a produced path starts empty, a copied path as a copy, so no step can
     write through a link into the main checkout."""
     mine = [q for q in list(produced) + list(copied) if q.startswith(rel + "/")]
@@ -102,10 +156,16 @@ def link_except(rel: str, produced: list[str], copied: list[str] = ()):
             (REPO / q).mkdir(parents=True, exist_ok=True)
 
 
-def setup():
+def setup(commit=None):
     WORK.mkdir(parents=True, exist_ok=True)
     REPO.mkdir(parents=True, exist_ok=True)
-    cmd = ["rsync", "-a", "--delete"] + [f"--exclude={e}" for e in RSYNC_EXCLUDE] + [f"{ROOT}/", f"{REPO}/"]
+    src = ROOT
+    if commit:      # the copy's code and data from a git commit, not from the working tree (other sessions' edits stay out)
+        src = WORK / "commit-export"
+        shutil.rmtree(src, ignore_errors=True); src.mkdir(parents=True)
+        arch = subprocess.run(["git", "-C", str(ROOT), "archive", "--format=tar", commit], capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-x", "-C", str(src)], input=arch, check=True)
+    cmd = ["rsync", "-a", "--delete"] + [f"--exclude={e}" for e in RSYNC_EXCLUDE] + [f"{src}/", f"{REPO}/"]
     # keep the artifacts tree and caches made inside the copy across re-syncs
     cmd[3:3] = ["--filter=P /artifacts/", "--filter=P /.cache/"] + [f"--filter=P /{n}" for n in LINK_TOP]
     sh(cmd)
@@ -128,10 +188,10 @@ def setup():
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     if not SNAPSHOT.exists():
         shutil.copy2(ROOT / CHAIN["target_manifest"], SNAPSHOT)
-    rec = dict(time=time.strftime("%Y-%m-%dT%H:%M:%S%z"), git_head=sh(["git", "-C", str(ROOT), "rev-parse", "HEAD"]).strip(),
+    rec = dict(time=time.strftime("%Y-%m-%dT%H:%M:%S%z"), code_from=commit or "working tree", git_head=sh(["git", "-C", str(ROOT), "rev-parse", "HEAD"]).strip(),
                git_status_lines=len(sh(["git", "-C", str(ROOT), "status", "--porcelain"]).splitlines()),
                selected_snapshot=str(SNAPSHOT.relative_to(ROOT)), selected_snapshot_sha256=sha(SNAPSHOT),
-               chain_sha256=sha(Path(__file__).resolve().parent / "chain.json"),
+               definitions_sha256={str(f.relative_to(ROOT)): sha(f) for f in __import__("definitions").discover()},
                linked=LINK_TOP + CHAIN["section_inputs"]["linked_read_only"])
     (WORK / "setup.json").write_text(json.dumps(rec, indent=1) + "\n")
     print(json.dumps(rec, indent=1))
@@ -163,11 +223,16 @@ def resolve(root: Path, rel: str) -> Path | None:
 
 def dry_run():
     root = REPO if REPO.exists() else ROOT
+    for f in CHAIN["findings"]:
+        print(f"definition finding: {f['kind']} {f['file']} {f['entry']}: {f['what']}")
+    print("read-only section outputs:", CHAIN["section_inputs"]["linked_read_only"])
+    print("produced in the copy:", CHAIN["section_inputs"]["produced_by_chain"])
+    print("copied writable:", CHAIN["section_inputs"]["copied_writable"])
     produced = set()
     bad = 0
     print(f"root: {root}")
     for i, s in enumerate(CHAIN["steps"], 1):
-        print(f"{i:2d}. {s['id']}: {' '.join(s['command'])}")
+        print(f"{i:2d}. {s['id']} ({s.get('file')}): {' '.join(s['command'])}")
         for rel in s["inputs"]:
             r = resolve(root, rel)
             state = "on disk" if r else ("written by an earlier step" if any(rel == o or rel.startswith(o + "/") for o in produced) else "MISSING")
@@ -208,10 +273,9 @@ def load_runs():
 
 def run_step(sid: str) -> int:
     s = next(x for x in CHAIN["steps"] if x["id"] == sid)
-    t_wait = time.time()
-    while budget_full(float(s.get("limit_gb", CHAIN["memguard"]["limit_gb"]))):
-        time.sleep(15)
-    waited = time.time() - t_wait
+    # memguard itself waits for a slot in the shared budget (registry ~/.cache/memguard, real jobs only); a wait loop here
+    # counted every waiting memguard wrapper as a running job and never started under load (2026-11-22)
+    waited = 0.0
     mg = CHAIN["memguard"]
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(s.get("limit_gb", mg["limit_gb"])),
            "--timeout-s", str(s.get("timeout_s", mg["timeout_s"])), "--"] + s["command"]
@@ -317,10 +381,7 @@ def bounds_diff(a, b):
 
 
 def kind(p):
-    sys.path.insert(0, str(ROOT / "robot/body/bom"))
-    import inventory
-    return inventory.kind_of(p)
-
+    return p.get("role") or "unknown"
 
 def compare_manifests(path_a: Path, root_a: Path, path_b: Path, root_b: Path):
     """a = reference (main checkout / selected), b = rebuilt (copy)."""
@@ -378,7 +439,7 @@ def compare():
         seen.add(m)
         # against the main checkout's live file: the chain never writes there (setup makes every chain output a folder
         # of the copy), and the selected body moves while a run takes an hour (2026-11-20: the setup snapshot of the
-        # shoulder-U body was 2 h older than main's and showed 59 stale differences). The snapshot's sha stays recorded.
+        # selected body was 2 h older than main's and showed 59 stale differences). The snapshot's sha stays recorded.
         ref = ROOT / m
         if ref.exists():
             out["manifests"][m] = compare_manifests(ref, ROOT, REPO / m, REPO)
@@ -408,13 +469,14 @@ if __name__ == "__main__":
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--step")
     ap.add_argument("--from", dest="start")
+    ap.add_argument("--commit", help="setup: take the copy's code and definitions from this git commit (e.g. HEAD), not the working tree")
     a = ap.parse_args()
     if a.dry_run:
         sys.exit(1 if dry_run() else 0)
     if a.step:
         sys.exit(run_step(a.step))
     if a.action == "setup":
-        setup()
+        setup(a.commit)
     elif a.action == "run":
         sys.exit(run_all(a.start))
     elif a.action == "compare":
