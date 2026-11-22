@@ -1,8 +1,9 @@
 """Recreate the selected body manifest from scripts and inputs in an isolated copy, and compare it with the selected one.
 
 The ordered builder steps are derived from the body definitions (robot/**/<builder>.bom.yaml: each generator's command,
-inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed by the assembly check, the BOM and the bom
-check of the target (robot/design.json body_manifest). This script
+inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed by the assembly check, the BOM, the bom
+check of the target (robot/design.json body_manifest) and the design-dashboard record written to a file
+(robot/body/bom/publish_body.py; the main checkout publishes it with `publish_body.py --publish`). This script
 
   setup      makes WORK/repo: a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
              .tools, ...), with .venv, .tools, data and .artifact-store linked from the main checkout, and an artifacts/
@@ -53,7 +54,8 @@ def derived_chain():
     generators with rebuild true in the order their declared inputs and outputs give; read-only section folders = outputs of
     generators with rebuild false; produced folders = the shortest folder of each rebuild output under artifacts/robot/body
     that neither holds nor lies in a read-only output; writable copies = their `writes_into`. Then the BOM tool's own steps on
-    the target (robot/design.json body_manifest): the assembly check, the BOM, the bom check."""
+    the target (robot/design.json body_manifest): the assembly check, the BOM, the bom check, and the dashboard record
+    (robot/body/bom/publish_body.py --out; publishing happens from the main checkout with --publish)."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import definitions as DEF
     D = DEF.load()
@@ -86,7 +88,11 @@ def derived_chain():
               dict(id="bom", command=[".venv/bin/python", "-B", "robot/body/bom/build.py"] + M, inputs=[target], outputs=[".cache/work/bom"], in_place_edits=[],
                    manifest_out=None, limit_gb=4, timeout_s=600, file="(BOM tool)"),
               dict(id="bom-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "bom", "--label", "bom"],
-                   inputs=[target], outputs=[".cache/work/cad-speed/checks/bom/report.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=900, file="(BOM tool)")]
+                   inputs=[target], outputs=[".cache/work/cad-speed/checks/bom/report.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=900, file="(BOM tool)"),
+              # the dashboard record of the selected body from the same definitions and these outputs; in the copy it is only
+              # written to a file (publish_body.py refuses --publish outside the main checkout): publish from main with --publish
+              dict(id="dashboard-record", command=[".venv/bin/python", "-B", "robot/body/bom/publish_body.py", "--manifest", target, "--out", ".cache/work/bom/dashboard-record.json"],
+                   inputs=[target], outputs=[".cache/work/bom/dashboard-record.json"], in_place_edits=[], manifest_out=None, limit_gb=4, timeout_s=600, file="(BOM tool)")]
     return dict(target_manifest=target, memguard=MEMGUARD, steps=steps, findings=D.findings,
                 section_inputs=dict(linked_read_only=ro, produced_by_chain=produced, copied_writable=copied))
 

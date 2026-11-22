@@ -55,6 +55,7 @@ class Definitions:
         validator = jsonschema.Draft202012Validator(schema)
         self.files, self.findings = [], []
         self.generators, self.entries, self.steps, self.subassemblies = [], [], [], {}
+        self.studies = {}                # study_id -> dict(study block, file, definition): dashboard metadata (publish_body.py)
         for rank, p in enumerate(paths if paths is not None else discover()):
             f = rel(p)
             try:
@@ -82,6 +83,12 @@ class Definitions:
                 self.subassemblies[sa["name"]] = dict(sa, file=f)
             for i, st in enumerate(asm.get("steps", [])):
                 self.steps.append(dict(st, file=f, index=i, rank=rank))
+            if doc.get("study"):
+                sid = doc["study"]["study_id"]
+                if sid in self.studies:
+                    self.find("study_declared_twice", f, sid, f"also declared in {self.studies[sid]['file']}")
+                else:
+                    self.studies[sid] = dict(doc["study"], file=f, definition=doc["definition"])
         seen = {}
         for g in self.generators:
             if g["id"] in seen:

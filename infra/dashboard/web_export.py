@@ -152,6 +152,9 @@ class Index:
                 add(asset["path"], asset.get("sha256"))
                 kept.append(asset)
         payload = {k: v for k, v in result.items() if k not in {"assets", "clips", "versions"}}
+        # A generated body view (robot/body/bom/publish_body.py) names every part's STEP / mesh and each generator's
+        # manifest as text for people; the viewer opens none of them, so they are not design files to upload.
+        payload["sections"] = [s for s in payload.get("sections") or [] if (s.get("payload") or {}).get("kind") != "body_view"]
         for path in sorted(set(referenced_paths(payload)) - {a["path"] for a in kept}):
             if path.endswith((".json", ".glb")):
                 add(path, None)
