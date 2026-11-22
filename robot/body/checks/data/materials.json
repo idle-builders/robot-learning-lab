@@ -1,5 +1,5 @@
 {
- "_doc": "Material table, manufacturer standard datasheet values (owner decision 2026-11-18: material is a per-part setting; parts may differ). density in g/cm3. nozzle_mm_default = manufacturer recommendation. 'legacy_paht_cf_fast_check' reproduces the old fast_check mass numbers only; it is not a default. 'fem' = elastic constants and reference strengths for the FEM check: orthotropic FDM {E_inplane_MPa, E_layer_MPa, G_MPa, nu, tensile_XY_MPa, tensile_Z_layer_MPa} (the layer-normal axis is a per-part setting) or isotropic {E_MPa, nu, reference_strength_MPa}. Datasheet entries (Bambu ...) are the standard; legacy_* entries reproduce numbers of the old per-study FEM tables and are named so they are never picked by accident. For the Bambu data sheets G and nu are not published: nu 0.35 (as the legacy FDM sets) and G = E_inplane / (2 (1 + nu)) are our assumptions. 'print' = manufacturer printing limits and thermal values from the same data sheets (temperatures in C, overhang angle as the data sheet states it (its angle convention is fixed by the overhang check), bridge length mm, HDT at 0.45 / 1.8 MPa): the printability checks read them, so a material change or a run override (--process material=...) changes every result that depends on it. bambu_studio_filament: the Bambu Studio system filament profile per nozzle for the slicer check.",
+ "_doc": "Material table, manufacturer standard datasheet values (owner decision 2026-11-18: material is a per-part setting; parts may differ). density in g/cm3. nozzle_mm_default = manufacturer recommendation. 'legacy_paht_cf_fast_check' reproduces the old fast_check mass numbers only; it is not a default. 'fem' = elastic constants and reference strengths for the FEM check: orthotropic FDM {E_inplane_MPa, E_layer_MPa, G_MPa, nu, tensile_XY_MPa, tensile_Z_layer_MPa} (the layer-normal axis is a per-part setting) or isotropic {E_MPa, nu, reference_strength_MPa}. Datasheet entries (Bambu ...) are the standard; legacy_* entries reproduce numbers of the old per-study FEM tables and are named so they are never picked by accident. For the Bambu data sheets G and nu are not published: nu 0.35 (as the legacy FDM sets) and G = E_inplane / (2 (1 + nu)) are our assumptions. 'print' = manufacturer printing limits and thermal values from the same data sheets (temperatures in C, overhang angle as the data sheet states it (its angle convention is fixed by the overhang check), bridge length mm, HDT at 0.45 / 1.8 MPa): the printability checks read them, so a material change or a run override (--process material=...) changes every result that depends on it. bambu_studio_filament: the Bambu Studio system filament profile per nozzle for the slicer check. Optional per entry: 'impact_charpy_kJ_m2' {xy_unnotched, xy_notched, z} (ISO 179 as the data sheet states it), 'elongation_break_pct' [X-Y, Z] (ISO 527), print.vicat_C (ISO 306) and print.water_absorption_pct (saturated, 25 C 55 % RH); context for material choices, no check reads them yet. Bambu ABS is the body shell material (2026-11-22, compared against PETG Basic / HF, PETG-CF, ASA, PC and PolyMide CoPA on these data sheet values; the comparison is in the commit that added it).",
  "Bambu PAHT-CF": {
   "density_g_cm3": 1.06,
   "nozzle_mm_default": 0.6,
@@ -94,12 +94,150 @@
    "bending_XY_Z_MPa": [
     83,
     62
-   ]
+   ],
+   "vicat_C": 85,
+   "water_absorption_pct": 0.3
   },
   "bambu_studio_filament": {
    "0.4": "Bambu PETG-CF @BBL X2D 0.4 nozzle",
    "0.6": "Bambu PETG-CF @BBL X2D",
    "0.8": "Bambu PETG-CF @BBL X2D 0.8 nozzle"
+  },
+  "impact_charpy_kJ_m2": {
+   "xy_unnotched": 41.2,
+   "xy_notched": 15.7,
+   "z": 10.7
+  },
+  "elongation_break_pct": [
+   10.4,
+   4.7
+  ]
+ },
+ "Bambu PETG Basic": {
+  "density_g_cm3": 1.25,
+  "nozzle_mm_default": 0.4,
+  "nozzle_note": "0.4 / 0.6 / 0.8 (data sheet); Bambu Studio 2.8.2 also has a 0.2 X2D profile",
+  "source": "Bambu Lab PETG Basic Technical Data Sheet V2.0 (manufacturer document, read from the reseller copy https://www.additive-x.com/shop/mpattachments/file/viewonline/id/580/product_id/2330, 2026-11-22); reference for the body shell material choice",
+  "fem": {
+   "E_inplane_MPa": 1460.0,
+   "E_layer_MPa": 1120.0,
+   "G_MPa": 541,
+   "nu": 0.35,
+   "tensile_XY_MPa": 48.0,
+   "tensile_Z_layer_MPa": 39.0
+  },
+  "fem_source": "same data sheet: Young's modulus X-Y 1460 +- 190 / Z 1120 +- 130 MPa, tensile X-Y 48 / Z 39 MPa (ISO 527); G, nu assumed as for the other Bambu entries",
+  "print": {
+   "nozzle_temp_C": [
+    240,
+    270
+   ],
+   "bed_temp_C": [
+    65,
+    75
+   ],
+   "chamber_temp_C": [
+    35,
+    50
+   ],
+   "nozzles_mm": [
+    0.4,
+    0.6,
+    0.8
+   ],
+   "max_overhang_deg": 70,
+   "max_bridge_mm": 30,
+   "drying": "65 C, 8 h; below 20 % RH (sealed, with desiccant)",
+   "hdt_C_045_18MPa": [
+    69,
+    65
+   ],
+   "glass_transition_C": 68,
+   "vicat_C": 78,
+   "water_absorption_pct": 0.32,
+   "bending_XY_Z_MPa": [
+    81,
+    64
+   ]
+  },
+  "impact_charpy_kJ_m2": {
+   "xy_unnotched": 52.7,
+   "xy_notched": 21.6,
+   "z": 13.6
+  },
+  "elongation_break_pct": [
+   11.2,
+   5.7
+  ],
+  "bambu_studio_filament": {
+   "0.2": "Bambu PETG Basic @BBL X2D 0.2 nozzle",
+   "0.4": "Bambu PETG Basic @BBL X2D 0.4 nozzle",
+   "0.6": "Bambu PETG Basic @BBL X2D",
+   "0.8": "Bambu PETG Basic @BBL X2D 0.8 nozzle"
+  }
+ },
+ "Bambu ABS": {
+  "density_g_cm3": 1.05,
+  "nozzle_mm_default": 0.4,
+  "nozzle_note": "the data sheet names no nozzle size; Bambu Studio 2.8.2 has X2D system profiles for 0.2 / 0.4 / 0.6 / 0.8; 0.4 chosen for the 2.1 mm body shells (5 lines of 0.42); no hardened nozzle needed (unfilled)",
+  "source": "Bambu Lab ABS Technical Data Sheet V2.0 (manufacturer document, read from the reseller copy https://www.additive-x.com/shop/mpattachments/file/viewonline/id/566/product_id/2315, 2026-11-22; the Bambu store and wiki refuse automated reads)",
+  "fem": {
+   "E_inplane_MPa": 3800.0,
+   "E_layer_MPa": 2960.0,
+   "G_MPa": 1407,
+   "nu": 0.35,
+   "tensile_XY_MPa": 41.0,
+   "tensile_Z_layer_MPa": 32.0
+  },
+  "fem_source": "same data sheet (dry state): Young's modulus X-Y 3800 +- 190 / Z 2960 +- 110 MPa (ISO 527; the bending modulus there is 1880 / 1590 MPa), tensile X-Y 41 / Z 32 MPa; G, nu assumed as for the other Bambu entries",
+  "print": {
+   "nozzle_temp_C": [
+    240,
+    270
+   ],
+   "bed_temp_C": [
+    80,
+    100
+   ],
+   "chamber_temp_C": [
+    45,
+    60
+   ],
+   "nozzles_mm": [
+    0.2,
+    0.4,
+    0.6,
+    0.8
+   ],
+   "max_overhang_deg": 70,
+   "max_bridge_mm": 40,
+   "drying": "80 C, 8 h; print and store below 20 % RH (sealed, with desiccant); PVP glue on Engineering / High Temperature / Textured PEI plate; cooling fan 0-80 %",
+   "hdt_C_045_18MPa": [
+    87,
+    84
+   ],
+   "glass_transition_C": null,
+   "vicat_C": 94,
+   "water_absorption_pct": 0.65,
+   "bending_XY_Z_MPa": [
+    68,
+    45
+   ]
+  },
+  "impact_charpy_kJ_m2": {
+   "xy_unnotched": 39.3,
+   "xy_notched": 21.5,
+   "z": 7.4
+  },
+  "elongation_break_pct": [
+   10.5,
+   4.7
+  ],
+  "bambu_studio_filament": {
+   "0.2": "Bambu ABS @BBL X2D 0.2 nozzle",
+   "0.4": "Bambu ABS @BBL X2D 0.4 nozzle",
+   "0.6": "Bambu ABS @BBL X2D",
+   "0.8": "Bambu ABS @BBL X2D 0.8 nozzle"
   }
  },
  "legacy_paht_cf_fast_check": {

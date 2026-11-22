@@ -3244,6 +3244,11 @@ def build_complete_assembly() -> dict:
     # ==========================================================================
     # 8. RENDER HIGH-RESOLUTION ENGINEERING FIGURES
     # ==========================================================================
+    if "--no-renders" in sys.argv:
+        # presentation figures only (renders/): no generator reads them; the body rebuild runs the data at its own size
+        # (the render phase holds every mesh in mm plus a posed copy per panel: 10.4 GB peak on 747 rows, 2026-11-22)
+        print(f"Completed Complete Cove-50 FDM Ape Body build and verification (renders skipped) in {time.monotonic() - t0:.2f}s")
+        return verification_report
     print("Rendering high-resolution whole-body Z-buffer and engineering figures...")
     wb_box = [[-210.0, -140.0, -5.0], [210.0, 140.0, 495.0]]
 

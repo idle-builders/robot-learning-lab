@@ -5,7 +5,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 
-export function createCadViewer(host, label, parts = [], {bodyPanelOpacity, hiddenReferenceParts = []} = {}) {
+export function createCadViewer(host, label, parts = [], {bodyPanelOpacity, hiddenReferenceParts = [], describe = null} = {}) {
   const scene = new THREE.Scene(); scene.background = new THREE.Color('#e9ede6');
   const camera = new THREE.PerspectiveCamera(40, 1, .00001, 100); camera.up.set(0, 0, 1);
   const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -178,8 +178,17 @@ export function createCadViewer(host, label, parts = [], {bodyPanelOpacity, hidd
     const p = hit ? partInfo(hit.object) : null;
     highlight(p?.name); selectedPart = p || null;
     host.dispatchEvent(new CustomEvent('cad-part-selected', {bubbles:true, detail:{name:p?.name || null}}));
-    label.textContent = p ? `${p.name} · ${p.role || 'part'}${p.material ? ' · '+p.material : ''}` : hit ? `Part: ${hit.object.name || hit.object.parent?.name || 'unnamed mesh'}` : navigationHint();
+    label.textContent = p ? partLabel(p) : hit ? `Part: ${hit.object.name || hit.object.parent?.name || 'unnamed mesh'}` : navigationHint();
   });
+  // describe(part) (optional): the label of a selected part, e.g. its BOM line and assembly step from a body view.
+  const partLabel = p => describe?.(p) || `${p.name} · ${p.role || 'part'}${p.material ? ' · '+p.material : ''}`;
+  // Select a part by name (from a BOM row or a part view): highlight it and tell the panels, as a click would.
+  function select(name) {
+    const p = name ? metadata.get(THREE.PropertyBinding.sanitizeNodeName(name)) : null;
+    highlight(p?.name || null); selectedPart = p || null;
+    host.dispatchEvent(new CustomEvent('cad-part-selected', {bubbles:true, detail:{name:p?.name || null}}));
+    label.textContent = p ? partLabel(p) : navigationHint();
+  }
   // One rendered frame plus the frozen camera, for an annotated feedback snapshot.
   // pick(x, y) takes 0..1 canvas coordinates and returns the visible part there.
   function snapshot() {
@@ -206,7 +215,7 @@ export function createCadViewer(host, label, parts = [], {bodyPanelOpacity, hidd
   }
   function tick() {if (!active) return; requestAnimationFrame(tick); if (host.offsetParent !== null) {controls.update(); renderer.render(scene,camera);}}
   resize(); tick();
-  return {load, fit, shells, references, overlay, explode, section, isolate, navigation, snapshot,
+  return {load, fit, shells, references, overlay, explode, section, isolate, select, navigation, snapshot,
     rig(data, options) {
       if (!model) return null; undoExplosion();
       const native = createJointRig(model, data, options); applyExplosion();

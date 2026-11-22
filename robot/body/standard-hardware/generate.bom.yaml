@@ -1,0 +1,13 @@
+# Cove-50 body definition for robot/body/standard-hardware/generate.py (schema robot/body/bom/schema.json).
+# Generates STEP / STL of every part a definition declares as standard hardware (spec kind screw / nut / washer / spacer),
+# from the declared spec, at the placement measured on its mesh. Derived output only (.cache): not part of the body rebuild.
+schema: cove50-body-definition/1
+definition: standard-hardware
+owner: BOM / hardware (T-ghvncz)
+generators:
+- id: standard-hardware
+  command: [.venv/bin/python, -B, robot/body/standard-hardware/generate.py]
+  rebuild: false
+  inputs: [robot/design.json]
+  outputs: [.cache/work/bom-hardware]
+  notes: Reads the declared specs through robot/body/bom/definitions.py; propose_specs.py next to it drafts specs from names and meshes for definition authors.

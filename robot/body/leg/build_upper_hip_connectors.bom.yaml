@@ -1,0 +1,1489 @@
+# Cove-50 body definition for robot/body/leg/build_upper_hip_connectors.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: build-upper-hip-connectors
+owner: (set by the owning session)
+generators:
+- id: roll-flip-cad
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/build_upper_hip_connectors.py
+  - --roll-flip
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - robot/body/fastening/connector_screws.json
+  - robot/body/checks/data/part_settings.json
+  - robot/body/checks/data/materials.json
+  outputs:
+  - artifacts/robot/body/leg/roll-flip/cad-manifest.json
+  - artifacts/robot/body/leg/roll-flip/parts
+  notes: New Stage 4 / Stage 5 roll-flip connectors (B-rep) and sleeves; imports the thigh shell's SURF skin from robot/body/leg/thigh_shell.py.
+  after:
+  - shell-pass
+parts:
+- match: R_shin_combined
+  kind: printed
+  line: print:R_shin_combined
+  name: R_shin_combined
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    up: +x
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''YZ Cheek / Oblique Bed (layer normal Z/X)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+z'': (31.2, 1328.4), ''-z'': (8.4, 1439.0), ''+x'': (1215.8, 1472.9), ''-x'': (1129.6, 1557.3)}; SIGN AMBIGUOUS'
+    seeded_keys:
+    - up
+  fem:
+    _doc: 'Motor-refit shin (stage 1). Supports: both knee cheeks, i.e. the part''s surface within 2.8-11.2 mm of the knee joint axis (the old
+      bolt circle) on each side of the knee servo output; load: the shin holes next to the ankle servo case it carries. Migrated from motor-refit/fem_refit.py
+      PARTS[''shin''] (refit manifest frame = r1 frame + 4 mm in x).'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: R_shin_combined_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_knee
+      offset_mm:
+      - 0.25
+      - 0.0
+      - -42.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    supports:
+      knee_cheek_low:
+        axis_band:
+          joint: R_knee
+          r_mm:
+          - 2.8
+          - 11.2
+          mate: R_knee_ST3025_output
+          side: low
+      knee_cheek_high:
+        axis_band:
+          joint: R_knee
+          r_mm:
+          - 2.8
+          - 11.2
+          mate: R_knee_ST3025_output
+          side: high
+    load:
+      holes:
+        mate:
+        - R_ankle_pitch_ST3025_case
+        gap_mm: 2.0
+        r_max_mm: 2.0
+        rim_mm: 2.3
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 1569.0
+        - 588.0
+        - 120.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 18.0
+        - -24.0
+        - 58.84
+        - 2350.0
+        - 1180.0
+        - 420.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 13.5
+        - -18.0
+        - 44.13
+        - 1762.5
+        - 885.0
+        - 315.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 27.0
+        - -36.0
+        - 88.26
+        - 3525.0
+        - 1770.0
+        - 630.0
+      servo_stall:
+        stall:
+          joint: R_knee
+          torque_Nmm: 3922.7
+    variants:
+      legacy_coordinates:
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 116.0
+              - - 4.0
+                - 130.0
+              - - -3.0
+                - 123.0
+              - - 11.0
+                - 123.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                min: 89.0
+          idler:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 4.0
+                - 116.0
+              - - 4.0
+                - 130.0
+              - - -3.0
+                - 123.0
+              - - 11.0
+                - 123.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                max: 39.5
+        load:
+        - rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - 7.68
+              - 88.17
+            - - 0.32
+              - 88.17
+            - - 11.17
+              - 84.68
+            - - -3.17
+              - 84.68
+            - - 12.0
+              - 89.0
+            - - -4.0
+              - 89.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              max: 44.0
+        - rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - 7.68
+              - 88.17
+            - - 0.32
+              - 88.17
+            - - 11.17
+              - 84.68
+            - - -3.17
+              - 84.68
+            - - 12.0
+              - 89.0
+            - - -4.0
+              - 89.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              min: 83.0
+      band_supports_legacy_load:
+        supports:
+          knee_cheek_low:
+            axis_band:
+              joint: R_knee
+              r_mm:
+              - 2.8
+              - 11.2
+              mate: R_knee_ST3025_output
+              side: low
+          knee_cheek_high:
+            axis_band:
+              joint: R_knee
+              r_mm:
+              - 2.8
+              - 11.2
+              mate: R_knee_ST3025_output
+              side: high
+        load:
+        - rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - 7.68
+              - 88.17
+            - - 0.32
+              - 88.17
+            - - 11.17
+              - 84.68
+            - - -3.17
+              - 84.68
+            - - 12.0
+              - 89.0
+            - - -4.0
+              - 89.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              max: 44.0
+        - rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - 7.68
+              - 88.17
+            - - 0.32
+              - 88.17
+            - - 11.17
+              - 84.68
+            - - -3.17
+              - 84.68
+            - - 12.0
+              - 89.0
+            - - -4.0
+              - 89.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              min: 83.0
+      case_contact_load:
+        load:
+          contact:
+          - R_ankle_pitch_ST3025_case
+          gap_mm: 0.8
+      loose_load:
+        load:
+          holes:
+            mate:
+            - R_ankle_pitch_ST3025_case
+            gap_mm: 2.0
+            r_max_mm: 2.0
+            rim_mm: 2.3
+    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the ankle pitch servo
+      case (8 sleeve holes): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction
+      + applied wrench = 0.0003 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 2.2 (variant loose_load,
+      new shin STEP; all cases x materials): p99 -25..-16 %, peak -28..-15 %, displacement -51..-39 %; recovery PAHT-CF p99 4.84 -> 3.70 MPa,
+      displacement 0.228 -> 0.118 mm. Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.9 p99 -0.0..+1.6
+      %, disp -0.1..+0.3 %. Stored h 2.2: 2.2: p99 -0.0..+1.6 % and displacement -0.1..+0.3 % to the next finer level h 1.9. At the stored h,
+      recovery PAHT-CF (layer normal z): p99 3.702 MPa, peak 9.11, displacement 0.118 mm, ratio 23.77 (73478 nodes). The loose-load setup that
+      produced the numbers below stays as variant loose_load (history). Earlier notes: Load = the shin''s own bolt holes next to the ankle case
+      (gap 2 mm, r<=2 mm, rim 2.3 mm; 1098 mm2 vs old rings 1425, case-side halves 250 / 848 vs 577 / 848 because only 2 of the 6 old idler-side
+      sites have holes in the manifest shin). Vs the old motor-refit run (PAHT dry / PETG): p99 +10.6..+18.2 %, peak +13.2..+22.7 %, displacement
+      +8.6..+14.4 %. One-change solves: the both-cheek supports alone give p99 -3.7..-2.8 %, peak -7.3..-0.2 %, displacement -13.6..-12.1 %; the
+      smaller idler-side load patch accounts for the rest. Not chased further. Shin STEP: roll-flip/parts/R_shin_combined.step (6f314a22, offset
+      0; the pilot holes dia 1.7 of the back-cover screws are not on the ankle case: the load selects the 8 sleeve holes r 1.2; fem_setup on that
+      STEP: supports 884.7 + 959.3 mm2, load 1109.2 mm2 (old STEP 1098.4), 0 shared nodes). The h 1.9 run that timed out before (3211 s, spsolve-era
+      loose load) now takes 120 s with the rigid Schur path.'
+    convergence:
+      manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
+        except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'
+      rigid_load: true
+      levels:
+      - h_from: '2.2'
+        h_to: '1.9'
+        p99_change_pct: -0.0..+1.6
+        peak_change_pct: -3.6..+4.5
+        max_displacement_change_pct: -0.1..+0.3
+      stored_h_rule: first level from which every step to the next finer level has p99 change < 5 % (all load cases x materials); the peak is
+        one element and is not part of the rule
+      stored_h_result: '2.2: p99 -0.0..+1.6 % and displacement -0.1..+0.3 % to the next finer level h 1.9'
+      converged: true
+      recovery_PAHT_CF:
+        h_mm: 2.2
+        nodes: 73478
+        layer_normal: z
+        p99_vm_MPa: 3.702
+        peak_vm_MPa: 9.11
+        max_displacement_mm: 0.118
+        p99_strength_ratio: 23.77
+      reaction_plus_wrench_pct_max: 0.0003
+  section: Knee
+- match: L_shin_combined
+  kind: printed
+  line: print:L_shin_combined
+  name: L_shin_combined
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    up: -x
+    material: Bambu PAHT-CF
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''YZ Cheek / Oblique Bed (layer normal Z/X)''; chosen by bed contact, then least overhang (bed
+      mm2, overhang>45deg mm2) {''+z'': (31.2, 1327.8), ''-z'': (8.4, 1439.8), ''+x'': (1129.6, 1557.2), ''-x'': (1215.8, 1472.8)}; SIGN AMBIGUOUS;
+      material from manifest text ''Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3)'''
+    seeded_keys:
+    - up
+    - material
+  section: Knee
+- match: R_shin_back_hard_cover
+  kind: printed
+  line: print:R_shin_back_hard_cover
+  name: R_shin_back_hard_cover
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: +y
+    up_source: 'designer 2026-11-22 (hip check pass): the cover''s front edges (the wings'' inner ends, y about 23-24) on the bed, as the thigh
+      shells'' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover) with run.py --process up=... (overhang, bed, small_features,
+      walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*): +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside
+      the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre
+      of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z, +-x: no bed contact (support 2.2-5.9 g, 41-59 min)'
+    seeded: 'direction: no designer setting existed (print_setup: no direction). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds
+      it.'
+    seeded_keys:
+    - up
+  section: Knee
+- match: L_shin_back_hard_cover
+  kind: printed
+  line: print:L_shin_back_hard_cover
+  name: L_shin_back_hard_cover
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: +y
+    up_source: 'mirror of R_shin_back_hard_cover (x mirror keeps +y); designer 2026-11-22 (hip check pass): the cover''s front edges (the wings''
+      inner ends, y about 23-24) on the bed, as the thigh shells'' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover)
+      with run.py --process up=... (overhang, bed, small_features, walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*):
+      +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the
+      crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z,
+      +-x: no bed contact (support 2.2-5.9 g, 41-59 min)'
+    seeded: 'direction: no designer setting existed (print_setup: no direction). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds
+      it.'
+    seeded_keys:
+    - up
+  section: Knee
+- match: R_thigh_roll_flip
+  kind: printed
+  line: print:R_thigh_roll_flip
+  name: R_thigh_roll_flip
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    - x
+    - y
+    up: -z
+    up_source: 'designer 2026-11-20 (roll-flip hip fix): printed upside down, the plates'' flat tops (z 177) and the end walls on the bed. Against
+      the seeded +x (run.py bed / overhang / small_features / slicer, .cache/work/cad-speed/checks/hip-own-light vs hip-fix-light): bed 93.7 mm2
+      in 4 islands with the centre of mass 17.6 mm inside the contact hull (was 207 mm2 with it 7.65 mm outside), support standing on the part
+      222 mm2 (was 1054, the knee-case seat and the floating ceiling under the lateral wing), slicer 1.95 g support / 42.7 min (was 5.97 g / 58.7
+      min); use a brim (4 contact islands, 89 mm2 of it in strips under 4 mm). FEM (fem stage4_roll_flip, layer normal z vs x on the same geometry,
+      .cache/work/cad-speed/checks/hip-fix-fem4-upx): min p99 strength ratio Bambu PAHT-CF 9.70 vs 9.51, legacy PETG-CF 7.39 vs 7.08; across-layer
+      ratio 12.48 vs 36.4 (PAHT-CF), 6.36 vs 17.4 (legacy PETG-CF, knee stall), so the layer direction costs layer margin but stays above 6. The
+      four ear-screw sleeve bores (along y) have flat-topped teardrop roofs toward -z; the knee bores (1.17 mm long) are bridged.'
+  expected_hardware:
+    steel_sleeves: null
+  fem:
+    _doc: 'Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case''s 2 lower ear screws per face (face0 = front,
+      face1 = rear; M2 into the STS3250 aluminium case); load: the knee case''s 2 medial + 2 lateral screws (mirrored pairs at y -3 / 11, z 143)
+      (rigid: the ST3025 case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated
+      from roll_flip_checks.fem_specs).'
+    mesh_h_mm: 1.2
+    bonded:
+    - part: R_thigh_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_knee
+      offset_mm:
+      - -20.0
+      - 0.0
+      - 18.65
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      case_front_screws:
+        contact:
+        - R_A13_roll_face0_PA2x3_0
+        - R_A13_roll_face0_PA2x3_1
+        gap_mm: 2.0
+      case_rear_screws:
+        contact:
+        - R_A13_roll_face1_PA2x3_0
+        - R_A13_roll_face1_PA2x3_1
+        gap_mm: 2.0
+    load:
+      contact:
+      - R_knee_ST3025_PA2x8_0
+      - R_knee_ST3025_PA2x8_1
+      - R_knee_ST3025_PA2x8_lat0
+      - R_knee_ST3025_PA2x8_lat1
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 1960.0
+        - 680.0
+        - 140.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 20.0
+        - -25.0
+        - 58.84
+        - 2940.0
+        - 1380.0
+        - 480.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 15.0
+        - -18.75
+        - 44.13
+        - 2205.0
+        - 1035.0
+        - 360.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 30.0
+        - -37.5
+        - 88.26
+        - 4410.0
+        - 2070.0
+        - 720.0
+      knee_stall:
+        stall:
+          joint: R_knee
+          torque_Nmm: 3922.7
+      roll_stall:
+        stall:
+          joint: R_hip_roll
+          torque_Nmm: 4900.0
+    variants:
+      legacy_coordinates:
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 66.25
+                - 161.0
+              - - 45.75
+                - 161.0
+              - - 66.25
+                - 181.7
+              - - 45.75
+                - 181.7
+              radius_mm: 3.8
+              where:
+                axis: y
+                max: -8.0
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 66.25
+                - 157.25
+              - - 45.75
+                - 157.25
+              - - 66.25
+                - 181.7
+              - - 45.75
+                - 181.7
+              radius_mm: 3.8
+              where:
+                axis: y
+                min: 22.5
+        load:
+          rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - -4.0
+              - 151.0
+            - - 12.0
+              - 151.0
+            - - 4.0
+              - 150.0
+            - - -3.0
+              - 143.0
+            - - 11.0
+              - 143.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              min: 29.0
+              max: 34.0
+      loose_load:
+        load:
+          contact:
+          - R_knee_ST3025_PA2x8_0
+          - R_knee_ST3025_PA2x8_1
+          - R_knee_ST3025_PA2x8_lat0
+          - R_knee_ST3025_PA2x8_lat1
+          gap_mm: 2.0
+    convergence:
+      manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
+        except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'
+      rigid_load: true
+      levels:
+      - h_from: '2.2'
+        h_to: '1.6'
+        p99_change_pct: +2.2..+8.8
+        peak_change_pct: +0.3..+28.4
+        max_displacement_change_pct: +8.0..+13.0
+      - h_from: '1.6'
+        h_to: '1.2'
+        p99_change_pct: +2.3..+6.2
+        peak_change_pct: +34.8..+85.4
+        max_displacement_change_pct: +7.0..+13.2
+      stored_h_rule: first level from which every step to the next finer level has p99 change < 5 % (all load cases x materials); the peak is
+        one element and is not part of the rule
+      stored_h_result: 'NOT converged within the memory cap: finest level that runs h 1.2 (peak < 6 GB); last step h 1.6 -> 1.2 p99 +2.3..+6.2
+        %, displacement +7.0..+13.2 %'
+      converged: false
+      recovery_PAHT_CF:
+        h_mm: 1.2
+        nodes: 97552
+        layer_normal: x
+        p99_vm_MPa: 11.926
+        peak_vm_MPa: 97.9
+        max_displacement_mm: 0.3843
+        p99_strength_ratio: 7.38
+      reaction_plus_wrench_pct_max: 0.0005
+    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the knee servo case
+      (5 screw sites): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction
+      + applied wrench = 0.0005 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 1.2 (variant loose_load;
+      all cases x materials): p99 -31..-24 %, peak -2..+33 %, displacement -54..-39 %; recovery PAHT-CF p99 16.7 -> 11.9 MPa, displacement 0.75
+      -> 0.38 mm (at the old stored h 2.2 the same comparison gave p99 -32..-24 %, displacement -53..-41 %). Mesh convergence (rigid, change to
+      the next finer level, all cases x materials): 2.2->1.6 p99 +2.2..+8.8 %, disp +8.0..+13.0 %; 1.6->1.2 p99 +2.3..+6.2 %, disp +7.0..+13.2
+      %. Worst case is roll stall: p99 strength ratio 2.08 at h 1.2 (2.31 / 2.21 / 2.08 at h 2.2 / 1.6 / 1.2, still falling), next to the recovery
+      ratio 7.4. Stored h 1.2: NOT converged within the memory cap: finest level that runs h 1.2 (peak < 6 GB); last step h 1.6 -> 1.2 p99 +2.3..+6.2
+      %, displacement +7.0..+13.2 %. At the stored h, recovery PAHT-CF (layer normal x): p99 11.926 MPa, peak 97.9, displacement 0.3843 mm, ratio
+      7.38 (97552 nodes). The loose-load setup that produced the numbers below stays as variant loose_load (history). Earlier notes: '
+  section: Hip
+- match: R_thigh_roll_flip_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x4.15
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4.15 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.15
+    supplier: unknown
+    part_number: unknown
+    notes: case front ear screws (plate + rib)
+  - line: sleeve:3.6x2.2x4
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.0
+    supplier: unknown
+    part_number: unknown
+    notes: case rear ear screws
+  - line: sleeve:3.6x2.2x1.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.25 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.25
+    supplier: unknown
+    part_number: unknown
+    notes: medial knee screws (cheek at the spot face)
+  - line: sleeve:3.6x2.2x1.26
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.26 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.26
+    supplier: unknown
+    part_number: unknown
+    notes: lateral knee screws (flat cheek)
+  - line: sleeve:4.5x3.2x2.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.58
+    supplier: unknown
+    part_number: unknown
+    notes: front shell-post tip walls (shell screw clamp, nut bears on it)
+  - line: sleeve:4.5x3.2x1.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 1.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 1.58
+    supplier: unknown
+    part_number: unknown
+    notes: rear shell-post tip walls (shell screw clamp, nut bears on it)
+  section: Hip
+- match: L_thigh_roll_flip
+  kind: printed
+  line: print:L_thigh_roll_flip
+  name: L_thigh_roll_flip
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    up: -z
+    up_source: mirror of R_thigh_roll_flip (-z stays -z), confirmed by its designer 2026-11-20; material as R_thigh_roll_flip
+    material: Bambu PAHT-CF
+  fem:
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), origin offset x
+      negated, stall cases about the L joint with the R magnitude, mesh size and materials as R. Checked by fem_setup on the left part. The R setup''s own
+      _doc follows. Roll-flip Stage 4 (thigh), H-cage (owner 2026-11-19). Supports: the roll servo case''s 2 lower ear screws per face (face0 = front, face1
+      = rear; M2 into the STS3250 aluminium case); load: the knee case''s 2 medial + 2 lateral screws (mirrored pairs at y -3 / 11, z 143) (rigid: the ST3025
+      case ties both cheeks). Wrenches: fem_upper_hip stage4 table + knee / roll servo stall about the joint axes (migrated from roll_flip_checks.fem_specs).'
+    mesh_h_mm: 1.2
+    bonded:
+    - part: L_thigh_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: L_knee
+      offset_mm:
+      - 20.0
+      - 0.0
+      - 18.65
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      case_front_screws:
+        contact:
+        - L_A13_roll_face0_PA2x3_0
+        - L_A13_roll_face0_PA2x3_1
+        gap_mm: 2.0
+      case_rear_screws:
+        contact:
+        - L_A13_roll_face1_PA2x3_0
+        - L_A13_roll_face1_PA2x3_1
+        gap_mm: 2.0
+    load:
+      contact:
+      - L_knee_ST3025_PA2x8_0
+      - L_knee_ST3025_PA2x8_1
+      - L_knee_ST3025_PA2x8_lat0
+      - L_knee_ST3025_PA2x8_lat1
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - -0.0
+        - -6.0
+        - 39.23
+        - 1960.0
+        - -680.0
+        - -140.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - -20.0
+        - -25.0
+        - 58.84
+        - 2940.0
+        - -1380.0
+        - -480.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - -15.0
+        - -18.75
+        - 44.13
+        - 2205.0
+        - -1035.0
+        - -360.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - -30.0
+        - -37.5
+        - 88.26
+        - 4410.0
+        - -2070.0
+        - -720.0
+      knee_stall:
+        stall:
+          joint: L_knee
+          torque_Nmm: 3922.7
+      roll_stall:
+        stall:
+          joint: L_hip_roll
+          torque_Nmm: 4900.0
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
+  section: Hip
+- match: L_thigh_roll_flip_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x4.15
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4.15 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.15
+    supplier: unknown
+    part_number: unknown
+    notes: case front ear screws (plate + rib)
+  - line: sleeve:3.6x2.2x4
+    name: 304 steel compression sleeve 3.6 x 2.2 x 4 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 4.0
+    supplier: unknown
+    part_number: unknown
+    notes: case rear ear screws
+  - line: sleeve:3.6x2.2x1.25
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.25 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.25
+    supplier: unknown
+    part_number: unknown
+    notes: medial knee screws (cheek at the spot face)
+  - line: sleeve:3.6x2.2x1.26
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.26 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.26
+    supplier: unknown
+    part_number: unknown
+    notes: lateral knee screws (flat cheek)
+  - line: sleeve:4.5x3.2x2.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 2.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 2.58
+    supplier: unknown
+    part_number: unknown
+    notes: front shell-post tip walls (shell screw clamp, nut bears on it)
+  - line: sleeve:4.5x3.2x1.58
+    name: 304 steel compression sleeve 4.5 x 3.2 x 1.58 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 1.58
+    supplier: unknown
+    part_number: unknown
+    notes: rear shell-post tip walls (shell screw clamp, nut bears on it)
+  section: Hip
+- match: R_hip_pitch_to_roll_roll_flip
+  kind: printed
+  line: print:R_hip_pitch_to_roll_roll_flip
+  name: R_hip_pitch_to_roll_roll_flip
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    - x
+    - y
+    up: -x
+    up_source: 'designer 2026-11-20 (roll-flip hip fix): the plate''s flat outer face (x 71) on the bed, the largest contact of the six axes and
+      the least overhang (bed mm2, overhang>45deg mm2) {''+z'': (18.1, 784.7), ''-z'': (0.0, 785.1), ''+x'': (6.6, 1155.2), ''-x'': (866.0, 290.4),
+      ''+y'': (577.4, 688.8), ''-y'': (543.4, 694.0)}; the horn / idler sleeve bores (along y, horizontal) have flat-topped teardrop roofs toward
+      -x, the pitch-wheel bores run along the print axis'
+  expected_hardware:
+    steel_sleeves: null
+  fit_classes:
+    R_hip_pitch_to_roll_roll_flip_steel_sleeves:
+      class: press
+      seeded: trial set by the check's builder on 2026-11-19 to exercise the check; the part's designer confirms or replaces it
+  fem:
+    _doc: 'Roll-flip Stage 5 (hip pitch to roll). Support: the 4 pitch-horn screws; load: the roll horn / idler screws (A9 hip M3x4, 4 horn +
+      3 idler since 2026-11-22: the (56, 183) idler screw gave way to the case stub''s insertion slot). Migrated from roll_flip_checks.fem_specs
+      stage5_roll_flip.'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: R_hip_pitch_to_roll_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_hip_roll
+      offset_mm:
+      - -19.0
+      - 19.2
+      - 0.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      pitch_horn_screws:
+        contact:
+        - R_A13_pitch_horn_M3x12_0
+        - R_A13_pitch_horn_M3x12_1
+        - R_A13_pitch_horn_M3x12_2
+        - R_A13_pitch_horn_M3x12_3
+        gap_mm: 2.0
+    load:
+      contact:
+      - R_A9_hip_M3x4_0_0
+      - R_A9_hip_M3x4_0_1
+      - R_A9_hip_M3x4_0_2
+      - R_A9_hip_M3x4_0_3
+      - R_A9_hip_M3x4_1_0
+      - R_A9_hip_M3x4_1_1
+      - R_A9_hip_M3x4_1_2
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 2150.0
+        - 790.0
+        - 165.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 22.0
+        - -26.0
+        - 58.84
+        - 3300.0
+        - 1650.0
+        - 580.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 16.5
+        - -19.5
+        - 44.13
+        - 2475.0
+        - 1237.5
+        - 435.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 33.0
+        - -39.0
+        - 88.26
+        - 4950.0
+        - 2475.0
+        - 870.0
+      roll_stall:
+        stall:
+          joint: R_hip_roll
+          torque_Nmm: 4900.0
+      pitch_stall:
+        stall:
+          joint: R_hip_pitch
+          torque_Nmm: 3922.7
+    variants:
+      legacy_coordinates:
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 2.0
+                - 212.0
+              - - 2.0
+                - 226.0
+              - - -5.0
+                - 219.0
+              - - 9.0
+                - 219.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                min: 62.5
+        load:
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 49.0
+              - 190.0
+            - - 63.0
+              - 190.0
+            - - 56.0
+              - 183.0
+            - - 56.0
+              - 197.0
+            radius_mm: 4.2
+            where:
+              axis: y
+              max: -11.5
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 49.0
+              - 190.0
+            - - 63.0
+              - 190.0
+            - - 56.0
+              - 183.0
+            - - 56.0
+              - 197.0
+            radius_mm: 4.2
+            where:
+              axis: y
+              min: 24.8
+      loose_load:
+        load:
+          contact:
+          - R_A9_hip_M3x4_0_0
+          - R_A9_hip_M3x4_0_1
+          - R_A9_hip_M3x4_0_2
+          - R_A9_hip_M3x4_0_3
+          - R_A9_hip_M3x4_1_0
+          - R_A9_hip_M3x4_1_1
+          - R_A9_hip_M3x4_1_2
+          gap_mm: 2.0
+    convergence:
+      manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
+        except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'
+      rigid_load: true
+      levels:
+      - h_from: '2.2'
+        h_to: '1.6'
+        p99_change_pct: -1.0..+2.6
+        peak_change_pct: -8.3..+20.4
+        max_displacement_change_pct: +1.3..+2.6
+      stored_h_rule: first level from which every step to the next finer level has p99 change < 5 % (all load cases x materials); the peak is
+        one element and is not part of the rule
+      stored_h_result: '2.2: p99 -1.0..+2.6 % and displacement +1.3..+2.6 % to the next finer level h 1.6'
+      converged: true
+      recovery_PAHT_CF:
+        h_mm: 2.2
+        nodes: 24900
+        layer_normal: z
+        p99_vm_MPa: 15.657
+        peak_vm_MPa: 48.37
+        max_displacement_mm: 0.9767
+        p99_strength_ratio: 5.62
+      reaction_plus_wrench_pct_max: 0.0006
+    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the hip roll horn
+      plus idler screws (8 screw sites on two faces): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction
+      check: clamped-node reaction + applied wrench = 0.0006 % of the wrench at the stored h (all cases). rigid load vs the previous loose load
+      at h 2.2 (variant loose_load; all cases x materials): p99 -69..+4 %, peak -79..+8 %, displacement -90..-6 %; recovery PAHT-CF p99 22.37
+      -> 15.66 MPa, displacement 1.76 -> 0.98 mm (the -69 / -90 % are the pitch-stall case: the roll horn / idler load is carried by all 8 screw
+      sites together). Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.6 p99 -1.0..+2.6 %, disp +1.3..+2.6
+      %. Stored h 2.2: 2.2: p99 -1.0..+2.6 % and displacement +1.3..+2.6 % to the next finer level h 1.6. At the stored h, recovery PAHT-CF (layer
+      normal z): p99 15.657 MPa, peak 48.37, displacement 0.9767 mm, ratio 5.62 (24900 nodes). The loose-load setup that produced the numbers
+      below stays as variant loose_load (history). Earlier notes: '
+  section: Hip
+- match: R_hip_pitch_to_roll_roll_flip_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x5.15
+    name: 304 steel compression sleeve 4.5 x 3.2 x 5.15 mm (outer x inner x length)
+    quantity: 3
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 5.15
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x8.5
+    name: 304 steel compression sleeve 4.5 x 3.2 x 8.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 8.5
+    supplier: unknown
+    part_number: unknown
+  section: Hip
+- match: L_hip_pitch_to_roll_roll_flip
+  kind: printed
+  line: print:L_hip_pitch_to_roll_roll_flip
+  name: L_hip_pitch_to_roll_roll_flip
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +x
+    up_source: mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip
+    material: Bambu PAHT-CF
+  fem:
+    _doc: 'Mirror of the R setup (the body mirrors x -> -x): R_ names -> L_, wrench components mirrored (Fx -> -Fx, My -> -My, Mz -> -Mz), origin offset x
+      negated, stall cases about the L joint with the R magnitude, mesh size and materials as R. Checked by fem_setup on the left part. The R setup''s own
+      _doc follows. Roll-flip Stage 5 (hip pitch to roll). Support: the 4 pitch-horn screws; load: the roll horn / idler screws (A9 hip M3x4, 4 horn + 3 idler
+      since 2026-11-22: the (56, 183) idler screw gave way to the case stub''s insertion slot). Migrated from roll_flip_checks.fem_specs stage5_roll_flip.'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: L_hip_pitch_to_roll_roll_flip_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: L_hip_roll
+      offset_mm:
+      - 19.0
+      - 19.2
+      - 0.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PAHT_CF_wet
+    - legacy_fdm_PETG_CF
+    supports:
+      pitch_horn_screws:
+        contact:
+        - L_A13_pitch_horn_M3x12_0
+        - L_A13_pitch_horn_M3x12_1
+        - L_A13_pitch_horn_M3x12_2
+        - L_A13_pitch_horn_M3x12_3
+        gap_mm: 2.0
+    load:
+      contact:
+      - L_A9_hip_M3x4_0_0
+      - L_A9_hip_M3x4_0_1
+      - L_A9_hip_M3x4_0_2
+      - L_A9_hip_M3x4_0_3
+      - L_A9_hip_M3x4_1_0
+      - L_A9_hip_M3x4_1_1
+      - L_A9_hip_M3x4_1_2
+      gap_mm: 2.0
+      rigid: true
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - -0.0
+        - -6.0
+        - 39.23
+        - 2150.0
+        - -790.0
+        - -165.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - -22.0
+        - -26.0
+        - 58.84
+        - 3300.0
+        - -1650.0
+        - -580.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - -16.5
+        - -19.5
+        - 44.13
+        - 2475.0
+        - -1237.5
+        - -435.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - -33.0
+        - -39.0
+        - 88.26
+        - 4950.0
+        - -2475.0
+        - -870.0
+      roll_stall:
+        stall:
+          joint: L_hip_roll
+          torque_Nmm: 4900.0
+      pitch_stall:
+        stall:
+          joint: L_hip_pitch
+          torque_Nmm: 3922.7
+    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
+  section: Hip
+- match: L_hip_pitch_to_roll_roll_flip_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x5.15
+    name: 304 steel compression sleeve 4.5 x 3.2 x 5.15 mm (outer x inner x length)
+    quantity: 3
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 5.15
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x8.5
+    name: 304 steel compression sleeve 4.5 x 3.2 x 8.5 mm (outer x inner x length)
+    quantity: 4
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 8.5
+    supplier: unknown
+    part_number: unknown
+  section: Hip
+- match: R_thigh_shell_front
+  kind: printed
+  line: print:R_thigh_shell_front
+  name: R_thigh_shell_front
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: -y
+    up_source: 'designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py
+      --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193
+      / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free),
+      63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support
+      1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  covers:
+    parts:
+    - R_thigh_roll_flip
+    - R_roll_servo_case_reference
+    - R_knee_ST3025_case
+    - R_roll_upper_horn_reference
+    - R_roll_passive_idler_reference
+    axis_xy_mm:
+    - 55.0
+    - 5.0
+    z_min_mm: 150.0
+  section: Hip
+- match: L_thigh_shell_front
+  kind: printed
+  line: print:L_thigh_shell_front
+  name: L_thigh_shell_front
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: -y
+    up_source: 'mirror of R_thigh_shell_front (x mirror keeps -y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed,
+      the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*):
+      rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown
+      (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall
+      thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  section: Hip
+- match: R_thigh_shell_back
+  kind: printed
+  line: print:R_thigh_shell_back
+  name: R_thigh_shell_back
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: +y
+    up_source: 'designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py
+      --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193
+      / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free),
+      63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support
+      1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  covers:
+    parts:
+    - R_thigh_roll_flip
+    - R_roll_servo_case_reference
+    - R_knee_ST3025_case
+    - R_roll_upper_horn_reference
+    - R_roll_passive_idler_reference
+    axis_xy_mm:
+    - 55.0
+    - 5.0
+    z_min_mm: 150.0
+  section: Hip
+- match: L_thigh_shell_back
+  kind: printed
+  line: print:L_thigh_shell_back
+  name: L_thigh_shell_back
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu ABS
+    material_source: 'designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls),
+      then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2),
+      printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic''s notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of
+      its Z impact (7.4 vs 13.6) and 84 % of its density'
+    up: +y
+    up_source: 'mirror of R_thigh_shell_back (x mirror keeps +y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the
+      only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*):
+      rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown
+      (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall
+      thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside'
+  section: Hip
+assembly:
+  steps:
+  - id: right_leg:p008
+    subassembly: right_leg
+    part:
+    - R_hip_pitch_to_roll_roll_flip
+    - R_hip_pitch_to_roll_roll_flip_steel_sleeves
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
+    after:
+    - right_leg:p007
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): Stage 5 goes onto the ST3025 output wheel face along -x (its land seats on the
+      wheel face x 61.0, the 4 wheel screws run along x from the plate''s outer face); the roll servo is not in yet'
+  - id: right_leg:p013
+    subassembly: right_leg
+    part:
+    - R_thigh_roll_flip
+    - R_thigh_roll_flip_steel_sleeves
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
+    after:
+    - right_leg:s012
+    status: designer
+    derived: 'hip order (lead 2026-11-20, roll-flip designer): the H-cage rises onto the hanging roll case from below (+z), the case''s ear bosses
+      pass up its key pockets'
+  - id: right_leg:p025
+    subassembly: right_leg
+    part:
+    - R_shin_combined
+    - R_shin_combined_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - right_leg:p024
+    status: seeded
+    derived: 'graph order, fastened distance 30 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_knee_ST3025_output),
+      snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact 19.5 -> 0.0 mm out, seat released
+      True -> True, max overlap 19.8 -> 0.0 mm3'
+  - id: right_leg:p030
+    subassembly: right_leg
+    part:
+    - R_shin_back_hard_cover
+    - R_shin_back_hard_cover_steel_sleeves
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - right_leg:s029
+    status: seeded
+    derived: 'shin back cover (thigh_shell.py shin-cover, 2026-11-20 hip fix): a wrap-around cover behind the shin goes on from behind along -y,
+      its side wings sliding along the shin frame''s sides; then the 4 PA2x8 through the wings along x (the seeded +x, the mean screw direction,
+      pushed the whole cover sideways through the shin); moved after s031 (its part R_shin_back_hard_cover blocked that screw''s driver path,
+      9.508 mm3)'
+  - id: left_leg:p008
+    subassembly: left_leg
+    part:
+    - L_hip_pitch_to_roll_roll_flip
+    - L_hip_pitch_to_roll_roll_flip_steel_sleeves
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
+    after:
+    - left_leg:p007
+    status: seeded
+    derived: 'mirror of right_leg p08 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): Stage 5 goes onto the ST3025 output
+      wheel face along -x (its land seats on the wheel face x 61.0, the 4 wheel screws run along x from the plate''s outer face); the roll servo
+      is not in yet'
+  - id: left_leg:p013
+    subassembly: left_leg
+    part:
+    - L_thigh_roll_flip
+    - L_thigh_roll_flip_steel_sleeves
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
+    after:
+    - left_leg:s012
+    status: seeded
+    derived: 'mirror of right_leg p16 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): the H-cage rises onto the hanging
+      roll case from below (+z), the case''s ear bosses pass up its key pockets'
+  - id: left_leg:p025
+    subassembly: left_leg
+    part:
+    - L_shin_combined
+    - L_shin_combined_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - left_leg:p024
+    status: seeded
+    derived: 'mirror of right_leg p26 (R_ <-> L_, x negated): graph order, fastened distance 30 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_knee_ST3025_output), snapped to the nearest axis; direction searched (six axes vs the seeded
+      [-0.0, 0.0, 1.0]): path contact 19.5 -> 0.0 mm out, seat released True -> True, max overlap 19.8 -> 0.0 mm3'
+  - id: left_leg:p030
+    subassembly: left_leg
+    part:
+    - L_shin_back_hard_cover
+    - L_shin_back_hard_cover_steel_sleeves
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
+    after:
+    - left_leg:s029
+    status: seeded
+    derived: 'mirror of right_leg p27 (R_ <-> L_, x negated): shin back cover (thigh_shell.py shin-cover, 2026-11-20 hip fix): a wrap-around cover
+      behind the shin goes on from behind along -y, its side wings sliding along the shin frame''s sides; then the 4 PA2x8 through the wings along
+      x (the seeded +x, the mean screw direction, pushed the whole cover sideways through the shin); moved after s031 (its part L_shin_back_hard_cover
+      blocked that screw''s driver path, 9.508 mm3)'
+defects:
+- id: voxel-shells
+  kind: no_scripted_step
+  parts:
+  - center_front_shell
+  - center_back_shell
+  - '*_foot_boot_shell'
+  - '*_foot_sole_shell'
+  - '*_thigh_shell_front'
+  - '*_thigh_shell_back'
+  state: Regenerable by script (ape-proportions/shells.py voxel sweep + marching cubes; leg/thigh_shell.py; ape-proportions/build.py) but mesh
+    only by method. The STL prints; the B-rep checks screen them as closed meshes.
+  fix: Not a recreation defect. A native STEP needs a B-rep shell method (offset surface or loft of sections) instead of voxels (large); only
+    worth it if a check or a supplier needs B-rep.
+  effort: large (optional)

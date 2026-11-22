@@ -221,13 +221,33 @@ def build_indicator(MR, by):
     return rec
 
 
+def seat_nuts(by):
+    """The two plate screws' nuts sat 1.0 mm off their washers (washer y 21.1..21.6, nut from y 22.6; mount_check after
+    T-vza9m4): each nut is moved along the screw axis (+y) onto its washer's back face. Records keyed by nut name."""
+    from checks import bodylib as BL
+    recs = {}
+    for scr in FAN_HOLES:
+        tag = scr[len("fan_M3_"):]                         # "11_462", "-21_462"
+        nut, washer = f"fan_nut_{tag}", f"fan_washer_{tag}"
+        nm, wm = BL.load_mesh(by[nut]["mesh"]), BL.load_mesh(by[washer]["mesh"])
+        dy = float(wm.bounds[1][1] - nm.bounds[0][1])        # < 0: towards the washer
+        m = nm.copy(); m.apply_translation([0.0, dy, 0.0])
+        npz = OUT / "parts" / f"{nut}.npz"
+        np.savez_compressed(npz, vertices=np.asarray(m.vertices), faces=np.asarray(m.faces))
+        recs[nut] = dict(mesh=str(npz.relative_to(ROOT)), mesh_sha256=_sha(npz), native_step=None, native_step_sha256=None,
+                         bounds_mm=[m.bounds[0].round(3).tolist(), m.bounds[1].round(3).tolist()],
+                         held_parts=f"{TASK}: seated on {washer} (moved {dy:+.3f} mm along y)")
+        print(nut, f"moved {dy:+.3f} mm onto {washer}", flush=True)
+    return recs
+
+
 def build():
     import motor_refit as MR
     (OUT / "parts").mkdir(parents=True, exist_ok=True)
     MR.PARTS = OUT / "parts"
     by = _src()
     plate, psleeves, plan = build_plate(MR, by)
-    recs = {CASE: repair_case(MR, by), INDICATOR: build_indicator(MR, by)}
+    recs = {CASE: repair_case(MR, by), INDICATOR: build_indicator(MR, by), **seat_nuts(by)}
     new_rows = plate_rows(by, plate, psleeves)
     (OUT / "records.json").write_text(json.dumps(dict(records=recs, new_rows=new_rows, remove=list(REMOVE),
                                                       replace=list(FAN_HOLES), plate_plan=plan), indent=1) + "\n")

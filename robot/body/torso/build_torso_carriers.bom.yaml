@@ -1,0 +1,563 @@
+# Cove-50 body definition for robot/body/torso/build_torso_carriers.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: build-torso-carriers
+owner: (set by the owning session)
+generators:
+- id: section-build-torso-carriers
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/torso/build_torso_carriers.py
+  rebuild: false
+  outputs:
+  - artifacts/robot/body/torso
+  notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
+    producer table; confirm before running).'
+parts:
+- match: Main_H2_2mm_front_spacer
+  kind: printed
+  line: print:Main_H2_2mm_front_spacer
+  name: Main_H2_2mm_front_spacer
+  make_buy: make
+  quantity: 1
+  section: Torso
+- match: body_IMU_4517
+  kind: purchased
+  line: purchased:body_IMU
+  name: body_IMU
+  make_buy: buy
+  quantity: 1
+  supplier: Adafruit
+  part_number: '4517'
+  notes: 'supplier from robot/electronics/sensing/selection.json (body_motion: Adafruit LSM6DSOX + LIS3MDL, supplier_url adafruit.com).'
+  section: Torso
+- match:
+  - Main_precharge_H2_M2x12
+  - Power_supervisor_H1_M2x12
+  - Power_supervisor_H2_M2x12
+  kind: hardware
+  line: hw:M2-x-12-ISO-4762
+  name: M2 x 12 ISO 4762
+  make_buy: buy
+  quantity: 3
+  spec:
+    kind: screw
+    thread: M2
+    family: M
+    length_mm: 12.0
+    standard: ISO 4762
+    head_dia_mm: 3.8
+    head_height_mm: 2.0
+    label: M2 x 12 ISO 4762
+  supplier: unknown
+  part_number: M2 x 12 ISO 4762
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  section: Torso
+- match:
+  - Main_precharge_H2_front_washer
+  - Main_precharge_H2_rear_washer
+  - Power_supervisor_H1_front_washer
+  - Power_supervisor_H1_rear_washer
+  - Power_supervisor_H2_front_washer
+  - Power_supervisor_H2_rear_washer
+  kind: hardware
+  line: hw:M2-washer-2.2-5-x-0.3
+  name: M2 washer 2.2/5 x 0.3
+  make_buy: buy
+  quantity: 6
+  spec:
+    kind: washer
+    thread: M2
+    standard: ISO 7089
+    inner_dia_mm: 2.2
+    outer_dia_mm: 5.0
+    thickness_mm: 0.3
+    label: M2 washer 2.2/5 x 0.3
+  supplier: unknown
+  part_number: unknown
+  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
+  section: Torso
+- match:
+  - Main_precharge_H2_M2_nut
+  - Power_supervisor_H1_M2_nut
+  - Power_supervisor_H2_M2_nut
+  kind: hardware
+  line: hw:M2-hex-nut-ISO-4032
+  name: M2 hex nut ISO 4032
+  make_buy: buy
+  quantity: 3
+  spec:
+    kind: nut
+    thread: M2
+    standard: ISO 4032
+    across_flats_mm: 4.0
+    label: M2 hex nut ISO 4032
+  supplier: unknown
+  part_number: M2 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  section: Torso
+- match:
+  - Honeycomb_Cell_01_Upper_Dorsal_L2
+  - Honeycomb_Cell_02_Upper_Dorsal_L1
+  - Honeycomb_Cell_03_Upper_Dorsal_C0
+  - Honeycomb_Cell_04_Upper_Dorsal_R1
+  - Honeycomb_Cell_05_Upper_Dorsal_R2
+  - Honeycomb_Cell_06_Upper_Core_L
+  - Honeycomb_Cell_07_Upper_Core_R
+  kind: purchased
+  line: battery-cell-21700
+  name: 21700 Li-ion cell
+  make_buy: buy
+  quantity: 7
+  supplier: Molicel
+  part_number: INR-21700-P50B
+  notes: 9-cell honeycomb pack. Cell model and supplier to fill in. supplier from robot/electronics/power/battery.json (model_basis.cell; manufacturer,
+    no seller recorded).
+  heat_source:
+    kind: battery_cell
+  section: Torso
+- match:
+  - Honeycomb_Fin_01_Upper_Dorsal_L2
+  - Honeycomb_Fin_02_Upper_Dorsal_L1
+  - Honeycomb_Fin_03_Upper_Dorsal_C0
+  - Honeycomb_Fin_04_Upper_Dorsal_R1
+  - Honeycomb_Fin_05_Upper_Dorsal_R2
+  - Honeycomb_Fin_06_Upper_Core_L
+  - Honeycomb_Fin_07_Upper_Core_R
+  kind: made
+  line: battery-fin-6063
+  name: Battery heat-sink fin, 6063-T5 aluminium (cut / bent)
+  make_buy: make
+  quantity: 7
+  notes: Cut from sheet; one per cell.
+  section: Torso
+- match:
+  - C_T01_chest__T02_back_1_M3x8
+  - C_T01_chest__T02_back_2_M3x8
+  - T02_back_mount2_M3x8
+  kind: hardware
+  line: hw:M3-x-8-ISO-7380-1
+  name: M3 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 3
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 5.7
+    head_height_mm: 1.65
+    label: M3 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: M3 x 8 ISO 7380-1
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  section: Torso
+- match: C_T01_chest__T02_back_2_M3_hex_nut
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 1
+  spec: &id001
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
+  section: Torso
+- match:
+  - T02_back_mount1_M3x6
+  - T02_back_mount3_M3x6
+  kind: hardware
+  line: hw:M3-x-6-ISO-7045
+  name: M3 x 6 ISO 7045
+  make_buy: buy
+  quantity: 2
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 6.0
+    standard: ISO 7045
+    head_dia_mm: 5.6
+    head_height_mm: 2.4
+    label: M3 x 6 ISO 7045
+  supplier: unknown
+  part_number: M3 x 6 ISO 7045
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  section: Torso
+- match: center_back_low_M3x8
+  kind: hardware
+  line: hw:M3-x-8-ISO-7045
+  name: M3 x 8 ISO 7045
+  make_buy: buy
+  quantity: 1
+  spec:
+    kind: screw
+    thread: M3
+    family: M
+    length_mm: 8.0
+    standard: ISO 7045
+    head_dia_mm: 5.6
+    head_height_mm: 2.4
+    label: M3 x 8 ISO 7045
+  supplier: unknown
+  part_number: M3 x 8 ISO 7045
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  section: Torso
+- match: C_T01_chest__T02_back_1_M3_hex_nut
+  kind: hardware
+  line: hw:M3-hex-nut-ISO-4032
+  name: M3 hex nut ISO 4032
+  make_buy: buy
+  quantity: 1
+  spec: *id001
+  supplier: unknown
+  part_number: M3 hex nut ISO 4032
+  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
+  process:
+    printed: false
+    _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
+  section: Torso
+assembly:
+  subassemblies:
+  - name: final_body
+    plan:
+      links:
+      - torso
+      roles:
+      - body_shell
+    doc: 'Final body: with torso, neck / head, arms and legs in place, the torso body shells (back, front with the chest indicator) close the
+      body.'
+    after:
+    - torso
+    - neck_head
+    - right_arm
+    - left_arm
+    - right_leg
+    - left_leg
+  steps:
+  - id: torso:p001
+    subassembly: torso
+    part: Honeycomb_Cell_06_Upper_Core_L
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 25.5 mm out, seat released True -> True, max overlap 2569.8 -> 2837.0 mm3; moved before
+      combined__stage2_lower_pelvis_battery_cradle (it touched combined__stage2_lower_pelvis_battery_cradle 25.5 mm out, 2892.524 mm3)'
+  - id: torso:p002
+    subassembly: torso
+    part: Honeycomb_Cell_07_Upper_Core_R
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - torso:p001
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 25.5 mm out, seat released True -> True, max overlap 2567.8 -> 2837.1 mm3; moved before
+      combined__stage2_lower_pelvis_battery_cradle (it touched combined__stage2_lower_pelvis_battery_cradle 25.5 mm out, 2892.652 mm3)'
+  - id: torso:p011
+    subassembly: torso
+    part: Honeycomb_Cell_01_Upper_Dorsal_L2
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p010
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [1.0, 0.0, 0.0]): path contact 23.5 -> 22.5 mm out, seat released True -> True, max overlap 3081.3 -> 2174.2 mm3; moved before
+      combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier 22.5 mm out, 2184.471 mm3)'
+  - id: torso:p013
+    subassembly: torso
+    part: Honeycomb_Cell_04_Upper_Dorsal_R1
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p012
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [-1.0, 0.0, 0.0]): path contact 45.5 -> 22.5 mm out, seat released True -> True, max overlap 4717.8 -> 2234.0 mm3; moved before
+      combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier 22.5 mm out, 2234.037 mm3)'
+  - id: torso:p015
+    subassembly: torso
+    part: Honeycomb_Cell_02_Upper_Dorsal_L1
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p014
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [1.0, 0.0, 0.0]): path contact 45.5 -> 32.5 mm out, seat released True -> True, max overlap 24977.6 -> 5575.5 mm3; moved before
+      body_IMU_4517 (it touched body_IMU_4517 32.5 mm out, 5575.466 mm3); moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier
+      27.5 mm out, 4787.832 mm3)'
+  - id: torso:p016
+    subassembly: torso
+    part: Honeycomb_Cell_03_Upper_Dorsal_C0
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p015
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 32.5 mm out, seat released True -> True, max overlap 2349.8 -> 5465.9 mm3; moved before
+      body_IMU_4517 (it touched body_IMU_4517 32.5 mm out, 5465.884 mm3); moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier
+      27.5 mm out, 4787.852 mm3)'
+  - id: torso:p017
+    subassembly: torso
+    part: Honeycomb_Fin_03_Upper_Dorsal_C0
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p016
+    status: seeded
+    derived: 'graph order, fastened distance 20 from what is present (via Honeycomb_Cell_03_Upper_Dorsal_C0); direction: toward the centroid of
+      placed neighbours (Honeycomb_Cell_03_Upper_Dorsal_C0), snapped to the nearest axis; moved before body_IMU_4517 (it touched body_IMU_4517
+      10.5 mm out, 138.526 mm3); moved before combined__stage4_rear_imu_adc_carrier (it touched combined__stage4_rear_imu_adc_carrier 5.5 mm out,
+      138.526 mm3)'
+  - id: torso:p028
+    subassembly: torso
+    part: body_IMU_4517
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:s027
+    status: seeded
+    derived: 'graph order, fastened distance 2 from what is present (via combined__stage4_rear_imu_adc_carrier); direction: mean screw direction
+      of 4 screw(s) joining it to placed parts (IMU_M2x6), head to tip when the part carries the head, else reversed'
+  - id: torso:p036
+    subassembly: torso
+    part: Honeycomb_Cell_05_Upper_Dorsal_R2
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:s035
+    status: seeded
+    derived: 'graph order, fastened distance 10 from what is present (via combined__stage1_center_torso_spine_chassis); direction: toward the
+      centroid of placed neighbours (combined__stage1_center_torso_spine_chassis), snapped to the nearest axis; direction searched (six axes vs
+      the seeded [-1.0, 0.0, 0.0]): path contact 23.5 -> 22.5 mm out, seat released True -> True, max overlap 3078.0 -> 1871.4 mm3'
+  - id: torso:p043
+    subassembly: torso
+    part: Honeycomb_Fin_01_Upper_Dorsal_L2
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p042
+    status: seeded
+    derived: 'graph order, fastened distance 11 from what is present (via combined__stage1_center_torso_spine_chassis_steel_sleeves); direction:
+      toward the centroid of placed neighbours (Honeycomb_Cell_01_Upper_Dorsal_L2), snapped to the nearest axis'
+  - id: torso:p044
+    subassembly: torso
+    part: Honeycomb_Fin_05_Upper_Dorsal_R2
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p043
+    status: seeded
+    derived: 'graph order, fastened distance 11 from what is present (via combined__stage1_center_torso_spine_chassis_steel_sleeves); direction:
+      toward the centroid of placed neighbours (Honeycomb_Cell_05_Upper_Dorsal_R2), snapped to the nearest axis'
+  - id: torso:s047
+    subassembly: torso
+    screw: Main_precharge_H2_M2x12
+    with:
+    - Main_H2_2mm_front_spacer
+    - Main_precharge_H2_M2_nut
+    - Main_precharge_H2_front_washer
+    - Main_precharge_H2_rear_washer
+    direction: screw axis
+    after:
+    - torso:s046
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Main_precharge_source_board; driver path vs placed parts
+  - id: torso:s049
+    subassembly: torso
+    screw: Power_supervisor_H1_M2x12
+    with:
+    - Power_supervisor_H1_M2_nut
+    - Power_supervisor_H1_front_washer
+    - Power_supervisor_H1_rear_washer
+    direction: screw axis
+    after:
+    - torso:p048
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Power_supervisor_source_board; driver path vs placed parts
+  - id: torso:s050
+    subassembly: torso
+    screw: Power_supervisor_H2_M2x12
+    with:
+    - Power_supervisor_H2_M2_nut
+    - Power_supervisor_H2_front_washer
+    - Power_supervisor_H2_rear_washer
+    direction: screw axis
+    after:
+    - torso:s049
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Power_supervisor_source_board; driver path vs placed parts
+  - id: torso:p053
+    subassembly: torso
+    part: Honeycomb_Fin_02_Upper_Dorsal_L1
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
+    after:
+    - torso:s052
+    status: seeded
+    derived: 'graph order, fastened distance 20 from what is present (via Honeycomb_Cell_02_Upper_Dorsal_L1); direction: toward the centroid of
+      placed neighbours (Honeycomb_Cell_02_Upper_Dorsal_L1), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, -1.0,
+      0.0]): path contact 10.5 -> 0.0 mm out, seat released True -> True, max overlap 139.1 -> 0.0 mm3'
+  - id: torso:p054
+    subassembly: torso
+    part: Honeycomb_Fin_04_Upper_Dorsal_R1
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - torso:p053
+    status: seeded
+    derived: 'graph order, fastened distance 20 from what is present (via Honeycomb_Cell_04_Upper_Dorsal_R1); direction: toward the centroid of
+      placed neighbours (Honeycomb_Cell_04_Upper_Dorsal_R1), snapped to the nearest axis'
+  - id: torso:p055
+    subassembly: torso
+    part: Honeycomb_Fin_06_Upper_Core_L
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
+    after:
+    - torso:p054
+    status: seeded
+    derived: 'graph order, fastened distance 20 from what is present (via Honeycomb_Cell_06_Upper_Core_L); direction: toward the centroid of placed
+      neighbours (Honeycomb_Cell_06_Upper_Core_L), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 1.0, 0.0]): path
+      contact 30.5 -> 0.0 mm out, seat released True -> True, max overlap 475.6 -> 0.0 mm3'
+  - id: torso:p056
+    subassembly: torso
+    part: Honeycomb_Fin_07_Upper_Core_R
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
+    after:
+    - torso:p055
+    status: seeded
+    derived: 'graph order, fastened distance 20 from what is present (via Honeycomb_Cell_07_Upper_Core_R); direction: toward the centroid of placed
+      neighbours (Honeycomb_Cell_07_Upper_Core_R), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 1.0, 0.0]): path
+      contact 35.5 -> 0.0 mm out, seat released True -> True, max overlap 491.9 -> 0.0 mm3'
+  - id: torso:s062
+    subassembly: torso
+    screw: center_back_low_M3x8
+    direction: screw axis
+    after:
+    - torso:p061
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after Honeycomb_Fin_08_Lower_Pelvis_L; driver path vs placed parts
+  - id: final_body:s001
+    subassembly: final_body
+    screw: T02_back_mount1_M3x6
+    direction: screw axis
+    status: seeded
+    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part center_back_shell; driver path vs placed
+      parts'
+  - id: final_body:s002
+    subassembly: final_body
+    screw: T02_back_mount2_M3x8
+    direction: screw axis
+    after:
+    - final_body:s001
+    status: seeded
+    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part center_back_shell; driver path vs placed
+      parts'
+  - id: final_body:s004
+    subassembly: final_body
+    screw: T02_back_mount3_M3x6
+    direction: screw axis
+    after:
+    - final_body:p003
+    status: seeded
+    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part center_back_shell; driver path vs placed
+      parts'
+  - id: final_body:s006
+    subassembly: final_body
+    screw: C_T01_chest__T02_back_1_M3x8
+    with:
+    - C_T01_chest__T02_back_1_M3_hex_nut
+    direction: screw axis
+    after:
+    - final_body:p005
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after center_front_shell; driver path vs placed parts
+  - id: final_body:s007
+    subassembly: final_body
+    screw: C_T01_chest__T02_back_2_M3x8
+    with:
+    - C_T01_chest__T02_back_2_M3_hex_nut
+    direction: screw axis
+    after:
+    - final_body:s006
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after center_front_shell; driver path vs placed parts
+defects:
+- id: nut-role-body-shell
+  kind: other
+  parts:
+  - C_T01_chest__T02_back_*_M3_hex_nut
+  field: role
+  why: the manifest gives these bought M3 hex nuts role body_shell; checks that read the role treat them as covers (the definition declares them
+    hardware, spec nut, printed false)
+  fix: the section builder writes role nominal_hardware (or fastener) for them; until then the checks use the declared kind (design-check tooling
+    session)

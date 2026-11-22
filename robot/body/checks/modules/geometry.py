@@ -16,6 +16,11 @@ from checks.registry import register
 # thresholds of the old audit, kept as named measurement definitions (they define what a counted event is, not a verdict);
 # a part's own values come from its `geometry_thresholds` setting (part_settings.json, defaults there); these are the fallback
 DEFAULT_THRESHOLDS = dict(sliver_mm2=0.25, micro_edge_mm=0.30, acute_normal_deg=125.0, g1_kink_deg=8.0)
+# Parts we make without printing them (cut, produced, machined): their STEP is ours and audited like a printed part's. Every other
+# non-printed part is bought: its STEP is the supplier's (power supervisor board 80 MB, ROCK4D 45, ST3025 cases 15 each, thousands
+# of component solids), the audit of its B-rep says nothing about our design and an unscoped run never finished on them
+# (T-zfejzf, 2026-11-22: no part audited in 1800 s). Those are listed in `bought_not_audited` with their STEP size.
+MADE_ROLES = {"cut_stock", "cut_material", "produced_backing", "produced_holder", "manufactured"}
 
 
 def _face_normal_at(face, pt):
@@ -179,8 +184,11 @@ def plate_fit(ctx, name, sh):
     vols = {k: prn.get(k) for k in ("build_volume_mm", "build_volume_both_nozzles_mm") if prn.get(k)}
     out = dict(printer=e["printer"], up=e["up"], up_source=e["source"]["up"], plate_yaw_deg=e["plate_yaw_deg"], build_volume_mm=vols.get("build_volume_mm"))
     if e["up"] is None:
-        b = sh.bounding_box()
-        ext = sorted([b.size.X, b.size.Y, b.size.Z], reverse=True)
+        if sh is None:
+            ext = sorted((ctx.body.mesh(name).extents).tolist(), reverse=True)
+        else:
+            b = sh.bounding_box()
+            ext = sorted([b.size.X, b.size.Y, b.size.Z], reverse=True)
         out.update(frame="STEP frame, orientation free (no print direction)", extents_mm=[round(float(v), 2) for v in ext])
         if vols.get("build_volume_mm"):
             bed = sorted(vols["build_volume_mm"], reverse=True)
@@ -216,24 +224,33 @@ def plate_fit(ctx, name, sh):
 
 def loadpath_slices(mesh_mf, spec, n_default=12):
     """Slab areas along spec {axis, range_mm, n_slices}: area of each slab (mm2), parallel branches, branches that do not reach both neighbouring slabs
-    (moved from arm/check_cad_rules.check_loadpath_slice_continuity)."""
+    (moved from arm/check_cad_rules.check_loadpath_slice_continuity). A slab that lies wholly outside the part's extent along the axis is
+    counted apart (slabs_outside_part, area null): the setting's range no longer cuts the part there (a range set for an earlier geometry),
+    which is not a severed load path; severed branches and the thinnest slab are over the slabs inside the part."""
     import manifold3d as md
     ax = {"x": 0, "y": 1, "z": 2}[spec["axis"]]
     n = int(spec.get("n_slices", n_default))
     s_min, s_max = spec["range_mm"]
     edges = np.linspace(s_min, s_max, n + 1)
     eps = 0.15
-    lo, hi = np.array(mesh_mf.bounding_box()[:3]) - 10.0, np.array(mesh_mf.bounding_box()[3:]) + 10.0
+    bb = np.array(mesh_mf.bounding_box(), float)
+    lo, hi = bb[:3] - 10.0, bb[3:] + 10.0
+    p_lo, p_hi = float(bb[ax]), float(bb[3 + ax])
+    inside = [bool(edges[i + 1] > p_lo and edges[i] < p_hi) for i in range(n)]
     comps_by_slab, areas = [], []
     for i in range(n):
+        if not inside[i]:
+            areas.append(None); comps_by_slab.append([])
+            continue
         a0, a1 = float(edges[i]) - eps, float(edges[i + 1]) + eps
         size = list(hi - lo); org = list(lo)
         size[ax], org[ax] = a1 - a0, a0
         slab = mesh_mf ^ md.Manifold.cube(size).translate(org)
         areas.append(round(float(slab.volume()) / max(1e-6, a1 - a0), 2))
         comps_by_slab.append([c for c in slab.decompose() if float(c.volume()) / max(1e-6, a1 - a0) >= 1.5])
+    idx = [i for i in range(n) if inside[i]]
     severed = 0
-    for i in range(1, n - 1):
+    for i in idx[1:-1]:                      # the first and last slab inside the part are its ends, not dead ends
         pu = md.Manifold.batch_boolean(comps_by_slab[i - 1], md.OpType.Add) if comps_by_slab[i - 1] else md.Manifold()
         nu = md.Manifold.batch_boolean(comps_by_slab[i + 1], md.OpType.Add) if comps_by_slab[i + 1] else md.Manifold()
         for c in comps_by_slab[i]:
@@ -241,14 +258,20 @@ def loadpath_slices(mesh_mf, spec, n_default=12):
             vn = float((c ^ nu).volume()) if comps_by_slab[i + 1] else 0.0
             if vp < 1e-3 or vn < 1e-3:
                 severed += 1
-    return dict(axis=spec["axis"], range_mm=[s_min, s_max], slab_areas_mm2=areas, min_slab_area_mm2=round(min(areas), 2),
-                mean_slab_area_mm2=round(float(np.mean(areas)), 2), max_parallel_branches=int(max(len(c) for c in comps_by_slab)),
-                severed_or_deadend_branches=severed)
+    a_in = [areas[i] for i in idx]
+    cut = max(0.0, min(s_max, p_hi) - max(s_min, p_lo))
+    return dict(axis=spec["axis"], range_mm=[s_min, s_max], part_extent_mm=[round(p_lo, 2), round(p_hi, 2)],
+                range_inside_part_pct=round(100.0 * cut / max(1e-9, s_max - s_min), 1), slabs=n, slabs_outside_part=n - len(idx),
+                slab_areas_mm2=areas, min_slab_area_mm2=round(min(a_in), 2) if a_in else None,
+                mean_slab_area_mm2=round(float(np.mean(a_in)), 2) if a_in else None,
+                max_parallel_branches=int(max([len(comps_by_slab[i]) for i in idx] or [0])), severed_or_deadend_branches=severed)
 
 
 def _step(ctx, name):
+    """The part's native STEP, None without one or when the manifest path resolves nowhere (31 foot-sensor / forearm-nut paths on
+    22 Nov: counted in bad_events.dangling_native_step, the part is then skipped like a mesh-only part)."""
     p = ctx.parts.get(name)
-    if not p or not p.get("native_step"):
+    if not p or not p.get("native_step") or not BL.src(p["native_step"]).exists():
         return None
     return BL.src(p["native_step"])
 
@@ -257,6 +280,62 @@ def _solids(step):
     from build123d import import_step
     sh = import_step(str(step))
     return sh, list(sh.solids())
+
+
+def _placed(ctx, name, step):
+    """The STEP's solids as one compound in the manifest frame (native_step_offset_mm applied)."""
+    from build123d import Compound, Location
+    off = ctx.parts[name].get("native_step_offset_mm") or (0, 0, 0)
+    return Compound(children=[s.moved(Location(tuple(float(v) for v in off))) for s in _solids(step)[1]])
+
+
+def sleeve_overlap(ctx, name, pmf, smf, step, slv_step):
+    """Part vs its own sleeves (mm3): the manifest-mesh boolean, and where it reads above 0 and both STEPs exist, the exact OCC common
+    volume, which is reported: a press-fit sleeve shares its bore's cylinder, and the two tessellations of one cylinder cross each
+    other by a few hundredths of a mm (0.4-1.1 mm3 over a sleeve set that is exactly 0)."""
+    if pmf is None or smf is None:
+        return dict(sleeve_overlap_mm3=None)
+    mesh_v = round(float((pmf ^ smf).volume()), 5)
+    out = dict(sleeve_overlap_mm3=mesh_v, sleeve_overlap_mesh_mm3=mesh_v, sleeve_overlap_method="manifest meshes (manifold3d)")
+    if mesh_v > 0 and step is not None and slv_step is not None:
+        from checks import brep as L
+        part = _placed(ctx, name, step)
+        exact = sum(L.common_volume_mm3(part, s) for s in _placed(ctx, f"{name}_steel_sleeves", slv_step).solids())
+        out.update(sleeve_overlap_mm3=round(float(exact), 5), sleeve_overlap_method="exact OCC common volume of the STEP solids (the mesh boolean read above 0)")
+    return out
+
+
+def mesh_part(ctx, name):
+    """What geometry can measure on a printed part without a native STEP, from its own closed mesh: volume, L/R volume difference
+    (mirror's mesh), sleeves found in its sleeve mesh, part-vs-sleeve overlap, extents vs the build volume, load-path slabs. The
+    B-rep audit (faces, edges, fillets, solids) needs a STEP and stays null. None when the mesh is not closed."""
+    pmf = _mesh_mf(ctx, name)
+    if pmf is None:
+        return None
+    t0 = time.time()
+    vol = float(pmf.volume())
+    out = dict(source="own closed mesh (no native STEP): B-rep audit not measured", step_sha256=None, solids=None, invalid_solids=0,
+               volume_mm3=round(vol, 2), mesh_volume_mm3=round(vol, 2), step_vs_mesh_volume_diff_pct=None)
+    mirror = _mirror_name(name)
+    mmf = _mesh_mf(ctx, mirror) if mirror in ctx.parts else None
+    out.update(mirror_part=mirror if mmf is not None else None, mirror_volume_mm3=None if mmf is None else round(float(mmf.volume()), 2),
+               mirror_volume_diff_pct=None if mmf is None else round(abs(vol - float(mmf.volume())) / max(1.0, vol) * 100.0, 4))
+    sn = f"{name}_steel_sleeves"
+    n_slv = 0
+    if sn in ctx.parts:
+        import sys
+        from checks.core import ROOT
+        sys.path.insert(0, str(ROOT / "robot/body/fastening"))
+        from mount_check import tubes
+        n_slv = len(tubes(ctx.body.mesh(sn)))
+    exp = (ctx.settings(name).get("expected_hardware") or {}).get("steel_sleeves")
+    out.update(sleeves=n_slv, expected_sleeves=exp, sleeves_missing=None if exp is None else exp - n_slv)
+    out.update(sleeve_overlap(ctx, name, pmf, _mesh_mf(ctx, sn) if sn in ctx.parts else None, None, None))
+    out.update(plate_fit(ctx, name, None))
+    spec = ctx.settings(name).get("loadpath_slices")
+    out["loadpath"] = loadpath_slices(pmf, spec) if spec else None
+    out["seconds"] = round(time.time() - t0, 1)
+    return out
 
 
 def _mirror_name(n):
@@ -281,7 +360,7 @@ def audit_part(ctx, name):
     else:
         out.update(mirror_part=None, mirror_volume_diff_pct=None)
     slv = ctx.parts.get(f"{name}_steel_sleeves")
-    slv_step = BL.src(slv["native_step"]) if slv and slv.get("native_step") else None
+    slv_step = _step(ctx, f"{name}_steel_sleeves") if slv else None
     n_slv = len(_solids(slv_step)[1]) if slv_step is not None else 0
     exp = (ctx.settings(name).get("expected_hardware") or {}).get("steel_sleeves")
     out.update(sleeves=n_slv, expected_sleeves=exp, sleeves_missing=None if exp is None else exp - n_slv)
@@ -290,7 +369,7 @@ def audit_part(ctx, name):
     out["mesh_volume_mm3"] = None if pmf is None else round(float(pmf.volume()), 2)
     out["step_vs_mesh_volume_diff_pct"] = None if pmf is None else round(abs(vol - float(pmf.volume())) / max(1.0, vol) * 100.0, 4)
     smf = _mesh_mf(ctx, f"{name}_steel_sleeves") if slv else None
-    out["sleeve_overlap_mm3"] = None if (pmf is None or smf is None) else round(float((pmf ^ smf).volume()), 5)
+    out.update(sleeve_overlap(ctx, name, pmf, smf, step, slv_step))
     out.update(plate_fit(ctx, name, sh))
     spec = ctx.settings(name).get("loadpath_slices")
     out["loadpath"] = loadpath_slices(pmf, spec) if (spec and pmf is not None) else None
@@ -303,14 +382,36 @@ def audit_part(ctx, name):
     return out
 
 
-@register("geometry", lambda ctx: any(ctx.parts[n].get("native_step") for n in ctx.scope))
+def _applies(ctx):
+    from checks import process as P
+    return any(ctx.parts[n].get("native_step") or P.is_printed(ctx, n) for n in ctx.scope)
+
+
+@register("geometry", _applies)
 def run(ctx):
     """B-rep hygiene per scoped part (native STEP): invalid solids, sliver faces, micro-edges, acute wedges, G1 kinks, unrounded corners, L/R volume difference, sleeves vs expected."""
     t0 = time.time()
     per_part, cases, skipped = {}, [], []
     tot = dict(invalid_solids=0, sliver_faces=0, micro_edges=0, acute_wedge_edges=0, non_tangent_hub_steps=0, unrounded_profile_corners=0)
+    from checks import process as P
+    bought, dangling, from_mesh, not_measured = {}, [], [], {}
     for n in ctx.scope:
+        if ctx.parts[n].get("native_step") and not BL.src(ctx.parts[n]["native_step"]).exists():
+            dangling.append(n)
+            continue
+        if ctx.parts[n].get("native_step") and not (P.is_printed(ctx, n) or ctx.parts[n].get("role") in MADE_ROLES):
+            bought[n] = dict(role=ctx.parts[n].get("role"), step_mb=round(BL.src(ctx.parts[n]["native_step"]).stat().st_size / 1e6, 2)
+                             if BL.src(ctx.parts[n]["native_step"]).exists() else None)
+            continue
         r = audit_part(ctx, n)
+        if r is None and P.is_printed(ctx, n):
+            r = mesh_part(ctx, n)
+            if r is None:
+                not_measured[n] = "no native STEP and its mesh is not closed"
+            else:
+                per_part[n] = r
+                from_mesh.append(n)
+            continue
         if r is None:
             skipped.append(n)
             continue
@@ -331,6 +432,16 @@ def run(ctx):
             cases.append(dict(part=n, mating_part=r["mirror_part"], pose=None, location_mm=None, value=r["mirror_volume_diff_pct"], unit="% L/R volume difference", what="mirror volume"))
         if r["sleeves_missing"]:
             cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=r["sleeves_missing"], unit="sleeves short of expected", what=f"{r['sleeves']} of {r['expected_sleeves']}"))
+    for n in from_mesh:
+        r = per_part[n]
+        if r["mirror_volume_diff_pct"]:
+            cases.append(dict(part=n, mating_part=r["mirror_part"], pose=None, location_mm=None, value=r["mirror_volume_diff_pct"], unit="% L/R volume difference", what="mirror volume (closed meshes)"))
+        if r["sleeves_missing"]:
+            cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=r["sleeves_missing"], unit="sleeves short of expected", what=f"{r['sleeves']} of {r['expected_sleeves']} (sleeve mesh)"))
+    for n in from_mesh + list(not_measured):
+        cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=0.0, unit="B-rep faces audited", context=n in from_mesh,
+                          what="no native STEP: " + ("measured from its own closed mesh (volume, mirror, sleeves, sleeve overlap, build volume, load-path slabs); "
+                                                     "B-rep audit not measured" if n in from_mesh else not_measured[n] + "; nothing measured")))
     for n, r in per_part.items():
         if r.get("min_bed_margin_mm") is not None:     # context (listed in the report only) while the part fits; a negative margin is a finding
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["min_bed_margin_mm"], unit="mm smallest margin to build volume", context=r["min_bed_margin_mm"] >= 0,
@@ -339,15 +450,24 @@ def run(ctx):
                                    + (f"; best yaw {r['best_yaw_deg']} deg gives {r['min_bed_margin_best_yaw_mm']} mm" if r.get("best_yaw_deg") else "")))
         if r["sleeve_overlap_mm3"]:
             cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=r["sleeve_overlap_mm3"], unit="mm3 part/sleeve overlap", what="sleeve overlap"))
-        if r["loadpath"]:
-            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["loadpath"]["min_slab_area_mm2"], unit="mm2 thinnest load-path slab", what=f"{r['loadpath']['severed_or_deadend_branches']} severed branches"))
+        lp = r["loadpath"]
+        if lp and lp["min_slab_area_mm2"] is None:
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=lp["range_inside_part_pct"], unit="% of the load-path slice range inside the part",
+                              what=f"the loadpath_slices setting ({lp['axis']} {lp['range_mm'][0]:g}..{lp['range_mm'][1]:g} mm) misses the part "
+                                   f"({lp['axis']} {lp['part_extent_mm'][0]:g}..{lp['part_extent_mm'][1]:g} mm): set for another geometry, nothing sliced"))
+        elif lp:
+            stale = (f"; {lp['slabs_outside_part']} of {lp['slabs']} slabs outside the part (setting {lp['axis']} {lp['range_mm'][0]:g}..{lp['range_mm'][1]:g} mm, "
+                     f"part {lp['part_extent_mm'][0]:g}..{lp['part_extent_mm'][1]:g} mm: {lp['range_inside_part_pct']} % of the range cuts it)" if lp["slabs_outside_part"] else "")
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=lp["min_slab_area_mm2"], unit="mm2 thinnest load-path slab",
+                              what=f"{lp['severed_or_deadend_branches']} severed branches over the slabs inside the part" + stale))
         if r["step_vs_mesh_volume_diff_pct"]:
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=None, value=r["step_vs_mesh_volume_diff_pct"], unit="% STEP vs mesh volume", what="STEP/mesh identity",
                               context=True))   # the summary's header already names parts whose screening solid is over 5 % off
     tick("geometry", t0)
     cases.sort(key=lambda c: (bool(c.get("context")), c["unit"] != "faces, no solid", -c["value"] if c["unit"].startswith(("%", "sleeves", "mm3")) else c["value"]))
-    return dict(per_part=per_part, worst_cases=cases[:20],
-                bad_events=dict(parts_audited=len(per_part), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
+    return dict(per_part=per_part, worst_cases=cases[:20], bought_not_audited=bought, dangling_native_step=dangling, measured_from_own_mesh=from_mesh,
+                not_measured=not_measured,
+                bad_events=dict(parts_audited=len(per_part) - len(from_mesh), bought_parts_not_audited=len(bought), dangling_native_step=len(dangling), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
                                 acute_wedge_edges=tot["acute_wedge_edges"], non_tangent_hub_steps=tot["non_tangent_hub_steps"],
                                 unrounded_profile_corners=tot["unrounded_profile_corners"],
                                 parts_over_build_volume=sum(1 for r in per_part.values() if (r.get("min_bed_margin_mm") or 0) < 0),
@@ -355,7 +475,10 @@ def run(ctx):
                                 parts_without_print_direction=sum(1 for r in per_part.values() if r.get("up") is None),
                                 parts_with_sleeve_overlap_over_0p05_mm3=sum(1 for r in per_part.values() if (r["sleeve_overlap_mm3"] or 0) > 0.05),
                                 loadpath_severed_branches=sum((r["loadpath"] or {}).get("severed_or_deadend_branches", 0) for r in per_part.values()),
-                                parts_without_native_step=len(skipped),
-                                steps_without_solid=sum(1 for r in per_part.values() if not r["solids"])),
+                                loadpath_slabs_outside_part=sum((r["loadpath"] or {}).get("slabs_outside_part", 0) for r in per_part.values()),
+                                parts_without_native_step=len(skipped) + len(from_mesh) + len(not_measured),
+                                printed_parts_measured_from_own_mesh=len(from_mesh), printed_parts_not_measured=len(not_measured),
+                                steps_without_solid=sum(1 for r in per_part.values() if r["solids"] == 0)),
                 evidence=[], notes="OpenCascade B-rep audit of the native STEP; event thresholds per part (setting geometry_thresholds, per_part[...].thresholds; defaults sliver < 0.25 mm2 planar face, micro-edge < 0.30 mm, acute wedge = normal angle > 125 deg on edges > 0.5 mm, "
-                                   "G1 = cylinder/plane transition kink <= 8 deg); fillets = small cylinders (r <= 5.5 mm) split concave/convex; bed = extents in the print frame (process.up, plate_yaw_deg) vs the printer's build volume, main nozzle and both nozzles, plus the best plate yaw; without a print direction sorted STEP extents (orientation free); load-path slabs from the part's `loadpath_slices` setting (null = not set); sleeve overlap = manifest-mesh boolean; sleeves = solids of <part>_steel_sleeves STEP vs part_settings expected_hardware.steel_sleeves (null = not set)")
+                                   "G1 = cylinder/plane transition kink <= 8 deg); fillets = small cylinders (r <= 5.5 mm) split concave/convex; bed = extents in the print frame (process.up, plate_yaw_deg) vs the printer's build volume, main nozzle and both nozzles, plus the best plate yaw; without a print direction sorted STEP extents (orientation free); load-path slabs from the part's `loadpath_slices` setting (null = not set); sleeve overlap = manifest-mesh boolean, confirmed by the exact OCC common volume of the STEPs where the mesh reads above 0 (coincident press-fit cylinders tessellate into each other); "
+                                   "mesh-only printed parts: what the closed mesh allows (volume, mirror, sleeves, sleeve overlap, build volume, load-path slabs), B-rep audit null; sleeves = solids of <part>_steel_sleeves STEP vs part_settings expected_hardware.steel_sleeves (null = not set)")

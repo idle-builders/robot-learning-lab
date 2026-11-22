@@ -17,9 +17,11 @@ A setup is data in data/part_settings.json under part_settings[part]["fem"]:
                               | {"transfer": {"F_N": [..], "M_Nm": [..], "scale": s, "from_mm": [x, y, z], "lever": l}}}   transfer = a force / moment given at from_mm,
                    scaled, moment at the origin M*s + l * (from - origin) x F*s (neck-head head wrench)
   materials        [names in data/materials.json]   default: the part's process.material
-  regions          [{"material": name, "where": REGION, "only_polymer": bool}]   elements (by centroid) taking another material, in order, later ones overwrite earlier
+  regions          [{"material": name, "where": REGION, "only_polymer": bool}]   elements taking another material (by centroid; bore_collars: see there), in order, later ones overwrite earlier
                    (an Al seat with only_polymer keeps the steel collars set before it); distinct materials of bonded + regions: at most two
-                   REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   within r of every bore of the sleeve part, e beyond its ends
+                   REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   per sleeve of the sleeve part: within r of the part's bore it is
+                                                                                                 pressed into, e beyond its ends; elements by their share inside, up to the
+                                                                                                 collar's volume (collar_elements: the steel volume does not follow the mesh)
                           | {"contact_band": {"parts": [mating parts], "dist_mm": d}}                  within d of the named mating parts' surfaces (follows them)
                           | {"capsules": ...} | {"box": ...}                                           legacy hand-typed sites (see point_pred)
   variants         {"name": {...keys above replaced...}}   e.g. the old hand-typed patches, run with --fem-variant
@@ -42,7 +44,8 @@ A setup is data in data/part_settings.json under part_settings[part]["fem"]:
         | [PATCH, PATCH]                                    union
 A material of the table can be {"fem": {"factor_of_part_material": f}}: f times the part's own Hooke matrix (the old torso sleeve-zone stiffness, named option).
 Any PATCH dict can carry "rigid": true. A member of a rigid load union can carry "free_rotation_about_joint": J: its nodes follow the rigid motion plus a free,
-unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
+unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Several members may: the members naming
+one joint are one bearing (one released rotation), each further joint adds its own; a released member that selects no node stops with a message naming it. Load: all nodes of the patch follow one rigid-body motion (translation + rotation about origin_mm, master-slave elimination with a 6-DOF reference node
 at the origin, direct solve) and the wrench acts on that reference node: the load patch cannot bend between its sites. Support: the nodes are fixed, which already is a fixed rigid body (the flag changes nothing).
 Run option ctx.fem_rigid_load (run.py --fem-rigid-load) makes the stored load patch rigid for a comparison run. Run option: ctx.fem_mesh_h (run.py --fem-mesh-h) replaces mesh_h_mm of every setup (mesh convergence).
 The layer normal is the part's decided print direction (process.up, the print setup, sign irrelevant for the orthotropic axis), the manifest frame is the frame of all coordinates.
@@ -53,6 +56,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 
 import numpy as np
@@ -60,6 +64,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.spatial import cKDTree
 
 from checks import bodylib as BL
+from checks import cachefs
 from checks import fem_lib as FL
 from checks.core import CACHE, DATA, ROOT, WORK, R, sha
 from checks.fem_lib import hooke, materials  # noqa: F401
@@ -210,17 +215,73 @@ def point_pred(spec):
     return pred
 
 
-def collar_pred(ctx, spec):
-    """Predicate over points: within r_extra_mm of the bores (cylindrical faces, r up to r_max_mm) of the companion part spec["of"] and within
-    end_extra_mm of their ends = a steel collar around every pressed-in sleeve of that part; follows the sleeve part (the stored form of the legacy capsules)."""
-    hs = hole_faces(ctx, spec["of"], float(spec.get("r_max_mm", 5.0)))
-    def pred(c):
-        c = np.asarray(c); ms = []
-        for h in hs:
-            rel = c - h["centre"]; al = rel @ h["axis"]
-            ms.append((np.abs(al) <= h["half_len"] + float(spec["end_extra_mm"])) & (np.linalg.norm(rel - np.outer(al, h["axis"]), axis=1) <= h["r"] + float(spec["r_extra_mm"])))
-        return np.logical_or.reduce(ms)
-    return pred
+def _coaxial(a, b, tol=0.1):
+    """Two cylinder faces on one axis line (parallel axes, axis lines within tol mm)."""
+    if abs(abs(float(a["axis"] @ b["axis"])) - 1.0) > 1e-3:
+        return False
+    d = b["centre"] - a["centre"]
+    return float(np.linalg.norm(d - (d @ a["axis"]) * a["axis"])) <= tol
+
+
+def _span(h, ref):
+    """[lo, hi] of a cylinder face along the axis of ref, measured from ref's centre."""
+    a = float((h["centre"] - ref["centre"]) @ ref["axis"])
+    return a - h["half_len"], a + h["half_len"]
+
+
+def sleeve_bores(ctx, part, sleeves, r_max=5.0, r_tol=0.3):
+    """One collar site per sleeve of the companion part `sleeves`: the part's own bore it is pressed into, i.e. the part's cylindrical faces coaxial
+    with the sleeve's outer cylinder, radius within r_tol of it, along the stretch where they overlap the sleeve. A sleeve = the sleeve part's coaxial,
+    overlapping cylinder faces (inner bore, outer surface); its outer radius is the largest. A sleeve without such a bore keeps its outer cylinder.
+    Returns [dict(r, centre, axis, half_len, source="bore" | "sleeve OD")]."""
+    tubes = []
+    for h in sorted(hole_faces(ctx, sleeves, r_max), key=lambda x: -x["r"]):
+        t = next((t for t in tubes if _coaxial(t[0], h) and _span(h, t[0])[0] <= _span(t[0], t[0])[1] + 0.01 and _span(h, t[0])[1] >= _span(t[0], t[0])[0] - 0.01), None)
+        if t is None:
+            tubes.append([h])
+        elif abs(h["r"] - t[0]["r"]) < 1e-3:
+            t.append(h)                                # the outer cylinder split into several faces
+    bores = hole_faces(ctx, part, r_max + r_tol)
+    out = []
+    for t in tubes:
+        od = t[0]
+        lo, hi = min(_span(h, od)[0] for h in t), max(_span(h, od)[1] for h in t)
+        seat = [b for b in bores if abs(b["r"] - od["r"]) <= r_tol and _coaxial(od, b) and _span(b, od)[1] > lo and _span(b, od)[0] < hi]
+        src, r = "sleeve OD", od["r"]
+        if seat:
+            src, r = "bore", max(b["r"] for b in seat)
+            lo, hi = max(lo, min(_span(b, od)[0] for b in seat)), min(hi, max(_span(b, od)[1] for b in seat))
+        out.append(dict(r=r, centre=od["centre"] + 0.5 * (lo + hi) * od["axis"], axis=od["axis"], half_len=0.5 * (hi - lo), source=src))
+    return out
+
+
+_SAMPLES = np.random.default_rng(0).dirichlet(np.ones(4), 64)    # fixed barycentric sample points of a tet (share of an element inside a region)
+
+
+def collar_elements(ctx, mesh, part, spec):
+    """Elements that take the steel of the bore collars of the sleeve part spec["of"]: per sleeve, the collar is the part's material within r_extra_mm of
+    the bore it is pressed into (sleeve_bores) and end_extra_mm beyond the sleeve's ends. Its volume inside the part is the sum over elements of element
+    volume x the share of 64 sample points inside it, which does not depend on the mesh; the elements with the largest share are taken until their volume
+    is closest to it (selection by centroid made a 0.85 mm collar about one element thick, so its steel volume followed the mesh size).
+    Returns (element mask, dict(sleeves, in_bore, collar_mm3, steel_mm3))."""
+    P, T, V = mesh["points"], mesh["tet"], mesh["vol"]
+    cent = P[T].mean(axis=1)
+    reach = np.linalg.norm(P[T] - cent[:, None, :], axis=2).max(axis=1)
+    sites = sleeve_bores(ctx, part, spec["of"], float(spec.get("r_max_mm", 5.0)))
+    sel, target = np.zeros(len(T), bool), 0.0
+    for c in sites:
+        R, L = c["r"] + float(spec["r_extra_mm"]), c["half_len"] + float(spec["end_extra_mm"])
+        rel = cent - c["centre"]; al = rel @ c["axis"]
+        cand = np.flatnonzero((np.linalg.norm(rel - np.outer(al, c["axis"]), axis=1) <= R + reach) & (np.abs(al) <= L + reach))
+        s = np.einsum("sk,ekd->esd", _SAMPLES, P[T[cand]]) - c["centre"]
+        sa = s @ c["axis"]
+        share = ((np.linalg.norm(s - sa[..., None] * c["axis"], axis=2) <= R) & (np.abs(sa) <= L)).mean(axis=1)
+        vol = float((share * V[cand]).sum())
+        o = np.argsort(-share, kind="stable")           # largest share first
+        cum = np.concatenate([[0.0], np.cumsum(V[cand][o])])
+        sel[cand[o[:int(np.argmin(np.abs(cum - vol)))]]] = True
+        target += vol
+    return sel, dict(sleeves=len(sites), in_bore=sum(1 for c in sites if c["source"] == "bore"), collar_mm3=round(target, 1), steel_mm3=round(float(V[sel].sum()), 1))
 
 
 def band_pred(ctx, spec):
@@ -238,16 +299,19 @@ def apply_regions(ctx, mesh, setup):
     code = {"metal": 0, "steel": 2}
     ids = mesh["mat_ids"].copy()
     cent = mesh["points"][mesh["tet"]].mean(axis=1)
-    counts = {}
+    counts, collars = {}, {}
     for i, r in enumerate(regs):
         w = r["where"]
-        sel = (collar_pred(ctx, w["bore_collars"]) if "bore_collars" in w else band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
+        if "bore_collars" in w:
+            sel, collars[f"{r['material']} {i}"] = collar_elements(ctx, mesh, mesh["part"], w["bore_collars"])
+        else:
+            sel = (band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
         n_sel = int(sel.sum())
         if r.get("only_polymer"):
             sel &= ids == 1
         ids[sel] = code[lm[r["material"]]]
         counts[f"{r['material']} {i}"] = n_sel
-    return mesh | {"mat_ids": ids, "region_elements": counts}
+    return mesh | {"mat_ids": ids, "region_elements": counts, "bore_collars": collars}
 
 
 def get_mesh(ctx, part, setup):
@@ -256,18 +320,20 @@ def get_mesh(ctx, part, setup):
     h = float(setup.get("mesh_h_mm", 2.2))
     key = "-".join(f"{lab}{sha(p)[:12]}" for lab, p in steps) + f"-h{h:g}"
     f = CACHE / "fem-mesh" / f"{key}.npz"
-    if f.exists():
-        d = np.load(f)
+    d = cachefs.load_npz(f) if f.exists() else None
+    if d is not None:
+        say(f"mesh h {h:g} from the cache ({len(d['points'])} nodes, {len(d['tet'])} tets)")
         return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part}, setup)
     t0 = time.time()
+    say(f"meshing h {h:g} (gmsh, {len(steps)} STEP files)")
     try:
         mesh = LL().mesh_compound_steps(steps, [], h_max=h)
     except (ValueError, RuntimeError, Exception) as e:   # noqa: BLE001  gmsh raises plain exceptions
         # near-coincident faces make the surface mesh intersect (arm roll-to-yaw part: 214 faces); the same part with merged same-domain faces meshes
         steps[0] = ("polymer", cleaned_step(steps[0][1]))
         mesh = LL().mesh_compound_steps(steps, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
-    f.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+    cachefs.savez(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+    say(f"meshed: {len(mesh['points'])} nodes, {len(mesh['tet'])} tets in {time.time() - t0:.0f} s")
     return apply_regions(ctx, mesh | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
 
 
@@ -450,6 +516,42 @@ def patch(ctx, mesh, spec):
     return w, info, mask
 
 
+def released_rotations(ctx, mesh, load, where):
+    """Released rotations of a load union: one per joint named by a member's free_rotation_about_joint (the members naming one joint are one bearing),
+    [dict(joint, axis, point, nodes, members)], or None. A released member whose patch selects no node raises, naming `where`, the member and its patch."""
+    groups = {}
+    for i, x in enumerate(load if isinstance(load, list) else [load]):
+        if not (isinstance(x, dict) and x.get("free_rotation_about_joint")):
+            continue
+        j = x["free_rotation_about_joint"]
+        spec = {k: v for k, v in x.items() if k != "free_rotation_about_joint"}
+        w, _, _ = patch(ctx, mesh, spec)
+        if not (w > 0).any():
+            raise ValueError(f"{where}: load member {i} (free_rotation_about_joint {j}) selects no node of the part; its patch: {json.dumps(spec)}")
+        jr = ctx.body.joints[j]
+        g = groups.setdefault(j, dict(joint=j, axis=jr["axis_world_neutral"], point=jr["origin_world_mm"], nodes=[], members=[]))
+        g["nodes"].append(np.flatnonzero(w > 0)); g["members"].append(i)
+    return [dict(g, nodes=np.unique(np.concatenate(g["nodes"]))) for g in groups.values()] or None
+
+
+# ------------------------------------------------------------------------------------------------ progress
+_PROGRESS = dict(check="fem", part=None, t0=None, last=0.0)
+
+
+def progress_start(part, check="fem"):
+    _PROGRESS.update(check=check, part=part, t0=time.time(), last=0.0)
+
+
+def say(msg, every_s=None):
+    """A progress line on stderr, "[fem] PART +s: msg" (seconds since progress_start of the part); every_s: at most one such line per every_s seconds.
+    Only stderr: the results do not change."""
+    t = time.time() - (_PROGRESS["t0"] or time.time())
+    if every_s and t - _PROGRESS["last"] < every_s:
+        return
+    _PROGRESS["last"] = t
+    print(f"[{_PROGRESS['check']}] {_PROGRESS['part'] or ''} +{t:.0f} s: {msg}", file=sys.stderr, flush=True)
+
+
 # ------------------------------------------------------------------------------------------------ solver
 def wrench_of(ctx, case, origin=None):
     """6-vector at the origin: given directly, a joint stall, or {"transfer": {F_N, M_Nm, scale, from_mm, lever}} = a force / moment given at from_mm,
@@ -490,6 +592,7 @@ def spd_solve(A, rhs, method, B=None):
     "amg" = conjugate gradients (relative residual CG_RTOL) preconditioned by pyamg smoothed aggregation, B = near-nullspace."""
     if method == "spsolve":
         SOLVE_LOG.append(dict(solver="spsolve"))
+        say(f"direct solve (SuperLU, {A.shape[0]} unknowns, {rhs.shape[1]} right-hand sides)")
         return spsolve(A.tocsc(), rhs)
     import pyamg
     from scipy.sparse.linalg import cg
@@ -500,9 +603,11 @@ def spd_solve(A, rhs, method, B=None):
         n = [0]
         def tick(_x, n=n):
             n[0] += 1
+        t0 = time.time()
         x, info = cg(A, rhs[:, i], rtol=CG_RTOL, maxiter=2000, M=M, callback=tick)
         if info != 0:
             raise RuntimeError(f"CG did not converge (info {info})")
+        say(f"CG solve {i + 1}/{rhs.shape[1]}: {n[0]} iterations, {time.time() - t0:.1f} s ({A.shape[0]} unknowns)")
         out.append(x); its.append(n[0]); res.append(float(np.linalg.norm(A @ x - rhs[:, i]) / max(np.linalg.norm(rhs[:, i]), 1e-300)))
     SOLVE_LOG.append(dict(solver="amg-cg", rhs=len(its), cg_iterations=its, true_relative_residual_max=max(res), rtol=CG_RTOL))
     return np.column_stack(out)
@@ -511,6 +616,7 @@ def spd_solve(A, rhs, method, B=None):
 def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=None, field_path=None, field_case=None, solver=None, rigid_load=False, envelopes=None, release=None):
     """Static solve: moved from motor-refit/fem_refit.solve (same maths, same outputs) with the material table from
     data/materials.json: mesh material ids 0 / 2 = the setup's bonded materials (bonded = slot_materials(setup)), 1 = the polymer.
+    release = released_rotations(...): load nodes that may also turn about a joint axis, one unloaded reference DOF per entry (rigid load only).
     envelopes = {case: (W (n, 6), labels, summary)}: a load case that stands for many wrenches (arm_loads.envelope); its row is the standard row of the
     wrench with the highest p99 plus "envelope" = distributions over all n wrenches (envelope_row)."""
     ll = LL()
@@ -523,10 +629,14 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
     if (0 in used and "metal" not in bonded) or (2 in used and "steel" not in bonded):
         raise ValueError("mesh has bonded companions whose material the setup does not name")
     Ds = [hooke(bonded.get("metal", material), ln_axis, material), hooke(material, ln_axis), hooke(bonded.get("steel", material), ln_axis, material)]
+    t0 = time.time()
     K, vol, B, _ = ll.assemble_chunked(points, tet, Ds, mat_ids)
+    say(f"{material}, layer normal {'xyz'[ln_axis]}: stiffness assembled ({len(points)} nodes, {len(tet)} tets) in {time.time() - t0:.0f} s")
     nd = 3 * len(points)
     u_basis = np.zeros((nd, 6))
     method = solver or os.environ.get("CHECKS_FEM_SOLVER", "amg")
+    if release and not rigid_load:
+        raise ValueError("a released rotation (free_rotation_about_joint) needs a rigid load patch")
     if not rigid_load:
         unit = []
         for i in range(6):
@@ -546,7 +656,7 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         # theta x r = -skew(r) theta with skew(r) = [[0,-rz,ry],[rz,0,-rx],[-ry,rx,0]]
         sk = np.zeros((len(ln), 3, 3)); sk[:, 0, 1], sk[:, 0, 2] = -r[:, 2], r[:, 1]; sk[:, 1, 0], sk[:, 1, 2] = r[:, 2], -r[:, 0]; sk[:, 2, 0], sk[:, 2, 1] = -r[:, 1], r[:, 0]
         R = -sk
-        if release is not None and method == "spsolve":
+        if release and method == "spsolve":
             raise ValueError("a load patch with a released rotation needs the amg path")
         if method == "spsolve":     # the old path: one direct solve of the 6-DOF-augmented system
             rows = [other]; cols = [np.arange(no)]; vals = [np.ones(no)]
@@ -561,19 +671,21 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
         else:
             # Schur complement on the 6 reference DOFs (the dense reference rows defeat AMG on the augmented system): Koo X = Kor (6 AMG-CG solves),
             # S = Krr - Kor^T X, reference motion u_r = S^-1 e_i, other nodes u_o = -X u_r; identical to the direct solve of the augmented system
-            nref = 6 + (release is not None)
-            Tl = np.zeros((len(ldofs), nref))
+            rel = release or []
+            Tl = np.zeros((len(ldofs), 6 + len(rel)))
             for a_ in range(3):
                 Tl[a_::3, a_] = 1.0
                 Tl[a_::3, 3:6] = R[:, a_, :]
-            if release is not None:
-                # release = {"nodes": node ids, "axis": a, "point": p}: those load nodes may also turn about the axis through p by an extra, unloaded
-                # reference DOF phi (u_i += phi a x (x_i - p)): a bearing (servo idler) that carries forces and off-axis moments but no torque about its axis
-                a_ax = np.asarray(release["axis"], float); a_ax = a_ax / np.linalg.norm(a_ax)
-                sel = np.isin(ln, np.asarray(release["nodes"]))
-                tang = np.cross(a_ax[None, :], points[ln] - np.asarray(release["point"], float)[None, :])
+            for k, g in enumerate(rel):
+                # g = {"nodes": node ids, "axis": a, "point": p}: those load nodes may also turn about the axis through p by an extra, unloaded
+                # reference DOF phi_k (u_i += phi_k a x (x_i - p)): a bearing (servo idler) that carries forces and off-axis moments but no torque about its axis
+                a_ax = np.asarray(g["axis"], float); a_ax = a_ax / np.linalg.norm(a_ax)
+                sel = np.isin(ln, np.asarray(g["nodes"]))
+                if not sel.any():
+                    raise ValueError(f"released rotation about {g.get('joint')}: none of its {len(g['nodes'])} nodes is a free load node (all clamped by a support)")
+                tang = np.cross(a_ax[None, :], points[ln] - np.asarray(g["point"], float)[None, :])
                 for a_ in range(3):
-                    Tl[a_::3, 6] = np.where(sel, tang[:, a_], 0.0)
+                    Tl[a_::3, 6 + k] = np.where(sel, tang[:, a_], 0.0)
             Kc = K.tocsr()
             Kor = np.asarray(Kc[other][:, ldofs] @ Tl)
             Krr = Tl.T @ (Kc[ldofs][:, ldofs] @ Tl)
@@ -610,6 +722,7 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
                           max_displacement_mm=round(float(np.linalg.norm(u, axis=1).max()), 4), reaction_plus_wrench_pct=chk_,
                           peak_vm_location_mm=np.round(centers[imax], 1).tolist())
     for case, (W, labels, summary) in (envelopes or {}).items():
+        say(f"{material}, layer normal {'xyz'[ln_axis]}: envelope {case}, {len(W)} wrenches")
         env = envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, ref_z, centers, ll.VON_MISES)
         k = env.pop("_worst_index")
         sub = solve_rows_from_basis(dict(worst=np.asarray(W[k], float)), react, u_basis, st_basis, pm, vol, ln_axis, ref, ref_z, centers, ll, mesh, field_path, field_case if field_case != case else "worst")
@@ -711,6 +824,7 @@ def envelope_row(W, labels, summary, st_basis, u_basis, pm, vol, ln_axis, ref, r
     p99, pz, peak, disp = (np.empty(n) for _ in range(4))
     env = np.zeros(S.shape[1], np.float32)
     for a in range(0, n, chunk):
+        say(f"  {a}/{n} wrenches", every_s=15)
         w = np.asarray(W[a:a + chunk], np.float32)
         st = np.einsum("ni,iec->nec", w, S)
         vm = _vm_batch(st)

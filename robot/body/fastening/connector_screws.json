@@ -29,7 +29,11 @@
    "clamped": ["{S}ankle_coupler_combined", "{S}ankle_coupler_combined_steel_sleeves"],
    "groups": {
     "B13_horn": {"standard_part": "{S}B13_C047_foot_roll_main_horn", "holes": ["ST3215.horn+y.1", "ST3215.horn+y.2", "ST3215.horn+y.3", "ST3215.horn+y.4"],
-                 "owning_link": "{S}ankle_pitch", "name": "{S}B13_output_NBK_M3x4_H0p8_{i}", "head": "ISO 7380-1"}
+                 "owning_link": "{S}ankle_pitch", "name": "{S}B13_output_NBK_M3x4_H0p8_{i}", "head": "ISO 7380-1"},
+    "ST3025_horn": {"standard_part": "{S}ankle_pitch_ST3025_output", "holes": ["ST3025.horn+z.1", "ST3025.horn+z.2", "ST3025.horn+z.3", "ST3025.horn+z.4"],
+                    "owning_link": "{S}ankle_pitch", "name": "{S}ankle_pitch_horn_M3x6_{i}", "head": "ISO 7380-1"},
+    "ST3025_idler": {"standard_part": "{S}ankle_pitch_ST3025_output", "holes": ["ST3025.idler-z.1", "ST3025.idler-z.2", "ST3025.idler-z.3", "ST3025.idler-z.4"],
+                     "owning_link": "{S}ankle_pitch", "name": "{S}ankle_pitch_idler_M3x6_{i}", "head": "ISO 7380-1"}
    }
   },
   "foot_monocoque_combined": {

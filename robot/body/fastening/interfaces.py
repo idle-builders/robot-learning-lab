@@ -21,7 +21,10 @@ from scipy.spatial import cKDTree
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 DEFS = ROOT / "robot/actuators/interfaces/standard-parts.json"
-CACHE = ROOT / ".cache/work/mount-check/canon"
+import sys  # noqa: E402
+sys.path.insert(0, str(ROOT / "robot/body"))
+from checks import cachefs  # noqa: E402
+CACHE = cachefs.work() / "mount-check/canon"   # keyed by STEP / mesh sha256: shared with the worktrees
 
 MOTOR_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference", "output", "output_horn", "horn",
                "purchased_servo_output_family_reference"}
@@ -61,8 +64,8 @@ def canonical(defs: dict, key: str, member: str):
     m = defs["motors"][key]
     CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / f"{key}-{member}-{m['step_sha256'][:12]}-{'-'.join(map(str, m['case_exterior']))}.npz"
-    if f.exists():
-        z = np.load(f)
+    z = cachefs.load_npz(f) if f.exists() else None
+    if z is not None:
         return trimesh.Trimesh(z["v"], z["f"], process=False)
     from build123d import import_step
     shape = import_step(str(ROOT / m["step"]))
@@ -79,7 +82,7 @@ def canonical(defs: dict, key: str, member: str):
         v, t = solids[i].tessellate(0.05, 0.3)
         vs.append(np.array([(p.X, p.Y, p.Z) for p in v])); fs.append(np.array(t) + off); off += len(v)
     V, Fc = np.vstack(vs), np.vstack(fs)
-    np.savez_compressed(f, v=V, f=Fc)
+    cachefs.savez(f, v=V, f=Fc)
     return trimesh.Trimesh(V, Fc, process=False)
 
 
@@ -257,31 +260,44 @@ def snap_rotation(defs, key, member, T, inst):
                         holes_located=len(I), holes_defined=len(hs))
 
 
+def snapped(defs, key, member, fit, canon, inst):
+    """A horn / idler / output fit turned to its holes (snap_rotation), refined point-to-surface from there and snapped
+    again; rms / p95 / max are the refined fit's. Shape fitting alone can leave a near-round disc turned (R ankle pitch
+    output: 27 deg, rms 0.255 as output, so the horn alone won at 0.213; after the snap and refit the output is 0.048)."""
+    T, _ = snap_rotation(defs, key, member, fit["T"], inst)
+    R, t, d = _surface_refine(trimesh_sample(canon, 2500, 0), inst, T[:3, :3], T[:3, 3], fit["mirrored"])
+    T = np.eye(4); T[:3, :3] = R; T[:3, 3] = t
+    T, snap = snap_rotation(defs, key, member, T, inst)
+    return dict(fit, T=T, hole_snap=snap, rms=float(np.sqrt(np.mean(d ** 2))), p95=float(np.percentile(d, 95)), max=float(d.max()),
+                rms_shape_fit=fit["rms"])
+
+
 def cached_fit(defs, key, member, body, n):
     """register() of one instance, cached by the sha256 of the instance mesh file, its offset and the official STEP."""
     p = body.parts[n]
     src = ROOT / p["mesh"]
     h = hashlib.sha256(src.read_bytes() if src.exists() else p["mesh"].encode()).hexdigest()[:16]
     tag = hashlib.sha256(json.dumps([h, p.get("placement_offset_mm"), defs["motors"][key]["step_sha256"], member,
-                                     defs["motors"][key]["case_exterior"], 7]).encode()).hexdigest()[:16]
+                                     defs["motors"][key]["case_exterior"], 8]).encode()).hexdigest()[:16]
     f = CACHE / "fits" / f"{tag}.json"
-    if f.exists():
-        z = json.loads(f.read_text()); z["T"] = np.array(z["T"]); return z
+    z = cachefs.read_json(f) if f.exists() else None
+    if z is not None:
+        z["T"] = np.array(z["T"]); return z
     tries = ("output", "horn", "idler") if member == "output" else (member,)
     # STS3250 and ST3215 share one case frame and hole pattern; the body may model one with the other's CAD
     shapes = (key, "ST3215") if key == "STS3250" else (key, "STS3250") if key == "ST3215" else (key,)
     fits = []
     for mem in tries:            # an 'output' part may be the front wheel alone (no rear idler)
         for shp in shapes:
-            fit = register(canonical(defs, shp, mem), body.mesh(n))
+            canon = canonical(defs, shp, mem)
+            fit = register(canon, body.mesh(n))
             fit["member_fitted"] = mem
             fit["modelled_with"] = shp
+            if mem in ("horn", "idler", "output"):
+                fit = snapped(defs, key, mem, fit, canon, body.mesh(n))
             fits.append(fit)
-    fit = min(fits, key=lambda x: x["rms"])
-    if fit["member_fitted"] in ("horn", "idler", "output"):
-        fit["T"], fit["hole_snap"] = snap_rotation(defs, key, fit["member_fitted"], fit["T"], body.mesh(n))
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(json.dumps({**fit, "T": fit["T"].tolist()}))
+    fit = min(fits, key=lambda x: x["rms"])     # each candidate scored after its hole snap and surface refit
+    cachefs.write_text(f, json.dumps({**fit, "T": fit["T"].tolist()}))
     return fit
 
 

@@ -20,6 +20,14 @@ For scale, contact, actuator or system-identification claims, read [dynamics and
 
 Move retained large completed CAD/simulation outputs and full transfer traces to the existing private Infomaniak blob archive; keep current body XML, its mesh dependencies and compact source/config/hash records local. Follow the [retention and restore guide](../../../docs/design/artifact-storage.md): restore both bodies and their dependencies before paired replay, native CAD work or export, and verify recovery before eviction. Local `.artifact-store` deduplication is not a remote archive; keep generated bulk out of Git.
 
+## Hardware starts at the BOM
+
+For any part, screw, print or purchase question start from the generated BOM and assembly order, not from a manifest or an old study folder: [robot/body/bom/README.md](../../../robot/body/bom/README.md) (`BOM.md`, `ASSEMBLY.md`, `findings.json` in `.cache/work/bom/` after `.venv/bin/python -B robot/body/bom/build.py`). The BOM tool knows no part: your builder's definition, `<builder>.bom.yaml` next to its script, says what it generates from what, which parts it owns and what each is (line, make / buy, spec, supplier or `unknown`), its assembly steps and its open defects. When your work adds, changes, renames or removes a part, screw or builder step:
+- edit only your builder's `.bom.yaml` (a new builder gets a new one next to it); never edit files under `robot/body/bom/` for a design change;
+- a part's check settings (print setup `process`, `fem`, `expected_hardware`, `fit_classes`, `covers`, `heat_source`, ...) live on its entry in that same file; the checks and the BOM both read it, and every check finding names the file;
+- rerun `build.py`, the assembly check and the bom check (commands in the BOM README) and work down the findings that name your file; report the counts that moved;
+- draft steps with `robot/body/checks/assembly_seed.py propose` and hardware specs with `robot/body/standard-hardware/propose_specs.py`; you decide what goes in.
+
 ## Match the experiment to the physical question
 
 1. Identify which layer changed: visual mesh, collision shape, joint frame/axis, mass/inertia, transmission, actuator law, sensing or control timing. Record selected geometry and all input hashes. A visual mesh export alone does not change physical contacts or inertia. Visual-only changes can still alter camera observations, occlusion and image-driven policy behavior; physical parity does not imply perception parity.

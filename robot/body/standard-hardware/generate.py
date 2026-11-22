@@ -1,17 +1,13 @@
-"""Standard hardware of the body manifest as specs and as generated geometry: screws, nuts, washers and spacers.
+"""Standard hardware as generated geometry: every part a body definition declares as hardware with a screw / nut / washer /
+spacer spec (robot/**/<builder>.bom.yaml) is generated from that declared spec (kind, thread, length, head standard,
+diameters) as a native STEP and an STL at the placement measured on its current mesh (axis, head end, centre). No spec
+comes from a name here: the definition's owner declares it (robot/body/standard-hardware/propose_specs.py drafts one). Per part the
+report gives the fit of the generated geometry to the old mesh (volume ratio, largest bounds difference in mm).
 
-Each hardware part gets a buyable spec (kind, thread, nominal length, head standard, nut / washer / spacer size) from its
-name (fastening/mount_check.nominal) and from measurements of its current mesh (axis, head diameter and height, outer /
-inner diameter, thickness), snapped to the standard sizes in robot/body/checks/data/hardware.json and the tables below.
-Then the part is generated from that spec at the measured placement (axis, head end, centre) as a native STEP and an
-STL, so no hardware depends on a mesh from an old study. Per part the report gives the fit of the generated geometry to
-the old mesh (volume ratio, largest bounds difference in mm) as scores. Steel sleeves and bearings are not generated
-here (sleeves come from their connector's script; bearings and bushes are bought parts).
+  .venv/bin/python -B robot/body/standard-hardware/generate.py [--manifest PATH] [--out DIR] [--only GLOB] [--no-geometry]
 
-  .venv/bin/python -B robot/body/bom/hardware.py [--manifest PATH] [--out DIR] [--only GLOB] [--no-geometry]
-
-Output (recreated by this script): DIR/hardware.json (spec, placement and fit per part) and DIR/parts/<name>.step / .stl.
-Default DIR .cache/work/bom-hardware. `specs(manifest)` is what robot/body/bom/build.py reads (no geometry).
+Output (recreated by this script): DIR/hardware.json (declared spec, definition, placement and fit per part) and
+DIR/parts/<name>.step / .stl. Default DIR .cache/work/bom-hardware.
 """
 from __future__ import annotations
 
@@ -27,7 +23,6 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "robot/body")); sys.path.insert(0, str(ROOT / "robot/body/fastening"))
-from mount_check import kind as hw_kind, nominal  # noqa: E402
 
 DATA = ROOT / "robot/body/checks/data"
 STD = json.loads((DATA / "hardware.json").read_text())["screw_standards"]
@@ -39,35 +34,6 @@ WASHER = {"M2": (2.2, 5.0, 0.3), "M2.5": (2.7, 6.0, 0.5), "M3": (3.2, 7.0, 0.5),
 # ISO 10642 countersunk head (90 deg): head diameter dk, height k (mm)
 CSK = {"M2": (4.4, 1.2), "M2.5": (5.5, 1.5), "M3": (6.3, 1.7), "M4": (8.96, 2.48)}
 GENERATED = {"screw", "nut", "washer", "spacer"}
-
-
-def thread_of(name):
-    n = nominal(name).get("thread")
-    if not n:
-        return None
-    n = n.upper().replace("B", "")
-    return "M" + n[2:] if n.startswith("PA") else n
-
-
-def family_of(name):
-    n = (nominal(name).get("thread") or "").upper()
-    return "PA" if "PA" in n else "M"
-
-
-def kind_of(p):
-    k = hw_kind(p)
-    if k in GENERATED:
-        return k
-    n = p["name"].lower()
-    if re.search(r"(^|_)nut(_|\d|$)|hex_nut|m\dnut", n):
-        return "nut"
-    if "spacer" in n or "standoff" in n or "_ff" in n:
-        return "spacer"
-    if "washer" in n:
-        return "washer"
-    if k == "other_hardware" and (thread_of(p["name"]) or re.search(r"(^|_)screw(_|\d|$)", n)):
-        return "screw"     # fan_M3_11_430 (thread and position); shoulder_u_roll_horn_screw_0 (thread and length measured)
-    return k
 
 
 def load_mesh(path):
@@ -141,82 +107,6 @@ def nearest(value, options):
     return min(options, key=lambda o: abs(o - value))
 
 
-def spec_of(p, mesh=None):
-    """Buyable spec of one hardware part: from its name, refined by the mesh measurement when given."""
-    k = kind_of(p)
-    name = p["name"]
-    thr = thread_of(name)
-    nom = nominal(name)
-    m = measure(mesh, k) if mesh is not None and k in GENERATED else None
-    s = dict(kind=k, thread=thr, source_of_spec=[])
-    if k == "screw":
-        fam = family_of(name)
-        if not thr and m:
-            thr = min(THREADS, key=lambda t: abs(THREADS[t] - m["shank_dia"])); s["source_of_spec"].append("thread from shank diameter")
-        L = nom.get("nominal_length_mm")
-        csk = bool(re.search(r"(_CS\d|csk|countersunk)", name, re.I))
-        plan = p.get("screw_plan") or {}
-        head = plan.get("head_standard")
-        if head:
-            s["source_of_spec"].append("head from screw_plan")
-        elif csk:
-            head = "ISO 10642"
-        elif m and thr in THREADS:
-            heads = {h: STD["head_types"][h][thr] for h in STD["head_types"] if thr in STD["head_types"][h]
-                     and not STD["head_types"][h].get("countersunk")}     # a countersunk head is named, never guessed
-            head = min(heads, key=lambda h: abs(heads[h]["dk"] - m["head_dia"]) + abs(heads[h]["k"] - m["head_height"]))
-            s["source_of_spec"].append("head standard nearest to the measured head")
-        else:
-            head = "ISO 7380-1"
-        if head == "ISO 10642" and thr not in STD["head_types"].get(head, {}):
-            dk, kk = CSK.get(thr, (2 * THREADS.get(thr, 3), 0.6 * THREADS.get(thr, 3)))
-        else:
-            hh = STD["head_types"].get(head, {}).get(thr) or {}
-            dk, kk = hh.get("dk", 2 * THREADS.get(thr, 3)), hh.get("k", THREADS.get(thr, 3) * 0.55)
-        if L is None:
-            m_cs = re.search(r"_CS(\d+)", name)
-            if m_cs:
-                L = float(m_cs.group(1)); s["source_of_spec"].append("length from _CS<n> in the name")
-            elif m:
-                Lm = m["length_total"] - (0 if head == "ISO 10642" else kk)
-                lengths = STD["head_types"].get(head, {}).get(thr, {}).get("lengths") or [4, 5, 6, 8, 10, 12, 16, 20, 25, 30]
-                L = float(nearest(Lm, lengths)); s["source_of_spec"].append("length = nearest standard to the measured length")
-        s.update(thread=thr, family=fam, nominal_length_mm=L, head_standard=head, head_dia_mm=dk, head_height_mm=kk,
-                 label=f"{'PA' + thr[1:] if fam == 'PA' else thr} x {L:g} {head}" if thr and L else f"screw {name}")
-    elif k == "nut":
-        if not thr and m:
-            thr = min(HEX_NUT, key=lambda t: abs(THREADS[t] - m["inner_dia"])); s["source_of_spec"].append("thread from the measured hole")
-        thr = thr if thr in HEX_NUT else "M3"
-        s.update(thread=thr, standard="ISO 4032", across_flats_mm=HEX_NUT[thr][0], height_mm=HEX_NUT[thr][1], label=f"{thr} hex nut ISO 4032")
-    elif k == "washer":
-        if not thr and m:
-            thr = min(WASHER, key=lambda t: abs(WASHER[t][0] - m["inner_dia"])); s["source_of_spec"].append("thread from the measured hole")
-        thr = thr if thr in WASHER else "M3"
-        d1, d2, h = WASHER[thr]
-        if m and (abs(m["outer_dia"] - d2) > 0.6 or abs(m["thickness"] - h) > 0.3):
-            d2, h = round(m["outer_dia"], 1), round(m["thickness"], 2)
-            s.update(standard="custom (measured)", note="outer diameter or thickness differs from ISO 7089; kept as measured")
-        else:
-            s.update(standard="ISO 7089")
-        s.update(thread=thr, inner_dia_mm=d1, outer_dia_mm=d2, thickness_mm=h, label=f"{thr} washer {d1:g}/{d2:g} x {h:g}")
-    elif k == "spacer":
-        if m:
-            od, idd, L = round(m["outer_dia"], 1), round(m["inner_dia"], 1), round(m["thickness"], 1)
-        else:
-            od = idd = L = None
-        mm = re.search(r"(\d+(?:p\d)?)\s*mm", name) or re.search(r"FF(\d+)", name)
-        if mm and m:
-            L = float(mm.group(1).replace("p", "."))
-        if not thr and idd:
-            thr = min(THREADS, key=lambda t: abs(THREADS[t] + 0.2 - idd))
-        hexs = bool(re.search(r"FF|standoff", name, re.I))
-        s.update(thread=thr, outer_dia_mm=od, inner_dia_mm=idd, length_mm=L, standard="hex standoff F-F" if hexs else "round spacer",
-                 label=f"{thr} {'F-F standoff' if hexs else 'spacer'} {od}/{idd} x {L}" if od else f"spacer {name}")
-    if m:
-        s["measured"] = {k2: (np.round(v, 4).tolist() if isinstance(v, np.ndarray) else round(float(v), 4)) for k2, v in m.items()}
-    return s
-
-
 def geometry(spec):
     """build123d solid of the spec at its measured placement (manifest frame, mm), or None."""
     from build123d import Cone, Cylinder, Location, Plane, RegularPolygon, Solid, extrude, Pos
@@ -270,24 +160,39 @@ def fit(solid, mesh, stl_path):
 
 
 def specs(manifest, with_mesh=True, only=None):
-    """{part name: spec} for every generated hardware kind in the manifest (screw / nut / washer / spacer)."""
+    """{part name: declared spec + measured placement} for every part a definition declares as hardware with a generated
+    kind (screw / nut / washer / spacer)."""
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import definitions as DEF
+    names = [p["name"] for p in manifest["parts"]]
+    claims = DEF.load().claims(names)
     out = {}
     for p in manifest["parts"]:
         if only and not any(fnmatch.fnmatchcase(p["name"], g) for g in only):
             continue
-        k = kind_of(p)
-        if k not in GENERATED:
+        e = claims.get(p["name"])
+        sp = (e or {}).get("spec") or {}
+        k = sp.get("kind")
+        if not e or e["kind"] != "hardware" or k not in GENERATED:
             continue
-        mesh = None
+        s = dict(sp, definition=e["file"], line=e["line"], nominal_length_mm=sp.get("length_mm"), head_standard=sp.get("standard"))
+        if k == "nut":
+            s.setdefault("height_mm", sp.get("thickness_mm") or HEX_NUT.get(sp.get("thread"), (None, None))[1])
+            s.setdefault("across_flats_mm", HEX_NUT.get(sp.get("thread"), (None, None))[0])
+        if k == "screw" and (s.get("head_dia_mm") is None or s.get("head_height_mm") is None):
+            hh = STD["head_types"].get(s.get("standard"), {}).get(s.get("thread")) or {}
+            dk = hh.get("dk") or CSK.get(s.get("thread"), (None, None))[0]
+            kk = hh.get("k") or CSK.get(s.get("thread"), (None, None))[1]
+            s.setdefault("head_dia_mm", dk); s.setdefault("head_height_mm", kk)
         if with_mesh and p.get("mesh"):
             try:
                 mesh = load_mesh(p["mesh"])
-            except Exception as e:  # noqa: BLE001  (a missing old mesh: spec from the name only)
-                mesh = None
-                out.setdefault("_errors", {})[p["name"]] = f"mesh not loadable: {type(e).__name__}: {e}"
-        out[p["name"]] = spec_of(p, mesh)
-        if mesh is not None:
-            out[p["name"]]["_mesh"] = mesh
+                m = measure(mesh, k)
+                s["measured"] = {k2: (np.round(v, 4).tolist() if isinstance(v, np.ndarray) else round(float(v), 4)) for k2, v in m.items()}
+                s["_mesh"] = mesh
+            except Exception as e2:  # noqa: BLE001
+                out.setdefault("_errors", {})[p["name"]] = f"mesh not loadable: {type(e2).__name__}: {e2}"
+        out[p["name"]] = s
     return out
 
 
@@ -325,7 +230,7 @@ def main():
     ratios = [r["fit_to_old_mesh"]["volume_ratio"] for r in rows.values() if r.get("fit_to_old_mesh", {}).get("volume_ratio")]
     bdiff = [r["fit_to_old_mesh"]["bounds_max_difference_mm"] for r in rows.values() if r.get("fit_to_old_mesh")]
     import hashlib
-    summary = dict(manifest=a.manifest, manifest_sha256=hashlib.sha256((ROOT / a.manifest).read_bytes()).hexdigest(), parts=len(rows), by_kind={k: sum(1 for r in rows.values() if r["kind"] == k) for k in GENERATED},
+    summary = dict(manifest=a.manifest, manifest_sha256=hashlib.sha256((ROOT / a.manifest).read_bytes()).hexdigest(), parts=len(rows), by_kind={k: sum(1 for r in rows.values() if r.get("kind") == k) for k in GENERATED},
                    generated=sum(1 for r in rows.values() if r.get("step")), geometry_errors=sum(1 for r in rows.values() if r.get("geometry_error")),
                    mesh_errors=len(errors), kinds_to_buy=len(labels),
                    volume_ratio_p10_p50_p90=[round(float(np.percentile(ratios, q)), 3) for q in (10, 50, 90)] if ratios else None,

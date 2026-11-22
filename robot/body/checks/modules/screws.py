@@ -34,9 +34,11 @@ def screw_summary(r, touched):
     holes = [h["axis_offset_mm"] for h in r.get("clamped_holes", []) if h["axis_offset_mm"] is not None]
     offs = ([t["axis_offset_mm"]] if t.get("axis_offset_mm") is not None else []) + holes
     seat = r.get("head_seat")
-    layers = [dict(upper=c["upper"], lower=c["lower"], min_gap_mm=c["min_gap_mm"], max_gap_mm=c.get("max_gap_mm"), interface=c["interface"])
+    layers = [dict(upper=c["upper"], lower=c["lower"], min_gap_mm=c["min_gap_mm"], max_gap_mm=c.get("max_gap_mm"), interface=c["interface"],
+                   level_gap_mm=c.get("level_gap_mm"), bears=c.get("bears"))
               for c in r.get("contacts", [])]
-    return dict(thread=r.get("thread"), touches=touched, head_mm=r["head_mm"], axis=r["axis"], length_mm=r["length_mm"],
+    return dict(thread=r.get("thread"), nominal_length_mm=r.get("nominal_length_mm"), head_standard=r.get("head_standard"),
+                spec_source=r.get("spec_source"), name_length_mm=r.get("name_length_mm"), touches=touched, head_mm=r["head_mm"], axis=r["axis"], length_mm=r["length_mm"],
                 terminal=dict(kind=t.get("kind"), part=t.get("part"), engagement_mm=t.get("engagement_mm"), reference_engagement_mm=ref,
                               shortfall_mm=None if ref is None or t.get("engagement_mm") is None else round(ref - t["engagement_mm"], 3),
                               axis_offset_mm=t.get("axis_offset_mm"), angle_deg=t.get("angle_deg")) if t else None,
@@ -62,7 +64,7 @@ def run_mount_check(MC, manifest, only, n, out):
         return MC.run_screws(mp, only, out, None)
     rows, secs = [], 0.0
     for a in range(0, n, CHUNK):
-        po = out.parent / f"scoped-part-{a}.json"
+        po = out.parent / f"screws-mount-check-part-{a}.json"
         subprocess.run([sys.executable, "-B", str(MC.__file__), "--manifest", str(mp), "--only", only, "--part", f"{a}:{a + CHUNK}",
                         "--out", str(po)], check=True)
         r = json.loads(po.read_text()); po.unlink()
@@ -85,7 +87,7 @@ def run(ctx):
     if not found:
         return dict(per_part={n: dict(screws={}) for n in ctx.scope}, worst_cases=[], bad_events=dict(screws=0), evidence=[], notes="no screw touches the scope")
     only = "^(?:" + "|".join(re.escape(k) for k in sorted(found)) + ")$"
-    out = WORK / "screws" / "scoped-report.json"
+    out = (ctx.out_dir or WORK / "screws") / "screws-mount-check.json"     # per label: two runs at once never share the file
     t1 = time.time()
     rep = run_mount_check(MC, ctx.manifest, only, len(found), out)
     tick("mount_check.run_screws", t1)
@@ -111,7 +113,8 @@ def run(ctx):
             cat["offset"].append(dict(part=part, mating_part=mate, pose="standing", location_mm=head, value=s["hole_offset_max_mm"], unit="mm hole centre offset from the screw axis",
                                       what=f"screw {k}: terminal {t['axis_offset_mm'] if t else None}, clamped " + ", ".join(f"{h['part']} {h['axis_offset_mm']}" for h in s["clamped_holes"])))
         gaps = ([(s["head_seat_gap_mm"], f"head seat on {s['head_seat_part']}")] if s["head_seat_gap_mm"] is not None else []) + \
-               [(c["min_gap_mm"], f"{c['upper']} / {c['lower']}" + ("" if c["interface"] else " (overlap)")) for c in s["layers"]]
+               [(c["min_gap_mm"], f"{c['upper']} / {c['lower']}" + ("" if c["interface"] else " (overlap)")) for c in s["layers"]
+                if not c["interface"] or c["bears"] is not False]       # a sleeve end over a counterbore while its part bears: not the stack's gap
         if gaps:
             v, w = max(gaps, key=lambda g: abs(g[0]))
             cat["gap"].append(dict(part=part, mating_part=mate, pose="standing", location_mm=head, value=abs(v), unit="mm clamp-stack gap (signed in the text)", what=f"screw {k}: {v:+g} mm at {w}"))

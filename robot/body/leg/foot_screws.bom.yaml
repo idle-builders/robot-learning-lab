@@ -1,0 +1,499 @@
+# Cove-50 body definition for robot/body/leg/foot_screws.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
+# parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
+# (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
+# Initial content migrated 2026-11-22 (Idle T-ghvncz) from chain.json, lines.json, the hardware specs, the sleeve STEPs and
+# assembly_order.json; part ownership by the generator whose output folder holds the part's file.
+schema: cove50-body-definition/1
+definition: foot-screws
+owner: (set by the owning session)
+generators:
+- id: foot-screws
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/leg/foot_screws.py
+  - build
+  inputs:
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
+  - robot/body/fastening/connector_screws.json
+  outputs:
+  - artifacts/robot/body/leg/foot-screws/records.json
+  - artifacts/robot/body/leg/foot-screws/parts
+  notes: Edited foot monocoque + sleeves (T-rptay5) that roll_flip_checks manifest swaps in; without it the manifest keeps the unedited foot and
+    warns (2026-11-20 run).
+  after:
+  - shell-pass
+parts:
+- match: R_foot_monocoque_combined
+  kind: printed
+  line: print:R_foot_monocoque_combined
+  name: R_foot_monocoque_combined
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+    up: +z
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XY Flat Sole Bed (layer normal Z)''; chosen by bed contact, then least overhang (bed mm2, overhang>45deg
+      mm2) {''+z'': (7308.3, 209.2), ''-z'': (124.0, 7358.6)}'
+    seeded_keys:
+    - up
+  fem:
+    _doc: 'Leg stage 3 foot monocoque (leg fem_evaluate stage3_foot_monocoque; not in fem_refit). Supports: the foot-roll servo case''s front
+      / rear bolts; load: the sole pads at toe and heel. Link shifted: manifest frame = old r1 frame + 4 mm in x.'
+    mesh_h_mm: 3.0
+    bonded:
+    - part: R_foot_monocoque_combined_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_ankle_roll
+      offset_mm:
+      - -8.0
+      - 1.5
+      - -17.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    supports:
+      case_front:
+        contact:
+        - R_B13_front_PA2x6_0
+        - R_B13_front_PA2x6_1
+        gap_mm: 2.0
+      case_rear:
+        contact:
+        - R_B13_rear_PA2x6_0
+        - R_B13_rear_PA2x6_1
+        gap_mm: 2.0
+    load:
+      contact:
+      - R_sensor_pocket_pad_v19
+      gap_mm: 0.5
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 1370.0
+        - 540.0
+        - 110.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 16.0
+        - -22.0
+        - 58.84
+        - 2150.0
+        - 1080.0
+        - 380.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 12.0
+        - -16.5
+        - 44.13
+        - 1612.5
+        - 810.0
+        - 285.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 24.0
+        - -33.0
+        - 88.26
+        - 3225.0
+        - 1620.0
+        - 570.0
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 71.0
+        - -12.0
+        - 2.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: 13.5
+                max: 21.0
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: -27.0
+                max: -19.5
+        load:
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - 12.0
+            - null
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - null
+            - -28.0
+      legacy_coordinates_raw_sleeves:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 71.0
+        - -12.0
+        - 2.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: 13.5
+                max: 21.0
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: -27.0
+                max: -19.5
+        load:
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - 12.0
+            - null
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - null
+            - -28.0
+        bonded:
+        - part: R_foot_monocoque_combined_steel_sleeves
+          material: Steel 304 sleeve
+          step_offset_mm:
+          - 0.0
+          - 0.0
+          - 0.0
+      stored_load_legacy_supports:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: 13.5
+                max: 21.0
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: -27.0
+                max: -19.5
+        origin_mm:
+        - 71.0
+        - -12.0
+        - 2.0
+      mesh_h3p0:
+        mesh_h_mm: 3.0
+      legacy_coordinates_h3p0:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 71.0
+        - -12.0
+        - 2.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: 13.5
+                max: 21.0
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 50.0
+                - 9.0
+              - - 50.0
+                - 29.0
+              - - 70.0
+                - 9.0
+              - - 70.0
+                - 29.0
+              radius_mm: 4.0
+              where:
+                axis: y
+                min: -27.0
+                max: -19.5
+        load:
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - 12.0
+            - null
+        - box:
+            z:
+            - null
+            - 2.4
+            y:
+            - null
+            - -28.0
+        mesh_h_mm: 3.0
+    open_difference: 'Re-run on the manifest roll-flip df7d03a5e2610e97, loose load kept: the load is the sole / sensor pocket pad contact, not
+      a metal case or horn, so no rigid patch (the support is the foot-roll case screws, fixed). Stored h is now 3.0 (the finest level under the
+      6 GB cap on the roll-flip STEP; h 2.2 peaks above 6.18 GB with CG + AMG). Recovery PAHT-CF z at h 3.0: p99 2.08 / peak 12.6 / displacement
+      0.33 mm (ratio 42), reaction + wrench 0.0 %. fem_setup: supports 373.7 / 380.5 mm2, load 3719 mm2, 0 shared nodes. Earlier notes: The old
+      stage-3 numbers (old pipeline mesh h 3.0, r1 frame) are history, not reproduced. Solver and patch port are exact: on the old pipeline''s
+      own h 3.0 mesh (42731 nodes) this module''s legacy patches give identical patch weights (main 1258 / idler 841 / load 8114 nodes) and, through
+      fem_core.solve, p99 2.145 / peak 10.57 / disp 0.1139 vs the old pipeline 2.134 / 11.59 / 0.1136 (+0.5 / -9 / +0.3 %). gmsh meshes the part
+      differently in the manifest frame (41931 nodes at h 3.0, main support 1076 nodes), which moves p99 +37 % and displacement +61..+72 % at
+      h 3.0: the foot is sensitive to meshing at that size. The stored setup runs at h 2.2 (85649 nodes, CG + AMG: 143 s, peak 4.7 GB; spsolve
+      exceeded the 6 GB cap). h 2.2, PAHT dry, recovery, z, p99 / peak / disp: legacy_coordinates 3.061 / 18.12 / 0.196, stored 2.879 / 14.31
+      / 0.186 (-6 / -21 / -5 %). Mesh-frame spread of p99 for the same legacy patches: 2.13 (old mesh h 3.0), ~2.93 (manifest frame h 3.0), 3.06
+      (h 2.2). Stored patches: load = contact with the sensor pocket pad (2689 mm2 vs old sole box 2387), supports = contact with the foot-roll
+      case screws (373 / 382 mm2 vs old 524 / 320). Variants mesh_h3p0 / legacy_coordinates_h3p0 keep the h 3.0 comparison.'
+    convergence:
+      manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (foot STEP unchanged vs
+        068f643641fe3695)
+      rigid_load: false
+      levels: []
+      converged: false
+      stored_h_result: 'NOT converged, only one level fits: h 3.0 runs (64242 nodes, CG + AMG, peak 3.80 GB); h 2.6 fails in gmsh (empty tet list,
+        also on the clean() STEP); h 2.2 (120390 nodes) is stopped by memguard at 6.18 GB even with the CG path (cap not raised). Stored h 3.0
+        = the finest level that fits. Earlier on the proof STEP (4e883237, 85649 nodes) h 3.0 vs 2.2 differed by about 4 % p99.'
+      recovery_PAHT_CF:
+        h_mm: 3.0
+        nodes: 64242
+        layer_normal: z
+        p99_vm_MPa: 2.084
+        peak_vm_MPa: 12.57
+        max_displacement_mm: 0.3318
+        p99_strength_ratio: 42.22
+      reaction_plus_wrench_pct_max: 0.0
+  section: Ankle / foot
+- match: R_foot_monocoque_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.8x2.2x3.9
+    name: 304 steel compression sleeve 3.8 x 2.2 x 3.9 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.8
+      inner_dia_mm: 2.2
+      length_mm: 3.9
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.8x2.2x4.5
+    name: 304 steel compression sleeve 3.8 x 2.2 x 4.5 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.8
+      inner_dia_mm: 2.2
+      length_mm: 4.5
+    supplier: unknown
+    part_number: unknown
+  section: Ankle / foot
+- match: L_foot_monocoque_combined
+  kind: printed
+  line: print:L_foot_monocoque_combined
+  name: L_foot_monocoque_combined
+  make_buy: make
+  quantity: 1
+  process:
+    printer: Bambu X2D
+    up: +z
+    material: Bambu PAHT-CF
+    material_alternatives:
+    - Bambu PETG-CF
+    seeded: 'up from manifest print_orientation ''XY Flat Sole Bed (layer normal Z)''; chosen by bed contact, then least overhang (bed mm2, overhang>45deg
+      mm2) {''+z'': (7308.3, 209.3), ''-z'': (124.0, 7357.6)}; material from manifest text ''Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25
+      g/cm3)'''
+    seeded_keys:
+    - up
+    - material
+  section: Ankle / foot
+- match: L_foot_monocoque_combined_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.8x2.2x3.9
+    name: 304 steel compression sleeve 3.8 x 2.2 x 3.9 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.8
+      inner_dia_mm: 2.2
+      length_mm: 3.9
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:3.8x2.2x4.5
+    name: 304 steel compression sleeve 3.8 x 2.2 x 4.5 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.8
+      inner_dia_mm: 2.2
+      length_mm: 4.5
+    supplier: unknown
+    part_number: unknown
+  section: Ankle / foot
+assembly:
+  steps:
+  - id: right_leg:p043
+    subassembly: right_leg
+    part:
+    - R_foot_monocoque_combined
+    - R_foot_monocoque_combined_steel_sleeves
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
+    after:
+    - right_leg:p042
+    status: seeded
+    derived: 'graph order, fastened distance 55 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case),
+      snapped to the nearest axis'
+  - id: left_leg:p043
+    subassembly: left_leg
+    part:
+    - L_foot_monocoque_combined
+    - L_foot_monocoque_combined_steel_sleeves
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
+    after:
+    - left_leg:p042
+    status: seeded
+    derived: 'mirror of right_leg p41 (R_ <-> L_, x negated): graph order, fastened distance 55 from the base; direction: no screw to placed parts:
+      toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis'

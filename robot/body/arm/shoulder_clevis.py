@@ -573,8 +573,14 @@ def _export(name, shapes):
 
 
 def _density(part):
+    """Material and density of a part from its settings: the body definitions (robot/body/**/*.bom.yaml) over data/part_settings.json,
+    merged as the checks merge them (checks/ctx.py overlay_definitions)."""
     data = ROOT / "robot/body/checks/data"
-    mat = json.loads((data / "part_settings.json").read_text())[part]["process"]["material"]
+    if str(ROOT / "robot/body") not in sys.path:
+        sys.path.insert(0, str(ROOT / "robot/body"))
+    from checks.ctx import overlay_definitions
+    settings, _, _ = overlay_definitions(json.loads((data / "part_settings.json").read_text()), str(MANIFEST))
+    mat = settings[part]["process"]["material"]
     return mat, json.loads((data / "materials.json").read_text())[mat]["density_g_cm3"]
 
 

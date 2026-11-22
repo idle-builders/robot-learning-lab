@@ -324,6 +324,14 @@ reach the core by contact only, the largest contact-only break points the pelvis
 the lower yaw servo cases (47 each). On the 2026-11-20 manifest the same check did not finish in 900 s and in 2400 s;
 the cause and the reclassified findings are under Connectivity below (unscoped run now 42-49 s).
 
+2026-11-22 (T-ghvncz), shoulder-shells body (673 parts): 196 lines (79 make, 116 buy, 1 included), 0 quantity
+differences; buy lines: supplier filled from a repo source 15, part number 47 (standard designations for ISO hardware,
+the actuator catalog, the electronics selection; source in each line's notes), both `unknown` 68, empty 0; 44 hardware
+kinds (29 screw), 273 sleeves in 44 sizes; parts with an assembly step 673 of 673. Dangling file references: 31 native
+STEPs (47 on the 20 Nov body), all with the exact bytes recorded in the bucket while the local blob index
+(`data/blob-store.sqlite`) is empty: flagged `file_in_bucket_not_indexed`, explained per group in `defects.json`
+`dangling` (T-ysavyb); 0 unexplained. `bom` check 4.4 s, 0.6 GiB.
+
 The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 15 steps, ending at the shoulder-U body
 of `robot/design.json`) and `rebuild_chain.py` reruns it in an isolated copy (Idle T-be4dt7, 2026-11-20). Run times (s /
 peak GB): assembly 323 / 8.2 (data complete, render phase over its then 8 GB cap, now 10), motor-refit 583 / 3.5,
@@ -379,6 +387,56 @@ R_foot_monocoque 289 (1290 mm, smallest fillet 0.4 mm), R_shoulder_pitch_to_roll
 moves 38 edges there), and every sharp edge and corner with its location goes to edges-<part>.json next to the picture
 (the chassis has 972 free sharp edges and 468 corners, too many for the report's top ten).
 
+Whole body (2026-11-22, Idle T-ghvncz). The order covers every subassembly of the selected body
+(`artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json`, 673 parts), each built in place
+on the ones in its `after`: torso (base: stage-1 chassis and its sleeves), neck_head, right_arm, left_arm, right_leg,
+left_leg, final_body (torso shells). Seeded by `checks/assembly_seed.py seed` from one connection graph (66 s, 4.0 GB),
+the right leg's 16 designer hip steps kept, the left leg mirrored from the right, then `--search` (six axis directions per
+blocked seeded part step, 89 + 12 directions changed), `reorder` (a screw's obstacle moved after it, a part moved before
+the part it touches; covers stay last; 14 + 2 x ~10 moves) and `confirm` (a seeded step becomes `confirmed` with the run
+and measurement when its path touches nothing over 60 mm, seat interference let go within the range, or its driver path
+is free). Changes to the check: coarse screening solids (`screwlib.screen`, the T-c4sy9d pattern), a box test per sample,
+screws as the BOM classifies them (the 24 shoulder-U `*_screw_<i>` proxies included, their thread from the BOM spec),
+`with` lists, seat interference (`seat_parts_released_at_mm`) apart from path contact (`path_first_contact_mm`), and
+coverage over every manifest part. Unscoped: 76.7-93.9 s, 3.2-4.0 GiB (was 76 s for the 42 right-leg steps).
+
+| assembly | steps | confirmed | designer | seeded | parts | screws | carried (`with`) |
+|---|---|---|---|---|---|---|---|
+| torso | 62 | 44 | 0 | 18 | 44 | 37 | 48 |
+| neck_head | 41 | 28 | 0 | 13 | 30 | 41 | 35 |
+| right_arm | 41 | 26 | 0 | 15 | 26 | 40 | 40 |
+| left_arm | 41 | 26 | 0 | 15 | 26 | 40 | 40 |
+| right_leg | 59 | 38 | 16 | 5 | 48 | 52 | 6 |
+| left_leg | 59 | 54 | 0 | 5 | 48 | 52 | 6 |
+| final_body | 8 | 6 | 0 | 2 | 3 | 5 | 4 |
+
+Coverage: 0 parts, 0 screws and 0 other hardware items in no step (was 14 parts and 8 screws on the right leg's links
+alone, 587 parts without a step body-wide). Remaining seeded steps, best direction found: 41 part steps touch a part
+that is not in their seat (55 have seat interference), 24 screw steps have an obstructed driver path. Registered as
+proposed Idle tasks with the measurements: torso cells captured by the stage-1 honeycomb (22.5 mm, 1882-2802 mm3 per
+cell; T-f7p9ke), head compute stack and the one-piece head skin (skin still 1235 mm3 into ROCK4D at 60 mm; T-dj4tpn),
+arms (T-f5gcm8), legs (T-xp29jk), torso screw driver paths (T-8zj89w). The BOM shows the order per line and writes the
+per-subassembly sequence (`ASSEMBLY.md`, `assembly.json`), and the chain's last three steps are the assembly check, the
+BOM and the bom check.
+
+Body definitions (2026-11-22, owner-approved, T-ghvncz). The BOM, the build sequence and the body rebuild no longer come
+from hand-kept files in `robot/body/bom/` (chain.json, lines.json, defects.json, assembly_order.json and inventory.py are
+deleted): each builder has an annotated `<builder>.bom.yaml` next to its script (schema `robot/body/bom/schema.json`) with
+its generators, the parts it owns (line, kind, spec, supplier or `unknown`), its assembly steps (ordered by `after`) and its
+defects; the BOM tool only resolves them and reports findings that name the file to fix. Migrated: 23 definitions, 693 / 693
+parts claimed, 26 generators (8 section builders `rebuild: false`), 311 steps (+6 for parts added the same day, written into
+the owners' files from `assembly_seed.py propose`). The derived rebuild order reproduces the chain's folders (9 produced,
+8 read-only, 2 writable copies) and exposed 5 records `roll_flip_checks.py manifest` reads that chain.json never declared.
+Replay with definition edits only, `robot/body/bom/` unchanged: shoulder-shells definition absent -> 16 parts unclaimed,
+18 without a step, manifest without generator; the file alone restores the baseline; two parts renamed -> 2 unclaimed, 2 stale
+globs, 2 stale steps; editing torso_screws.bom.yaml alone restores it. Phase 2: the checks overlay each part's settings from
+its definition (part_settings.json as fallback, source per value in every report, the definition named on every worst case);
+neck/head, torso and arm entries moved (39 parts, 63 blocks, effective settings identical before / after), heat sources
+declared per part (34). Measured on the shells body: bom 3.8 s / 0.6 GiB (196 lines, 0 quantity differences, 46 findings:
+22 printed parts without a print setup, 17 connectors without an FEM setup, 5 hardware lines without a spec, 2 settings for
+absent parts); assembly 86.8 s / 3.9 GiB over 317 steps, 0 parts / screws / hardware without a step, 248 steps supported by
+the measurement, 69 not (Idle T-f7p9ke, T-dj4tpn, T-f5gcm8, T-xp29jk, T-8zj89w).
+
 ## Connectivity (2026-11-20, T-c4sy9d)
 
 `connectivity` (owner: no part unconnected, every part linked to the core) builds the manifest's graph. Nodes: every
@@ -429,7 +487,7 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gap: head skin has no mount. B0196 standoffs: artefact (T-bv7bwe): the 4 `B0196_M2_FF5_spacer_*_v23` are in the manifest (role `spacer`), but `mount_check.HARDWARE_ROLES` lacked `spacer`, so the graph dropped them; fixed, camera and plate screw join through each spacer (8 / 8 ring points) |
 | B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | artefact (T-bv7bwe): same `spacer` role fix; B0410 now reaches the core by screw |
 | fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing. Fixed 22 Nov (T-3npyjq, `robot/body/assembly/held_parts.py`): the compute M2.5x30 nuts floated 2.0 mm off the bridge standoffs, where the 2 mm fan bridge plate was never modelled; plate added (4 flush sleeves), fan screwed to it by its two upper holes (M3x16); fan stack reaches the core by screw |
-| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect); needs screw lands on the neck yaw-to-pitch link (T-3npyjq follow-up) |
+| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | fixed (T-a2mt33): screwed to the yaw-to-pitch link plate by 2 x M2x8 through 3.6 / 2.2 sleeves, chain to the core by contact+screw; `native_step` dropped |
 | chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified). Fixed 22 Nov (T-3npyjq): printed with the front shell on the X2D second nozzle; rebuilt to fill its pocket (0.00 mm, 0.04 mm3 to the shell), reaches the core by contact (bonded) |
 | palms (new 20 Nov), palm upper and fingers | palm lower screwed (wrist screws from bounds); palm upper and fingers contact-only | the hand servo case and horn have no mesh, so no joint edge can form | artefact: mesh-less hand servo |
 | forearm front covers | contact-only | L_fore_front_M3x8_187 inside the forearm (12 points), 1.07 mm from the cover | unresolved: screw placed before the shell morph, or missing hole |
@@ -455,6 +513,27 @@ facing a pocket: mount_check reads +3.7 mm sleeve-to-fan on both plate screws. c
 shelves motor_refit removed) dropped. R_roll_servo_case_reference: vendor solid 2 rebuilt from its outer shell (7 void shells, +17 mm3),
 invalid solids 1 -> 0. Connectivity on the patched selected body: isolated head_neck_collar only; groups not reaching the core: pelvis cells
 08 and 09 (2 x 3 parts); 156 contact-only, 38 break points; edges screw 185, contact 387, sleeve 33, joint 34.
+
+Neck collar mount (T-a2mt33, 22 Nov, `robot/body/assembly/neck_collar.py build`, swapped in by `roll_flip_checks.py manifest` after `neck_parts`):
+head_neck_collar is screwed to the left plate of the neck yaw-to-pitch link (x -24.5..-21, the collar's inner wall stood 1.9-3.8 mm off it at y 5-14). An inward
+tab (y 5-14.2, z 394.4-405.6, +182 mm3 PETG-CF) grows to the plate face (layer gap 0.000 mm at the tab, 3.35 mm where the wall curves away), two 3.6 / 2.2 sleeves
+(4.5 mm) at y 10.5, z 398.3 / 402.8, M2x8 ISO 7380-1 heads in dia 4.4 recesses whose flat floor is the sleeve end (the outer wall slopes about 15 deg; nothing
+stands out of the outer surface), dia 1.6 pilots through the plate (-14 mm3 on the link). mount_check: engagement 3.25 of the 4.0 reference (shortfall 0.75: the plate
+is 3.5 mm), hole offset 0.000, head seat gap 0.000, head bearing ring 0.655 mm, tip margin 0.5 mm.
+
+Neck collar as a B-rep (T-vjw5z8, 22 Nov; owner: "fix the collar so that it is fully BOM compliant"): the collar now has a native STEP made by neck_collar.py, so the
+mesh-only exception is gone. The pure ring (ruled elliptic lofts, 7845 mm3) lost about 5 285 mm3 to the head-envelope mesh and the neck-pitch notch (the notch alone about 55 mm3,
+back of the ring, theta 70-117 deg, down to z 395.0 at the inner wall). Both cuts are parametric: the envelope as a ruled spline surface z = z28(theta) + slope(theta) (rho - 28)
+(2 deg knots, front arc below the base clipped at z 390), the notch as a ruled surface z = z27.5(theta) + 1.2 (rho - 27.5), prisms up; knots in `neck_collar_envelope.json`,
+measured by vertical rays on the old mesh (the old head envelope exists only as a mesh). Against the old mesh outside the tab zone: mean surface distance 0.017 / 0.024 mm
+(new to old / old to new), p99 0.18 / 0.28 mm, max 0.58 mm (new to old) at the notch end; old to new reaches 2.4 mm at thin fins the 2.5 deg pose grid left in the old notch (0 volume);
+volume 2734 vs 2740 mm3 (tab and bores included; the outer wall is the same ellipse cone, so the visible surface is unchanged). GProp's default integration is 8 % off on the spline faces
+(2777 mm3), the record carries the volume at eps 1e-5 (matches the closed mesh to 0.01 %). Library poses: 15.7 mm3 with the neck pitch case at pitch +35 (y 25.5; baseline 15), cradle
+0.3 mm3 at +35 (baseline 0.1 mm3 on its sleeves at the corner pose; the sleeves now keep 0.92 mm), head skin gap 0.883 mm (baseline 0.822). Screws, driver access (0 mm3) and press as before: counter support 73 / 62 % flat from the
+head side, entry tool path 45 / 18 mm3 (the 8 mm tip is wider than the 4.4 recess), boss wall 0.79 mm, sleeve interference 0.0. Print direction measured on the STEP for the six axes (overhang beyond 70 deg / bed
+contact / support standing on the part): +z 15 / 712 mm2 / 15 mm2 (only the sleeve-bore tops), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; +z confirmed
+in part_settings (the flange is the only flat face). walls: a 0.004 mm sliver where the flange tip meets the head-envelope cut (128 mm2 under one line). Connectivity: isolated parts 0, groups not reaching the core 2 (pelvis cells 08 / 09).
+BOM row: STEP disk, producer neck_collar.py, +z (no seeded), no flags; defects.json no longer lists it.
 
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
@@ -503,18 +582,155 @@ skipped pairs are now placed: Stage 1's old bores there (dia 3.98) are filled ou
 size drilled at the new sites, the old clearance sleeve solids dropped and threaded sleeves added (Stage 1 body edited from the
 shell-pass STEP here; no chain script yet). All 6 rail pairs: M2.5 x 10 ISO 4762, threaded sleeve M2.5 3.9 OD x 3.0 (span
 y 32.1-35.1), head on the carrier face (flush sleeve end, y 42.0, head seat gap 0.0), engagement 3.0 mm in the plan (2.75
-mount_check), tip 0.1 mm past the sleeve exit, 2.0 mm to cells / fins. Carrier rail holes carry full-thickness flush clearance
+mount_check), tip 0.1 mm past the sleeve exit, rail screws 1.10 mm from the cells (reviewer measurement; not 2.0). Carrier rail holes carry full-thickness flush clearance
 sleeves (y 35.4-42.0, bore 2.6). The 8 board screws: M2 PA2 x 6 into printed pilots (dia 1.6) in bosses on the plate's rear
-face, engagement 3.93 (IMU) / 4.17-4.25 (ADC) of 4.0, tip margin 0.62 / 0.38 mm. Measured on the shoulder-u manifest, main
+face, engagement 3.93 (IMU) / 4.17-4.25 (ADC) of 4.0, pilot depth left past the tip 0.62 / 0.38 mm (that is the pilot, not a clearance; the ADC tips are 0.108 mm from fins 02/03, the IMU tips 0.39 / 0.44 mm). Measured on the shoulder-u manifest, main
 (dbe8201ca) -> this branch: screws 28 -> 30, gaps > 0.05 mm 28 -> 18, sleeves without screw 23 -> 19, engagement shortfall
 8 -> 8 (shoulder), hole offset > 0.1 mm 0 -> 0; carrier press: sleeves 14 -> 6, tool obstruction 6 -> 0, anvil 14 -> 0,
 counter support < 90 % 4 -> 6 (flat 60 % at the 5.6 mm rail end), free depth 0 -> 40 mm; carrier walls min 0.81 -> 0.81 mm;
 driver path blocked by center_back_shell on all screws (5.8-14.5 mm3), as before; Stage 1 walls min 0.004 -> 0.004 mm (under
 1 line 6374 -> 6318 mm2), wall around the rail bores 0.46-0.48 mm at the sleeve inner end at the new sites as at the old;
 fit overlaps 3 -> 3 pairs, identical (own sleeves 0.498 mm3, both pitch cases 5430 mm3); FEM p99 PAHT combined stall
-15.126 -> 15.115 MPa, strength ratio 5.82 -> 5.82, peak 84.8 -> 80.0 MPa; BOM lines 196 -> 194 (M2.5 x 10 and threaded
+15.126 -> 15.157 MPa (mesh h 2.2, 36468 nodes; the mesh differs, ratio and peak not re-read), strength ratio 5.82 -> 5.82; BOM lines 196 -> 193 (M2.5 x 10 and threaded
 sleeve M2.5 4 -> 6, rail clearance sleeves 3.9 x 2.6 x 5.8 / x 3.0 and the 8 board sleeves 3.2 x 2.1 x 2.2 dropped,
-3.9 x 2.6 x 6.6 x 6 added).
+3.9 x 2.6 x 6.6 x 6 added). The moved rail bores
+(x -11.2, z 316.5 / 326.5) are stepped: sleeve bore r 1.99 to y 31.9, tip clearance bore r 1.5 on to y 31.4, so the M2.5 x 10
+tip (y 32.0) stays 0.6 mm off the floor (ISO 4762 length tolerance +-0.29) and the floor keeps 0.72 mm to the battery pocket
+at r 1.5 (0.38 mm at the r 1.99 rim, as before); a full-radius bore to y 31.4 broke into the pockets (0.0057 mm3 per site).
+
+## Whole-body run of the other checks (2026-11-22, T-zfejzf)
+
+Every check outside screws / sleeves / fits, connectivity, fem and slicer, run unscoped on the selected body
+(`assembly-parts-shoulder-u-shells.json`; scope = 193 non-hardware parts, 62 of them printed, 42 with a print direction) under
+memguard 6 GB (clearance 8 GB) and `caffeinate -i`, 4 batches in parallel with other sessions' jobs. Wall times are of the batch
+child, without memguard's slot wait; peak = the child's resident set. Counts only: the findings are not triaged here (owner
+2026-11-22: reliability and data first; the design triage is in the Idle children of T-zfejzf).
+
+Why the first unscoped runs looked stalled (13:40-14:12). Not the code alone: the laptop went to sleep twice during the runs
+(pmset: 13:41 and 13:58:23-14:11:49, 806 s), and the part each job was on when it slept carried the time (heat on
+`center_front_shell` 1001 s, walls on the stage1 chassis 804 s, overhang on the stage3 carrier 995 s, all 0.1-17 s awake). Long
+runs go under `caffeinate -i` (as the body rebuild). Real causes, found from `CHECKS_STACK_DUMP_S` dumps and a per-part timing run,
+fixed in `1599e4209`:
+- `geometry` B-rep audited every part with a STEP, unscoped also the 52 bought parts (supplier STEPs up to 80 MB: power supervisor
+  board, ROCK4D 45, ST3025 cases 15 each, thousands of component solids): no part finished in 1800 s, the stack sat in the edge loop
+  (`_face_normal_at`). It now audits printed parts and made roles (cut stock, produced backing / holder, manufactured) and lists the
+  bought ones with their STEP size (`bought_not_audited`). It also died on the first of 23 scoped `native_step` paths that resolve
+  nowhere (FileNotFoundError): now counted (`dangling_native_step`) and skipped like a mesh-only part.
+- `gaps` measured every pair twice when both parts are scoped (2322 evaluations, ~400 s warm): memoised.
+- `clearance` re-measured every pair at every pose, also pairs whose two links did not move relative to each other (torso parts over
+  leg poses). Such a pair now takes its standing result (overlap and distance are invariant under a common rigid motion; checked
+  against the old code on the chassis + R shoulder connector: identical except one no-finding row at the 5 mm cap that the world-axis
+  box prefilter had let through when the shoulder pitch turned both links), 32 -> 5 s there.
+- `bed` crashed the whole check on the pelvis cradle (seeded +z: only 0.001 mm2 faces the bed, `min()` of no islands): now a row with
+  0 mm2 contact.
+
+| Check | Wall s | Peak GB | Counts (bad events) | Worst items |
+|---|---|---|---|---|
+| geometry | 56 (45 check; before the fix: none audited in 1800 s, then a crash at 32 s) | 1.6 | 51 audited, 52 bought not audited, 23 dangling STEP; 0 invalid solids, 270 sliver faces, 456 micro-edges, 66 acute wedges, 160 G1 steps, 244 unrounded corners, 0 over build volume, 10 parts with part/sleeve overlap > 0.05 mm3, 8 severed load-path branches, 2 STEPs without a solid | palm lower R / L: STEP holds 326 faces, no solid; forearm R / L 80.6 mm3 part-vs-own-sleeve overlap, L hip yaw-to-pitch 1.13 mm3, neck yaw-to-pitch link 0.77 mm3 |
+| mass | 5.5 (24.8 when it builds the solids) | 2.6 | 37 printed parts compared, 0 without material | manifest masses are volume x 1.22 g/cm3 (legacy fast_check), PAHT-CF is 1.06: -63.1 g over the 37; chassis 95.69 vs 83.28 g, foot monocoque 36.77 vs 31.94 g each |
+| print_setup | 0.0 | 2.9 | 62 printed: 20 without print direction, 18 -> 8 without material, 22 without STEP, 28 directions and 24 materials seeded | still without material: centre front and back shells, head skin, chest indicator relief, 4 foot boot / sole shells |
+| fem_setup | 69 | 3.1 | 42 printed parts without a setup, 1 setup not checked, 2 supports sharing nodes with the load, 13 setups on a seeded print direction, 2 disagreeing with `layer_normal_axes`, 0 empty patches | smallest patches 308 / 310 mm2 (shoulder roll-to-yaw roll-case support) |
+| gaps | 146 | 2.4 | 135 parts overlapping at standing | foot boot shell R / L 0.0 mm to the foot monocoque |
+| static_audit | 2.4 | 2.4 | 60 overlapping pairs at standing | foot boot shell vs monocoque 10973 / 10570 mm3, foot sole shell vs sensor pocket pad 6526 mm3 each side |
+| shell_offset | 2.3 | 2.4 | 2 shells with a `covers` setting | thigh shell back R 0.11 mm, front R 0.16 mm min inner-wall offset |
+| heat | 45 | 2.3 | 62 parts, 20 in contact with a source, 41 within 3 mm, 41 contact / 89 near pairs | margin to HDT 1.8 MPa -2 C: thigh shell front R / L (2.5 mm from the knee ST3025) and, once seeded PETG-CF, the 4 upper-arm covers; every PAHT-CF part >= +85 C |
+| bed | 28 | 2.7 | 42 parts: 1 with small islands, 258 sharp contact corners, 12 with the centre of mass outside the contact hull | pelvis cradle 0 mm2 on the bed (seeded +z), fingers 10.7 mm2, head compute carrier 15.7 mm2 in 2 islands |
+| walls | 3.3 (7.8 after) | 2.7 | 62 parts: 18 -> 8 without line width, walls under 1 line 31 -> 35, under 2 lines 44 -> 49, gaps under 1 line 26 -> 29 (the 10 seeded covers now measured) | stage1 chassis 0.004 mm wall, 6374 mm2 under one 0.62 mm line; pelvis cradle 1995 mm2 |
+| small_features | 19 | 3.2 | 42 parts: 315 thin features under 1 line, 550 under 2, 389 Z steps under a layer, 1 internal void, 35 parts with support standing on the part | stage1 chassis 0.011 mm feature, 980 mm2 of support on the part |
+| overhang | 42 | 3.5 | 42 parts: 40 with area beyond the limit, 18 bridges over the limit, 192 floating ceilings, 35 with support on mating faces | stage3 carrier 5593 mm2 beyond 70 deg (seeded -y), chassis 4210 mm2, head compute carrier 3781 mm2 |
+| edges | 43 | 3.9 | 40 parts: 11374 free sharp edges, 2823 on mating faces, 4074 sharp corners, 200 soft kinks | chassis 8865 mm of free sharp edge, head skin 6667 mm |
+| elephant_foot | 3 | 3.9 | 42 parts: 25 with a mating bed edge, 20 unchamfered, 107 unchamfered runs | stage4 carrier 155 mm unchamfered on its own sleeves' wall, shin R / L 79 mm |
+| clearance (`--poses key`) | 200 (184 check) | 3.9 | 82 poses (leg key + arm / neck / torso region), 23029 pairs: 290 pairs with new overlap, 393 pose-pair events over 20 mm3 | R palm lower vs R shin 2404 mm3 (key: leg out), L sensor pocket pad vs R foot roll case 1475 mm3; clearance keeps cross-limb pairs, the sweeps leave them out |
+| render | 12 | 0.5 | 0 render errors | six-side drawing written |
+
+Screening solids more than 5 % off their reference in every batch: upper L / R pitch C047 case +25.1 % (the native STEP is the same
+shape 12.0 mm off in x, so it is rejected and the open mesh, 41252 vs 32983 mm3, is screened; needs `native_step_offset_mm` +-12 mm in
+the manifest), stage1 chassis sleeves -7.0 % (STEP 31 solids 603.6 mm3 and mesh agree; the recorded `volume_mm3` 643.45 predates the
+removed sleeves). Both sent to the BOM session. Data items sent on: the 31 dangling `native_step` paths of the manifest
+(foot sensor stack 18, cut actuators 5, forearm cover nuts 8), the legacy-density masses and the palm STEPs to the BOM session
+(T-ghvncz); part / sleeve overlaps to the screws and fittings work. Seeded in `part_settings.json` (`e5c670637`): Bambu PETG-CF on
+the 10 arm and shin covers whose manifest text names PETG, marked seeded; print directions left to the designers. Reports:
+`.cache/work/cad-speed/checks/triage-{A,B,C,D,E,F,G}/report.json` (recreated by the commands above).
+
+Rerun after the stage-4 carrier, head carrier and ankle coupler merges (same manifest path, sha 314067c7e493, 22 Nov evening): every
+check ran again without a stall or a failure (batches 325 / 254 / 824 s wall incl. 10 / 81 / 627 s slot wait, peaks 3.9 / 4.5 / 4.0
+GB; geometry 68 s, gaps 138 s, clearance 186 s). Counts that moved: sliver faces 270 -> 296, bed sharp contact corners 258 -> 290
+and centre of mass outside the contact hull 12 -> 14, thin features under 1 line 315 -> 320, overhang bridges over limit 18 -> 16 and
+floating ceilings 192 -> 201, free sharp edges 11374 -> 12059, unchamfered mating bed runs 107 -> 93 (19 parts), mass difference
+-63.1 -> -62.8 g; the rest unchanged. New screening solid off by more than 5 %: R / L ankle coupler sleeves +6.3 % (closed mesh vs
+reference). Reports `triage-re{1,2,3}`.
+
+## Reliability of the check tool itself (2026-11-22)
+
+Why: sessions kept repairing `run.py` instead of using it. Transcripts of 2026-11-17..22 (136 sessions and subagents,
+about 525 invocations): memguard stopped run.py 49 times (39 timeouts, 10 memory caps, about 17 h of wall time in the timed
+out runs); one session lost 4.5 h to runs that stalled with no output and no cause found; about 15 commits repaired the tool.
+Recurring modes: a killed run printed nothing and its report gave no hint where it stood; one input that resolves nowhere
+(a STEP, an empty B-rep) blanked a whole check for every part in scope; reports replaced by a run under the same label (macOS
+paths ignore case); worktrees without `.venv` / `artifacts` or with cold caches; laptop sleep stretching parts to 800-1000 s;
+timeouts guessed without knowing what a run would cost; light checks waiting in memguard behind heavy ones.
+
+How it was judged: `robot/body/checks/evaluate.py` runs the real run.py under memguard on the selected body
+(`assembly-parts-shoulder-u-shells.json`) and on copies with one injected fault, against main `a88fc4d78` (baseline, a frozen
+worktree) and the changed tool, on the same artifact snapshot, with other sessions' jobs running (load 10-20 on 10 cores).
+Seconds are of run.py itself; memguard's slot wait is apart. Ground truth for the injected interference is computed outside
+run.py: exact OpenCascade common volume and distance of the native STEP solids at standing.
+
+| Scenario | Baseline | Now |
+|---|---|---|
+| light iteration, `R_thigh_roll_flip` (`light`) | 19.8 s | 14.5 s |
+| light, arm connector `R_shoulder_pitch_to_roll_combined` | 13.5 s | 16.6 s |
+| candidate (`light`, `--poses library`) | 23.8 s | 22.8 s |
+| one part, no `--checks` (all 29 checks) | 665 s, 4.95 GB | 462 s (screws 185 -> 6 s: shared registrations) |
+| Hip section, 26 parts, light per-part checks | 56.7 s | 55.6 s |
+| whole body unscoped, 193 parts, 6 per-part checks | 272 s | 260 s |
+| bought board with a 44 MB STEP in scope (ROCK4D) | 15.5 s | 14.5 s |
+| new worktree, first light + screws run on one part | 337-343 s cold | 28-29 s (shared caches) |
+| same run twice | identical measurements | identical |
+| part moved 3 mm into its hip neighbour (exact truth 22.09 mm3) | gaps 20.82, static_audit 20.78, clearance 20.80 mm3 | the same values |
+| STEP rebuilt in place 2 mm lower | new geometry measured (sleeve overlap 0.2 -> 88.8 mm3, knee case 0 -> 213 mm3) | the same |
+| one of two scoped parts with a missing STEP | `holes`, `press` lost for the healthy part too | healthy part measured by all 7 checks; the bad part listed per check with cause and code line |
+| scoped STEP truncated | `geometry`, `press` fail with a traceback | the same two fail, one line each naming cause and code line |
+| memguard timeout during `fit` | killed at 40 s, nothing printed | stops at 20 s before the deadline, exit 124, finished checks kept, the stopped one with its stack (`import_step` <- `brep` <- `fit._shape`), summary printed |
+| two runs on one label at once | both exit 0 and print the same report path; the file holds only the second run's part | the second stops at once naming the holder (pid, command); the first's report intact |
+| labels differing in case, one after the other | the second replaces the first silently | lower-cased, the second says which report it replaces |
+| `--changed-since last-run`, nothing changed | exit 1, "selects no part" | exit 0, "nothing changed ... not an error" |
+| typos (part, check, section) | exit 1 in 4.2 s with the known names | the same |
+
+What changed: per-part fault isolation by bisection in the check child (`failed_parts`), a child crash costs one check and
+the group goes on in a new child, the stop before memguard's deadline (memguard exports `MEMGUARD_DEADLINE`) and on
+SIGTERM / Ctrl-C with the Python stack of the stalled call (faulthandler), atomic report writes, the label lock, the idle-sleep
+assertion (`caffeinate -i -w`), the plan line with an estimate from earlier reports and the checks that may not be reached,
+check presets, content-addressed caches shared by all worktrees with atomic writes (`checks/cachefs.py`; the old writers
+could leave half-written `.npz` and `sha256.json` for a concurrent reader), `infra/tools/worktree.py`, and memguard admitting
+by resident memory (owner 2026-11-22; at the time 4 jobs used 9.3 GB of 24 GB caps). Measurements of the checks are
+unchanged (truth rows). Not covered by a scenario: a child crash in native code (no fault found that triggers one on demand),
+the memory-cap path (memguard's own), and the exact `fit` / `fem` numbers beyond the baseline equality.
+
+Follow-up the same day (owner 2026-11-22): no job count in memguard, as many runs as fit in the 24 GB, and a result cache
+(`checks/resultcache.py`). memguard counts a running job at its full `--limit-gb` for its first 60 s, then at the peak memory
+of its process tree (without the warm-up, ten jobs started together would all fit at 0.1 GB each). The cache stores each
+check's result with the inputs recorded while it ran (files read by the check child and its Python subprocesses, STEPs
+handed to OpenCascade / gmsh, the set of body definition files, the run options, the code it loaded) and reuses it while every
+recorded file keeps its sha256; up to 8 input versions per check and scope, so going back to an earlier candidate finds its
+results. Measured on the selected body:
+
+| Scenario | Result |
+|---|---|
+| light run on `R_thigh_roll_flip`, again with nothing changed | 17.6 s computed, 5.2 s cached, identical results |
+| fem + screws + fit_class + driver_access on the same part, again | 133.7 s computed, 5.2 s cached, identical results |
+| a neighbour's / the part's own STEP and mesh rewritten in place 1.5 mm closer, manifest byte-identical (hip pitch-to-roll connector, knee ST3025 case through its moved path, front thigh shell, the part itself) | 0 of 24 check results differ from a `--no-cache` run; the checks that read the changed files ran again, `clearance` stayed cached where the changed part is on the scoped part's own link (not paired) |
+| the files restored | all 6 checks cached again (earlier input version) |
+| six light runs started at once on six parts, other sessions' jobs running | all done in 65 s, slot waits 0-26 s, peak resident memory of every guarded job on the machine 7.6 GB |
+
+The light checks share one child, so each records what that child read up to its end: a neighbour's edit also reruns
+`geometry` and `mass` of the scoped part (seconds; never stale). Heavy checks and each FEM part run in a child of their own,
+so their inputs are their own. 5.2 s is the floor: start-up, plan and the input hashes.
+Found on the way, fixed: the owner six-side drawing (`render`) and leg_motion's closed solids cached their meshes under the
+`mesh_sha256` recorded in the manifest, so a mesh rebuilt in place was drawn where it had been: a 15 mm shift of
+`R_thigh_roll_flip` changed 0 of 2.5 M pixels; keyed by the file's own sha256 (`hip-shell/kit.py mesh_tag`) the same shift
+changes 62-64 thousand, and a stored render is not served after the edit (`render-mesh-edit`). The scenarios that rewrite
+artifact files in place (`cache-stale-hunt`, `render-mesh-edit`) refuse to run in the main checkout.
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 

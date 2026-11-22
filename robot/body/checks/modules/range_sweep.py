@@ -19,10 +19,24 @@ SKIP_ROLES = {"cut_material", "adhesive_allocation", "authored_harness", "candid
 WIDE = {k: tuple(v) for k, v in json.loads((DATA / "pose_sets.json").read_text())["joint_sweep_wide_deg"].items() if not k.startswith("_")}
 COUNT_MM3 = 0.5
 OWN_SERVO = {k: tuple(v) for k, v in json.loads((DATA / "pose_sets.json").read_text())["own_servo_part_prefixes"].items() if not k.startswith("_")}
+LIMIT = json.loads((DATA / "pose_sets.json").read_text())["controller_limit_corners"]
 
 
 def kind(name):
     return re.sub(r"^[RL]_", "", name)
+
+
+def controller_limit(body, q):
+    """The joints of a controller-limit corner at pose q (data/pose_sets.json controller_limit_corners, owner decision D-15): every
+    joint of a group on one side at (or past) an end of its range_deg at once; [] when q is no such corner. Joints q leaves out stand at 0."""
+    tol = LIMIT["end_tol_deg"]
+    at_end = lambda j: q.get(j, 0.0) <= min(body.joints[j]["range_deg"]) + tol or q.get(j, 0.0) >= max(body.joints[j]["range_deg"]) - tol  # noqa: E731
+    for grp in LIMIT["groups"]:
+        for side in ("R_", "L_", ""):
+            js = [side + k for k in grp]
+            if all(j in body.joints and body.joints[j].get("range_deg") and at_end(j) for j in js):
+                return js
+    return []
 
 
 def own_servo_pair(a, b, joint):
@@ -115,10 +129,11 @@ def sweep_joint(ctx, jn, step, held, margin=3.0):
                         worst = (f"{a} x {b}", round(grow, 2))
         if ang != 0.0 or not curve:
             curve.append(dict(deg=float(ang), overlap_mm3=round(tot, 2), servo_model_mm3=round(servo_tot, 2),
-                              min_clearance_mm=round(clear_min, 2) if clear_min < 1e9 else None, worst_pair=worst))
+                              min_clearance_mm=round(clear_min, 2) if clear_min < 1e9 else None, worst_pair=worst,
+                              controller_limit=controller_limit(body, q)))     # D-15 corner (--hold): measured, not a first contact
     curve = sorted({c["deg"]: c for c in curve}.values(), key=lambda c: c["deg"])
-    neg = [c["deg"] for c in curve if c["deg"] < 0 and c["overlap_mm3"] > 0]
-    pos = [c["deg"] for c in curve if c["deg"] > 0 and c["overlap_mm3"] > 0]
+    neg = [c["deg"] for c in curve if c["deg"] < 0 and c["overlap_mm3"] > 0 and not c["controller_limit"]]
+    pos = [c["deg"] for c in curve if c["deg"] > 0 and c["overlap_mm3"] > 0 and not c["controller_limit"]]
     return dict(swept_deg=[lo, hi], assembly_range_deg=j.get("range_deg"), moving_parts=len(moving), fixed_parts=len(fixed),
                 contact_free_deg=[max(neg) + step if neg else lo, min(pos) - step if pos else hi],
                 first_contact_deg=[max(neg) if neg else None, min(pos) if pos else None], curve=curve,
@@ -156,4 +171,6 @@ def run(ctx):
                                     1 for jn, r in per_joint.items() if r["assembly_range_deg"] and any(
                                         c["overlap_mm3"] > 0 and r["assembly_range_deg"][0] <= c["deg"] <= r["assembly_range_deg"][1] for c in r["curve"]))),
                 evidence=[], notes=f"step {step} deg; overlap growth above the neutral pose counts above {COUNT_MM3} mm3; other limbs left out (their contacts are WBC self-collision limits); "
-                                   "pairs limited to those with a scoped part; shell covers are included when they are in the manifest")
+                                   "pairs limited to those with a scoped part; shell covers are included when they are in the manifest; "
+                                   "angles where the held and swept joints make a controller-limit corner (pose_sets.json controller_limit_corners, D-15) are measured, "
+                                   "marked in the curve (controller_limit) and not taken as first contact")

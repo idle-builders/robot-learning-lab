@@ -83,7 +83,7 @@ def library_poses():
 def solid(body, n):
     """Closed mesh of a part (voxel-filled when the CAD mesh is open), cached on disk."""
     p = body.parts[n]
-    tag = (p.get("mesh_sha256") or p.get("native_step_sha256") or "nohash")[:12]
+    tag = kit.mesh_tag(p)                  # the file's own sha256, not the manifest's (stale after an in-place rebuild)
     f = SOLIDS / f"{n}-{tag}.npz"
     if f.exists():
         d = np.load(f); return trimesh.Trimesh(d["v"], d["f"], process=False)

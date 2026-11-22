@@ -19,6 +19,9 @@ from infra.storage.blob_store import ensure  # noqa: E402
 
 def src(path) -> Path:
     """An input file, restored from the bucket by its recorded (or pre-restructure) path when not on disk."""
+    rc = sys.modules.get("checks.resultcache")     # recording a check's inputs (checks/resultcache.py), when loaded
+    if rc is not None:
+        rc.note(ROOT / path)                # also the STEPs OCC / gmsh read in C++
     return ensure(ROOT / path)
 
 

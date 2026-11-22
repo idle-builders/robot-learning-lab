@@ -152,6 +152,9 @@ class Index:
                 add(asset["path"], asset.get("sha256"))
                 kept.append(asset)
         payload = {k: v for k, v in result.items() if k not in {"assets", "clips", "versions"}}
+        # A generated body view (robot/body/bom/publish_body.py) names every part's STEP / mesh and each generator's
+        # manifest as text for people; the viewer opens none of them, so they are not design files to upload.
+        payload["sections"] = [s for s in payload.get("sections") or [] if (s.get("payload") or {}).get("kind") != "body_view"]
         for path in sorted(set(referenced_paths(payload)) - {a["path"] for a in kept}):
             if path.endswith((".json", ".glb")):
                 add(path, None)
@@ -163,6 +166,8 @@ class Index:
                 rows = current(api.get("/api/results", dashboard=dashboard))
                 if dashboard == "design":  # the selected study of each section, nothing else
                     chosen = set(api.get("/api/design-selection").values())
+                    # studies the owner wants to review remotely before selecting them (robot/design.json "remote_review")
+                    chosen |= set(json.loads((ROOT / "robot/design.json").read_text()).get("remote_review") or [])
                     rows = [row for row in rows if row.get("study_id") in chosen]
                 self.manifest["lists"][dashboard] = self.write_json("list", dashboard, rows)
                 for row in rows:

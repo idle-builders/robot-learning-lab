@@ -1,6 +1,7 @@
 import {esc} from './readable.js?v=studies-final-20261020';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 import {assetUrl} from './asset-url.js';
+import {bodyViewMarkup, bindBodyView} from './cad-bom.js?v=body-view-20261122';
 
 const amount = value => value == null ? 'Unknown' : Number(value).toLocaleString(undefined, {maximumFractionDigits: 4});
 const endpoint = id => `/api/design-bom?result=${encodeURIComponent(id)}`;
@@ -44,7 +45,9 @@ function editor(bom) {
   return `<details class="bom-edit"><summary>${bom ? 'Edit this version’s BOM' : 'Add a BOM for this version'}</summary><form class="inside bom-form"><p>Quantities describe one assembly. Blank quantities, prices and mass stay unknown. Include purchased components only once; record costs for printed parts and fabrication explicitly.</p><div class="bom-fields">${input('scope', 'Assembly scope', bom?.scope)}<label>Scope coverage (author’s declaration)<select name="completeness"><option value="partial">Partial inventory</option><option value="complete" ${bom?.completeness === 'complete' ? 'selected' : ''}>All parts in stated scope recorded</option></select></label><label class="bom-wide">Cost assumptions / notes<textarea name="notes" rows="2">${esc(bom?.notes)}</textarea></label><label class="bom-wide">Exclusions (one per line)<textarea name="exclusions" rows="2">${esc((bom?.exclusions || []).join('\n'))}</textarea></label></div><div class="bom-edit-items">${(bom?.items || []).map(itemEditor).join('')}</div><div class="bom-actions"><button type="button" data-add-part>Add part</button><button type="submit">Save BOM for this version</button><button type="button" data-reload-bom>Reload saved BOM</button><span role="status" class="bom-save-status"></span></div></form></details>`;
 }
 
-export async function mountStudyBom(host, resultId, current = () => true) {
+// view: the record's generated body view (robot/body/bom/publish_body.py), shown above the cost BOM of the same build;
+// onPart(name) is called when a part card opens (the study page selects that part in its CAD view).
+export async function mountStudyBom(host, resultId, current = () => true, view = null, onPart = () => {}) {
   let active = true, report;
   const events = new AbortController();
   const valid = () => active && current();
@@ -57,7 +60,8 @@ export async function mountStudyBom(host, resultId, current = () => true) {
   }
   function render() {
     const bom = report.bom;
-    host.innerHTML = `<h3>Bill of materials & costs</h3><p>${bom ? esc(bom.scope || 'Assembly scope not stated.') : 'No structured BOM registered for this version. Existing BOM documents remain in its source files.'}</p>${bom ? `<p class="muted">BOM revision ${report.revision} · ${esc(report.updated_at)} UTC · ${bom.completeness === 'complete' ? 'Author declares all parts in stated scope recorded' : 'Partial inventory'}</p>${summary(report.totals)}${bom.notes ? `<p>${esc(bom.notes)}</p>` : ''}${exclusions(bom.exclusions)}${lineTable(report.lines)}${exportsMarkup(endpoint(resultId))}` : ''}${editor(bom)}`;
+    host.innerHTML = `${view ? bodyViewMarkup(view) : ''}<h3>Bill of materials & costs</h3><p>${bom ? esc(bom.scope || 'Assembly scope not stated.') : 'No structured BOM registered for this version. Existing BOM documents remain in its source files.'}</p>${bom ? `<p class="muted">BOM revision ${report.revision} · ${esc(report.updated_at)} UTC · ${bom.completeness === 'complete' ? 'Author declares all parts in stated scope recorded' : 'Partial inventory'}</p>${summary(report.totals)}${bom.notes ? `<p>${esc(bom.notes)}</p>` : ''}${exclusions(bom.exclusions)}${lineTable(report.lines)}${exportsMarkup(endpoint(resultId))}` : ''}${editor(bom)}`;
+    if (view) bindBodyView(host.querySelector('.body-view'), view, onPart);
   }
   host.addEventListener('click', event => {
     if (event.target.closest('[data-add-part]')) host.querySelector('.bom-edit-items').insertAdjacentHTML('beforeend', itemEditor());
