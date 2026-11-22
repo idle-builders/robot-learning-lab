@@ -6,7 +6,7 @@ Owner 2026-11-20 (M-rya3ty): "Much better the two U connectors look clean now. C
 study (not a version of cove50-arm-fdm-combined). Inputs: the candidate manifest written by shoulder_clevis.py
 (build + manifest + views) and the shared check reports (robot/body/checks/run.py) named in REPORTS.
 
-  python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python -B robot/body/arm/publish_shoulder_u.py package
+  python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 2400 -- .venv/bin/python -B robot/body/arm/publish_shoulder_u.py package
   .venv/bin/python -B robot/body/arm/publish_shoulder_u.py record     # writes the publication JSON from the check reports
   .venv/bin/python infra/dashboard/results_hub.py publish artifacts/robot/body/arm/shoulder-clevis/publication.json
 
@@ -40,11 +40,17 @@ CASES = {"recovery_4kg_1p5g": "recovery 4 kg x 1.5 g (58.8 N)", "support_4kg_1g"
 REPORTS = {
     "shoulder-u-verify3": "R: geometry, mass, gaps, static_audit, clearance (library), press, screws, holes, walls, overhang, bed, driver_access, range_sweep",
     "shoulder-u-verify-L": "L: the same checks",
-    "shoulder-u-fem-push": "R and L blue + green U FEM, arm load envelope (push cone), blue h 0.9, green h 1.2 (variant shoulder_u)",
-    "shoulder-u-s1-fem-h07b": "R blue U FEM, recovery / PAHT-CF at h 0.7 (convergence; von Mises)",
-    "shoulder-u-s2-fem-h09": "R green U FEM, arm load envelope, h 0.9 (convergence; von Mises)",
+    "shoulder-u-s1-fem-bearing": "R and L blue U FEM, arm load envelope (push cone), h 0.9, idler as a bearing (variant shoulder_u, commit b876d18e4)",
+    "shoulder-u-s2-fem-fixed": "R and L green U FEM, arm load envelope (push cone), h 1.2, supported on all 2 + 2 roll-case screws (variant shoulder_u, commit b876d18e4)",
+    "shoulder-u-s1-fem-hornonly": "R and L blue U FEM, roll horn only carries the load (variant shoulder_u_horn_only, harsh bound)",
+    "shoulder-u-fem-push": "R and L blue + green U FEM on the earlier load patches (blue horn + idler rigid = upper stiffness bound; green +y "
+                           "screw pair only): blue bound and coarse level of the convergence pairs",
+    "shoulder-u-s1-fem-h07b": "R blue U FEM, recovery / PAHT-CF at h 0.7, earlier patches (convergence; von Mises)",
+    "shoulder-u-s2-fem-h09": "R green U FEM, arm load envelope, h 0.9, earlier patches (convergence; von Mises)",
     "arm-envelope-push": "before: today's stages 1-4 on the roll-flip body, same envelope (push cone), in the print directions of the new parts",
 }
+AFTER = {S1: "shoulder-u-s1-fem-bearing", S2: "shoulder-u-s2-fem-fixed"}   # corrected load paths (commit b876d18e4)
+RIGID, HORN = "shoulder-u-fem-push", "shoulder-u-s1-fem-hornonly"          # the blue U's two load-path bounds
 RENDERS = ("shoulder-u-parts.png", "shoulder-u-collisions.png", "shoulder-today.png")
 CHART = ART / "renders/fem-envelope-before-after.png"
 MOMENTS = ART / "pitch-output-moments.json"
@@ -111,7 +117,7 @@ def layer(p):
 def fem_rows():
     """{(part, material, case): {"after": envelope, "before": envelope}} for the R side, each part along its own print direction."""
     rows = {}
-    for side, labels in (("after", {S1: "shoulder-u-fem-push", S2: "shoulder-u-fem-push"}),
+    for side, labels in (("after", AFTER),
                          ("before", {S1: "arm-envelope-push", S2: "arm-envelope-push"})):
         for part, label in labels.items():
             p = report(label)["checks"]["fem"]["per_part"]["R_" + part]
@@ -204,6 +210,20 @@ def fem_evidence(refs):
                       f"of {a['wrenches']} (strength + layer)",
                       f"strength {a['wrenches_with_p99_strength_ratio_below_1']}, layer {a['wrenches_with_p99_layer_ratio_below_1']}; before strength "
                       f"{b['wrenches_with_p99_strength_ratio_below_1']}, layer {b['wrenches_with_p99_layer_ratio_below_1']}")]
+
+    def env(label, part, mat="Bambu PAHT-CF", case="recovery_4kg_1p5g"):
+        p = report(label)["checks"]["fem"]["per_part"][part]
+        return p["by_layer_normal"][layer(p)][mat][case]["envelope"], p["mesh_h_mm"], p["nodes"]
+    bounds = {}
+    for mat in MATS:
+        h, rg, hn = (env(lb, "R_" + S1, mat)[0] for lb in (AFTER[S1], RIGID, HORN))
+        bounds[mat] = (h, rg, hn)
+        rec.append(m(f"Blue U, {mat.replace('Bambu ', '')}: p99 strength ratio, worst wrench, idler as a bearing between the two load-path bounds",
+                     h["p99_strength_ratio"]["min"], "x",
+                     f"recovery; horn + idler fully rigid (upper stiffness bound) {rg['p99_strength_ratio']['min']:.2f}, below 1: "
+                     f"{rg['wrenches_with_p99_strength_ratio_below_1']}; horn only (harsh bound) {hn['p99_strength_ratio']['min']:.2f}, layer "
+                     f"{hn['p99_layer_ratio']['min']:.2f}, displacement max {hn['max_displacement_mm']['max']:.1f} mm, below 1: strength "
+                     f"{hn['wrenches_with_p99_strength_ratio_below_1']} / layer {hn['wrenches_with_p99_layer_ratio_below_1']} of {hn['wrenches']}"))
     other = []
     for part in (S1, S2):
         for mat in MATS:
@@ -216,25 +236,40 @@ def fem_evidence(refs):
                                f"{a['wrenches_with_p99_layer_ratio_below_1']}; before min {b['p99_strength_ratio']['min']:.2f}, p50 "
                                f"{b['p99_strength_ratio']['p50']:.2f}, displacement max {b['max_displacement_mm']['max']:.1f} mm, below 1: "
                                f"{b['wrenches_with_p99_strength_ratio_below_1']} / {b['wrenches_with_p99_layer_ratio_below_1']}"))
-    # mesh convergence (recovery, PAHT-CF) and the mirrored left side
-    def env(label, part, mat="Bambu PAHT-CF", case="recovery_4kg_1p5g"):
-        p = report(label)["checks"]["fem"]["per_part"][part]
-        return p["by_layer_normal"][layer(p)][mat][case]["envelope"], p["mesh_h_mm"], p["nodes"]
+    # mesh convergence (recovery, PAHT-CF; measured on the earlier load patches, both levels) and the mirrored left side
     conv = []
-    for part, coarse, fine in ((S1, "shoulder-u-fem-push", "shoulder-u-s1-fem-h07b"), (S2, "shoulder-u-fem-push", "shoulder-u-s2-fem-h09")):
+    for part, coarse, fine in ((S1, RIGID, "shoulder-u-s1-fem-h07b"), (S2, RIGID, "shoulder-u-s2-fem-h09")):
         (c, hc, nc), (f, hf, nf) = env(coarse, "R_" + part), env(fine, "R_" + part)
         d = lambda k, q: round(100.0 * (f[k][q] - c[k][q]) / c[k][q], 1)
-        conv.append(m(f"{NAMES[part].split(' (')[0]}: change of the worst p99 von Mises, h {hc} -> {hf} mm", d("p99_vm_MPa", "max"), "%",
+        conv.append(m(f"{NAMES[part].split(' (')[0]}: change of the worst p99 von Mises, h {hc} -> {hf} mm (earlier load patches)", d("p99_vm_MPa", "max"), "%",
                       f"{nc} -> {nf} nodes; p50 {d('p99_vm_MPa', 'p50'):+} %, peak displacement {d('max_displacement_mm', 'max'):+} %; "
-                      f"worst strength ratio {c['p99_strength_ratio']['min']:.2f} -> {f['p99_strength_ratio']['min']:.2f} (recovery, PAHT-CF)"))
+                      f"worst strength ratio {c['p99_strength_ratio']['min']:.2f} -> {f['p99_strength_ratio']['min']:.2f} (recovery, PAHT-CF); "
+                      + ("blue horn + idler fully rigid" if part == S1 else "green supported on the +y screw pair only")
+                      + ", not re-run with the corrected patches"))
     for part in (S1, S2):
         for mat in MATS:
-            (r, _, _), (l, hl, _) = env("shoulder-u-fem-push" if part == S1 else "shoulder-u-fem-push", "R_" + part, mat), env("shoulder-u-fem-push", "L_" + part, mat)
+            (r, _, _), (l, hl, _) = env(AFTER[part], "R_" + part, mat), env(AFTER[part], "L_" + part, mat)
             conv.append(m(f"Left side, {NAMES[part].split(' (')[0]}, {mat.replace('Bambu ', '')}: p99 strength ratio, worst wrench", l["p99_strength_ratio"]["min"], "x",
                           f"recovery, h {hl}, {l['wrenches']} wrenches; p50 {l['p99_strength_ratio']['p50']:.2f}; right {r['p99_strength_ratio']['min']:.2f} / "
                           f"p50 {r['p99_strength_ratio']['p50']:.2f}; below 1: {l['wrenches_with_p99_strength_ratio_below_1']}"))
-    s1 = report("shoulder-u-fem-push")["checks"]["fem"]["per_part"]["R_" + S1]
-    s2 = report("shoulder-u-fem-push")["checks"]["fem"]["per_part"]["R_" + S2]
+    s1 = report(AFTER[S1])["checks"]["fem"]["per_part"]["R_" + S1]
+    s2 = report(AFTER[S2])["checks"]["fem"]["per_part"]["R_" + S2]
+    tilt = float(np.degrees(np.arccos(abs(np.asarray(s2["layer_direction"]["up"], float)[2]))))   # green print direction vs the FEM layer normal z
+    # green U single-element peak von Mises (recovery, PAHT-CF): corrected support, and the slot-floor corner under the earlier support
+    rp = lambda label, part: report(label)["checks"]["fem"]["per_part"][part]["by_layer_normal"]["z"]["Bambu PAHT-CF"]["recovery_4kg_1p5g"]
+    gR, gL = rp(AFTER[S2], "R_" + S2), rp(AFTER[S2], "L_" + S2)
+    oR, oL, o9 = rp(RIGID, "R_" + S2), rp(RIGID, "L_" + S2), rp("shoulder-u-s2-fem-h09", "R_" + S2)
+    xyz = lambda v: "(" + ", ".join(f"{c:.0f}" for c in v) + ") mm"
+    peak = (f"Green U single-element peak von Mises (recovery, PAHT-CF, highest element over the envelope): {gR['envelope']['envelope_field']['peak_MPa']:.0f} MPa "
+            f"(R) at {xyz(gR['envelope']['envelope_field']['peak_location_mm'])} on the -y (front) arm, near its open notch, L {gL['envelope']['envelope_field']['peak_MPa']:.0f} MPa; the "
+            f"slot-floor corner where the +y arm meets the plate reaches {gR['peak_vm_MPa']:.0f} MPa at {xyz(gR['peak_vm_location_mm'])} on the worst wrench. "
+            f"Under the earlier support (+y screw pair only) that corner was the peak, {oR['envelope']['envelope_field']['peak_MPa']:.0f} MPa (R) / "
+            f"{oL['envelope']['envelope_field']['peak_MPa']:.0f} MPa (L), and it did not fall with mesh refinement (R h 1.2 -> 0.9: "
+            f"{oR['envelope']['envelope_field']['peak_MPa']:.0f} -> {o9['envelope']['envelope_field']['peak_MPa']:.0f} MPa): a re-entrant corner. The p99 "
+            "scores exclude single-element peaks; a small fillet at that corner would lower it.")
+    layer_note = (f"The green U prints {tilt:.1f} deg off z (plate-down on its yaw-local normal); its FEM layer normal is z (the stored axis: the "
+                  f"fem check runs along the print direction only when it lies on an axis), so its layer ratios are for layers {tilt:.1f} deg off "
+                  "the real ones.")
     pm = json.loads(MOMENTS.read_text())["cases"]
     worst1 = s1["by_layer_normal"]["x"]["Bambu PAHT-CF"]["recovery_4kg_1p5g"]["envelope"]["worst"][0]
     worst2 = s2["by_layer_normal"]["z"]["Bambu PAHT-CF"]["recovery_4kg_1p5g"]["envelope"]["worst"][0]
@@ -242,24 +277,33 @@ def fem_evidence(refs):
                           "(15 deg grid over the manifest ranges, 648 poses x 96 half-sphere directions -> 8310 wrenches per case), capped where a "
                           "servo of the chain would pass its stall (STS3250 4.9 N m), moved to the load centroid in the stage frame "
                           "(robot/body/checks/arm_loads.py; owner decision M-s8gt2p, Idle T-ysng9c)",
-            "setup": "variant shoulder_u in robot/body/checks/data/part_settings.json. Blue U: supports = the 4 sleeve sites at the pitch main horn "
-                     "(unchanged interface); load = the sleeve sites at the roll main horn and the new roll idler as one rigid patch. Green U: "
-                     "supports at the yaw-case clamp, load at the 2 + 2 roll-case sleeve sites. 304 steel collars 0.7 mm around the sleeve bores.",
+            "setup": "variant shoulder_u in robot/body/checks/data/part_settings.json (load paths of commit b876d18e4). Blue U: supports = the 4 "
+                     "sleeve sites at the pitch main horn (unchanged interface); load = the sleeve sites at the roll main horn and at the new roll "
+                     f"idler ({s1['patches']['load']['area_mm2']} mm2) as one rigid body, the idler's sites free to turn about the roll axis "
+                     "(free_rotation_about_joint: the servo idler as a bearing, forces and off-axis moments but no roll torque, which goes through "
+                     "the horn). Bounds: horn and idler fully rigid (upper stiffness bound, the earlier setup) and horn only (variant "
+                     "shoulder_u_horn_only, harsh bound). Green U: supports = the 4 roll-case sleeve sites (2 + 2 far holes, "
+                     f"{s2['patches']['support_roll_case']['area_mm2']} mm2); load = the yaw-case clamp sleeve sites "
+                     f"({s2['patches']['load']['area_mm2']} mm2), rigid. 304 steel collars 0.7 mm around the sleeve bores.",
             "solver": "gmsh P1 tetrahedra, linear static, unit-wrench basis; p99 = volume-weighted 99th percentile of the element field",
             "print_direction": f"blue {s1['layer_direction']['up']} (L -x), green plate-down (up {s2['layer_direction']['up']}, L mirrored); "
-                               "the layer normal of the strength / layer ratios is the print direction",
+                               f"the layer normal of the strength / layer ratios is the print direction for the blue U; the green U's print "
+                               f"direction is {tilt:.1f} deg off z and its FEM layer normal is z",
             "mesh": f"blue h {s1['mesh_h_mm']} mm ({s1['nodes']} nodes), green h {s2['mesh_h_mm']} mm ({s2['nodes']} nodes); before h 1.2",
             "worst_recovery_wrench": f"blue: pose {worst1['pose_deg']}, {worst1['force_N']} N, capped by {worst1['capped_by']}; green: pose "
                                      f"{worst2['pose_deg']}, {worst2['force_N']} N, capped by {worst2['capped_by']}",
             "before": "today's stage 1 / stage 2 in the selected body (roll-flip manifest at the time of the run), same envelope and materials, "
                       "each along its own print direction (y)"}
-    lim = ("Linear static FEM of the printed part alone: servo cases, horn and idler rigid at the patches; no bolt preload, contact, "
-           "fatigue, creep or moisture. Datasheet properties (Bambu PAHT-CF, PETG-CF), dry. The before parts carry a different load path "
-           "(today's stage 1 is loaded at the roll horn only), so before -> after compares two designs under the same hand loads, not "
-           "the same patches. Nothing printed or loaded.")
+    lim = ("Linear static FEM of the printed part alone: servo cases and horn rigid at the patches, the idler rigid but free about the roll "
+           "axis; no bolt preload, contact, fatigue, creep or moisture. Datasheet properties (Bambu PAHT-CF, PETG-CF), dry. The before parts "
+           "carry a different load path (today's stage 1 is loaded at the roll horn only), so before -> after compares two designs under the "
+           f"same hand loads, not the same patches. {peak} {layer_note} Mesh convergence was shown on the earlier load patches and has not "
+           "been re-run with the bearing / full-support patches. Nothing printed or loaded.")
+    small = min((r["after"]["p99_strength_ratio"]["min"], pt, mt) for (pt, mt, c), r in rows.items() if c == "recovery_4kg_1p5g")
+    hb = bounds[MATS[0]]
     fem = dict(id="fem", title="Arm load envelope FEM, before -> after (recovery case)", kind="simulation",
                observation=f"Over the full arm load envelope both U connectors keep every wrench above strength and layer ratio 1 in both "
-                           f"materials; today's stages fall below strength ratio 1 for {below} of the wrenches of the 4 kg cases. Recovery case, PAHT-CF: blue U worst "
+                           f"materials (blue U with the idler as a bearing, green U supported on all 2 + 2 roll-case screws); today's stages fall below strength ratio 1 for {below} of the wrenches of the 4 kg cases. Recovery case, PAHT-CF: blue U worst "
                            f"strength ratio {rows[(S1, MATS[0], 'recovery_4kg_1p5g')]['after']['p99_strength_ratio']['min']:.2f} (median "
                            f"{rows[(S1, MATS[0], 'recovery_4kg_1p5g')]['after']['p99_strength_ratio']['p50']:.2f}), green U "
                            f"{rows[(S2, MATS[0], 'recovery_4kg_1p5g')]['after']['p99_strength_ratio']['min']:.2f} (median "
@@ -267,8 +311,12 @@ def fem_evidence(refs):
                            f"{rows[(S1, MATS[0], 'recovery_4kg_1p5g')]['after']['max_displacement_mm']['max']:.2f} / "
                            f"{rows[(S2, MATS[0], 'recovery_4kg_1p5g')]['after']['max_displacement_mm']['max']:.2f} mm (today "
                            f"{rows[(S1, MATS[0], 'recovery_4kg_1p5g')]['before']['max_displacement_mm']['max']:.0f} / "
-                           f"{rows[(S2, MATS[0], 'recovery_4kg_1p5g')]['before']['max_displacement_mm']['max']:.0f} mm). The green U, "
-                           "PETG-CF, recovery has the smallest margin. Values are the worst wrench with its median; the chart shows the whole distribution.",
+                           f"{rows[(S2, MATS[0], 'recovery_4kg_1p5g')]['before']['max_displacement_mm']['max']:.0f} mm). The blue U's true load "
+                           f"sharing lies between two bounds: horn and idler fully rigid {hb[1]['p99_strength_ratio']['min']:.2f}, horn alone "
+                           f"{hb[2]['p99_strength_ratio']['min']:.2f} ({hb[2]['wrenches_with_p99_strength_ratio_below_1']} strength / "
+                           f"{hb[2]['wrenches_with_p99_layer_ratio_below_1']} layer wrenches below 1). The {NAMES[small[1]].split(' (')[0].replace('Blue', 'blue').replace('Green', 'green')}, "
+                           f"{small[2].replace('Bambu ', '')}, recovery has the smallest margin ({small[0]:.2f}). Values are the worst wrench with "
+                           "its median; the chart shows the whole distribution.",
                measurements=rec, conditions=cond, limitations=lim, source_refs=refs,
                image_groups=[{"title": "Distribution over the envelope, per part, material and case", "images": [
                    {"path": rel(CHART), "caption": "Right side. Thin line min-max, bar p10-p90, gap p50 of the 8310 wrenches; orange today, blue the U connectors."}]}])
@@ -276,9 +324,13 @@ def fem_evidence(refs):
                      observation="The two lighter cases scale with the recovery case; no wrench below ratio 1 for either U in either material.",
                      measurements=other, conditions=cond, limitations=lim, source_refs=refs)
     fem_mesh = dict(id="fem-mesh-and-left", title="FEM mesh convergence and left side", kind="simulation",
-                    observation="Refining the mesh one level changes the worst p99 stress by a few percent; the mirrored left parts give the "
-                                "same distributions as the right (their envelope has 8383 wrenches: the left arm's own pose grid).",
-                    measurements=conv, conditions=dict(mesh=cond["mesh"], left="L parts = mirror x of the R parts, setups mirrored (x -> -x)"),
+                    observation="Refining the mesh one level changes the worst p99 stress by a few percent. This was measured on the earlier "
+                                "load patches (blue horn + idler fully rigid, green supported on the +y screw pair only) and has not been re-run "
+                                "with the bearing / full-support patches. The mirrored left parts give the same distributions as the right (their "
+                                "envelope has 8383 wrenches: the left arm's own pose grid).",
+                    measurements=conv, conditions=dict(mesh=cond["mesh"], left="L parts = mirror x of the R parts, setups mirrored (x -> -x)",
+                                                       convergence="pairs on the earlier load patches: shoulder-u-fem-push (coarse) against "
+                                                                   "shoulder-u-s1-fem-h07b / shoulder-u-s2-fem-h09 (fine)"),
                     limitations=lim, source_refs=refs)
     pitch = dict(id="pitch-output", title="Pitch servo output load (still single-sided)", kind="analysis",
                  observation="The pitch servo is still held on its output side only (no pitch idler). Over the arm load envelope its output "
@@ -527,10 +579,13 @@ def record():
              for (pt, mt, c), r in fem_rows().items() if c != "manip_1p5kg_reach"]
     below = f"{min(share):.0f}-{max(share):.0f} %"
     pm = json.loads(MOMENTS.read_text())["cases"]["recovery_4kg_1p5g"]
+    up2 = report(AFTER[S2])["checks"]["fem"]["per_part"]["R_" + S2]["layer_direction"]["up"]
+    tilt = float(np.degrees(np.arccos(abs(float(up2[2])))))
     provenance = ("Idle T-ce88t9 (shoulder), T-ysng9c (arm load envelope), T-2e49mv (this build and publication); decisions M-s8gt2p (load "
                   "envelope), M-e9bjtf / M-s9tnc9 (the owner's U sketch), M-rya3ty (owner 2026-11-20: \"Much better the two U connectors look "
                   "clean now. Continue\"); commits 31979a94b (first build), 37df2fd4c (FEM setup, blue convergence), 6b10b68b4 (green stiffened, "
-                  "blue hub, print directions), and this publisher.")
+                  "blue hub, print directions), b876d18e4 (corrected FEM load paths: blue idler as a bearing, green on all 2 + 2 roll-case "
+                  "screws), and this publisher.")
     limitations = ("Torso shell and upper-arm cover overlaps deferred to the shell redesign (Idle T-tph7xb); the cover has no mount on the "
                    "new parts yet. Yaw-case PA2 screws engage 1.8 of 3.0 mm (today's interface, unchanged). Assembly order: the pitch-horn "
                    "screws and the inner yaw-case screws must be driven before the roll servo goes in (driver_access). The notch in the "
@@ -538,7 +593,10 @@ def record():
                    f"output carries up to {pm['off_axis_Nm']['max']} N m off-axis in the envelope (recovery) and there is no servo data for that. The candidate body "
                    f"was derived from the selected manifest at sha256 {man['shoulder_u']['source_manifest_sha256'][:12]} (before the blue "
                    "thigh shell), so its legs show that earlier state; this study owns the shoulder only. Robot model (URDF) and controller "
-                   "not updated. Nothing printed or loaded.")
+                   "not updated. FEM: the green U's re-entrant slot-floor corner (+y arm into the plate) carried a single-element peak "
+                   "that did not fall with refinement under the earlier support (a small fillet would lower it; the p99 scores exclude "
+                   f"it); its FEM layer normal is z while it prints {tilt:.1f} deg off z; mesh convergence was shown on the earlier load "
+                   "patches only (details in the FEM evidence). Nothing printed or loaded.")
     rec = {
         "id": STUDY, "study_id": STUDY, "title": title,
         "source": [rel(HERE / "shoulder_clevis.py"), rel(Path(__file__))],
@@ -556,11 +614,11 @@ def record():
         "assets": assets, "clips": [],
         "design": {
             "id": STUDY, "title": title,
-            "summary": "Roll servo held on both faces: blue U (pitch link) on roll horn + new idler, green U (roll link) on the 2 + 2 far case "
+            "summary": "Roll servo held on both faces: blue U (pitch link) on roll horn + new idler (a bearing), green U (roll link) on the 2 + 2 far case "
                        "holes. Recovery envelope, PAHT-CF: worst strength ratio "
                        f"{fem[0]['value']} / {fem[10]['value']} (today about 0.1-0.3). Shells and cover overlaps deferred.",
             "visual_kind": "native_CAD_assembly",
-            "maturity": "CAD with the shared checks on both sides (fit, motion, print rules, screws, envelope FEM with mesh convergence); "
+            "maturity": "CAD with the shared checks on both sides (fit, motion, print rules, screws, envelope FEM; mesh convergence on the earlier load patches); "
                         "owner accepted the look (M-rya3ty). Not printed, not loaded, model not updated.",
             "image_path": rel(ART / "renders" / "shoulder-u-parts.png"),
             "cad": {
