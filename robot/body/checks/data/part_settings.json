@@ -8321,5 +8321,19 @@
       "up_source": "mirror of R_hip_pitch_to_roll_roll_flip (-x -> +x), confirmed by its designer 2026-11-20; material as R_hip_pitch_to_roll_roll_flip",
       "material": "Bambu PAHT-CF"
     }
+  },
+  "fan_bridge_plate": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PAHT-CF",
+      "up": "+y",
+      "material_alternatives": [
+        "Bambu PETG-CF"
+      ],
+      "set_by": "claude/opus-5.5 2026-11-22 (T-3npyjq): 2 mm flat plate, printed flat on its y-min face"
+    },
+    "expected_hardware": {
+      "sleeves": 4
+    }
   }
 }

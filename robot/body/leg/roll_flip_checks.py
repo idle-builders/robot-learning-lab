@@ -190,6 +190,9 @@ def build_manifest():
     parts = FS.swap_parts(parts)
     import hip_yaw_screws as HYS            # run its `build` first (T-v3kzs4): edited hip yaw-to-pitch connector + sleeves
     parts = HYS.swap_parts(parts)
+    sys.path.insert(0, str(ROOT / "robot/body/assembly"))
+    import held_parts as HP                 # run its `build` first (T-3npyjq): fan bridge plate, chest indicator, R roll case, stale screws
+    parts = HP.swap_parts(parts)
     with FS.left_labels():
         srows, plans = hip_screws(parts, man)
     parts += srows
