@@ -660,6 +660,53 @@ floating ceilings 192 -> 201, free sharp edges 11374 -> 12059, unchamfered matin
 -63.1 -> -62.8 g; the rest unchanged. New screening solid off by more than 5 %: R / L ankle coupler sleeves +6.3 % (closed mesh vs
 reference). Reports `triage-re{1,2,3}`.
 
+## Reliability of the check tool itself (2026-11-22)
+
+Why: sessions kept repairing `run.py` instead of using it. Transcripts of 2026-11-17..22 (136 sessions and subagents,
+about 525 invocations): memguard stopped run.py 49 times (39 timeouts, 10 memory caps, about 17 h of wall time in the timed
+out runs); one session lost 4.5 h to runs that stalled with no output and no cause found; about 15 commits repaired the tool.
+Recurring modes: a killed run printed nothing and its report gave no hint where it stood; one input that resolves nowhere
+(a STEP, an empty B-rep) blanked a whole check for every part in scope; reports replaced by a run under the same label (macOS
+paths ignore case); worktrees without `.venv` / `artifacts` or with cold caches; laptop sleep stretching parts to 800-1000 s;
+timeouts guessed without knowing what a run would cost; light checks waiting in memguard behind heavy ones.
+
+How it was judged: `robot/body/checks/evaluate.py` runs the real run.py under memguard on the selected body
+(`assembly-parts-shoulder-u-shells.json`) and on copies with one injected fault, against main `a88fc4d78` (baseline, a frozen
+worktree) and the changed tool, on the same artifact snapshot, with other sessions' jobs running (load 10-20 on 10 cores).
+Seconds are of run.py itself; memguard's slot wait is apart. Ground truth for the injected interference is computed outside
+run.py: exact OpenCascade common volume and distance of the native STEP solids at standing.
+
+| Scenario | Baseline | Now |
+|---|---|---|
+| light iteration, `R_thigh_roll_flip` (`light`) | 19.8 s | 14.5 s |
+| light, arm connector `R_shoulder_pitch_to_roll_combined` | 13.5 s | 16.6 s |
+| candidate (`light`, `--poses library`) | 23.8 s | 22.8 s |
+| one part, no `--checks` (all 29 checks) | 665 s, 4.95 GB | 462 s (screws 185 -> 6 s: shared registrations) |
+| Hip section, 26 parts, light per-part checks | 56.7 s | 55.6 s |
+| whole body unscoped, 193 parts, 6 per-part checks | 272 s | 260 s |
+| bought board with a 44 MB STEP in scope (ROCK4D) | 15.5 s | 14.5 s |
+| new worktree, first light + screws run on one part | 337-343 s cold | 28-29 s (shared caches) |
+| same run twice | identical measurements | identical |
+| part moved 3 mm into its hip neighbour (exact truth 22.09 mm3) | gaps 20.82, static_audit 20.78, clearance 20.80 mm3 | the same values |
+| STEP rebuilt in place 2 mm lower | new geometry measured (sleeve overlap 0.2 -> 88.8 mm3, knee case 0 -> 213 mm3) | the same |
+| one of two scoped parts with a missing STEP | `holes`, `press` lost for the healthy part too | healthy part measured by all 7 checks; the bad part listed per check with cause and code line |
+| scoped STEP truncated | `geometry`, `press` fail with a traceback | the same two fail, one line each naming cause and code line |
+| memguard timeout during `fit` | killed at 40 s, nothing printed | stops at 20 s before the deadline, exit 124, finished checks kept, the stopped one with its stack (`import_step` <- `brep` <- `fit._shape`), summary printed |
+| two runs on one label at once | one report silently lost | the second stops at once naming the holder (pid, command) |
+| labels differing in case, one after the other | the second replaces the first silently | lower-cased, the second says which report it replaces |
+| `--changed-since last-run`, nothing changed | exit 1, "selects no part" | exit 0, "nothing changed ... not an error" |
+| typos (part, check, section) | exit 1 in 4.2 s with the known names | the same |
+
+What changed: per-part fault isolation by bisection in the check child (`failed_parts`), a child crash costs one check and
+the group goes on in a new child, the stop before memguard's deadline (memguard exports `MEMGUARD_DEADLINE`) and on
+SIGTERM / Ctrl-C with the Python stack of the stalled call (faulthandler), atomic report writes, the label lock, the idle-sleep
+assertion (`caffeinate -i -w`), the plan line with an estimate from earlier reports and the checks that may not be reached,
+check presets, content-addressed caches shared by all worktrees with atomic writes (`checks/cachefs.py`; the old writers
+could leave half-written `.npz` and `sha256.json` for a concurrent reader), `infra/tools/worktree.py`, and memguard admitting
+by resident memory (owner 2026-11-22; at the time 4 jobs used 9.3 GB of 24 GB caps). Measurements of the checks are
+unchanged (truth rows). Not covered by a scenario: a child crash in native code (no fault found that triggers one on demand),
+the memory-cap path (memguard's own), and the exact `fit` / `fem` numbers beyond the baseline equality.
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a
