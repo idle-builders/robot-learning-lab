@@ -283,6 +283,12 @@ def aligned_cylinder(center: tuple[float, float, float], normal: tuple[float, fl
 STAGE3_PCB_FACE_Y = {"power_supervisor": -20.51, "main_precharge": -33.68}
 STAGE3_PS_BOSS_Y = (-20.51, -13.55, -17.03)
 STAGE3_MP_BOSS_Y = (-33.68, -28.72, -31.20)
+# Press counter face of the board sleeves (checks/press_lib: the anvil face is dia 10 around the sleeve, flat in the sleeve's exit
+# plane): PS sleeves are pressed from the frame side, so their counter face is the boss end on the PCB face; MP sleeves from the PCB
+# side, counter face the deck's rear face where the window leaves 1/3 of the ring open. A flat flange of this radius and thickness fills
+# the ring (the carrier-side face of both PCBs is clear of material within r 5 of every mount hole, measured on the boards' STL).
+STAGE3_PRESS_FLANGE_R = 5.3     # 0.3 mm past the anvil radius: the sampled ring ends on it
+STAGE3_PRESS_FLANGE_T = 1.0
 
 
 def stage_interface_specs() -> dict[str, dict[str, Any]]:

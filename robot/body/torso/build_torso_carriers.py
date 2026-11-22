@@ -303,11 +303,17 @@ def build_stage3_front_power_electronics_carrier(family: str):
         Pos(x, common.STAGE3_MP_BOSS_Y[2], z) * Rot(90, 0, 0) * Cylinder(2.8, mp_len)
         for x, z in ((-7.0, 332.0), (37.0, 301.0))
     ]
+    # flat press counter faces (common.STAGE3_PRESS_FLANGE_*): disc around each sleeve end the anvil rests on
+    fr, ft = common.STAGE3_PRESS_FLANGE_R, common.STAGE3_PRESS_FLANGE_T
+    ps_flanges = [Pos(x, common.STAGE3_PS_BOSS_Y[0] + ft / 2, z) * Rot(90, 0, 0) * Cylinder(fr, ft)
+                  for x, z in ((48.5, 280.8), (-11.5, 280.8), (48.0, 364.0), (-11.0, 364.0))]
+    mp_flanges = [Pos(x, common.STAGE3_MP_BOSS_Y[1] - 0.96, z) * Rot(90, 0, 0) * Cylinder(fr, 1.92)      # the deck's thickness, rear face flush
+                  for x, z in ((-7.0, 332.0), (37.0, 301.0))]
     side_bridges = [
         Pos(-18.0, -22.1, 316.5) * Box(5.0, 15.2, 30.0),
         Pos( 55.0, -22.1, 316.5) * Box(5.0, 15.2, 30.0),
     ]
-    s3 = rear_frame.fuse(*ps_bosses, *rearward_core_brackets, front_plate, *mp_bosses, *side_bridges)
+    s3 = rear_frame.fuse(*ps_bosses, *ps_flanges, *rearward_core_brackets, front_plate, *mp_bosses, *mp_flanges, *side_bridges)
 
     cuts3 = [
         # Rear nut-access windows in rear_frame coaxial with the 2 Main Precharge PCB mounts (-7.0, 332.0) and (37.0, 301.0):
