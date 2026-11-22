@@ -174,8 +174,9 @@ def head_screws(man: dict) -> list[dict]:
 
 
 def skin_mic_bosses(man: dict) -> None:
-    """Two printed bosses on the head skin's inner side carry the microphone's two catalogue M2 heat-set inserts (T-5bqc3m, replaces
-    the carrier's mic wing, which left 2.4 mm between board and skin at the upper screw for a 3 mm insert). Each boss is a cylinder
+    """A printed boss on the head skin's inner side carries the microphone's one catalogue M2 x 4 heat-set insert (T-5bqc3m, replaces
+    the carrier's mic wing and the upper screw, whose skin left 1.16 mm behind a 3 mm insert), and two printed stops at the board's far
+    corner keep it from turning about that screw (head_carrier_posts.json mic.stops). Each boss is a cylinder
     (head_carrier_posts.json mic.boss.ro) from the board's back face to a plane inside the skin wall (least-squares plane through the wall's
     mid surface over the boss footprint), so the skin's outer surface is untouched; the insert hole (OD of the insert, its length) and a
     narrow hole for the screw's point are cut from the board face. Writes the skin mesh into this folder's parts/, the inserts as the
@@ -231,8 +232,8 @@ def skin_mic_bosses(man: dict) -> None:
     holes = []
     for r in posts:
         pl = r["plan"]
-        c = np.asarray(pl["opening"], float)           # on the board's back face
-        x0 = float(c[0])
+        c = np.asarray(pl["opening"], float)           # the insert's front end, recess_mm below the board's back face
+        x0 = float(c[0]) - float(sl.get("recess_mm", 0.0))
         ang = np.linspace(0, 2 * np.pi, 24, endpoint=False)
         pts = [(c[1] + ro * k * np.cos(t), c[2] + ro * k * np.sin(t)) for k in (0.0, 0.5, 1.0) for t in (ang if k else [0.0])]
         w = np.array([wall(y, z) for y, z in pts])
@@ -250,10 +251,32 @@ def skin_mic_bosses(man: dict) -> None:
         resid = w[:, 1] - (coef[0] + A[:, 1:] @ coef[1:])       # outer surface minus the plane: the wall left behind the boss end
         print(f"{pl['name']}: boss R{ro} x {x0:.2f} .. wall mid plane x {coef[0]:.2f} (slope y {coef[1]:+.3f} z {coef[2]:+.3f}); "
               f"skin inner {w[:, 0].min():.2f}..{w[:, 0].max():.2f}, outer {w[:, 1].min():.2f}..{w[:, 1].max():.2f}; end plane to outer {resid.min():.2f} mm")
-        holes.append(cyl_x(x0 - 0.5, x0 + L, float(sl["ro"]), c[1], c[2]))
+        xe = float(c[0]) + L                                   # the insert's rear end
+        holes.append(cyl_x(x0 - 0.5, xe + float(sl.get("melt_pocket_mm", 0.0)), float(sl["ro"]), c[1], c[2]))
         prot = float(pl["length_mm"]) - float(pl["stack_mm"]) - L        # the screw's tip beyond the insert's end (negative: inside it)
         if prot > 0:                  # a relief hole for the tip, 0.1 mm deeper than it reaches
-            holes.append(cyl_x(x0 + L - 0.1, x0 + L + prot + float(bs["tip_hole_extra_mm"]), float(bs["tip_hole_ro"]), c[1], c[2]))
+            holes.append(cyl_x(xe - 0.1, xe + prot + float(bs["tip_hole_extra_mm"]), float(bs["tip_hole_ro"]), c[1], c[2]))
+    # the in-plane stops at the board's upper-left corner (the corner farthest from the screw), derived from the board mesh
+    st = spec.get("stops")
+    if st:
+        gap, t, ov = float(st["gap_mm"]), float(st["t_mm"]), float(st["overlap_mm"])
+        (bx0, by0, bz0), (bx1, by1, bz1) = bm.bounds                  # x1 = the back face (rests on the boss), y0 / z1 = the left / top edge
+        xf = bx1 - ov                                                  # the stops' board-side end: ov mm into the board's thickness
+        top = ((by0 - gap - t, by0 + float(st["top_span_mm"])), (bz1 + gap, bz1 + gap + t))
+        left = ((by0 - gap - t, by0 - gap), (bz1 + gap + t - float(st["left_span_mm"]), bz1 + gap + t))
+        for (ya, yb), (za, zb) in (top, left):
+            gy, gz = np.meshgrid(np.linspace(ya, yb, 5), np.linspace(za, zb, 5))
+            pts = np.c_[gy.ravel(), gz.ravel()]
+            w = np.array([wall(y, z) for y, z in pts])
+            mid = (w[:, 0] + w[:, 1]) / 2
+            A = np.c_[np.ones(len(pts)), pts - pts.mean(0)]
+            coef = np.linalg.lstsq(A, mid, rcond=None)[0]
+            n_w = np.array([-1.0, coef[1], coef[2]]); n_w /= np.linalg.norm(n_w)
+            p_on = np.array([coef[0], *pts.mean(0)])
+            bx = md.Manifold.cube([float(mid.max() + 1.5 - xf), yb - ya, zb - za]).translate([xf, ya, za])
+            res = res + bx.trim_by_plane(tuple(n_w), float(np.dot(n_w, p_on)))
+            print(f"stop y {ya:.2f}..{yb:.2f} z {za:.2f}..{zb:.2f}: x {xf:.2f} .. wall mid plane {coef[0]:.2f}; skin inner {w[:, 0].min():.2f}..{w[:, 0].max():.2f}, "
+                  f"outer {w[:, 1].min():.2f}..{w[:, 1].max():.2f}")
     for h in holes:
         res = res - h
     m = res.to_mesh()
@@ -289,7 +312,7 @@ def skin_mic_bosses(man: dict) -> None:
                 native_validity=[True] * len(slv), mass_kg=round(sum(float(s_.volume) for s_ in slv) * 8.5e-6, 6),
                 neck_parts="2 M2 x 3 mm brass heat-set inserts in the head skin's mic bosses (neck_parts.py skin_mic_bosses, T-5bqc3m)")
     man["parts"] = [p for p in man["parts"] if p["name"] != sname] + [tmpl]
-    print(f"{name}: 2 mic bosses + inserts, {abs(float(mesh.volume)):.1f} mm3 (was {abs(float(skin.volume)):.1f})")
+    print(f"{name}: {len(posts)} mic boss + insert, 2 stops, {abs(float(mesh.volume)):.1f} mm3 (was {abs(float(skin.volume)):.1f})")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:
