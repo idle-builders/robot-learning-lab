@@ -98,6 +98,8 @@ def rebuild(connector: str, man: dict) -> None:
               bounds_mm=[np.round(allm.bounds[0], 3).tolist(), np.round(allm.bounds[1], 3).tolist()],
               native_solid_count=len(slv), native_validity=[True] * len(slv),
               mass_kg=round(sum(s["mass_g"] for s in slv) / 1000.0, 6))
+    if connector == "head_sensor_compute_carrier":
+        carrier_sleeve_entry(es, allm)
     print(f"{connector}: {fam} volume {sol.volume:.1f} mm3, {len(slv)} sleeves of {slv[0]['length_mm']} .. {slv[-1]['length_mm']} mm")
 
 
@@ -123,6 +125,10 @@ def apply(man: dict) -> list[str]:
                                       bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
                                       mass_kg=round(abs(float(m.volume)) * dens * 1e-6, 6),
                                       neck_parts="built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq)")
+            if ename == name:            # the recorded volume follows the rebuilt part (it kept the volume of an earlier build)
+                _entry(man, ename)["volume_mm3"] = round(abs(float(m.volume)), 2)
+            if conn == "head_sensor_compute_carrier" and ename.endswith("_steel_sleeves"):
+                carrier_sleeve_entry(_entry(man, ename), m)
         built.append(conn)
         log.append(f"{name}: rebuilt neck connector + sleeves (neck_parts.py)")
     if built:
@@ -154,16 +160,59 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
 
 
 def head_screws(man: dict) -> list[dict]:
-    """The head carrier's 12 compute / camera screws generated from the supplier spacers / nuts (head_holes.py)."""
-    import screw_plan as SP
+    """The head carrier's 4 compute, 8 camera and 1 mic screws generated from the supplier spacers / nuts / shims and the catalogue inserts
+    (head_holes.py, measured on the shell-pass manifest); the legacy camera / plate / mic screws they replace are dropped, and so are the
+    camera standoffs and washers and the mic shims (printed columns and the carrier's mic wing take their place). A skin or mic board an
+    earlier iteration had edited (mic bosses on the skin, board moved 0.5 mm) is pointed back at its source mesh."""
+    import re
     import head_holes as HH
     plans = HH.screw_plans()
-    names = {p["name"] for p in plans}
-    man["parts"] = [p for p in man["parts"] if p["name"] not in names]
+    _undo_skin_mount(man)
+    drop = {n for g in HH.POSTS.values() if g is not HH.POSTS["compute"] for n in g["spacers"] + g.get("washers", []) + g.get("drop", [])}
+    names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])} | drop
+    # an earlier generated length of the same post: B0410_camera_M2_0 is stored as B0410_camera_M2x<L>_0
+    stale = [re.compile(re.escape(b).replace("_M2_", r"_M2(?:x[0-9p.]+)?_") + "$") for g in HH.POSTS.values() if "legacy_screws" in g for b in g["screws"]]
+    man["parts"] = [p for p in man["parts"] if p["name"] not in names and not any(r.match(p["name"]) for r in stale)]
     for pl in plans:
         pl["bom_group"] = f"{pl['group']}_{pl['thread_label']}x{pl['length_mm']:g}"
         _add_screw(man, pl)
     return plans
+
+
+def _undo_skin_mount(man: dict) -> None:
+    """Point the head skin and the mic board back at the meshes they had before the skin-boss iteration of T-5bqc3m (recorded on their
+    entries) and drop the skin's insert part; nothing to do on a manifest that never had them."""
+    for p in man["parts"]:
+        src = p.pop("mic_boss_source_mesh", None) or p.pop("mic_board_source_mesh", None)
+        p.pop("mic_board_shift_mm", None)
+        if src:
+            m = _load_mesh(src)
+            p.update(mesh=src, mesh_sha256=_sha(ROOT / src), bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()])
+            if p.get("mesh_note", "").find("microphone insert bosses") >= 0:
+                p["mesh_note"] = "range notch applied to the mesh (T-jrnxfn); the native STEP predates it and is dropped"
+    man["parts"] = [p for p in man["parts"] if p["name"] != "original_profile_head_skin_v23_steel_sleeves"]
+
+
+def _load_mesh(path: str):
+    from checks import bodylib as BL
+    return BL.load_mesh(path)
+
+
+def carrier_sleeve_entry(e: dict, mesh) -> None:
+    """Material, mass and note of the carrier's sleeve part from what it holds (head_holes.py): the 304 neck-root and compute sleeves and the
+    brass camera / mic heat-set inserts; a component whose extents are the insert's length and twice its modelled radius (0.15 mm) is an insert."""
+    import head_holes as HH
+    ins = HH.sleeve("camera")
+    n_cam, n_mic = len(HH.POSTS["camera"]["screws"]), len(HH.POSTS["mic"]["screws"])
+    mass, n_brass, n_steel = 0.0, 0, 0
+    for c in mesh.split(only_watertight=False):
+        brass = bool(np.allclose(np.sort(c.extents), np.sort([float(ins["length"]), 2 * float(ins["ro"]), 2 * float(ins["ro"])]), atol=0.15))
+        mass += abs(float(c.volume)) * (8.5e-6 if brass else STEEL_G_MM3 * 1e-3)
+        n_brass += brass; n_steel += not brass
+    e.update(material=f"{n_steel} x 304 stainless sleeves (neck root, compute posts; 7.85 g/cm3) + {n_brass} x brass M2 x {ins['length']:g} knurled heat-set "
+                      f"inserts ({n_cam} camera, {n_mic} mic; 8.5 g/cm3; modelled at the {2 * ins['ro']:g} mm hole, catalogue knurl OD {ins['catalogue_od']:g})",
+             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass), sleeves x 7.85 g/cm3",
+             neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_brass} brass heat-set inserts (T-5bqc3m)")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:

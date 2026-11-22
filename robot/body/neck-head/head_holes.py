@@ -7,6 +7,7 @@ Everything is a measurement in mm; nothing here accepts or rejects.
 
   posts(manifest)         per post: spacer / terminal bore centre and axis, their coaxiality (mm), plate faces
   plate_faces(manifest)   (front, rear) coordinate of the carrier plate along Y
+  threaded_posts(manifest) camera / mic inserts (start, length) and their screw plans
   screw_plans(manifest)   per screw of the carrier: the plan dict screw_plan.screw_mesh draws
 """
 from __future__ import annotations
@@ -67,6 +68,15 @@ def _body(manifest=None):
     return body, man
 
 
+def _measure(body, part: str) -> dict:
+    """Bore of a supplier part on its mesh, measured live (the shell-pass manifest, defined_holes.SHELL_PASS, holds every supplier
+    spacer / washer / shim the printed posts replace)."""
+    if part not in body.parts:
+        raise KeyError(f"{part}: not in the manifest head_holes reads; its bore places a head-carrier post (use the shell-pass manifest, "
+                       f"defined_holes.SHELL_PASS)")
+    return bore(body.mesh(part))
+
+
 def posts(manifest: Path | None = None) -> dict:
     key = ("posts", str(manifest))
     if key in _CACHE:
@@ -76,7 +86,7 @@ def posts(manifest: Path | None = None) -> dict:
     for g, spec in POSTS.items():
         rows = []
         for i, sp in enumerate(spec["spacers"]):
-            b = bore(body.mesh(sp))
+            b = _measure(body, sp)
             row = dict(index=i, spacer=sp, screw=spec["screws"][i], spacer_bore=b)
             if "terminals" in spec:
                 t = bore(body.mesh(spec["terminals"][i]))
@@ -100,7 +110,7 @@ def plate_faces(manifest: Path | None = None) -> tuple[float, float]:
 
 
 def sites(manifest: Path | None = None) -> dict:
-    """group -> list of (centre on the plate front face, normal +axis), body frame."""
+    """group -> list of (centre on the plate front face / the mic board's back face, normal +axis), body frame."""
     P = posts(manifest)
     front, _ = plate_faces(manifest)
     out = {}
@@ -108,10 +118,127 @@ def sites(manifest: Path | None = None) -> dict:
         pts = []
         for r in rows:
             c = np.array(r["spacer_bore"]["centre"], float)
-            c[r["spacer_bore"]["axis"]] = r["spacer_bore"]["extent"][1] if g == "mic" else front
+            c[r["spacer_bore"]["axis"]] = r["spacer_bore"]["extent"][0] if g == "mic" else front
             pts.append(c)
         out[g] = pts
     return out
+
+
+def thread(name: str) -> dict:
+    return json.loads((HERE / "head_carrier_posts.json").read_text())["threads"][name]
+
+
+def sleeve(group: str) -> dict:
+    """Outer radius, bore radius (the thread's minor diameter for the threaded groups), length and thread of a post's sleeve / insert."""
+    s = dict(POSTS[group]["sleeve"])
+    if "thread" in s:
+        s["ri"] = thread(s["thread"])["minor_dia"] / 2.0
+    return s
+
+
+def _plan_dict(name, group, spec, std, row, opening, axis_out, stack, S, pick, mat, hole):
+    st_pt = _standards()["point_mm"]
+    h = spec["head"]
+    thr = h["thread"]
+    # the length goes into the name (mount_check reads a screw by its M<d>x<length> name): B0410_camera_M2_0 -> B0410_camera_M2x8_0
+    name = name.replace("_M2_", f"_M2x{pick['length_mm']:g}_")
+    return dict(name=name, group=group, thread=thr, thread_label=thr, head_standard=h["standard"], head_dia_mm=h.get("dk", std["dk"]),
+                head_height_mm=h.get("k", std["k"]), countersunk=bool(h.get("countersunk")), terminal_material=mat,
+                opening=opening, axis_out=axis_out, stack_mm=stack, hole_depth_mm=S, reference_engagement_mm=pick["ref_mm"],
+                point_mm=st_pt, hole_id=f"{hole}:thread", owning_link="head", spacer=row["spacer"], head_gap_mm=0.0,
+                **{k: v for k, v in pick.items() if k != "ref_mm"})
+
+
+def _standards():
+    import screw_plan as SP
+    return SP.standards()
+
+
+def threaded_posts(manifest: Path | None = None) -> dict:
+    """The camera and mic posts: per post the insert (start, length), the screw plan (screw_plan.choose_length: smallest standard
+    length that reaches the 1 d engagement with its 0.5 mm point inside the insert) and the numbers of the choice. Cached; the insert
+    geometry feeds common.stage_interface_specs, the plans feed screw_plans."""
+    import screw_plan as SP
+    key = ("threaded", str(manifest))
+    if key in _CACHE:
+        return _CACHE[key]
+    body, _ = _body(manifest)
+    P = posts(manifest)
+    front, rear = plate_faces(manifest)
+    st = _standards()
+    out = {}
+    # camera: head on the camera board front (board, printed column), insert in the column / plate, its rear end just behind the plate's rear face
+    spec = POSTS["camera"]
+    sl = sleeve("camera")
+    th = thread(sl["thread"])
+    ref = sl["engagement_x_d"] * th["major"]
+    std = st["head_types"][spec["head"]["standard"]][spec["head"]["thread"]]
+    rows = []
+    for i, r in enumerate(P["camera"]):
+        b = r["spacer_bore"]
+        wb = _measure(body, spec["washers"][i])       # the 0.3 mm washer is gone (owner 2026-11-22): its board-side face is the board's front face
+        seat = wb["extent"][1]                          # the board's mount pad: the ISO 4762 head bears on it directly
+        # the insert's rear end is flush with the plate's rear face (an iron tip ends on a face: a recessed end left 0.17-0.24 mm of plate
+        # in the 8 mm tip's way), its front end on the column bore's ledge; the screw is the smallest standard length that reaches the
+        # 1 d reference with its point inside the insert
+        start = float(rear - sl["length"])
+        L_pick = next(L for L in sorted(std["lengths"]) if L - st["point_mm"] - (start - seat) >= ref - 1e-6 and L - (start - seat) <= sl["length"] + 1e-6)
+        stack = float(start - seat)
+        ax = np.zeros(3); ax[b["axis"]] = 1.0
+        c = np.array(b["centre"], float); c[b["axis"]] = start
+        pick = SP.choose_length(stack, sl["length"], ref, [float(L_pick)], st["point_mm"])
+        pick.update(ref_mm=ref, head_seat=round(float(seat), 3), insert_start=round(float(start), 3))
+        rows.append(dict(plan=_plan_dict(spec["screws"][i], "camera", spec, std, r, c, -ax, stack, sl["length"], pick, "brass", f"camera_insert_{i}"),
+                         sleeve_len=sl["length"], start=float(start)))
+    out["camera"] = rows
+    # mic: head on the board's front face (PCB pad), through the PCB and the wing's floor into the insert in the boss behind it; the board's
+    # back face is where the supplier shim's board-side face was (it rests on the wing, face_gap_mm off)
+    spec = POSTS["mic"]
+    sl = sleeve("mic")
+    th = thread(sl["thread"])
+    ref = sl["engagement_x_d"] * th["major"]
+    std = st["head_types"][spec["head"]["standard"]][spec["head"]["thread"]]
+    wing = spec["wing"]
+    rows = []
+    for i, r in enumerate(P["mic"]):
+        b = r["spacer_bore"]
+        ax = np.zeros(3); ax[b["axis"]] = 1.0
+        back = float(b["extent"][0])                                   # the board's back face
+        c = np.array(b["centre"], float); c[b["axis"]] = back
+        stk = SP.stack_along_axis([body.mesh(n) for n in spec["clamped"]], c, -ax, radii=(1.5, 2.0))
+        seat = back - float(stk["stack_mm"])                          # the PCB's front face under the head
+        face = back + float(wing["face_gap_mm"])                      # the wing face the board rests on
+        # the insert's front end where the screw reaches engagement_target_mm: start = seat + L - point - target, for the smallest standard
+        # length that leaves the floor (wing face to insert) at least floor_min_mm thick
+        L_pick, start = next((L, float(seat + L - st["point_mm"] - sl["engagement_target_mm"])) for L in sorted(std["lengths"])
+                             if seat + L - st["point_mm"] - sl["engagement_target_mm"] - face >= float(wing["floor_min_mm"]) - 1e-6)
+        stack = float(start - seat)
+        c[b["axis"]] = start
+        pick = SP.choose_length(stack, sl["length"], ref, [float(L_pick)], st["point_mm"])
+        pick.update(ref_mm=ref, head_seat=round(float(seat), 3), insert_start=round(start, 3), board_back=round(back, 3), wing_face=round(face, 3),
+                    floor_mm=round(start - face, 3))
+        rows.append(dict(plan=_plan_dict(spec["screws"][i], "mic", spec, std, r, c, -ax, stack, sl["length"], pick, "brass", f"mic_insert_{i}"),
+                         sleeve_len=sl["length"], start=start, back=back, face=face, seat=seat))
+    out["mic"] = rows
+    _CACHE[key] = out
+    return out
+
+
+def sleeve_lens(group: str, manifest: Path | None = None) -> list[float]:
+    return [float(r["sleeve_len"]) for r in threaded_posts(manifest)[group]]
+
+
+def pin_site(manifest: Path | None = None) -> np.ndarray:
+    """Centre of the mic board's second mounting hole on its back face (the bore of the dropped upper shim): the locating pin's root."""
+    body, _ = _body(manifest)
+    b = _measure(body, POSTS["mic"]["drop"][1])
+    c = np.array(b["centre"], float); c[b["axis"]] = b["extent"][0]
+    return c
+
+
+def sleeve_starts(group: str, manifest: Path | None = None) -> list[float]:
+    """Coordinate along the post axis of each insert's front end (where the screw enters)."""
+    return [float(r["start"]) for r in threaded_posts(manifest)[group]]
 
 
 def screw_plans(manifest: Path | None = None) -> list[dict]:
@@ -121,36 +248,24 @@ def screw_plans(manifest: Path | None = None) -> list[dict]:
     front, rear = plate_faces(manifest)
     st = SP.standards()
     plans = []
-    for g, rows in P.items():
-        if g == "mic":      # screws stay as they are: no terminal yet (needs a scope decision, see Idle T-5bqc3m)
-            continue
-        spec = POSTS[g]
-        h = spec["head"]
-        std = st["head_types"].get(h["standard"], {}).get(h["thread"], {})
-        dk, k = h.get("dk", std.get("dk")), h.get("k", std.get("k"))
-        for r in rows:
-            b = r["spacer_bore"]
-            ax = np.zeros(3); ax[b["axis"]] = 1.0
-            sp_len = b["extent"][1] - b["extent"][0]
-            if g == "compute":
-                # head on the front face, thread in the nut: axis_out points to the head (-axis)
-                t = r["terminal_bore"]
-                opening = np.array(t["centre"], float); opening[t["axis"]] = t["extent"][0]
-                axis_out = -ax
-                stack = float(t["extent"][0] - front)
-                depth = float(t["extent"][1] - t["extent"][0])
-                ref, mat, hole = depth, "steel", r["terminal"]
-            else:
-                opening = np.array(b["centre"], float); opening[b["axis"]] = front
-                axis_out = ax
-                stack = float(rear - front)
-                depth = sp_len / 2.0
-                ref, mat, hole = 1.5 * 2.0, "aluminium", r["spacer"]
-            pick = SP.choose_length(stack, depth, ref, [float(x) for x in h["lengths"]], st["point_mm"])
-            thr = h["thread"]
-            plans.append(dict(
-                name=r["screw"], group=g, thread=thr, thread_label=thr, head_standard=h["standard"], head_dia_mm=dk,
-                head_height_mm=k, countersunk=bool(h.get("countersunk")), terminal_material=mat, opening=opening,
-                axis_out=axis_out, stack_mm=stack, hole_depth_mm=depth, reference_engagement_mm=ref,
-                point_mm=st["point_mm"], hole_id=f"{hole}:thread", owning_link="head", spacer=r["spacer"], **pick))
+    for g in ("camera", "mic"):
+        plans += [r["plan"] for r in threaded_posts(manifest)[g]]
+    spec = POSTS["compute"]
+    h = spec["head"]
+    std = st["head_types"].get(h["standard"], {}).get(h["thread"], {})
+    dk, k = h.get("dk", std.get("dk")), h.get("k", std.get("k"))
+    for r in P["compute"]:
+        b = r["spacer_bore"]
+        ax = np.zeros(3); ax[b["axis"]] = 1.0
+        # head on the front face, thread in the nut: axis_out points to the head (-axis)
+        t = r["terminal_bore"]
+        opening = np.array(t["centre"], float); opening[t["axis"]] = t["extent"][0]
+        stack = float(t["extent"][0] - front)
+        depth = float(t["extent"][1] - t["extent"][0])
+        pick = SP.choose_length(stack, depth, depth, [float(x) for x in h["lengths"]], st["point_mm"])
+        plans.append(dict(
+            name=r["screw"], group="compute", thread=h["thread"], thread_label=h["thread"], head_standard=h["standard"], head_dia_mm=dk,
+            head_height_mm=k, countersunk=bool(h.get("countersunk")), terminal_material="steel",
+            opening=opening, axis_out=-ax, stack_mm=stack, hole_depth_mm=depth, reference_engagement_mm=depth,
+            point_mm=st["point_mm"], hole_id=f"{r['terminal']}:thread", owning_link="head", spacer=r["spacer"], **pick))
     return plans

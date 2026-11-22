@@ -29,7 +29,6 @@ from build123d import (
 from common import (
     ART,
     MATERIALS,
-    MIC_TAPER,
     STAGE_LINKS,
     STAGE_PART_BASENAMES,
     bevel_3d_edges,
@@ -73,18 +72,31 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
         normals = grp.get("normals", [grp["normal"]] * len(centres))
         ro = float(grp["sleeve_ro"])
         h = float(grp["sleeve_len"])
-        for pt, n_raw in zip(centres, normals):
+        for k, (pt, n_raw) in enumerate(zip(centres, normals)):
             n = np.asarray(n_raw, dtype=float)
             n = n / np.linalg.norm(n)
+            if role_key in ("camera", "mic"):
+                # heat-set insert (hole = 2 ro, length h) pushed in from the far end (camera: the plate's rear face; mic: the boss end) up to a ledge,
+                # a clearance bore through the column / the wing's floor in front of it (T-5bqc3m)
+                start = pt + (float(grp["sleeve_starts"][k]) - float(np.dot(pt, n))) * n
+                bore = float(grp["column" if role_key == "camera" else "wing"]["bore_dia"]) / 2.0
+                cut_tools.append(cyl_along(start, n, ro, h + 3.0))
+                cut_tools.append(cyl_along(start - 8.0 * n, n, bore, 8.2))
+                if role_key == "camera":
+                    # the heated tip reaches the insert from the plate's rear face: the ribs behind it keep a square window of half-width
+                    # press_clear_mm round the axis (rib ends cut square across their width: a round window left 0.01 mm wedges where it
+                    # grazed a rib side)
+                    w = float(grp["press_clear_mm"])
+                    y0 = float(np.dot(start + h * n, n))
+                    rear = max(y0, float(grp["plate_rear"]))
+                    keep_out.append(Pos(float(pt[0]), rear + 2.5, float(pt[2])) * Box(2 * w, 5.0, 2 * w))
+                continue
             # Cut through bore + outer spotface so dorsal ribs/gussets never obstruct sleeve or driver access
             cut_tools.append(cyl_along(pt - 1.2 * n, n, ro + 0.005, h + 5.2))
             if (stage_key, role_key) in FLUSH_SITES:
                 # The sleeve is as long as the plate is thick (flush, no counterbore, M-evmrv6): ribs and walls that rise above the
                 # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
                 keep_out.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
-            if role_key == "camera":
-                # the M2 head sits on the sleeve's rear end: ribs keep a 0.4 mm ring around it clear for head and driver
-                keep_out.append(cyl_along(pt + h * n, n, 1.75 + 0.4, 5.0))
             if stage_key == "stage1_neck_root_cradle" and role_key == "support":
                 cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
@@ -122,6 +134,13 @@ def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
         h = float(grp["sleeve_len"])
         for pt, n_raw in zip(centres, normals):
             n = np.asarray(n_raw, dtype=float) / np.linalg.norm(n_raw)
+            if role_key == "camera":        # the printed column in front of the plate carries the bore and its edges
+                cyls.append((pt - float(grp["column"]["height"]) * n, n, ro, h + float(grp["column"]["height"])))
+                continue
+            if role_key == "mic":           # floor, insert hole and boss end
+                f = float(grp["wing_face"])
+                cyls.append((pt + (f - 0.5 - float(np.dot(pt, n))) * n, n, ro, float(grp["sleeve_starts"][0]) + h + 1.0 - f))
+                continue
             cyls.append((pt, n, ro, h))
         if "rocker_center" in grp:
             n = np.asarray(grp["normal"], dtype=float) / np.linalg.norm(grp["normal"])
@@ -379,9 +398,9 @@ def build_stage3(family: str) -> Solid:
 # ==============================================================================
 def build_stage4(family: str) -> Solid:
     """Build Stage 4 (`head_sensor_compute_carrier`): consolidates `single_shared_carrier_v23`
-    and `microphone_compact_tab_v23` into a single one-piece FDM carrier with 14 pressed-in 304 SS
-    compression sleeves (`2x M3` neck root + `4x M2.5` ROCK4D + `8x M2` cameras), integrated
-    right microphone side wing, radial head-skin lugs, and dorsal stiffening ribs in the
+    and `microphone_compact_tab_v23` into a single one-piece FDM carrier with 6 pressed-in 304 SS
+    sleeves (`2x M3` neck root + `4x M2.5` ROCK4D), 9 brass M2 heat-set inserts (8 camera columns, 1 mic boss,
+    T-5bqc3m), integrated right microphone side wing, radial head-skin lugs, and dorsal stiffening ribs in the
     collision-free `Y in [-11.40, -10.15]` corridor.
     """
     # 1. Main carrier XZ profile (Y in [-12.90, -11.40]); lower neck tongue X in [-4.2, 2.5] clears Stage 3 X >= 3.25
@@ -427,7 +446,7 @@ def build_stage4(family: str) -> Solid:
         g = specs4[role]
         for c in g["centres"]:
             # @lore 0.7 mm rim: 0.6 left a ring thinner than one 0.62 mm print line (walls under one line 45 -> 107 mm2)
-            ear = Pos(float(c[0]), float(c[2])) * Circle(float(g["sleeve_ro"]) + 0.7)
+            ear = Pos(float(c[0]), float(c[2])) * Circle(max(float(g["sleeve_ro"]) + 0.7, float(g.get("column", {}).get("ro", 0.0))))
             if (ear - f_main).area > 0.05:
                 f_main = (f_main + ear).faces()[0]
     s_plate = extrude_xy_to_y(f_main, y_front, y_rear)
@@ -449,32 +468,44 @@ def build_stage4(family: str) -> Solid:
     s_lug_l = extrude_xy_to_x(f_lug, -45.5, -43.2)
     s_lug_r = extrude_xy_to_x(f_lug, 43.2, 45.5)
 
-    # 4. Integrated one-piece right microphone carrier wing (replaces microphone_compact_tab_v23 + mic_foot_M2x3_0/1)
-    # Front bridge (X in [43.0, 48.97], Y in [-12.90, -11.40], Z in [455.2, 462.4] to clear head-skin upper curve)
-    f_mic_br = fillet_2d_face(Pos(45.985, 458.8) * Rectangle(5.97, 7.2), r_default=1.2, r_inner=1.6)
+    # 4. Right microphone wing (T-5bqc3m review: mic, insert and cable fitted on the bench before the skin goes on): a front bridge from the
+    # plate and a side wing in the board's back plane, thinned where the head skin closes in; one boss on its skin side carries the insert
+    # (pushed from the boss end up to the floor), a printed pin on its face goes into the board's second mounting hole, a relief clears the
+    # board's acoustic port. Sizes from head_carrier_posts.json mic, positions from the supplier shims' bores (head_holes.py).
+    gm = specs4["mic"]
+    w = gm["wing"]
+    xf = float(gm["wing_face"])
+    xt = xf + float(w["t_mm"])
+    z_top = float(w["top_z_mm"])
+    # bottom edge below the boss (r 3.3 round z 458.3) and into the skin lug's top (454.8): the old 455.2 left the boss 0.2 mm past the
+    # edge (sliver faces) and a 0.4 mm slot over the lug
+    z_bot = float(w["bottom_z_mm"])
+    f_mic_br = fillet_2d_face(Pos((43.0 + xt) / 2, (z_bot + 462.4) / 2) * Rectangle(xt - 43.0, 462.4 - z_bot), r_default=1.2, r_inner=1.6)
     s_mic_br = extrude_xy_to_y(f_mic_br, y_front, y_rear)
-
-    # Side wing (X in [46.97, 48.97], stepped back to Y >= -7.8 above Z = 462.4 to clear original_profile_head_skin_v23)
-    pts_mic_side = [
-        (y_front, 455.2),
-        (4.50, 455.2),
-        (4.50, MIC_TAPER['z1']),
-        (-1.50, MIC_TAPER['z1']),
-        (-7.80, 462.4),
-        (y_front, 462.4),
-    ]
-    f_mic_side = fillet_2d_face(
-        Polygon(*pts_mic_side, align=None),
-        r_default=1.2,
-        r_inner=1.8,
-        skip_xy=[(y_front, 455.2), (y_front, 462.4)],
-    )
-    s_mic_side = extrude_xy_to_x(f_mic_side, 46.97, 48.97)
-    # Taper top outer corner (Z >= 467.2, X >= 47.82) to match original_profile_head_skin_v23 inner contour
-    cut_skin_taper = Pos(MIC_TAPER['x0'] + 0.75, 0.0, (MIC_TAPER['z0'] + MIC_TAPER['z1']) / 2) * Box(1.5, 16.0, MIC_TAPER['z1'] - MIC_TAPER['z0'])
-    s_mic_side = Solid((s_mic_side - cut_skin_taper).wrapped)
-
-    raw = Solid((s_plate + rib1 + rib2 + rib3 + rib4 + s_lug_l + s_lug_r + s_mic_br + s_mic_side).wrapped)
+    y_diag = -7.80 + (z_top - 462.4) * (6.3 / 10.0)        # the wing's upper-left edge (parallel to the skin's taper, as before)
+    pts_mic_side = [(y_front, z_bot), (4.50, z_bot), (4.50, z_top), (y_diag, z_top), (-7.80, 462.4), (y_front, 462.4)]
+    f_mic_side = fillet_2d_face(Polygon(*pts_mic_side, align=None), r_default=1.2, r_inner=1.8, skip_xy=[(y_front, z_bot), (y_front, 462.4)])
+    s_mic_side = extrude_xy_to_x(f_mic_side, xf, xt)
+    zt0 = float(w["taper_z_mm"])
+    s_mic_side = Solid((s_mic_side - Pos(xt, 0.0, (zt0 + z_top + 2.0) / 2) * Box(2 * (xt - xf - float(w["taper_t_mm"])), 30.0, z_top + 2.0 - zt0)).wrapped)
+    c_mic = np.asarray(gm["centres"][0], float)
+    boss_end = float(gm["sleeve_starts"][0]) + float(gm["sleeve_lens"][0])      # the insert's rear end is flush with the boss end
+    s_boss = cyl_along(np.array([xf, c_mic[1], c_mic[2]]), np.array([1.0, 0.0, 0.0]), float(gm["boss"]["ro"]), boss_end - xf)
+    pin = gm["pin"]
+    s_pin = cyl_along(np.array([xf, pin["centre"][1], pin["centre"][2]]), np.array([-1.0, 0.0, 0.0]), float(pin["dia"]) / 2.0, float(pin["length"]))
+    port = gm["port"]
+    c_port = cyl_along(np.array([xf - 1.0, float(port["y"]), float(port["z"])]), np.array([1.0, 0.0, 0.0]), float(port["dia"]) / 2.0, xt - xf + 2.0)
+    s_mic = Solid((s_mic_br + s_mic_side + s_boss + s_pin - c_port).wrapped)
+    # 5. Camera columns: the 8 supplier F-F standoffs become printed columns (ro, height = the standoff) on the plate's front face; the
+    # insert sits in their rear end (_cut_stage_bores)
+    g = specs4["camera"]
+    col = g["column"]
+    cols = [cyl_along(np.array([float(c[0]), y_front, float(c[2])]), np.array([0.0, -1.0, 0.0]), float(col["ro"]), float(col["height"]))
+            for c in g["centres"]]
+    raw = s_plate + rib1 + rib2 + rib3 + rib4 + s_lug_l + s_lug_r + s_mic
+    for b in cols:
+        raw = raw + b
+    raw = Solid(raw.wrapped)
     cut_sol = _cut_stage_bores(raw, "stage4_head_sensor_compute_carrier")
     return bevel_3d_edges(cut_sol, r_outer=0.32, r_inner=0.60, skip_fn=_skip_near_stage_bores("stage4_head_sensor_compute_carrier"))
 

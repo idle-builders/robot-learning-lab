@@ -1028,3 +1028,51 @@ R_thigh_roll_flip: free depth 31.5-31.8 mm for all 8 sleeves; wall share 23-24 %
 old coverage read as no surface; sleeve 1 wall share 24.2 % against 25.0 % from an OCC slab boolean, axis free depth 31.8 mm
 against 32.0 mm from OCC pin booleans (0.5 mm steps). Limits: spacer width is not a variable (a narrow block is assumed);
 recess / open points are not supported.
+
+## Head carrier camera and mic screws into catalogue heat-set inserts (2026-11-22, T-5bqc3m)
+
+Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned sleeves, clearances of a few
+tenths, walls of two print lines). Post sites are measured live on the supplier spacer / washer / shim bores of the shell-pass manifest
+(robot/body/neck-head/head_holes.py). Inserts: brass knurled M2 x 3 mm (CNC Kitchen / Ruthex class, knurl OD 3.6, recommended hole
+3.2 mm; assumption, no supplier data in the repo), modelled as a tube of the 3.2 mm hole with the ISO 724 minor diameter as bore;
+reference engagement 1 d (2.0 mm) for a steel screw in brass (standard-parts.json lists 1.5 d = 3.0 mm, the insert's length).
+
+Camera (8): the supplier F-F standoffs become printed columns (r 3.0, 4.97 mm, clearance bore 2.4) on the plate: a 1.4 mm rim round the
+3.2 mm hole (r 3.2 overlapped components on the back of both camera boards, 3.06-3.14 mm from four post axes, fit 0.035 mm3); the insert is pushed
+from the plate's rear face up to the column ledge on the bench; the ribs behind keep a square window of 8.8 mm round each axis for an
+8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). The insert's rear end is flush with the plate's
+rear face: placed for 2.5 mm engagement it sat 0.17-0.24 mm inside the plate, and the 8 mm tip met 4.7-8.1 mm3 of plate before seating it.
+ISO 4762 M2x8 from the camera front through board and column: engagement 2.33 (B0410) / 2.26 (B0196) mm against the 1 d reference
+2.0, point 0.67 / 0.74 mm short of the insert's end.
+
+Mic (1, owner: one screw and a printed retention): the review measured the earlier skin-boss insert 99.4 mm from the far inner wall of
+the closed dome (an insert iron is 170-190 mm), so it moved back onto a printed wing of the carrier, where every step is a bench step.
+Both options with the same measurements (mm; scratch script, board at its supplier position, ISO 7380-1 head k 1.3 in both):
+
+| | (a) skin boss, PA2 thread-forming into a 1.6 pilot | (b) carrier wing, M2 into a heat-set insert (chosen) |
+|---|---|---|
+| screw | PA2x7 (PA2x6: 3.84 of 4.0) | M2x6 ISO 7380-1 |
+| engagement / reference | 4.84 / 4.0 (2 d in plastic) | 2.5 / 2.0 (1 d), 3.0 at 1.5 d |
+| tip | pilot bottom 52.44, 1.88 of skin wall behind it | 0.5 mm of insert before the point, insert flush with the boss end |
+| walls | boss r 3.3 - pilot 0.8 = 2.5 radial | floor 1.34 under the insert, boss r 3.3: 1.7 from the hole, 1.5 from the knurl |
+| head to ROCK4D | 0.54 | 0.54 |
+| clearance to the skin | boss is the skin | wing 0.59, boss end 0.77 |
+| insert setting | none | carrier alone on the bench, iron from the boss end, nothing in its way |
+| driving | skin off the robot, key inside the dome: 96.2 mm from head to the far inner wall | carrier on the neck before ROCK4D goes on: from the open side |
+| cable | plugged into ROCK4D with the skin held over the head, about 100 mm slack goes in with it | fitted with the head open, skin goes on last |
+
+(b) is the choice: all steps on the bench with ordinary tools, a brass thread, the skin untouched; (a) needs work blind inside the dome
+and a cable that rides with the skin. The board sits at its supplier position (back face 46.77, the wing face 0.03 behind it, so the
+STEP and the mesh agree); a pan head (k 1.6) would leave 0.1-0.2 mm to ROCK4D, the button head leaves 0.54. A printed pin (2.2 x 1.3)
+on the wing face goes into the board's second mounting hole (2.5) and keeps it from turning; a 2.5 mm relief clears the bottom port.
+
+Checks on the rebuilt selected body (run.py, 2026-11-22): press tool tip obstruction 0.0 mm3 at the 8 camera inserts (0.002 at one) and
+the mic insert (was 3.9-32.3 at the camera inserts); boss wall round the insert holes 1.40 mm at 7 camera posts (1.80 in the column
+bore) and 1.69 / 2.10 at the mic boss, but 1.14 mm at B0410 post 1 (x -36, z 471) against the 6.11 mm bore of the compute collar next to
+it (axes 5.78 mm apart, both supplier positions; open with the compute collars, defect head-carrier-steel-rings); thinnest wall 0.007 mm
+at the rib1 bottom where the two neck-root bore circles meet (0.005 on main), none under two lines at the camera posts or on the mic wing
+(area under two lines 121 mm2, was 141.5); fit (fit poses) 0 overlaps, ROCK4D 0.43 mm from the carrier and 0.755 from the mic board,
+camera boards 0.03 from the columns; screws: engagement 2.5 (camera) / 2.75 (mic) by mount_check, heads bear on the board pads (gap 0.0 /
+-0.009); driver access: camera 0 mm3, mic 29.7 % of the standing path behind ROCK4D (0.38 mm), 0 mm3 at its assembly step (before
+ROCK4D); FEM (stored setup) p99 strength ratio Bambu PAHT-CF 4.40 adverse neck stall, 3.97 fall 6 g. FEM gives the brass inserts the
+"Steel 304 sleeve" collar material (no brass entry in data/materials.json; one material per sleeve part).

@@ -1,31 +1,180 @@
 {
- "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). The post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer (and of the terminal nut) on its mesh. group: screw family of the post; toward_plate: side of the spacer along its bore axis (oriented to +Y, the robot's back) on which the carrier plate lies; spacers / terminals / screws: manifest part names in post order (the legacy screw names stay so the assembly order and the part settings keep resolving; the screw and its length are regenerated); head: standard, thread, head dimensions and the length series the BOM already buys (ISO 10642 has no M2.5 entry in robot/body/checks/data/hardware.json, so dk / k are ISO 10642 values written here: assumption until compared with the supplier's list); sleeve: pressed-in 304 SS sleeve around the post (bore from robot/actuators/interfaces/standard-parts.json sleeve.bore_for, outer radius by the wall left at the head); terminal: where the thread bites (spacer thread half the spacer length deep from its plate end, M2 machine thread in an aluminium standoff; or the nut, depth = its thickness).",
+ "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). Post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer / shim / terminal nut on its mesh in the shell-pass manifest (defined_holes.SHELL_PASS), where the supplier parts sit as supplied. group: screw family of the post; spacers / terminals / screws: manifest part names in post order; washers (camera): the supplier washers whose board-side face is the board's front face (the head seat); legacy_screws: manifest parts the generated screws replace; drop: supplier parts the printed features replace; head: standard and thread of the screw (dk / k / lengths from robot/body/checks/data/hardware.json screw_standards; compute: ISO 10642 M2.5 dk / k written here, assumption). compute: pressed 304 sleeve around the post, screw into the nut. camera (owner 2026-11-22: only catalogue hardware, printable and hand-assemblable): the 8 supplier F-F standoffs are replaced by a printed column (column.ro 3.0: 1.4 mm rim round the 3.2 mm insert hole; r 3.2 overlapped components on the back of the B0410 / B0196 boards 3.06-3.14 mm from four post axes, T-5bqc3m; column.height 4.97 = the standoff's 5 mm less 0.03 mm so the board face never overlaps the column in the fit check; the screw clamp closes it) on the carrier plate with a clearance bore (column.bore_dia); a catalogue M2 x 3 brass heat-set insert is pushed from the plate's rear face (before ROCK4D goes on) up to the bore's ledge; the insert's rear end is flush with the plate's rear face (the heated tip ends on that face), its front end on the column bore's ledge; the ISO 4762 M2 screw is driven from the camera front through board and column into it, the smallest standard length that reaches the 1 d reference with its point inside the insert. The ribs behind the plate keep a square window of half-width press_clear_mm round each insert axis free for the heated tip (rib ends cut square, no slivers). mic (owner 2026-11-22: one screw, a printed retention instead of the upper screw; T-5bqc3m review: every step by hand on the bench): the board sits on a printed wing of the carrier (wing.face_gap_mm behind its back face, wing.t_mm thick, top wing.top_z_mm, thinned to wing.taper_t_mm above wing.taper_z_mm where the head skin closes in); one catalogue M2 x 3 brass heat-set insert in a boss on the wing's skin side (boss.ro), pushed from the boss's free end (+x, carrier alone on the bench) up to a printed floor; the floor is as thick as the screw needs: the insert's front end goes where the standard screw length reaches engagement_target_mm (the smallest length that leaves a floor of at least floor_min_mm), the insert's rear end is the boss end. The ISO 7380-1 M2 button head (k 1.3, clear of ROCK4D; a pan head k 1.6 would leave 0.1 mm) is driven from the board side through the PCB and the floor's clearance bore (bore_dia) before ROCK4D goes on, so mic and cable are fitted before the skin. A printed locating pin (pin.dia, pin.length into the PCB) on the wing face goes into the board's second mounting hole (the bore of drop[1]) and keeps it from turning about the screw; port: the acoustic port relief through the wing (robot/model/build/contracts.py microphone_port). Insert: catalogue-class brass knurled heat-set insert M2 x 3.0 mm, knurl OD 3.6 mm, recommended hole 3.2 mm (CNC Kitchen / Ruthex M2 x 3 class; ASSUMPTION: no supplier data in the repo, hole size from the manufacturers' published tables, not checked against a data sheet here); modelled as a tube of the hole diameter (sleeve.ro) with the thread's minor diameter as bore (no overlap check against the melted-in plastic). threads: ISO 724 M2 major / minor diameter (same values as torso_screws.THREADS). ASSUMPTIONS: thread modelled at the minor diameter; 1 d engagement for a steel screw in a brass thread (robot/actuators/interfaces/standard-parts.json lists 1.5 d for brass: 3.0 mm, the insert's length).",
  "groups": {
   "compute": {
    "toward_plate": "-axis",
-   "spacers": ["compute_FF4_spacer_0", "compute_FF4_spacer_1", "compute_FF4_spacer_2", "compute_FF4_spacer_3"],
-   "terminals": ["fan_bridge_nut_0", "fan_bridge_nut_1", "compute_rear_nut_2", "compute_rear_nut_3"],
-   "screws": ["compute_M2p5_CS30_0", "compute_M2p5_CS30_1", "compute_M2p5_CS10_2", "compute_M2p5_CS10_3"],
-   "head": {"standard": "ISO 10642", "thread": "M2.5", "dk": 5.0, "k": 1.25, "countersunk": true, "lengths": [10, 30]},
-   "sleeve": {"ro": 3.05, "ri": 1.4, "countersink_dia": 5.0},
+   "spacers": [
+    "compute_FF4_spacer_0",
+    "compute_FF4_spacer_1",
+    "compute_FF4_spacer_2",
+    "compute_FF4_spacer_3"
+   ],
+   "terminals": [
+    "fan_bridge_nut_0",
+    "fan_bridge_nut_1",
+    "compute_rear_nut_2",
+    "compute_rear_nut_3"
+   ],
+   "screws": [
+    "compute_M2p5_CS30_0",
+    "compute_M2p5_CS30_1",
+    "compute_M2p5_CS10_2",
+    "compute_M2p5_CS10_3"
+   ],
+   "head": {
+    "standard": "ISO 10642",
+    "thread": "M2.5",
+    "dk": 5.0,
+    "k": 1.25,
+    "countersunk": true,
+    "lengths": [
+     10,
+     30
+    ]
+   },
+   "sleeve": {
+    "ro": 3.05,
+    "ri": 1.4,
+    "countersink_dia": 5.0
+   },
    "head_side": "front"
   },
   "camera": {
    "toward_plate": "+axis",
-   "spacers": ["B0410_M2_FF5_spacer_0_v23", "B0410_M2_FF5_spacer_1_v23", "B0410_M2_FF5_spacer_2_v23", "B0410_M2_FF5_spacer_3_v23",
-               "B0196_M2_FF5_spacer_0_v23", "B0196_M2_FF5_spacer_1_v23", "B0196_M2_FF5_spacer_2_v23", "B0196_M2_FF5_spacer_3_v23"],
-   "screws": ["B0410_plate_M2x4_0", "B0410_plate_M2x4_1", "B0410_plate_M2x4_2", "B0410_plate_M2x4_3",
-              "B0196_plate_M2x4_0", "B0196_plate_M2x4_1", "B0196_plate_M2x4_2", "B0196_plate_M2x4_3"],
-   "head": {"standard": "ISO 7380-1", "thread": "M2", "lengths": [4, 5, 6]},
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "rear"
+   "spacers": [
+    "B0410_M2_FF5_spacer_0_v23",
+    "B0410_M2_FF5_spacer_1_v23",
+    "B0410_M2_FF5_spacer_2_v23",
+    "B0410_M2_FF5_spacer_3_v23",
+    "B0196_M2_FF5_spacer_0_v23",
+    "B0196_M2_FF5_spacer_1_v23",
+    "B0196_M2_FF5_spacer_2_v23",
+    "B0196_M2_FF5_spacer_3_v23"
+   ],
+   "screws": [
+    "B0410_camera_M2_0",
+    "B0410_camera_M2_1",
+    "B0410_camera_M2_2",
+    "B0410_camera_M2_3",
+    "B0196_camera_M2_0",
+    "B0196_camera_M2_1",
+    "B0196_camera_M2_2",
+    "B0196_camera_M2_3"
+   ],
+   "head": {
+    "standard": "ISO 4762",
+    "thread": "M2"
+   },
+   "sleeve": {
+    "kind": "heat-set insert",
+    "ro": 1.6,
+    "catalogue_od": 3.6,
+    "thread": "M2",
+    "length": 3.0,
+    "engagement_x_d": 1.0
+   },
+   "head_side": "rear",
+   "washers": [
+    "B0410_camera_washer_0",
+    "B0410_camera_washer_1",
+    "B0410_camera_washer_2",
+    "B0410_camera_washer_3",
+    "B0196_camera_washer_0",
+    "B0196_camera_washer_1",
+    "B0196_camera_washer_2",
+    "B0196_camera_washer_3"
+   ],
+   "legacy_screws": [
+    "B0410_plate_M2x4_0",
+    "B0410_plate_M2x4_1",
+    "B0410_plate_M2x4_2",
+    "B0410_plate_M2x4_3",
+    "B0410_camera_M2x4_0",
+    "B0410_camera_M2x4_1",
+    "B0410_camera_M2x4_2",
+    "B0410_camera_M2x4_3",
+    "B0196_plate_M2x4_0",
+    "B0196_plate_M2x4_1",
+    "B0196_plate_M2x4_2",
+    "B0196_plate_M2x4_3",
+    "B0196_camera_M2x4_0",
+    "B0196_camera_M2x4_1",
+    "B0196_camera_M2x4_2",
+    "B0196_camera_M2x4_3"
+   ],
+   "column": {
+    "ro": 3.0,
+    "bore_dia": 2.4,
+    "height": 4.97
+   },
+   "press_clear_mm": 4.4
   },
   "mic": {
    "toward_plate": "+axis",
-   "spacers": ["mic_side_shim_0", "mic_side_shim_1"],
-   "screws": ["mic_side_M2x4_lowhead_0", "mic_side_M2x4_lowhead_1"],
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "front"
+   "spacers": [
+    "mic_side_shim_0"
+   ],
+   "screws": [
+    "mic_side_M2_0"
+   ],
+   "head_side": "front",
+   "head": {
+    "standard": "ISO 7380-1",
+    "thread": "M2"
+   },
+   "sleeve": {
+    "kind": "heat-set insert",
+    "ro": 1.6,
+    "catalogue_od": 3.6,
+    "thread": "M2",
+    "length": 3.0,
+    "engagement_x_d": 1.0,
+    "engagement_target_mm": 2.5
+   },
+   "clamped": [
+    "microphone_6049_v23"
+   ],
+   "legacy_screws": [
+    "mic_side_M2x4_lowhead_0",
+    "mic_side_M2x4_lowhead_1",
+    "mic_side_M2x4_1",
+    "mic_side_M2x5_0"
+   ],
+   "drop": [
+    "mic_side_shim_0",
+    "mic_side_shim_1"
+   ],
+   "wing": {
+    "face_gap_mm": 0.03,
+    "t_mm": 2.0,
+    "top_z_mm": 471.6,
+    "taper_z_mm": 467.2,
+    "taper_t_mm": 1.4,
+    "floor_min_mm": 1.3,
+    "bore_dia": 2.4,
+    "bottom_z_mm": 454.0
+   },
+   "boss": {
+    "ro": 3.3
+   },
+   "pin": {
+    "dia": 2.2,
+    "length": 1.3
+   },
+   "port": {
+    "y": 0.0,
+    "z": 464.0,
+    "dia": 2.5,
+    "source": "robot/model/build/contracts.py microphone_port (board bottom port, +x)"
+   }
   }
- }
+ },
+ "threads": {
+  "_doc": "ISO 724 M2: major 2.0, minor 1.567 (the threaded sleeve's modelled bore); same as torso_screws.THREADS (T-bv7bwe). Assumption: no supplier data for M2 threaded press-in sleeves in the repo.",
+  "M2": {
+   "major": 2.0,
+   "minor_dia": 1.567
+  }
+ },
+ "tip_margin_mm": 0.3
 }
