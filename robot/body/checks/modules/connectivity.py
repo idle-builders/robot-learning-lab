@@ -7,7 +7,9 @@ Nodes: every non-hardware part. Edges:
             (a threaded spacer / standoff that two screws enter joins the parts of both screws)
   sleeve    <part>_steel_sleeves is pressed into <part>
   joint     for each joint, the servo case / motor parts and the horn / output parts of its two links within 5 mm
-  contact   the two parts are within CONTACT_MM at standing (touching, bonded, seated, or just resting)
+  joined    the parts are one piece once made: printed together (two nozzles, one print) or bonded, as the part's body
+            definition declares it (`joined_to: [{part, how: co_printed | bonded}]` on its parts entry); never from names
+  contact   the two parts are within CONTACT_MM at standing (touching, seated, or just resting)
 Every part is screened with the coarse neighbour solid (core.screen_solid with no part treated as changed: native STEP at
 0.1 mm for the STEP roles, else the part's own closed mesh), whatever the scope. Taking ctx.solid() instead gave every
 scoped part the fine 0.03 mm STEP tessellation, and an unscoped run scopes all 190 non-hardware parts: 54 of them had no
@@ -38,7 +40,7 @@ HEAD_BEAR = 3                           # of 8 points just under the head inside
 CONTACT_MM = 0.2
 CASE_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference"}
 HORN_ROLES = {"output", "output_horn", "horn", "purchased_servo_output_family_reference"}
-COST = dict(screw=1.0, sleeve=1.0, joint=1.0, contact=10.0)    # path search prefers fastened chains
+COST = dict(screw=1.0, sleeve=1.0, joint=1.0, joined=1.0, contact=10.0)    # path search prefers fastened chains
 
 
 def _corners(p, T=None):
@@ -185,6 +187,9 @@ def build_graph(ctx):
             for b in horns:
                 if parts[a]["owning_link"] != parts[b]["owning_link"] and _near(WB[a], WB[b], 5.0):
                     add(a, b, "joint", name)
+    # joined: co-printed / bonded pairs as the body definitions declare them
+    for a, b, how in joined_pairs(nodes):
+        add(a, b, "joined", how)
     # contact at standing (manifold min_gap on the screening solids)
     t0 = time.time()
     for i, a in enumerate(nodes):
@@ -201,6 +206,25 @@ def build_graph(ctx):
                 add(a, b, "contact", round(float(dist), 3))
     tick("connectivity contact", t0)
     return nodes, edges
+
+
+def joined_pairs(nodes):
+    """[(part, other part, how)] from the `joined_to` lists of the body definitions' parts entries (robot/**/<builder>.bom.yaml;
+    `part` a name or glob of other nodes, `how` co_printed / bonded). No definitions readable: none."""
+    import fnmatch
+    try:
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        claims = DEF.load().claims(list(nodes))
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for n, e in claims.items():
+        for j in e.get("joined_to") or []:
+            for m in nodes:
+                if m != n and fnmatch.fnmatchcase(m, j["part"]):
+                    out.append((n, m, j.get("how", "joined")))
+    return out
 
 
 def json_manifest(ctx):
@@ -288,7 +312,7 @@ def run(ctx):
     cases += [dict(part=g[0], mating_part=None, pose=None, location_mm=None, value=float(len(g)), unit="parts in a group not reaching the core",
                    what=", ".join(g[:6]) + (" ..." if len(g) > 6 else "")) for g in groups]
     cases += [dict(part=b, mating_part=a, pose="standing", location_mm=None, value=float(k), unit="parts beyond a contact-only link",
-                   what="first link on the chain to the core held by contact only (no screw, sleeve or joint between the two)") for a, b, k in breaks]
+                   what="first link on the chain to the core held by contact only (no screw, sleeve, joint or declared joining between the two)") for a, b, k in breaks]
     kinds = {}
     for ks in edges.values():
         for k in ks:
@@ -305,5 +329,5 @@ def run(ctx):
                 evidence=[], contact_only_breaks=[dict(from_part=a, to_part=b, parts_beyond=k) for a, b, k in breaks], groups_not_reaching_core=groups, isolated=isolated, contact_only=contact_only,
                 notes=f"screw edge = the part encircles the shank (>= {ENCIRCLE} of 8 ring points inside at one station, every {STATION_MM} mm, rings at r_shank + {RING_RADII_MM} mm) or the head "
                       f"or bears the head (>= {HEAD_BEAR} of 8 points 0.3 / 0.8 mm under the head) at standing; "
-                      f"contact = within {CONTACT_MM} mm at standing (screening solids); joint = case / motor and horn / output parts of a joint's two links within 5 mm; "
+                      f"joined = co-printed / bonded as the body definitions declare (joined_to); contact = within {CONTACT_MM} mm at standing (screening solids); joint = case / motor and horn / output parts of a joint's two links within 5 mm; "
                       f"core = {core}; chains prefer fastened edges (contact costs {COST['contact']:g})")
