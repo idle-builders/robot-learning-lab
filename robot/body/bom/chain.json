@@ -191,7 +191,8 @@
    "inputs": [
     "artifacts/robot/body/torso/combined",
     "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json",
-    "artifacts/cove50-strength/complete-fdm-body-20261106/parts/combined__stage1_center_torso_spine_chassis_steel_sleeves.step"
+    "artifacts/cove50-strength/complete-fdm-body-20261106/parts/combined__stage1_center_torso_spine_chassis_steel_sleeves.step",
+    "artifacts/cove50-strength/fdm-body-motor-refit/parts/combined__stage1_center_torso_spine_chassis.step"
    ],
    "outputs": [
     "artifacts/robot/body/torso/torso-screws/records.json",
@@ -199,7 +200,7 @@
    ],
    "manifest_out": null,
    "in_place_edits": [],
-   "notes": "Rebuilt stage 3 torso carrier + sleeves (T-nh6ytf) that roll_flip_checks manifest swaps in; until 2026-11-20 the copy read the main checkout's records through the torso link. Since 2026-11-22 (T-bv7bwe) it also writes the threaded stage-1 interface sleeves, their screws and the stage-1 clearance sleeve part without those positions (from the shell-pass manifest's stage-1 sleeve STEP)."
+   "notes": "Rebuilt stage 3 torso carrier + sleeves (T-nh6ytf) that roll_flip_checks manifest swaps in; until 2026-11-20 the copy read the main checkout's records through the torso link. Since 2026-11-22 (T-bv7bwe) it also writes the threaded stage-1 interface sleeves, their screws and the stage-1 clearance sleeve part without those positions (from the shell-pass manifest's stage-1 sleeve STEP). Since T-htfaaz it also rebuilds the stage 4 IMU/ADC carrier + its 6 rail sleeves (outer face on the boards, rail sites from common.stage4_rail_sites), the 8 PA2 board screws, and Stage 1 with the bores of the two moved stage 4 rail sites (stage-1 body and its sleeve STEP read from the shell-pass manifest)."
   },
   {
    "id": "held-parts",

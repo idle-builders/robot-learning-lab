@@ -495,6 +495,27 @@ which reads only `*_steel_sleeves` parts); fit_class and gaps unchanged (67 pair
 lists the chassis as a clamped hole without sleeve for the new screws: it links sleeves to parts by the `_steel_sleeves`
 name only.
 
+Stage 4 IMU / ADC carrier on the threaded sleeves (Idle T-htfaaz; `torso_screws.py build` rebuilds carrier, rail sleeves, Stage 1
+and the 8 board screws; rail sites `common.stage4_rail_sites`, board sites `common.stage4_board_sites` from the boards' STEP).
+The carrier's outer face is the boards' back face (y 42.0, layer gaps 0.10 -> 0.00 mm). The two x -11.2 rail pairs moved from
+z 304 / 335 (under the IMU z 295.1-312.9 and ADC z 330.1-347.9 boards) to z 316.5 / 326.5 between the boards, so main's two
+skipped pairs are now placed: Stage 1's old bores there (dia 3.98) are filled outside the battery pockets, new bores of the same
+size drilled at the new sites, the old clearance sleeve solids dropped and threaded sleeves added (Stage 1 body edited from the
+shell-pass STEP here; no chain script yet). All 6 rail pairs: M2.5 x 10 ISO 4762, threaded sleeve M2.5 3.9 OD x 3.0 (span
+y 32.1-35.1), head on the carrier face (flush sleeve end, y 42.0, head seat gap 0.0), engagement 3.0 mm in the plan (2.75
+mount_check), tip 0.1 mm past the sleeve exit, 2.0 mm to cells / fins. Carrier rail holes carry full-thickness flush clearance
+sleeves (y 35.4-42.0, bore 2.6). The 8 board screws: M2 PA2 x 6 into printed pilots (dia 1.6) in bosses on the plate's rear
+face, engagement 3.93 (IMU) / 4.17-4.25 (ADC) of 4.0, tip margin 0.62 / 0.38 mm. Measured on the shoulder-u manifest, main
+(dbe8201ca) -> this branch: screws 28 -> 30, gaps > 0.05 mm 28 -> 18, sleeves without screw 23 -> 19, engagement shortfall
+8 -> 8 (shoulder), hole offset > 0.1 mm 0 -> 0; carrier press: sleeves 14 -> 6, tool obstruction 6 -> 0, anvil 14 -> 0,
+counter support < 90 % 4 -> 6 (flat 60 % at the 5.6 mm rail end), free depth 0 -> 40 mm; carrier walls min 0.81 -> 0.81 mm;
+driver path blocked by center_back_shell on all screws (5.8-14.5 mm3), as before; Stage 1 walls min 0.004 -> 0.004 mm (under
+1 line 6374 -> 6318 mm2), wall around the rail bores 0.46-0.48 mm at the sleeve inner end at the new sites as at the old;
+fit overlaps 3 -> 3 pairs, identical (own sleeves 0.498 mm3, both pitch cases 5430 mm3); FEM p99 PAHT combined stall
+15.126 -> 15.115 MPa, strength ratio 5.82 -> 5.82, peak 84.8 -> 80.0 MPa; BOM lines 196 -> 194 (M2.5 x 10 and threaded
+sleeve M2.5 4 -> 6, rail clearance sleeves 3.9 x 2.6 x 5.8 / x 3.0 and the 8 board sleeves 3.2 x 2.1 x 2.2 dropped,
+3.9 x 2.6 x 6.6 x 6 added).
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a

@@ -324,21 +324,31 @@ def build_stage3_front_power_electronics_carrier(family: str):
 
 
 def build_stage4_rear_imu_adc_carrier(family: str):
-    """Build Stage 4 from scratch: 3D-Printed Dorsal Body-IMU & Foot-ADC Sensor Carrier Plate with 3x Honeycomb Valley Standoff Rails."""
-    # Main dorsal sensor carrier plate (X = [-36.4, +14.0], Y = [39.10, 41.90], Z = [293.5, 350.5])
-    # + 3x full-height dorsal honeycomb valley standoff rails at X = -33.6, -11.2, +11.2 mm (Y = [35.45, 41.90], Z = [295.0, 340.0], flush with Stage 1 at Y=35.40):
-    s4 = (Pos(-11.2, 40.50, 322.0) * Box(50.4, 2.8, 57.0)).fuse(
-        Pos(-33.6, 38.675, 317.5) * Box(5.6, 6.45, 45.0),
-        Pos(-11.2, 38.675, 317.5) * Box(5.6, 6.45, 45.0),
-        Pos( 11.2, 38.675, 317.5) * Box(5.6, 6.45, 45.0),
+    """Build Stage 4 from scratch: 3D-Printed Dorsal Body-IMU & Foot-ADC Sensor Carrier Plate with 3x Honeycomb Valley Standoff Rails.
+
+    Screws (T-htfaaz): the outer face Y = STAGE4_FRONT_Y is the boards' back face (0.00 contact); the 6 rail screws carry full-thickness
+    flush clearance sleeves (Stage 1 rail face to the outer face, heads outside the board footprints) and thread into the internally
+    threaded Stage 1 sleeves (torso_screws.py, owner 2026-11-22); the
+    8 board screws end in printed pilots in bosses on the plate's rear face (no sleeve: the clamped part is the board).
+    """
+    y0, y1, yr = common.STAGE4_RAIL_Y0, common.STAGE4_FRONT_Y, common.STAGE4_PLATE_REAR_Y
+    sites = common.stage4_board_sites()
+    assert all(abs(h["y_seat"] - y1) < 1e-6 for h in sites), "board back face is not the carrier's outer face"
+    # Main dorsal sensor carrier plate (X = [-36.4, +14.0], Y = [39.10, 42.00], Z = [293.5, 350.5])
+    # + 3x full-height dorsal honeycomb valley standoff rails at X = common.STAGE4_RAIL_X (-33.6, -11.2, +11.2 mm) (Y = [35.40, 42.00], Z = [295.0, 340.0], flush with Stage 1 at Y=35.40)
+    # + 8 board-screw bosses (r 2.6, Y = [37.45, 39.10]):
+    s4 = (Pos(-11.2, (yr + y1) / 2, 322.0) * Box(50.4, y1 - yr, 57.0)).fuse(
+        *[Pos(x, (y0 + y1) / 2, 317.5) * Box(5.6, y1 - y0, 45.0) for x in common.STAGE4_RAIL_X],
+        *[common.aligned_cylinder((h["x"], (common.STAGE4_BOSS_REAR_Y + yr) / 2, h["z"]), (0.0, 1.0, 0.0), 2.6, yr - common.STAGE4_BOSS_REAR_Y)
+          for h in sites],
     )
     cuts4 = []
     specs4 = common.stage_interface_specs()["stage4_rear_imu_adc_carrier"]
     for b in specs4["support_bores"]:
-        cuts4.append(common.aligned_cylinder(b["center"], b["normal"], b["r_od"] + 0.04, 12.0))
-    for b in specs4["load_bores"]:
-        cuts4.append(common.aligned_cylinder(b["center"], b["normal"], b["r_od"] + 0.04, 12.0))
-        cuts4.append(Pos(b["center"][0], 37.0, b["center"][2]) * Rot(90, 0, 0) * Cylinder(2.3, 3.0))
+        cuts4.append(common.aligned_cylinder((b["center"][0], (y0 + y1) / 2, b["center"][2]), b["normal"], b["r_od"] + 0.04, y1 - y0 + 6.0))
+    for h in sites:
+        # printed pilot of the board screw (PA2 thread-forming: 80 % of the 2.0 major diameter), through the plate and its boss
+        cuts4.append(common.aligned_cylinder((h["x"], (common.STAGE4_BOSS_REAR_Y + y1) / 2, h["z"]), (0.0, 1.0, 0.0), common.PA2_PILOT_DIA / 2, y1 - common.STAGE4_BOSS_REAR_Y + 2.0))
 
     if family == "truss_box":
         cuts4.extend([

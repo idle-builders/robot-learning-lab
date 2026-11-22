@@ -49,6 +49,24 @@
     "A14_front": {"standard_part": "{S}hip_pitch_ST3025_case", "holes": ["ST3025.case+z.1", "ST3025.case+z.2", "ST3025.case+z.3"],
                   "owning_link": "{S}yaw_link", "name": "{S}A14_front_PA2x4_{i}", "head": "ISO 7380-1"}
    }
+  },
+  "torso_stage4_imu_board": {
+   "_doc": "IMU board screws into printed pilots of the Stage 4 plate bosses (Idle T-htfaaz). Sites: the board's own STEP mount holes (robot/body/torso/common.py stage4_board_sites); the clamped part is the PCB (its back face to the hole's far end), the carrier is the receiving side (pilot, no sleeve). Legacy screw names kept.",
+   "sides": [""],
+   "clamped": ["body_IMU_4517"],
+   "groups": {
+    "board": {"standard_part": "body_IMU_4517", "holes": ["pcb.0", "pcb.1", "pcb.2", "pcb.3"],
+              "owning_link": "torso", "name": "IMU_M2x6_{i}", "head": "ISO 4762"}
+   }
+  },
+  "torso_stage4_adc_board": {
+   "_doc": "Foot ADC board screws into printed pilots of the Stage 4 plate bosses (Idle T-htfaaz); as torso_stage4_imu_board.",
+   "sides": [""],
+   "clamped": ["foot_ADC_6494"],
+   "groups": {
+    "board": {"standard_part": "foot_ADC_6494", "holes": ["pcb.0", "pcb.1", "pcb.2", "pcb.3"],
+              "owning_link": "torso", "name": "ADC_M2x6_{i}", "head": "ISO 4762"}
+   }
   }
  }
 }
