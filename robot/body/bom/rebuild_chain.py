@@ -58,7 +58,7 @@ def derived_chain():
     import definitions as DEF
     D = DEF.load()
     order = D.generator_order()
-    ro = [o for g in D.generators if not g.get("rebuild", True) for o in g.get("outputs", []) if o.startswith("artifacts/")]
+    ro = [o for g in D.generators if not g.get("rebuild", True) and not g.get("presentation") for o in g.get("outputs", []) if o.startswith("artifacts/")]
     produced, copied, steps = [], [], []
     for gid in order:
         g = D.generator(gid)

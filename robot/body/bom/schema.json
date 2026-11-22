@@ -89,6 +89,152 @@
      }
     }
    }
+  },
+  "study": {
+   "type": "object",
+   "description": "Dashboard study metadata (robot/body/bom/publish_body.py): the design-dashboard record of this study is generated from it, the selected manifest, the definitions and the rebuild outputs. Declared once per study_id over all definitions.",
+   "required": [
+    "study_id",
+    "title",
+    "robot_sections",
+    "summary"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "study_id": {
+     "type": "string",
+     "pattern": "^[a-z0-9][a-z0-9-]*$",
+     "description": "Stable content name of the variant (no round, version or date: Git holds versions)."
+    },
+    "title": {
+     "type": "string"
+    },
+    "robot_sections": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1
+    },
+    "workspace": {
+     "type": "string"
+    },
+    "summary": {
+     "type": "string",
+     "description": "One short finding or trade-off, shown first."
+    },
+    "maturity": {
+     "type": "string"
+    },
+    "version_note": {
+     "type": "string",
+     "description": "What this version changes, in words; the version itself is the commit of the record's sources."
+    },
+    "limitations": {
+     "type": "string"
+    },
+    "manifest": {
+     "type": "string",
+     "description": "Body manifest the study shows; default robot/design.json body_manifest (the selected body)."
+    },
+    "scope": {
+     "type": "object",
+     "additionalProperties": false,
+     "description": "Which parts the study's part view lists (default: every manifest part). Parts outside stay in the CAD scene as context.",
+     "properties": {
+      "definitions": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Definition ids whose parts and assembly steps the study owns."
+      },
+      "parts": {
+       "$ref": "#/$defs/names"
+      }
+     }
+    },
+    "statements": {
+     "type": "array",
+     "description": "Owner statements and decisions this version rests on.",
+     "items": {
+      "type": "object",
+      "required": [
+       "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "date": {
+        "type": "string"
+       },
+       "who": {
+        "type": "string"
+       },
+       "text": {
+        "type": "string"
+       },
+       "source": {
+        "type": "string",
+        "description": "Idle task / memory id or file."
+       }
+      }
+     }
+    },
+    "evidence": {
+     "type": "array",
+     "description": "Evidence links: repository files (registered as assets) or URLs.",
+     "items": {
+      "$ref": "#/$defs/link"
+     }
+    },
+    "renders": {
+     "type": "array",
+     "description": "Images shown with the study (registered as image assets); the first is the study picture.",
+     "items": {
+      "$ref": "#/$defs/link"
+     }
+    },
+    "cad": {
+     "type": "object",
+     "description": "Display options of the CAD view (viewer settings only).",
+     "additionalProperties": false,
+     "properties": {
+      "label": {
+       "type": "string"
+      },
+      "show_shells": {
+       "type": "boolean"
+      },
+      "motion_note": {
+       "type": "string"
+      },
+      "overlays": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "id",
+         "label"
+        ],
+        "properties": {
+         "id": {
+          "type": "string"
+         },
+         "label": {
+          "type": "string"
+         },
+         "visible": {
+          "type": "boolean"
+         },
+         "description": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
   }
  },
  "$defs": {
@@ -189,6 +335,11 @@
     },
     "notes": {
      "type": "string"
+    },
+    "presentation": {
+     "type": "boolean",
+     "default": false,
+     "description": "Presentation output only (renders, figures): never a rebuild input; with rebuild false it is not linked into the rebuild copy."
     }
    }
   },
@@ -600,6 +751,36 @@
      "type": "string"
     },
     "notes": {
+     "type": "string"
+    }
+   }
+  },
+  "link": {
+   "type": "object",
+   "required": [
+    "label"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "label": {
+     "type": "string"
+    },
+    "path": {
+     "type": "string",
+     "description": "Repository path (artifacts/, robot/, ...) registered as a data or image asset of the record."
+    },
+    "url": {
+     "type": "string",
+     "pattern": "^https?://"
+    },
+    "kind": {
+     "enum": [
+      "data",
+      "image",
+      "model"
+     ]
+    },
+    "note": {
      "type": "string"
     }
    }

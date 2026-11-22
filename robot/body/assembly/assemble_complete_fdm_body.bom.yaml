@@ -13,6 +13,7 @@ generators:
   - .venv/bin/python
   - -B
   - robot/body/assembly/assemble_complete_fdm_body.py
+  - --no-renders
   inputs:
   - artifacts/robot/body/leg/complete_leg_hip_combined/parts.json
   - artifacts/robot/body/leg/complete_leg_hip_combined/cad-manifest.json
@@ -41,11 +42,44 @@ generators:
   resources:
     limit_gb: 12
     timeout_s: 2400
-  notes: Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json).
+  notes: 'Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json).
     Compiles robot/electronics/power/cad/zbuffer_renderer.cpp for its renders. Every data output (assembly-parts.json, parts/, bom.json, verification
     report, manifest.json) is written before the final render phase; on 2026-11-20 the render phase went past 6 GB (peak 6.24) and memguard stopped
     it after the data was complete. Cap 10 GB for that render phase (peaks 6.24 and 8.22 GB on 2026-11-20), so a chain run does not stop at step
-    1.
+    1. Runs with --no-renders: the presentation figures are the separate generator assembly-renders.'
+- id: assembly-renders
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/assembly/assemble_complete_fdm_body.py
+  rebuild: false
+  presentation: true
+  inputs:
+  - artifacts/robot/body/leg/complete_leg_hip_combined/parts.json
+  - artifacts/robot/body/leg/complete_leg_hip_combined/cad-manifest.json
+  - artifacts/robot/body/leg/complete_leg_hip_combined/assembly-with-full-shell.glb
+  - artifacts/robot/body/leg/combined/parts/R_shin_combined.step
+  - artifacts/robot/body/arm/combined/assembly-parts.json
+  - artifacts/robot/body/arm/combined/manifest.json
+  - artifacts/robot/body/neck-head/combined/assembly-parts.json
+  - artifacts/robot/body/neck-head/combined/manifest.json
+  - artifacts/robot/body/torso/combined/assembly-parts.json
+  - artifacts/robot/body/torso/combined/manifest.json
+  - artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json
+  - artifacts/cove50-fitted-shell/r1-20261027/panels/T01_chest.step
+  - artifacts/cove50-fitted-shell/r1-20261027/panels/T02_back.step
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-wrist-seats-r1/palm_lower.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-gear-r0/palm_upper.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/right_finger.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/A/twin-crawl-r1/left_finger.brep
+  - artifacts/cove50-engineering-competition/hand-radical-20261026/lead-twin-crawl-r1/cad/assembly.glb
+  outputs:
+  - artifacts/robot/body/assembly/renders
+  resources:
+    limit_gb: 12
+    timeout_s: 2400
+  notes: 'Presentation only: the same build plus the whole-body Z-buffer and engineering figures (renders/). The render phase holds every mesh
+    in mm plus a posed copy per panel; it peaked at 10.4 GB on 747 rows (2026-11-22). Not part of the body rebuild.'
 parts:
 - match:
   - Main_precharge_H1_M2x12
