@@ -13,7 +13,9 @@ fit_class      per scoped part and mating pair within pair_radius_mm (or with a 
                (negative = deepest interpenetration of either surface in the other), the class named in part_settings
                (<part>.fit_classes = {mate: class}) and its band from data/fit_classes.json, and the signed margin in mm
                (positive = distance inside the band to its nearer edge, negative = outside; also which side). Pairs
-               without a class are counted (coverage), not judged."""
+               without a class are counted (coverage), not judged. A pair on two links moves at a joint: its gap is a running
+               clearance (owned by clearance / collision_sweep), listed with its distance, never given a static class from a
+               seed; only a confirmed (not seeded) class on such a pair is judged (e.g. a printed bushing)."""
 from __future__ import annotations
 
 import json
@@ -199,6 +201,10 @@ def run_fit_class(ctx):
         # a class is "slide" or {"class": "slide", "seeded": "<why, not yet confirmed>"}
         cls = spec.get("class") if isinstance(spec, dict) else spec
         cls_src = (f"seeded ({spec['seeded']})" if isinstance(spec, dict) and spec.get("seeded") else "part setting") if spec else None
+        running = not g["same_link"]
+        if running and cls and cls_src.startswith("seeded"):
+            ev["seeded_classes_ignored_on_running_pairs"] = ev.get("seeded_classes_ignored_on_running_pairs", 0) + 1
+            cls = None
         near = g["distance_mm"] <= rad or g["overlap_mm3"] > 0
         if not near and not cls:
             continue
@@ -219,6 +225,8 @@ def run_fit_class(ctx):
             ev["pairs_with_seeded_class"] = ev.get("pairs_with_seeded_class", 0) + cls_src.startswith("seeded")
             cases.append(dict(part=a, mating_part=n, pose="standing", location_mm=None, value=rec["margin_mm"], unit="mm margin to the fit-class band",
                               what=f"{cls} band {rec['band_mm']} mm ({band_src}), clearance {rec['clearance_mm']} mm: {rec['side']}; class: {cls_src}"))
+        elif running:
+            rec.update(fit_class=None, running_clearance=True); ev["running_clearance_pairs"] = ev.get("running_clearance_pairs", 0) + 1
         else:
             rec["fit_class"] = None; ev["pairs_without_class"] += 1
         per.setdefault(a, {})[n] = rec
@@ -226,7 +234,8 @@ def run_fit_class(ctx):
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
                 notes=f"clearance = minimum distance at standing (gaps logic, search 6 mm); on overlap = minus the deepest sample of either surface inside the other (sampled, reads low). "
                       f"Pairs within {rad} mm, or with a class, are listed; band from data/fit_classes.json (reference values, not measured on this printer); margin = distance to the nearer band edge, negative outside; "
-                      f"pairs without a class are counted (pairs_without_class), not judged; classes set per pair in part_settings <part>.fit_classes")
+                      f"pairs without a class are counted (pairs_without_class), not judged; pairs on two links are running clearances (running_clearance_pairs; "
+                      f"a seeded class on them is ignored, a confirmed one judged); classes set per pair in part_settings <part>.fit_classes")
 
 
 def _depth(ctx, a, n):

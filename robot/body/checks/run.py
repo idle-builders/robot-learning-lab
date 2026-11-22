@@ -146,6 +146,7 @@ def child_ctx(a, man, split):
     ctx = Ctx(man, [], a.poses, a.search_mm, a.exact_press, a.render_timeout, out_dir, a.include_shells)
     ctx.fem_variant, ctx.fem_mesh_h, ctx.fem_rigid_load = a.fem_variant, a.fem_mesh_h, a.fem_rigid_load
     ctx.joints, ctx.step_deg = split(a.joints), a.step_deg
+    ctx.fit_pair_budget_s = a.fit_pair_budget_s
     ctx.held = {k: float(v) for k, v in (w.split("=") for w in a.hold)}
     from checks.process import parse_override
     ctx.process_override = parse_override(a.process)
@@ -213,6 +214,8 @@ def main(argv=None):
     ap.add_argument("--joints", help="comma-separated joint names for range_sweep / collision_sweep (default: joints that move the scoped parts)")
     ap.add_argument("--step-deg", type=float, help="joint sweep step (range_sweep 2.5, collision_sweep 5)")
     ap.add_argument("--hold", action="append", default=[], help="JOINT=deg held during range_sweep")
+    ap.add_argument("--fit-pair-budget-s", type=float, default=120.0, help="fit: seconds of exact B-rep work per part pair; a pair over it "
+                    "is reported as timed out with the poses it reached")
     ap.add_argument("--search-mm", type=float, default=5.0)
     ap.add_argument("--render-timeout", type=float, default=240.0)
     ap.add_argument("--include-shells", action="store_true", help="also screen body shells as neighbours (heavy)")
@@ -250,6 +253,7 @@ def main(argv=None):
     label = a.label or (a.section or (split(a.parts) or ["all"])[0]).replace(" ", "-").replace("/", "")[:40]
     out_dir = WORK / "checks" / label
     out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "report.json").unlink(missing_ok=True)     # a previous run's report under this label must not pass for this run's
     peaks = dict(tree=0.0, parent=0.0)
 
     def spawn(extra, tmp):
@@ -273,7 +277,8 @@ def main(argv=None):
     pl = json.loads(plan_f.read_text())
     plan_f.unlink()
     names, run = pl["names"], pl["run"]
-    rep = dict(manifest=pl["manifest"], manifest_sha256=pl["manifest_sha256"], scope=dict(selectors=pl["desc"], parts=names),
+    # complete stays false until the last write: a killed or still running run's report reads as unfinished
+    rep = dict(complete=False, manifest=pl["manifest"], manifest_sha256=pl["manifest_sha256"], scope=dict(selectors=pl["desc"], parts=names),
                pose_set=a.poses, process_override=a.process, checks={}, not_applicable=pl["not_applicable"], solids={}, other_solids={}, part_settings=pl["settings"])
     f = out_dir / "report.json"
     secs, setup_secs, n_children = {}, {}, [0]      # setup timers are repeated in every child, so they are summed apart from the check timers
@@ -340,6 +345,7 @@ def main(argv=None):
         prev.update(pl["keys"])
         lf.parent.mkdir(parents=True, exist_ok=True)
         lf.write_text(json.dumps(prev))
+    rep["complete"] = True
     write()
     summary(rep)
     print(f"\n{f.relative_to(ROOT)}")
@@ -382,8 +388,8 @@ def summary(rep, top=6):
             print(f"  evidence: {ev}")
     if rep["not_applicable"]:
         print("not applicable to this scope:", ", ".join(rep["not_applicable"]))
-    if rep.get("incomplete_running"):
-        print("run did not finish; was running:", ", ".join(rep["incomplete_running"]))
+    if not rep.get("complete", True) or rep.get("incomplete_running"):
+        print("RUN DID NOT FINISH; was running:", ", ".join(rep.get("incomplete_running") or ["?"]))
     print(f"memory: tree peak {rep.get('peak_tree_gib')} GiB, orchestrating parent {rep.get('peak_parent_gib')} GiB (memguard cap 6)")
     print("seconds:", rep["seconds"])
     su = rep.get("setup_seconds_summed_over_children")

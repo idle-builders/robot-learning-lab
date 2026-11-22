@@ -51,6 +51,7 @@ NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I
 DT = 0.25            # radial probe step along the axis (mm)
 N_DIR = 24           # radial rays per depth
 R_MAX = 8.0          # radial probe range (mm)
+RECESS_MM = 0.5      # a station this much wider than the narrowest is a pocket on the screw axis (nut trap, counterbore), not the bore
 N_ANG = 16           # axial rays per ring
 SEARCH = 5.0         # parts whose box comes within this of the screw's box are probed (mm)
 
@@ -300,12 +301,20 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                   solid_on_axis_mm=round(len(solid) * DT, 2), thread_overlap_mm=round(len(thread) * DT, 2),
                   clearance_len_mm=round(len(clear) * DT, 2))
         if holes:
-            hr = np.array([x["hole_r"] for x in holes]); of = np.array([x["offset"] for x in holes])
+            # the bore is the narrowest stretch; stations wider by more than RECESS_MM are a pocket on the same axis (nut trap,
+            # counterbore, head recess): their circle fit says nothing about where the bore sits, so they are reported apart
+            rmin = min(x["hole_r"] for x in holes)
+            bore = [x for x in holes if x["hole_r"] <= rmin + RECESS_MM]
+            recess = [x for x in holes if x["hole_r"] > rmin + RECESS_MM]
+            hr = np.array([x["hole_r"] for x in bore]); of = np.array([x["offset"] for x in bore])
             pr.update(hole_dia_mm=round(2 * float(np.median(hr)), 3), axis_offset_mm=round(float(np.median(of)), 3),
                       axis_offset_max_mm=round(float(of.max()), 3), radial_clearance_mm=round(float(np.median(hr)) - rs, 3))
-            if len(holes) >= 4 and holes[-1]["t"] - holes[0]["t"] > 0.4:
-                a, b = holes[0], holes[-1]
-                pr["axis_tilt_deg"] = round(math.degrees(math.atan(np.linalg.norm(b["offset_vec"] - a["offset_vec"]) / (b["t"] - a["t"]))), 2)
+            if recess:
+                pr.update(recess_len_mm=round(len(recess) * DT, 2), recess_dia_mm=round(2 * float(np.median([x["hole_r"] for x in recess])), 3))
+            if len(bore) >= 4 and bore[-1]["t"] - bore[0]["t"] > 0.4:
+                tt = np.array([x["t"] for x in bore]); ov = np.array([x["offset_vec"] for x in bore])
+                slope = np.polyfit(tt, ov, 1)[0]                 # least-squares drift of the bore centre per mm of depth (3 components)
+                pr["axis_tilt_deg"] = round(math.degrees(math.atan(float(np.linalg.norm(slope)))), 2)
         parts[c] = pr
     stack = sorted(parts, key=lambda c: parts[c]["t_range_mm"][0])
 

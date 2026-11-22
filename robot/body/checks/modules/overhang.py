@@ -4,8 +4,9 @@ part of the beyond-limit area that touches a mating part at standing (support sc
 
 Angle convention (stated, the data sheets give none): overhang angle of a downward face from the vertical, 0 = vertical
 wall, 90 = flat ceiling. The material limit is materials.json <material>.print.max_overhang_deg (Bambu: ~70 deg for
-PAHT-CF and PETG-CF), the bridge limit print.max_bridge_mm (40 / 30 mm). Faces within one layer height of the bed are on
-the bed, not overhang. A flat ceiling (angle > 80 deg) region's bridge span is twice the largest distance from a point of it to
+PAHT-CF and PETG-CF), the bridge limit print.max_bridge_mm (40 / 30 mm). A downward face that lies wholly within the first
+layer (all of it below one layer height), or a flat one touching it, is printed on the bed, not overhang; so a fillet or chamfer
+at the bed edge is not a ceiling, and the bed supports an edge that lies within the first layer. A flat ceiling (angle > 80 deg) region's bridge span is twice the largest distance from a point of it to
 its nearest supported edge (see _span): the width of a true bridge, twice the depth of a one-sided ledge, and large for a
 plate that floats on a few posts. Measurements and counts only."""
 from __future__ import annotations
@@ -39,7 +40,7 @@ def _regions(m, sel):
     return [np.fromiter(c, int) for c in nx.connected_components(g)]
 
 
-def _span(m, faces, res=0.2):
+def _span(m, faces, res=0.2, layer=0.2):
     """Bridge span of a flat-ceiling region (print frame): 2 x the largest distance (mm) from a point of the region's XY
     footprint to its nearest SUPPORTED edge, and that point. An edge is supported when the face across it reaches below the
     edge (a wall or a self-supporting slope going down towards the bed); an edge whose neighbour face only rises (the outer
@@ -58,7 +59,7 @@ def _span(m, faces, res=0.2):
     other = np.where(inr[adj[border, 0]], adj[border, 1], adj[border, 0])
     ez = m.vertices[aedge[border]][:, :, 2].mean(1)
     fz = m.vertices[m.faces[other]][:, :, 2].min(1)
-    sup = fz < ez - 0.05
+    sup = (fz < ez - 0.05) | (ez < layer)          # the bed holds an edge within the first layer
     seg = m.vertices[aedge[border][sup]][:, :, :2]
     blen = np.linalg.norm(m.vertices[aedge[border]][:, 0, :2] - m.vertices[aedge[border]][:, 1, :2], axis=1)
     sup_frac = float(blen[sup].sum() / max(blen.sum(), 1e-9))
@@ -140,7 +141,8 @@ def check_part(ctx, n):
     ang = np.degrees(np.arccos(np.clip(-nz, -1, 1)))          # 0 = facing straight down (ceiling) ... measured from the down axis
     ov = 90.0 - ang                                           # overhang angle from vertical: 90 = ceiling, 0 = vertical wall
     down = (nz < -1e-6)
-    on_bed = down & (zmin < layer) & (ov > 89.0)
+    zmax = m.vertices[m.faces].max(1)[:, 2]
+    on_bed = down & ((zmax < layer) | ((zmin < layer) & (ov > 89.0)))      # wholly in the first layer, or flat and touching it
     over = down & ~on_bed
     bands = {f"{BANDS[i]}-{BANDS[i + 1]}": round(float(area[over & (ov >= BANDS[i]) & (ov < BANDS[i + 1] + (1e-9 if i == len(BANDS) - 2 else 0))].sum()), 1)
              for i in range(len(BANDS) - 1)}
@@ -155,7 +157,7 @@ def check_part(ctx, n):
         a = float(area[f].sum())
         if a < 1.0:
             continue
-        span, c, sup = _span(m, f)
+        span, c, sup = _span(m, f, layer=layer)
         z = float(np.average(m.triangles_center[f][:, 2], weights=area[f]))
         loc = (Tinv @ np.array([c[0], c[1], z, 1.0]))[:3] if c else None
         regs.append(dict(area_mm2=round(a, 1), span_mm=round(span, 2), height_mm=round(z, 2), supported_edge_fraction=round(sup, 2), floats=sup == 0.0,
@@ -220,6 +222,6 @@ def run(ctx):
     cases.sort(key=lambda c: -c["value"])
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
                 notes=f"print frame from process.up; overhang angle from vertical (0 wall, 90 ceiling), limit = the material's print.max_overhang_deg "
-                      f"(data sheets give no convention; beyond_45_mm2 shows the generic 45 deg rule); bed = downward faces within one layer of z 0; "
+                      f"(data sheets give no convention; beyond_45_mm2 shows the generic 45 deg rule); bed = downward faces wholly within the first layer (or flat and touching it), and the bed supports ceiling edges within it; "
                       f"bridge span = 2 x the largest distance inside each flat (> {FLAT_DEG:g} deg) ceiling region to its nearest supported edge (an edge whose neighbour face goes down towards the bed); mating = beyond-limit face centres "
                       f"within {MATE_MM} mm of another part's surface at standing")

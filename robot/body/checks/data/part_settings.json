@@ -283,10 +283,6 @@
   },
   "R_hip_pitch_to_roll_roll_flip": {
     "fit_classes": {
-      "R_thigh_roll_flip": {
-        "class": "slide",
-        "seeded": "trial set by the check's builder on 2026-11-19 to exercise the check; the part's designer confirms or replaces it"
-      },
       "R_hip_pitch_to_roll_roll_flip_steel_sleeves": {
         "class": "press",
         "seeded": "trial set by the check's builder on 2026-11-19 to exercise the check; the part's designer confirms or replaces it"

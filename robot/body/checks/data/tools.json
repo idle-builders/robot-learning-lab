@@ -2,9 +2,9 @@
  "_doc": "Screw drivers as data for the driver_access check (mm). The tool path is a cylinder of the tool's blade (shaft) diameter along the screw axis from the head top outward. head_types: how a screw head is told from the manifest (name and mesh) and which drive it has; tools: drive size -> bit across-flats (or tip size) and the blade diameter of a precision driver that carries it. 'standard' values come from the named standard, 'assumption' values are typical precision-screwdriver blades, not measured on the owner's set: replace them with the owner's driver and every number follows.",
  "path": {
   "min_length_mm": 40.0,
-  "max_length_mm": 250.0,
+  "max_length_mm": 100.0,
   "start_offset_mm": 0.05,
-  "_doc": "The path runs from start_offset_mm above the head top to the larger of min_length_mm (straight access behind the head for a driver blade plus fingers, as the mount check's DRIVER_L) and the distance at which the axis leaves the body's bounding box, capped at max_length_mm."
+  "_doc": "The path runs from start_offset_mm above the head top to the larger of min_length_mm (straight access behind the head for a driver blade plus fingers, as the mount check's DRIVER_L) and the distance at which the axis leaves the body's bounding box, capped at max_length_mm. max_length_mm 100 = the blade of a long precision driver (assumption: catalogue precision drivers carry 40-100 mm blades; the handle behind it can tilt and is not modelled); was 250 (the body box), which counted parts no driver blade reaches. Parts on another limb than the screw's (the other leg, an arm) are left out of the path: that limb is posed away or not yet attached while the screw is driven."
  },
  "head_types": {
   "countersunk": {
