@@ -56,6 +56,8 @@ parts:
   part_number: INR-21700-P50B
   notes: 9-cell honeycomb pack. Cell model and supplier to fill in. supplier from robot/electronics/power/battery.json (model_basis.cell; manufacturer,
     no seller recorded).
+  heat_source:
+    kind: battery_cell
 - match:
   - Honeycomb_Fin_08_Lower_Pelvis_L
   - Honeycomb_Fin_09_Lower_Pelvis_R
@@ -137,6 +139,8 @@ parts:
   notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
     robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+  heat_source:
+    kind: servo_case
 - match:
   - L_ankle_pitch_ST3025_output
   - L_hip_pitch_ST3025_output
@@ -243,12 +247,17 @@ parts:
   material: Waveshare ST3025 (Feetech ST-3025-C002) official STEP
   notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.fast-leg:
     part, sku).'
+  heat_source:
+    kind: servo_case
 assembly:
   steps:
   - id: torso:p004
     subassembly: torso
     part: Honeycomb_Fin_09_Lower_Pelvis_R
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - torso:p003
     status: seeded
@@ -260,7 +269,10 @@ assembly:
   - id: torso:p009
     subassembly: torso
     part: Honeycomb_Cell_02_Upper_Dorsal_L1_top_insulator
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - torso:s008
     status: seeded
@@ -271,7 +283,10 @@ assembly:
   - id: torso:p012
     subassembly: torso
     part: Honeycomb_Cell_01_Upper_Dorsal_L2_top_insulator
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p011
     status: seeded
@@ -283,7 +298,10 @@ assembly:
   - id: torso:p014
     subassembly: torso
     part: Honeycomb_Cell_04_Upper_Dorsal_R1_top_insulator
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p013
     status: seeded
@@ -295,7 +313,10 @@ assembly:
   - id: torso:p018
     subassembly: torso
     part: Honeycomb_Cell_03_Upper_Dorsal_C0_top_insulator
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p017
     status: seeded
@@ -307,7 +328,10 @@ assembly:
   - id: torso:p037
     subassembly: torso
     part: Honeycomb_Cell_05_Upper_Dorsal_R2_top_insulator
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - torso:p036
     status: seeded
@@ -318,7 +342,10 @@ assembly:
   - id: torso:p038
     subassembly: torso
     part: Honeycomb_Cell_06_Upper_Core_L_top_insulator
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p037
     status: seeded
@@ -329,7 +356,10 @@ assembly:
   - id: torso:p039
     subassembly: torso
     part: Honeycomb_Cell_07_Upper_Core_R_top_insulator
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p038
     status: seeded
@@ -340,7 +370,10 @@ assembly:
   - id: torso:p057
     subassembly: torso
     part: Honeycomb_Cell_08_Lower_Pelvis_L
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p056
     status: seeded
@@ -350,7 +383,10 @@ assembly:
   - id: torso:p058
     subassembly: torso
     part: Honeycomb_Cell_08_Lower_Pelvis_L_top_insulator
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p057
     status: seeded
@@ -359,7 +395,10 @@ assembly:
   - id: torso:p059
     subassembly: torso
     part: Honeycomb_Cell_09_Lower_Pelvis_R
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p058
     status: seeded
@@ -369,7 +408,10 @@ assembly:
   - id: torso:p060
     subassembly: torso
     part: Honeycomb_Cell_09_Lower_Pelvis_R_top_insulator
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - torso:p059
     status: seeded
@@ -378,7 +420,10 @@ assembly:
   - id: torso:p061
     subassembly: torso
     part: Honeycomb_Fin_08_Lower_Pelvis_L
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - torso:p060
     status: seeded
@@ -388,7 +433,10 @@ assembly:
   - id: neck_head:p041
     subassembly: neck_head
     part: original_profile_head_skin_v23
-    direction: [0.0, 0.0, -1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - -1.0
     after:
     - neck_head:s040
     status: seeded
@@ -400,7 +448,10 @@ assembly:
   - id: right_leg:p005
     subassembly: right_leg
     part: R_hip_pitch_ST3025_case
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:s004
     status: seeded
@@ -410,7 +461,10 @@ assembly:
   - id: right_leg:p007
     subassembly: right_leg
     part: R_hip_pitch_ST3025_output
-    direction: [-1.0, 0.0, 0.0]
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
     after:
     - right_leg:s006
     status: seeded
@@ -419,7 +473,10 @@ assembly:
   - id: right_leg:p016
     subassembly: right_leg
     part: R_knee_ST3025_case
-    direction: [0.0, 1.0, 0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
     after:
     - right_leg:s015
     status: designer
@@ -428,7 +485,10 @@ assembly:
   - id: right_leg:p024
     subassembly: right_leg
     part: R_knee_ST3025_output
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:s023
     status: seeded
@@ -437,7 +497,10 @@ assembly:
   - id: right_leg:p027
     subassembly: right_leg
     part: R_ankle_pitch_ST3025_case
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - right_leg:s026
     status: seeded
@@ -447,7 +510,10 @@ assembly:
   - id: right_leg:p032
     subassembly: right_leg
     part: R_shin_front_hard_cover
-    direction: [0.0, 1.0, -0.0]
+    direction:
+    - 0.0
+    - 1.0
+    - -0.0
     after:
     - right_leg:s031
     status: seeded
@@ -458,7 +524,10 @@ assembly:
   - id: right_leg:p035
     subassembly: right_leg
     part: R_ankle_pitch_ST3025_output
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - right_leg:s034
     status: seeded
@@ -467,7 +536,10 @@ assembly:
   - id: left_leg:p005
     subassembly: left_leg
     part: L_hip_pitch_ST3025_case
-    direction: [0.0, 0.0, 1.0]
+    direction:
+    - 0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:s004
     status: seeded
@@ -478,7 +550,10 @@ assembly:
   - id: left_leg:p007
     subassembly: left_leg
     part: L_hip_pitch_ST3025_output
-    direction: [1.0, 0.0, 0.0]
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
     after:
     - left_leg:s006
     status: seeded
@@ -490,7 +565,10 @@ assembly:
     - L_roll_servo_case_reference
     - L_roll_upper_horn_reference
     - L_roll_passive_idler_reference
-    direction: [-0.0, 0.0, 1.0]
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:s009
     status: seeded
@@ -501,7 +579,10 @@ assembly:
   - id: left_leg:p016
     subassembly: left_leg
     part: L_knee_ST3025_case
-    direction: [-0.0, 1.0, 0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - 0.0
     after:
     - left_leg:s015
     status: seeded
@@ -510,7 +591,10 @@ assembly:
   - id: left_leg:p024
     subassembly: left_leg
     part: L_knee_ST3025_output
-    direction: [-0.0, 0.0, 1.0]
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:s023
     status: seeded
@@ -519,7 +603,10 @@ assembly:
   - id: left_leg:p027
     subassembly: left_leg
     part: L_ankle_pitch_ST3025_case
-    direction: [0.0, -1.0, 0.0]
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
     after:
     - left_leg:s026
     status: seeded
@@ -529,7 +616,10 @@ assembly:
   - id: left_leg:p032
     subassembly: left_leg
     part: L_shin_front_hard_cover
-    direction: [-0.0, 1.0, -0.0]
+    direction:
+    - -0.0
+    - 1.0
+    - -0.0
     after:
     - left_leg:s031
     status: seeded
@@ -540,7 +630,10 @@ assembly:
   - id: left_leg:p035
     subassembly: left_leg
     part: L_ankle_pitch_ST3025_output
-    direction: [-0.0, 0.0, 1.0]
+    direction:
+    - -0.0
+    - 0.0
+    - 1.0
     after:
     - left_leg:s034
     status: seeded

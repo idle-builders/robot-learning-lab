@@ -45,6 +45,8 @@ parts:
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
   exact_fit:
     min_solid_mm3: 4000.0
+  heat_source:
+    kind: servo_case
 - match: fan_bridge_plate
   kind: printed
   line: print:fan_bridge_plate

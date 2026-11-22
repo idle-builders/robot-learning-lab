@@ -15,7 +15,7 @@ FASTENER_KEEP = "compression_limit_sleeves"
 SHELL_ROLE = "body_shell"
 
 
-SETTING_BLOCKS = ("process", "expected_hardware", "fit_classes", "covers", "exact_fit", "loadpath_slices", "geometry_thresholds", "fem", "edges")
+SETTING_BLOCKS = ("process", "expected_hardware", "fit_classes", "covers", "exact_fit", "loadpath_slices", "geometry_thresholds", "fem", "edges", "heat_source")
 
 
 def overlay_definitions(part_settings, manifest):

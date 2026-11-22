@@ -363,6 +363,8 @@ parts:
   notes: 'Grouped by the manifest motor field (same parts as the generated line). Feetech is the maker; no single seller recorded. supplier from
     robot/model/motor-map/motor-map.json (tiers.strong.part: "sellers also list C002"; price_basis names AliExpress and OpenELAB listings) and
     robot/actuators/catalog.yaml (feetech-sts3250-c001).'
+  heat_source:
+    kind: servo_case
 - match: R_upper_arm_yaw_to_elbow_combined
   kind: printed
   line: print:R_upper_arm_yaw_to_elbow_combined
@@ -1481,6 +1483,8 @@ parts:
   part_number: 22414 (ST3215 12 V; Feetech ST-3215-C047)
   notes: 'Grouped by the manifest motor field (same parts as the generated line). supplier from robot/model/motor-map/motor-map.json (tiers.light:
     part "Waveshare ST3215 12 V (SKU 22414)", price_basis Waveshare store).'
+  heat_source:
+    kind: servo_case
 - match:
   - L_B13R14_raised_B11_inner_PA2x6_proposal_0
   - L_B13R14_raised_B11_inner_PA2x6_proposal_1

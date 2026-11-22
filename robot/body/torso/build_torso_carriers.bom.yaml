@@ -117,6 +117,8 @@ parts:
   part_number: INR-21700-P50B
   notes: 9-cell honeycomb pack. Cell model and supplier to fill in. supplier from robot/electronics/power/battery.json (model_basis.cell; manufacturer,
     no seller recorded).
+  heat_source:
+    kind: battery_cell
 - match:
   - Honeycomb_Fin_01_Upper_Dorsal_L2
   - Honeycomb_Fin_02_Upper_Dorsal_L1
