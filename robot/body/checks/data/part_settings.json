@@ -18,6 +18,7 @@
       "printer": "Bambu X2D",
       "material": "Bambu PAHT-CF",
       "layer_normal_axes": [
+        "z",
         "x",
         "y"
       ],
@@ -570,6 +571,32 @@
       "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
       "seeded_keys": [
         "material"
+      ]
+    }
+  },
+  "R_shin_back_hard_cover": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "+y",
+      "up_source": "designer 2026-11-22 (hip check pass): the cover's front edges (the wings' inner ends, y about 23-24) on the bed, as the thigh shells' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover) with run.py --process up=... (overhang, bed, small_features, walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*): +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z, +-x: no bed contact (support 2.2-5.9 g, 41-59 min)",
+      "seeded": "material and direction: no designer setting existed (print_setup: no direction, material); PETG-CF as the thigh shells (thigh_shell.py names the covers PETG / PC, not in data/materials.json). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
+      "seeded_keys": [
+        "material",
+        "up"
+      ]
+    }
+  },
+  "L_shin_back_hard_cover": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "+y",
+      "up_source": "mirror of R_shin_back_hard_cover (x mirror keeps +y); designer 2026-11-22 (hip check pass): the cover's front edges (the wings' inner ends, y about 23-24) on the bed, as the thigh shells' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover) with run.py --process up=... (overhang, bed, small_features, walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*): +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z, +-x: no bed contact (support 2.2-5.9 g, 41-59 min)",
+      "seeded": "material and direction: no designer setting existed (print_setup: no direction, material); PETG-CF as the thigh shells (thigh_shell.py names the covers PETG / PC, not in data/materials.json). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
+      "seeded_keys": [
+        "material",
+        "up"
       ]
     }
   },
