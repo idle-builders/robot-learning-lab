@@ -233,6 +233,14 @@
        }
       }
      }
+    },
+    "observation": {
+     "type": "string",
+     "description": "What the study shows, in words (shown before the generated counts)."
+    },
+    "measurements": {
+     "type": "string",
+     "description": "Hand-stated measurements with units and their source report (shown before the generated check summary)."
     }
    }
   }

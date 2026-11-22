@@ -947,3 +947,48 @@ defects:
   fix: 'Same as above: stretch the B-rep in build.py (BRepBuilderAPI_GTransform for the axial scale; a piecewise stretch needs a split, scale,
     fuse) and write native_step (medium). Do the cradle first: it carries load.'
   effort: medium
+# Dashboard study of this builder (robot/body/bom/publish_body.py --study shoulder-shells-parametric --publish): the text is
+# moved verbatim from publish_shoulder_shells.py record() (T-zmmdkm, 2026-11-22); the owning session keeps it current.
+study:
+  study_id: shoulder-shells-parametric
+  title: Shoulder · parametric shells around the U connectors
+  robot_sections:
+  - Shoulder
+  - Torso / shell
+  workspace: Body
+  summary: Smooth parametric upper-arm cover enclosing the green U, simple openings about the joint axes.
+  maturity: Exploratory CAD; physical behavior unmeasured
+  observation: 'The upper-arm cover is now a few gentle parametric functions (superellipse rings whose half-widths and exponents follow a handful
+    of spline control values along the arm; fit to today''s cover rms 0.71 mm) and encloses the green U: two smooth C2 swellings, max outward
+    growth 6.3 mm at the back-inboard corner below the roll servo, elsewhere <= 1.6 mm. Its top is trimmed by two planes about the roll axis (10
+    mm corner round); the torso shells get one round opening per side about the pitch axis (R 34.6 mm, 1.5 mm rounded edge). No opening follows
+    the motion sweep.'
+  measurements: 'Blue U to cover >= 4.3 mm over roll -15..95 (point sweep 4.54 mm); blue U to torso shells >= 4.1 mm over pitch -60..150; green
+    U, its sleeves and screws fully inside the cover (min 1.71 mm to the cover material); cover 12092 mm3 per side (today 15336); torso opening
+    removes about 2023 mm3 (front) and 2141 mm3 (back) per side. Cover mount: two bosses on the green U with a pressed sleeve and a captive M3
+    nut, heads seated, nut engagement 2.25 / 2.5 mm.'
+  limitations: 'At the roll -15 end the cover''s lower inboard wall still enters the torso side (95 + 23 mm3; today''s body 293 + 224 mm3): a
+    roll-limit or torso-shape question. The torso opening leaves about 4 mm of shell above it at the shoulder top. The trim shows the upper roll
+    servo (the blue U rolls over it at +95). Cover pads are clamped plastic without a sleeve. Mesh-defined shells, nothing printed.'
+  scope:
+    definitions:
+    - shoulder-shells
+  statements:
+  - text: Idle T-tph7xb
+  - text: 'owner decisions 2026-11-22: cover over the green U, no sweep-following openings, gentle parametric functions'
+  evidence:
+  - label: Shell build report (growth, openings, clearances)
+    path: artifacts/robot/body/arm/shoulder-clevis/shells/report.json
+  - label: Shape parameter tables (COVER, CAP, BUMPS, TRIM, TORSO_OPENING, WALL, GAP)
+    path: robot/body/arm/shoulder_shells.py
+  renders:
+  - label: shoulder shells before after
+    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-before-after.png
+  - label: shoulder shells range poses
+    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-range-poses.png
+  - label: shoulder shells cover mount
+    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-cover-mount.png
+  cad:
+    label: Complete body with the parametric shoulder shells
+    show_shells: true
+    motion_note: Joint sliders are inspection commands over the manifest ranges, not qualified travel.

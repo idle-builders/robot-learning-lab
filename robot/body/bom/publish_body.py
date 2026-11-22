@@ -10,7 +10,7 @@ subassemblies in assembly order with their steps, and per part its BOM line, STE
 and regenerate command, assembly step(s) and direction, print setup, the latest check worst cases and the BOM findings,
 and the definition file to fix. design.bom is the BOM of the same build (robot BOM & costs).
 
-  .venv/bin/python -B robot/body/bom/publish_body.py                    # dry run: writes .cache/work/bom/dashboard-record.json
+  .venv/bin/python -B robot/body/bom/publish_body.py                    # dry run: writes .cache/work/bom/<study_id>-record.json
   .venv/bin/python -B robot/body/bom/publish_body.py --out FILE         # the record to FILE (the rebuild copy uses this)
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/bom/publish_body.py package
                                                                          # display GLB of the manifest (when it changed)
@@ -42,7 +42,7 @@ import build as BUILD  # noqa: E402
 import definitions as DEF  # noqa: E402
 
 CHECKS = ROOT / ".cache/work/cad-speed/checks"
-OUT = ROOT / ".cache/work/bom/dashboard-record.json"
+OUT = ROOT / ".cache/work/bom"                     # default record file: OUT/<study_id>-record.json
 GLB = "artifacts/robot/body/selected/assembly.glb"   # display copy of the study's manifest (derived; recreated by `package`)
 WORST_PER_CHECK = 3
 
@@ -272,14 +272,16 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
     worst_rows = [dict(name=f"{p}: {ch['check']} ({w['what'] or ''})"[:200], value=w["value"], unit=w["unit"] or "",
                        condition=f"{ch['label']} {ch['at']}" + (f", with {w['mating_part']}" if w.get("mating_part") else "") + (f", pose {w['pose']}" if w.get("pose") else ""))
                   for p, row in view["parts"].items() for ch in row.get("checks", []) for w in ch["worst"][:1] if isinstance(w.get("value"), (int, float))]
-    observation = (f"{study['summary']} Generated from {len(bom['definitions'])} body definitions and {rel(manifest_path)} "
+    observation = (f"{study.get('observation') or study['summary']} Generated from {len(bom['definitions'])} body definitions and {rel(manifest_path)} "
                    f"(sha256 {bom['manifest_sha256'][:12]}): {c['parts']} CAD parts on {c['lines']} BOM lines "
                    f"({', '.join(f'{v} {k}' for k, v in c['lines_by_make_buy'].items())}); {ac['assemblies']} subassemblies, {ac['steps']} assembly steps.")
-    measurements = (f"Printed parts {c['printed_parts']}: native STEP {c['printed_with_native_step']}, print setup {c['printed_with_print_setup']}. "
+    measurements = ((study["measurements"] + " ") if study.get("measurements") else "") + (f"Printed parts {c['printed_parts']}: native STEP {c['printed_with_native_step']}, print setup {c['printed_with_print_setup']}. "
                     f"Assembly steps measured by the assembly check: {ac['check_supported']} clear, {ac['not_supported']} with contact or obstruction, "
                     f"{ac['not_measured']} not measured. Check reports on this manifest: {len(reports)} ({n_checks} checks over "
                     f"{sum(1 for p in view['parts'].values() if p.get('checks'))} parts). Buy lines {c['buy_lines']}: supplier known {c['buy_lines_supplier_known']}, "
                     f"part number known {c['buy_lines_part_number_known']}.")
+    if scope_note := (view["scope"].get("definitions") or view["scope"].get("parts")):
+        measurements += f" Part view: {len(view['parts'])} of {c['parts']} manifest parts (scope {scope_note}); the rest is context in the CAD scene."
     fk = ", ".join(f"{k} {v}" for k, v in sorted(c["findings_by_kind"].items()))
     limitations = " ".join(x for x in [study.get("limitations"),
                                         f"{c['findings']} BOM findings name the definition file to fix ({fk})." if c["findings"] else None,
@@ -319,13 +321,14 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
 def package(manifest_path):
     sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
     from package import scene  # one named node per manifest part, metres, decimated display copy
-    man = json.loads((ROOT / manifest_path).read_text())
+    raw = (ROOT / manifest_path).read_bytes()          # one read: the sidecar sha is the sha of what was packaged
+    man = json.loads(raw)
     out = ROOT / GLB
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(".tmp.glb")
     scene(man).export(str(tmp))
     os.replace(tmp, out)
-    (ROOT / (GLB + ".json")).write_text(json.dumps(dict(manifest=rel(manifest_path), manifest_sha256=sha_file(ROOT / manifest_path),
+    (ROOT / (GLB + ".json")).write_text(json.dumps(dict(manifest=rel(manifest_path), manifest_sha256=hashlib.sha256(raw).hexdigest(),
                                                         made=time.strftime("%Y-%m-%dT%H:%M:%S%z"), by="robot/body/bom/publish_body.py package"), indent=1) + "\n")
     print("packaged", GLB, round(out.stat().st_size / 1e6, 1), "MB")
 
@@ -341,7 +344,7 @@ def main():
     ap.add_argument("--manifest")
     ap.add_argument("--definitions", nargs="+")
     ap.add_argument("--checks-dir", default=str(CHECKS))
-    ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--out", help=f"record file (default {rel(OUT)}/<study_id>-record.json)")
     ap.add_argument("--publish", action="store_true")
     a = ap.parse_args()
     D = DEF.load(a.definitions)
@@ -357,7 +360,7 @@ def main():
             subprocess.run(["python3", "infra/tools/memguard.py", "--limit-gb", "6", "--timeout-s", "1800", "--",
                             sys.executable, "-B", rel(Path(__file__)), "package", "--study", study["study_id"], "--manifest", mp], cwd=ROOT, check=True)
     rec = record(study, D, mp, a.checks_dir)
-    out = Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
+    out = Path(a.out) if a.out else OUT / f"{study['study_id']}-record.json"; out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rec, indent=1, default=str) + "\n")
     v = rec["sections"][0]["payload"]
     print(json.dumps(dict(record=rel(out), study=rec["study_id"], bytes=out.stat().st_size, parts_listed=len(v["parts"]), lines=len(v["lines"]),
