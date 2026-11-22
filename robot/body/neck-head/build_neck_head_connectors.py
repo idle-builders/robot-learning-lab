@@ -426,7 +426,8 @@ def build_stage4(family: str) -> Solid:
     for role in ("load", "camera"):         # material all round each sleeve: an ear where the profile ends too close
         g = specs4[role]
         for c in g["centres"]:
-            ear = Pos(float(c[0]), float(c[2])) * Circle(float(g["sleeve_ro"]) + 0.6)
+            # @lore 0.7 mm rim: 0.6 left a ring thinner than one 0.62 mm print line (walls under one line 45 -> 107 mm2)
+            ear = Pos(float(c[0]), float(c[2])) * Circle(float(g["sleeve_ro"]) + 0.7)
             if (ear - f_main).area > 0.05:
                 f_main = (f_main + ear).faces()[0]
     s_plate = extrude_xy_to_y(f_main, y_front, y_rear)
