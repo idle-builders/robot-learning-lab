@@ -445,7 +445,7 @@ parts:
     label: M3 x 10 ISO 10642
   supplier: unknown
   part_number: M3 x 10 ISO 10642
-  material: ISO 10642 M3x10 (hex socket countersunk, head sunk 2.0 mm under the shell skin in a counterbore: the skin slopes over the head) into the ISO 4032 M3 nut in the Stage 4 post; head dk 6.72
+  material: ISO 10642 M3x10 (hex socket countersunk, head sunk 2.0 mm under the shell skin in a counterbore, the skin slopes over the head) into the ISO 4032 M3 nut in the Stage 4 post; head dk 6.72
     (theoretical) x k 1.86, shank dia 3, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
