@@ -239,7 +239,7 @@
    ],
    "manifest_out": null,
    "in_place_edits": [],
-   "notes": "head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33): inward tabs, two 3.6/2.2 steel sleeves, head recesses, two M2x8 screws, two dia 1.6 pilots in the link plate; mesh part (no native STEP, the ring is cut by a head-envelope mesh); roll_flip_checks manifest swaps it in after neck_parts."
+   "notes": "head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33): inward tabs, two 3.6/2.2 steel sleeves, head recesses, two M2x8 screws, two dia 1.6 pilots in the link plate; the collar is a parametric B-rep with a native STEP (ring cut by ruled splines measured from the old head-envelope mesh; neck_collar_envelope.json); roll_flip_checks manifest swaps it in after neck_parts."
   },
   {
    "id": "roll-flip-cad",

@@ -8366,10 +8366,7 @@
       "printer": "Bambu X2D",
       "material": "Bambu PETG-CF",
       "up": "+z",
-      "up_source": "builder 2026-11-22 (T-a2mt33): the ring's base flange (z 394.2) on the bed, the only flat face; the screw tab (z 394.4) is a short ceiling on the wall (overhang check reads them). Seeded, not designer-confirmed.",
-      "seeded_keys": [
-        "up"
-      ]
+      "set_by": "builder/opus-5.5 2026-11-22 (T-vjw5z8): +z (ring base flange z 394.2 on the bed) chosen from the six axes measured on the native STEP (overhang beyond 70 deg / bed contact / support standing on the part): +z 15.1 mm2 / 712 mm2 / 15 mm2 (only the sleeve-bore tops of the screw tab), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; the head-envelope edge is a curve, so only the flange gives a flat bed face"
     }
   },
   "R_fore_front_hard_cover": {

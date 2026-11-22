@@ -501,12 +501,21 @@ head_neck_collar is screwed to the left plate of the neck yaw-to-pitch link (x -
 tab (y 5-14.2, z 394.4-405.6, +182 mm3 PETG-CF) grows to the plate face (layer gap 0.000 mm at the tab, 3.35 mm where the wall curves away), two 3.6 / 2.2 sleeves
 (4.5 mm) at y 10.5, z 398.3 / 402.8, M2x8 ISO 7380-1 heads in dia 4.4 recesses whose flat floor is the sleeve end (the outer wall slopes about 15 deg; nothing
 stands out of the outer surface), dia 1.6 pilots through the plate (-14 mm3 on the link). mount_check: engagement 3.25 of the 4.0 reference (shortfall 0.75: the plate
-is 3.5 mm), hole offset 0.000, head seat gap 0.000, head bearing ring 0.655 mm, tip margin 0.5 mm. Press (own script on the collar mesh; the shared check needs a native
-STEP): counter support 73 / 62 % flat from the head side, entry tool path 45 / 18 mm3 (the assumed 8 mm tip is wider than the 4.4 recess), from the inside the ring wall blocks
-the 20 mm tool body (632 / 538 mm3). Driver access from the head side: 0 mm3 within 100 mm. Clearance over neck pitch (library poses) is unchanged against the unedited
-collar: 15 mm3 with the neck pitch case at pitch +35 (y 25.5, far from the tab) and 0.1 mm3 with the cradle sleeves at the corner pose; head skin gap 0.822 mm. Connectivity: head_neck_collar
-reaches the core (contact+screw), isolated parts 0, groups not reaching the core 2 (pelvis cells 08 / 09). The collar stays a mesh part (the ring is cut by a head-envelope mesh,
-so no B-rep rebuild; mesh booleans for tab, recesses, holes); its bad `native_step` is dropped; defects.json still lists it.
+is 3.5 mm), hole offset 0.000, head seat gap 0.000, head bearing ring 0.655 mm, tip margin 0.5 mm.
+
+Neck collar as a B-rep (T-vjw5z8, 22 Nov; owner: "fix the collar so that it is fully BOM compliant"): the collar now has a native STEP made by neck_collar.py, so the
+mesh-only exception is gone. The pure ring (ruled elliptic lofts, 7845 mm3) lost about 5 285 mm3 to the head-envelope mesh and the neck-pitch notch (the notch alone about 55 mm3,
+back of the ring, theta 70-117 deg, down to z 395.0 at the inner wall). Both cuts are parametric: the envelope as a ruled spline surface z = z28(theta) + slope(theta) (rho - 28)
+(2 deg knots, front arc below the base clipped at z 390), the notch as a ruled surface z = z27.5(theta) + 1.2 (rho - 27.5), prisms up; knots in `neck_collar_envelope.json`,
+measured by vertical rays on the old mesh (the old head envelope exists only as a mesh). Against the old mesh outside the tab zone: mean surface distance 0.017 / 0.024 mm
+(new to old / old to new), p99 0.18 / 0.28 mm, max 0.58 mm (new to old) at the notch end; old to new reaches 2.4 mm at thin fins the 2.5 deg pose grid left in the old notch (0 volume);
+volume 2734 vs 2740 mm3 (tab and bores included; the outer wall is the same ellipse cone, so the visible surface is unchanged). GProp's default integration is 8 % off on the spline faces
+(2777 mm3), the record carries the volume at eps 1e-5 (matches the closed mesh to 0.01 %). Library poses: 15.7 mm3 with the neck pitch case at pitch +35 (y 25.5; baseline 15), cradle
+0.3 mm3 at +35 (baseline 0.1 mm3 on its sleeves at the corner pose; the sleeves now keep 0.92 mm), head skin gap 0.883 mm (baseline 0.822). Screws, driver access (0 mm3) and press as before: counter support 73 / 62 % flat from the
+head side, entry tool path 45 / 18 mm3 (the 8 mm tip is wider than the 4.4 recess), boss wall 0.79 mm, sleeve interference 0.0. Print direction measured on the STEP for the six axes (overhang beyond 70 deg / bed
+contact / support standing on the part): +z 15 / 712 mm2 / 15 mm2 (only the sleeve-bore tops), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; +z confirmed
+in part_settings (the flange is the only flat face). walls: a 0.004 mm sliver where the flange tip meets the head-envelope cut (128 mm2 under one line). Connectivity: isolated parts 0, groups not reaching the core 2 (pelvis cells 08 / 09).
+BOM row: STEP disk, producer neck_collar.py, +z (no seeded), no flags; defects.json no longer lists it.
 
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
