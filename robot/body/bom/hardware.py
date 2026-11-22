@@ -1,7 +1,7 @@
 """Standard hardware of the body manifest as specs and as generated geometry: screws, nuts, washers and spacers.
 
 Each hardware part gets a buyable spec (kind, thread, nominal length, head standard, nut / washer / spacer size) from its
-name (fastening/mount_check.nominal) and from measurements of its current mesh (axis, head diameter and height, outer /
+screw plan (thread label, length; the legacy name via fastening/mount_check.nominal when there is no plan) and from measurements of its current mesh (axis, head diameter and height, outer /
 inner diameter, thickness), snapped to the standard sizes in robot/body/checks/data/hardware.json and the tables below.
 Then the part is generated from that spec at the measured placement (axis, head end, centre) as a native STEP and an
 STL, so no hardware depends on a mesh from an old study. Per part the report gives the fit of the generated geometry to

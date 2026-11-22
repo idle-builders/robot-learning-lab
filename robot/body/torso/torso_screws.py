@@ -297,24 +297,32 @@ def build_interface_joints(MR, common, rec4=None):
 
 def stage1_moved_rails(common):
     """Stage 1 (the chain's unedited STEP) with the bores of the moved stage 4 rail sites filled and the bores of their new sites
-    drilled: the old bore (dia 3.98, from the valley y 25.9 to the rail face y 35.4) is filled outside the battery pockets (the bore ran
-    through the web between two pockets); the new bore is the old one's size, from the sleeve's inner end to the rail face
-    (the threaded sleeve sits in it, press fit unchanged). Prints the volume added and removed."""
+    drilled: the old bore (dia 3.98, from its bottom y 25.6 to the rail face y 35.4) is filled outside the battery pockets (the bore ran
+    through the web between two pockets); the new bore is the old one's size from 0.2 mm beyond the sleeve's inner end to the rail face
+    (the threaded sleeve sits in it, press fit unchanged), then a r 1.5 tip clearance bore 0.5 mm deeper (floor y 31.4). Prints the volume added and removed."""
     from build123d import Cylinder, Pos, import_step
     from checks import bodylib as BL
     src = next(p for p in json.loads(SLEEVE_SOURCE.read_text())["parts"] if p["name"] == PART1)["native_step"]
     body = max(import_step(str(BL.src(src))).solids(), key=lambda x: x.volume)
     y0 = common.STAGE4_RAIL_Y0
     spec = common.stage_interface_specs()[STAGE1]
-    r_od, length = next((b["r_od"], b["length"]) for b in spec["aux_bores"] if abs(b["center"][1] - 33.6) < 1e-6 and b["r_id"] > 1.2)
-    r_bore, y_in = 1.99, 33.6 - length / 2 - 0.2          # bore radius of the STEP's old rail bores (holes check: dia 3.98); 0.2 mm of bore beyond the sleeve end
+    length = next(b["length"] for b in spec["aux_bores"] if abs(b["center"][1] - 33.6) < 1e-6 and b["r_id"] > 1.2)
+    # stepped bore: the sleeve bore (r 1.99, the STEP's old rail bore, dia 3.98) ends 0.2 mm beyond the sleeve end (y 31.9, as before), a
+    # tip clearance bore r 1.5 (M2.5 thread r 1.25 + 0.25) goes on to y 31.4: the M2.5x10 tip (y 32.0) stays 0.6 mm off the floor (ISO 4762
+    # length tolerance +-0.29). The battery pockets (r 10.95, 1.99 mm off the bore axis at the rim) reach y 31.52 at r 1.99 but only
+    # y 30.68 at r 1.5, so the deeper bore stays r <= 1.5: floor 0.72 mm to the pocket at r 1.5 (a full-radius bore to 31.4 broke into the pockets)
+    # @lore the first build left 0.2 mm (floor 0.1 mm under the tip): a long screw would bottom before the head seated
+    r_bore, r_tip, y_in = 1.99, 1.5, 33.6 - length / 2 - 0.2
+    y_tip = y_in - 0.5
+    y_old = 25.6                                          # the old bores' bottom in the STEP: the fill starts there (25.9 left a 0.25 mm slot)
     old = common.legacy_stage4_rail_sites()
     new = [s for s in common.stage4_rail_sites() if s[1] not in common.STAGE4_RAIL_Z]
     assert len(old) == len(new) == 2, (old, new)
     pockets = [Pos(c["center"][0], c["center"][1], 301.8) * Cylinder(10.95, 76.0)
                for c in common.HONEYCOMB_9CELL_BATTERY_LAYOUT if c["stage"] == STAGE1]
-    fills = [common.aligned_cylinder((x, (25.9 + y0) / 2, z), (0.0, 1.0, 0.0), r_bore + 0.05, y0 - 25.9) for x, z in old]
+    fills = [common.aligned_cylinder((x, (y_old + y0) / 2, z), (0.0, 1.0, 0.0), r_bore + 0.05, y0 - y_old) for x, z in old]
     holes = [common.aligned_cylinder((x, (y_in + y0 + 0.5) / 2, z), (0.0, 1.0, 0.0), r_bore, y0 + 0.5 - y_in) for x, z in new]
+    holes += [common.aligned_cylinder((x, (y_tip + y_in) / 2 + 0.05, z), (0.0, 1.0, 0.0), r_tip, y_in - y_tip + 0.1) for x, z in new]
     fills = [f.cut(*pockets) for f in fills]                # only the part of the old bore outside the battery pockets is filled
     out = max(body.fuse(*fills).cut(*holes).solids(), key=lambda x: x.volume)
     print(f"stage 1 moved rail bores: {out.cut(body).volume:.2f} mm3 added (old bores filled), {body.cut(out).volume:.2f} mm3 removed "
