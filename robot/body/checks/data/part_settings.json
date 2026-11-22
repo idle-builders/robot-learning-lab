@@ -565,24 +565,21 @@
     },
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "-y",
-      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
-      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
-      "seeded_keys": [
-        "material"
-      ]
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside"
     }
   },
   "R_shin_back_hard_cover": {
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "+y",
       "up_source": "designer 2026-11-22 (hip check pass): the cover's front edges (the wings' inner ends, y about 23-24) on the bed, as the thigh shells' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover) with run.py --process up=... (overhang, bed, small_features, walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*): +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z, +-x: no bed contact (support 2.2-5.9 g, 41-59 min)",
-      "seeded": "material and direction: no designer setting existed (print_setup: no direction, material); PETG-CF as the thigh shells (thigh_shell.py names the covers PETG / PC, not in data/materials.json). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
+      "seeded": "direction: no designer setting existed (print_setup: no direction). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
       "seeded_keys": [
-        "material",
         "up"
       ]
     }
@@ -590,12 +587,12 @@
   "L_shin_back_hard_cover": {
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "+y",
       "up_source": "mirror of R_shin_back_hard_cover (x mirror keeps +y); designer 2026-11-22 (hip check pass): the cover's front edges (the wings' inner ends, y about 23-24) on the bed, as the thigh shells' rim. Six directions compared on the trimmed cover (thigh_shell.py shin-cover) with run.py --process up=... (overhang, bed, small_features, walls, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/shin-cover-up*): +y: bed 169 mm2 in 2 islands, centre of mass 18.5 mm inside the contact hull, support 3.2 g, 35.7 min, 808 mm2 beyond 70 deg (under the crown); +z: bed 43 mm2 in 3 islands (smallest 4.8 mm2), centre of mass 5.1 mm inside at 18.5 mm height, support 1.0 g, 41.5 min; -y, -z, +-x: no bed contact (support 2.2-5.9 g, 41-59 min)",
-      "seeded": "material and direction: no designer setting existed (print_setup: no direction, material); PETG-CF as the thigh shells (thigh_shell.py names the covers PETG / PC, not in data/materials.json). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
+      "seeded": "direction: no designer setting existed (print_setup: no direction). +z (1.0 g support, 43 mm2 bed) is the alternative if a brim holds it.",
       "seeded_keys": [
-        "material",
         "up"
       ]
     }
@@ -617,37 +614,28 @@
     },
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "+y",
-      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
-      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
-      "seeded_keys": [
-        "material"
-      ]
+      "up_source": "designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside"
     }
   },
   "L_thigh_shell_front": {
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "-y",
-      "up_source": "mirror of R_thigh_shell_front (x mirror keeps -y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
-      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
-      "seeded_keys": [
-        "material"
-      ]
+      "up_source": "mirror of R_thigh_shell_front (x mirror keeps -y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 7.7) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside"
     }
   },
   "L_thigh_shell_back": {
     "process": {
       "printer": "Bambu X2D",
-      "material": "Bambu PETG-CF",
+      "material": "Bambu ABS",
+      "material_source": "designer 2026-11-22: body shell material by data sheet values (Bambu TDS): impact first (2.1 mm walls that take falls), then heat margin to the 70 C servo case (HDT 0.45 / 1.8 MPa 87 / 84 C: +17 / +14 C; PETG Basic 69 / 65: -1 / -5, PETG-CF 74 / 68: +4 / -2), printability on the enclosed X2D, mass (1.05 g/cm3), moisture; ABS keeps PETG Basic's notched X-Y Charpy (21.5 vs 21.6 kJ/m2) at 54 % of its Z impact (7.4 vs 13.6) and 84 % of its density",
       "up": "+y",
-      "up_source": "mirror of R_thigh_shell_back (x mirror keeps +y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside",
-      "seeded": "material: thigh_shell.py names the cover PETG / polycarbonate (DENSITY 1.27 g/cm3) but data/materials.json has no PETG or PC datasheet entry; Bambu PETG-CF is the nearest entry there. Add the PETG / PC datasheet entry to replace it.",
-      "seeded_keys": [
-        "material"
-      ]
+      "up_source": "mirror of R_thigh_shell_back (x mirror keeps +y); designer 2026-11-20 (roll-flip hip fix): the split rim (y 8.3) on the bed, the only flat face. Four directions compared with run.py --process up=... (bed, overhang, small_features, slicer; Bambu PETG-CF, .cache/work/cad-speed/checks/hip-fix-shell-up*): rim down: bed 193 / 192 mm2 in 2 islands, centre of mass 21 mm inside the contact hull, support 5.1 / 4.3 g mostly under the inner crown (outer skin support-free), 63 / 52 min; up +z / -z: 0 / 17 mm2 of bed contact with the centre of mass 12-13 mm outside it (a 57 mm tall thin shell would tip), support 1.0 g, 39 / 33 min; the other y direction (crown down): 25-28 mm2, centre of mass outside"
     }
   },
   "R_shin_combined": {
