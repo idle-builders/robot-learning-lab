@@ -17,9 +17,11 @@ A setup is data in data/part_settings.json under part_settings[part]["fem"]:
                               | {"transfer": {"F_N": [..], "M_Nm": [..], "scale": s, "from_mm": [x, y, z], "lever": l}}}   transfer = a force / moment given at from_mm,
                    scaled, moment at the origin M*s + l * (from - origin) x F*s (neck-head head wrench)
   materials        [names in data/materials.json]   default: the part's process.material
-  regions          [{"material": name, "where": REGION, "only_polymer": bool}]   elements (by centroid) taking another material, in order, later ones overwrite earlier
+  regions          [{"material": name, "where": REGION, "only_polymer": bool}]   elements taking another material (by centroid; bore_collars: see there), in order, later ones overwrite earlier
                    (an Al seat with only_polymer keeps the steel collars set before it); distinct materials of bonded + regions: at most two
-                   REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   within r of every bore of the sleeve part, e beyond its ends
+                   REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   per sleeve of the sleeve part: within r of the part's bore it is
+                                                                                                 pressed into, e beyond its ends; elements by their share inside, up to the
+                                                                                                 collar's volume (collar_elements: the steel volume does not follow the mesh)
                           | {"contact_band": {"parts": [mating parts], "dist_mm": d}}                  within d of the named mating parts' surfaces (follows them)
                           | {"capsules": ...} | {"box": ...}                                           legacy hand-typed sites (see point_pred)
   variants         {"name": {...keys above replaced...}}   e.g. the old hand-typed patches, run with --fem-variant
@@ -213,17 +215,73 @@ def point_pred(spec):
     return pred
 
 
-def collar_pred(ctx, spec):
-    """Predicate over points: within r_extra_mm of the bores (cylindrical faces, r up to r_max_mm) of the companion part spec["of"] and within
-    end_extra_mm of their ends = a steel collar around every pressed-in sleeve of that part; follows the sleeve part (the stored form of the legacy capsules)."""
-    hs = hole_faces(ctx, spec["of"], float(spec.get("r_max_mm", 5.0)))
-    def pred(c):
-        c = np.asarray(c); ms = []
-        for h in hs:
-            rel = c - h["centre"]; al = rel @ h["axis"]
-            ms.append((np.abs(al) <= h["half_len"] + float(spec["end_extra_mm"])) & (np.linalg.norm(rel - np.outer(al, h["axis"]), axis=1) <= h["r"] + float(spec["r_extra_mm"])))
-        return np.logical_or.reduce(ms)
-    return pred
+def _coaxial(a, b, tol=0.1):
+    """Two cylinder faces on one axis line (parallel axes, axis lines within tol mm)."""
+    if abs(abs(float(a["axis"] @ b["axis"])) - 1.0) > 1e-3:
+        return False
+    d = b["centre"] - a["centre"]
+    return float(np.linalg.norm(d - (d @ a["axis"]) * a["axis"])) <= tol
+
+
+def _span(h, ref):
+    """[lo, hi] of a cylinder face along the axis of ref, measured from ref's centre."""
+    a = float((h["centre"] - ref["centre"]) @ ref["axis"])
+    return a - h["half_len"], a + h["half_len"]
+
+
+def sleeve_bores(ctx, part, sleeves, r_max=5.0, r_tol=0.3):
+    """One collar site per sleeve of the companion part `sleeves`: the part's own bore it is pressed into, i.e. the part's cylindrical faces coaxial
+    with the sleeve's outer cylinder, radius within r_tol of it, along the stretch where they overlap the sleeve. A sleeve = the sleeve part's coaxial,
+    overlapping cylinder faces (inner bore, outer surface); its outer radius is the largest. A sleeve without such a bore keeps its outer cylinder.
+    Returns [dict(r, centre, axis, half_len, source="bore" | "sleeve OD")]."""
+    tubes = []
+    for h in sorted(hole_faces(ctx, sleeves, r_max), key=lambda x: -x["r"]):
+        t = next((t for t in tubes if _coaxial(t[0], h) and _span(h, t[0])[0] <= _span(t[0], t[0])[1] + 0.01 and _span(h, t[0])[1] >= _span(t[0], t[0])[0] - 0.01), None)
+        if t is None:
+            tubes.append([h])
+        elif abs(h["r"] - t[0]["r"]) < 1e-3:
+            t.append(h)                                # the outer cylinder split into several faces
+    bores = hole_faces(ctx, part, r_max + r_tol)
+    out = []
+    for t in tubes:
+        od = t[0]
+        lo, hi = min(_span(h, od)[0] for h in t), max(_span(h, od)[1] for h in t)
+        seat = [b for b in bores if abs(b["r"] - od["r"]) <= r_tol and _coaxial(od, b) and _span(b, od)[1] > lo and _span(b, od)[0] < hi]
+        src, r = "sleeve OD", od["r"]
+        if seat:
+            src, r = "bore", max(b["r"] for b in seat)
+            lo, hi = max(lo, min(_span(b, od)[0] for b in seat)), min(hi, max(_span(b, od)[1] for b in seat))
+        out.append(dict(r=r, centre=od["centre"] + 0.5 * (lo + hi) * od["axis"], axis=od["axis"], half_len=0.5 * (hi - lo), source=src))
+    return out
+
+
+_SAMPLES = np.random.default_rng(0).dirichlet(np.ones(4), 64)    # fixed barycentric sample points of a tet (share of an element inside a region)
+
+
+def collar_elements(ctx, mesh, part, spec):
+    """Elements that take the steel of the bore collars of the sleeve part spec["of"]: per sleeve, the collar is the part's material within r_extra_mm of
+    the bore it is pressed into (sleeve_bores) and end_extra_mm beyond the sleeve's ends. Its volume inside the part is the sum over elements of element
+    volume x the share of 64 sample points inside it, which does not depend on the mesh; the elements with the largest share are taken until their volume
+    is closest to it (selection by centroid made a 0.85 mm collar about one element thick, so its steel volume followed the mesh size).
+    Returns (element mask, dict(sleeves, in_bore, collar_mm3, steel_mm3))."""
+    P, T, V = mesh["points"], mesh["tet"], mesh["vol"]
+    cent = P[T].mean(axis=1)
+    reach = np.linalg.norm(P[T] - cent[:, None, :], axis=2).max(axis=1)
+    sites = sleeve_bores(ctx, part, spec["of"], float(spec.get("r_max_mm", 5.0)))
+    sel, target = np.zeros(len(T), bool), 0.0
+    for c in sites:
+        R, L = c["r"] + float(spec["r_extra_mm"]), c["half_len"] + float(spec["end_extra_mm"])
+        rel = cent - c["centre"]; al = rel @ c["axis"]
+        cand = np.flatnonzero((np.linalg.norm(rel - np.outer(al, c["axis"]), axis=1) <= R + reach) & (np.abs(al) <= L + reach))
+        s = np.einsum("sk,ekd->esd", _SAMPLES, P[T[cand]]) - c["centre"]
+        sa = s @ c["axis"]
+        share = ((np.linalg.norm(s - sa[..., None] * c["axis"], axis=2) <= R) & (np.abs(sa) <= L)).mean(axis=1)
+        vol = float((share * V[cand]).sum())
+        o = np.argsort(-share, kind="stable")           # largest share first
+        cum = np.concatenate([[0.0], np.cumsum(V[cand][o])])
+        sel[cand[o[:int(np.argmin(np.abs(cum - vol)))]]] = True
+        target += vol
+    return sel, dict(sleeves=len(sites), in_bore=sum(1 for c in sites if c["source"] == "bore"), collar_mm3=round(target, 1), steel_mm3=round(float(V[sel].sum()), 1))
 
 
 def band_pred(ctx, spec):
@@ -241,16 +299,19 @@ def apply_regions(ctx, mesh, setup):
     code = {"metal": 0, "steel": 2}
     ids = mesh["mat_ids"].copy()
     cent = mesh["points"][mesh["tet"]].mean(axis=1)
-    counts = {}
+    counts, collars = {}, {}
     for i, r in enumerate(regs):
         w = r["where"]
-        sel = (collar_pred(ctx, w["bore_collars"]) if "bore_collars" in w else band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
+        if "bore_collars" in w:
+            sel, collars[f"{r['material']} {i}"] = collar_elements(ctx, mesh, mesh["part"], w["bore_collars"])
+        else:
+            sel = (band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
         n_sel = int(sel.sum())
         if r.get("only_polymer"):
             sel &= ids == 1
         ids[sel] = code[lm[r["material"]]]
         counts[f"{r['material']} {i}"] = n_sel
-    return mesh | {"mat_ids": ids, "region_elements": counts}
+    return mesh | {"mat_ids": ids, "region_elements": counts, "bore_collars": collars}
 
 
 def get_mesh(ctx, part, setup):

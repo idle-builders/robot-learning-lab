@@ -70,7 +70,7 @@ def _fem_row(rep, part_name):
                                                   disp_max_mm=env["max_displacement_mm"]["max"]) if env else
                                              dict(p99_MPa=r["p99_vm_MPa"], ratio=r["p99_strength_ratio"], disp_mm=r["max_displacement_mm"]))
     digest = hashlib.sha256(json.dumps(p["by_layer_normal"], sort_keys=True).encode()).hexdigest()[:16]
-    return dict(out, rows=rows, released=p.get("released_rotations", p.get("released_rotation")), nodes=p.get("nodes"), regions=p.get("regions_elements"),
+    return dict(out, rows=rows, released=p.get("released_rotations", p.get("released_rotation")), nodes=p.get("nodes"), regions=p.get("regions_elements"), bore_collars=p.get("bore_collars"),
                 reaction_plus_wrench_pct_max=p.get("reaction_plus_wrench_pct_max"), fem_seconds=p.get("seconds"), by_layer_normal_sha=digest)
 
 
@@ -150,3 +150,12 @@ def s_collar(sid):
         r = run_tool(f"{sid}-{k}", ["--parts", CARRIER, "--checks", "fem,fem_setup", "--fem-mesh-h", f"{h:g}"], limit_gb=8, timeout_s=5400)
         out[k] = dict(basics(r), fem=_fem_row(r["report"], CARRIER), collar=_steel_volume(CARRIER, h))
     return out
+
+
+@scenario("fem-collar-vs-sleeve", "truth", "head carrier at the stored mesh: steel bore collars (stored) vs the steel sleeves meshed themselves "
+          "(bonded companions, no collar regions; a temporary variant)")
+def s_collar_vs_sleeve(sid):
+    v = dict(bonded=[{"part": CARRIER + "_steel_sleeves", "material": "Steel 304 sleeve"}], regions=[])
+    with _variant_in_place(CARRIER, "eval_sleeves_bonded", v):
+        r = run_tool(sid, ["--parts", CARRIER, "--checks", "fem,fem_setup", "--fem-variant", "eval_sleeves_bonded"], limit_gb=8, timeout_s=5400)
+    return dict(basics(r), fem=_fem_row(r["report"], CARRIER), tail=log_tail(r, 4))
