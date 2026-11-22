@@ -289,6 +289,9 @@ STAGE3_MP_BOSS_Y = (-33.68, -28.72, -31.20)
 # the ring (the carrier-side face of both PCBs is clear of material within r 5 of every mount hole, measured on the boards' STL).
 STAGE3_PRESS_FLANGE_R = 5.3     # 0.3 mm past the anvil radius: the sampled ring ends on it
 STAGE3_PRESS_FLANGE_T = 1.0
+# A flange is clipped to stay outside every other sleeve's anvil column: the dia-10 anvil face + 0.5 mm clearance (a printable cut,
+# no sliver of the flange inside another sleeve's anvil path; the cut is a plain arc concentric with that sleeve).
+STAGE3_ANVIL_COLUMN_R = 5.5
 
 
 def stage_interface_specs() -> dict[str, dict[str, Any]]:
