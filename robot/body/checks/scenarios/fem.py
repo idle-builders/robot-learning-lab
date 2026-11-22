@@ -8,6 +8,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -153,9 +154,11 @@ def s_collar(sid):
 
 
 @scenario("fem-collar-vs-sleeve", "truth", "head carrier at the stored mesh: steel bore collars (stored) vs the steel sleeves meshed themselves "
-          "(bonded companions, no collar regions; a temporary variant)")
+          "(bonded companions, no collar regions; a temporary variant). 2026-11-22: the sleeves do not join the part (bores 0.005 mm over the "
+          "sleeve OD), max displacement ~5e9 mm, so this measures the part without steel")
 def s_collar_vs_sleeve(sid):
     v = dict(bonded=[{"part": CARRIER + "_steel_sleeves", "material": "Steel 304 sleeve"}], regions=[])
     with _variant_in_place(CARRIER, "eval_sleeves_bonded", v):
-        r = run_tool(sid, ["--parts", CARRIER, "--checks", "fem,fem_setup", "--fem-variant", "eval_sleeves_bonded"], limit_gb=8, timeout_s=5400)
-    return dict(basics(r), fem=_fem_row(r["report"], CARRIER), tail=log_tail(r, 4))
+        r = run_tool(sid, ["--parts", CARRIER, "--checks", "fem,fem_setup", "--fem-variant", "eval_sleeves_bonded"], limit_gb=8, timeout_s=5400,
+                     env=dict(os.environ, CHECKS_FEM_SOLVER="spsolve"))     # AMG-CG: no convergence in 2000 iterations on this mesh (2026-11-22)
+    return dict(basics(r), fem=_fem_row(r["report"], CARRIER), solver="spsolve", tail=log_tail(r, 4))
