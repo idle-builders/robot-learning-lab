@@ -122,12 +122,31 @@ _MESH = {}
 CACHE = ROOT / ".cache/work/hip-shell/meshes"
 
 
+_TAGS: dict = {}
+
+
+def mesh_tag(p):
+    """First 12 hex of the sha256 of the part's mesh file as it is on disk (by path, size, mtime in this process). The
+    manifest's recorded mesh_sha256 goes stale when a mesh is rebuilt in place, and a cache keyed by it then serves the old
+    geometry (found 2026-11-22: the owner six-side drawing drew a moved part where it had been)."""
+    import hashlib
+    try:
+        f = F.src(p["mesh"])
+        st = f.stat()
+        k = (str(f), st.st_size, st.st_mtime_ns)
+        if k not in _TAGS:
+            _TAGS[k] = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
+        return _TAGS[k]
+    except (OSError, KeyError, TypeError):
+        return (p.get("mesh_sha256") or p.get("native_step_sha256") or "nohash")[:12]
+
+
 def _mesh(body, n, faces=2500):
-    """Decimated part mesh, cached on disk by the part's mesh hash (decimating the big shells costs GBs)."""
+    """Decimated part mesh, cached on disk by the sha256 of the part's mesh file (decimating the big shells costs GBs)."""
     key = (n, faces)
     if key not in _MESH:
         p = body.parts[n]
-        tag = (p.get("mesh_sha256") or p.get("native_step_sha256") or "nohash")[:12]
+        tag = mesh_tag(p)
         f = CACHE / f"{n}-{faces}-{tag}.npz"
         if f.exists():
             d = np.load(f); m = trimesh.Trimesh(d["v"], d["f"], process=False)

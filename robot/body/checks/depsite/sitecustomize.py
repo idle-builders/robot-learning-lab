@@ -36,6 +36,7 @@ if _LOG:
     @atexit.register
     def _write():
         try:
+            os.makedirs(_LOG, exist_ok=True)          # the parent child's folder may have been cleaned meanwhile
             with open(os.path.join(_LOG, f"{os.getpid()}.txt"), "w") as fh:
                 fh.write("\n".join(sorted(_READ)))
         except OSError:

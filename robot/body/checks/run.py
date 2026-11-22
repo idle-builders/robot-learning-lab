@@ -212,6 +212,9 @@ def run_checks_here(ctx, checks, names, out_file, cache=None):
         print(f"[{name}] done in {res['seconds']} s", file=sys.stderr, flush=True)
     from checks.core import save_sha
     save_sha()
+    log = os.environ.get("CHECKS_DEPS_LOG")
+    if log:
+        shutil.rmtree(log, ignore_errors=True)    # this child's subprocess read logs, merged into its stored results
     sf.close()
     if stack_file.stat().st_size == 0:
         stack_file.unlink()
