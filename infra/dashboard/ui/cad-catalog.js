@@ -1,5 +1,5 @@
 import {evidenceText} from './readable.js?v=studies-final-20261020';
-import {bomMarkup, bindBom} from './cad-bom.js?v=hip-inspection-20261020';
+import {bomMarkup, bindBom} from './cad-bom.js?v=body-view-20261122';
 import {assetUrl as asset} from './asset-url.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function inspectionMarkup() { return `<details class="cad-inspect-tools"><summary>Expose, cut & explode</summary><div class="inspect-tools"><label>Explode parts<input type="range" class="cad-explode" aria-label="Explode parts" min="0" max="100" value="0"><output>0%</output></label><label class="cut-enable"><input type="checkbox" class="cad-cut-enabled"> Cut through assembly</label><label>Section axis<select class="cad-cut-axis"><option value="x">X · side</option><option value="y">Y · front</option><option value="z" selected>Z · height</option></select></label><label>Section position<input type="range" class="cad-cut-position" aria-label="Section position" min="0" max="100" value="50"><output>50%</output></label><label class="cut-enable"><input type="checkbox" class="cad-cut-reverse"> Reverse cut direction</label><p>Display separation and open section surfaces; source geometry stays intact.</p></div></details>`; }
@@ -15,6 +15,12 @@ export function bindInspectionTools(host, getViewer) {
   return apply;
 }
 export function navigationMarkup() { return `<div class="cad-navigation" role="group" aria-label="CAD navigation"><span>Drag mode</span><button type="button" data-cad-navigation="orbit" aria-pressed="true">Orbit</button><button type="button" data-cad-navigation="pan" aria-pressed="false">Pan</button></div>`; }
+// With a generated body view, the CAD label of a clicked part names its BOM line and assembly step.
+function describePart(view){
+  if(!view)return null;
+  return part=>{const p=view.parts?.[part.name];if(!p)return null;const line=view.lines[p.line]||{},a=(p.assembly||[])[0];
+    return [part.name,line.name&&line.name!==part.name?line.name:null,line.make_buy,a?`${a.subassembly} ${a.step}`:'no assembly step',p.findings?.length?`${p.findings.length} BOM findings`:null].filter(Boolean).join(' · ');};
+}
 export function cadMarkup(cad){
   if(!cad?.views?.length)return '';
   const anchors=cad.inspection_anchor_links || [];
@@ -76,7 +82,7 @@ export function mountCadCards(host,options,{resultId=null}={}){
   async function initialize(state){
     if(state.viewer||state.loading||!active)return;state.loading=true;const request=++state.generation;
     try{
-      const {createCadViewer}=await import('./cad-viewer.js?v=no-page-pan-20261120');
+      const {createCadViewer}=await import('./cad-viewer.js?v=body-view-20261122');
       if(!state.metadata&&state.option.cad.parts_path){const response=await fetch(asset(state.option.cad.parts_path));if(!response.ok)throw new Error('Native part manifest unavailable');state.metadata=await response.json();}
       if(state.metadata && state.option.cad.motion_contract_path && !state.option.cad.motion_limits) {
         const responses=await Promise.all([fetch(asset(state.option.cad.motion_contract_path)),fetch(asset(state.option.cad.report_path))]);
@@ -89,7 +95,7 @@ export function mountCadCards(host,options,{resultId=null}={}){
         }
       }
       if(!active||!state.visible||request!==state.generation)return;
-      state.viewer=createCadViewer(state.canvas,state.label,state.metadata?.parts||[],{bodyPanelOpacity:state.option.cad.body_panel_opacity,hiddenReferenceParts:state.option.cad.hidden_reference_parts});
+      state.viewer=createCadViewer(state.canvas,state.label,state.metadata?.parts||[],{bodyPanelOpacity:state.option.cad.body_panel_opacity,hiddenReferenceParts:state.option.cad.hidden_reference_parts,describe:describePart(state.option.cad.body_view)});
       state.viewer.navigation(state.navigationMode || 'orbit');
       state.loadedChoice=undefined;
       state.viewer.shells(state.shells.checked);
@@ -130,6 +136,8 @@ export function mountCadCards(host,options,{resultId=null}={}){
     state.disposeBom=bindBom(card,option.cad);
     state.isolateHandler=event=>{state.isolated=event.detail.names;state.viewer?.isolate(state.isolated);};
     card.addEventListener('cad-isolate-parts',state.isolateHandler);
+    state.selectHandler=event=>state.viewer?.select(event.detail.name);
+    card.addEventListener('cad-select-part',state.selectHandler);
     states.push(state);observer.observe(card);
     state.card.querySelectorAll('.inspect-tools input,.inspect-tools select').forEach(input=>input.oninput=()=>applyInspection(state));
     state.choice.onchange=()=>{stop(state);loadChoice(state);};
@@ -158,5 +166,5 @@ export function mountCadCards(host,options,{resultId=null}={}){
       state.frame=requestAnimationFrame(tick);
     };
   });
-  return {dispose(){active=false;observer.disconnect();states.forEach(state=>{stop(state);state.disposeBom?.();state.card.removeEventListener('cad-isolate-parts',state.isolateHandler);++state.generation;state.viewer?.dispose();});}};
+  return {dispose(){active=false;observer.disconnect();states.forEach(state=>{stop(state);state.disposeBom?.();state.card.removeEventListener('cad-isolate-parts',state.isolateHandler);state.card.removeEventListener('cad-select-part',state.selectHandler);++state.generation;state.viewer?.dispose();});}};
 }
