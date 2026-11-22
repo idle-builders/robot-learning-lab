@@ -154,16 +154,57 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
 
 
 def head_screws(man: dict) -> list[dict]:
-    """The head carrier's 12 compute / camera screws generated from the supplier spacers / nuts (head_holes.py)."""
+    """The head carrier's 4 compute, 8 camera and 2 mic screws generated from the supplier spacers / nuts / sleeves (head_holes.py);
+    the legacy camera / plate / mic screws they replace are dropped."""
     import screw_plan as SP
     import head_holes as HH
     plans = HH.screw_plans()
-    names = {p["name"] for p in plans}
-    man["parts"] = [p for p in man["parts"] if p["name"] not in names]
+    import re
+    plain_spacers(man)
+    names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])}
+    # an earlier generated length of the same post: B0410_camera_M2_0 is stored as B0410_camera_M2x<L>_0
+    stale = [re.compile(re.escape(b).replace("_M2_", r"_M2(?:x[0-9p.]+)?_") + "$") for g in HH.POSTS.values() if "legacy_screws" in g for b in g["screws"]]
+    man["parts"] = [p for p in man["parts"] if p["name"] not in names and not any(r.match(p["name"]) for r in stale)]
     for pl in plans:
         pl["bom_group"] = f"{pl['group']}_{pl['thread_label']}x{pl['length_mm']:g}"
         _add_screw(man, pl)
     return plans
+
+
+def plain_spacers(man: dict) -> None:
+    """The 8 camera spacers become plain (clearance bore 2.2 mm) hex spacers of the supplier standoff's own outside size and
+    length: the screw is driven from the camera front into the carrier's threaded sleeve (owner 2026-11-22, T-5bqc3m), so
+    the spacer carries no thread. Position, hex size (across flats = the standoff's extent across its flats) and length are
+    measured on the standoff mesh in the manifest; the bore is the clearance bore of an M2 screw (the checks' 'clearance
+    hole' size: ISO 273 fine series 2.2 mm). Writes STEP + NPZ into this folder's parts/ and points the manifest entries at them."""
+    import trimesh
+    from build123d import Cylinder, Location, Polygon, Rot, Solid, export_step, extrude
+    import head_holes as HH
+    body, _ = HH._body()
+    for sp in HH.POSTS["camera"]["spacers"]:
+        e = _entry(man, sp)
+        m = body.mesh(sp)
+        lo, hi = m.bounds
+        ext = hi - lo
+        b = HH.bore(m)
+        assert b["axis"] == 1 and ext[0] > ext[2], (sp, ext, b["axis"])      # length axis y, hex corners along x
+        across_corners, af = float(ext[0]), float(ext[2])
+        bc = b["centre"]                                        # the old bore's axis: the plain spacer keeps it
+        hexa = Polygon(*[(across_corners / 2 * np.cos(np.pi / 3 * k), across_corners / 2 * np.sin(np.pi / 3 * k)) for k in range(6)], align=None)
+        prism = extrude(hexa, amount=float(ext[1])) - Cylinder(1.1, float(ext[1]) + 1.0)      # axis z, centred on the origin in x, y
+        sol = Solid((Rot(90, 0, 0) * prism).wrapped)
+        bb = sol.bounding_box()
+        sol = Solid(sol.moved(Location((float(bc[0] - (bb.min.X + bb.max.X) / 2), float(lo[1] - bb.min.Y), float(bc[2] - (bb.min.Z + bb.max.Z) / 2)))).wrapped)
+        step, npz = C.ART / "parts" / f"{sp}.step", C.ART / "parts" / f"{sp}.npz"
+        export_step(sol, str(step))
+        C.save_solid_npz(sol, npz, tol=0.05)
+        z = np.load(npz); nm = trimesh.Trimesh(z["vertices"], z["faces"], process=False)
+        e.update(native_step=_rel(step), native_step_sha256=_sha(step), mesh=_rel(npz), mesh_sha256=_sha(npz),
+                 bounds_mm=[np.round(nm.bounds[0], 3).tolist(), np.round(nm.bounds[1], 3).tolist()],
+                 volume_mm3=round(float(sol.volume), 3),
+                 neck_parts="plain hex spacer rebuilt by robot/body/neck-head/neck_parts.py (T-5bqc3m): clearance bore 2.2, outside as the supplier F-F standoff")
+        print(f"{sp}: plain spacer across flats {af:.2f} corners {across_corners:.2f} length {ext[1]:.2f}, bore 2.2, volume {sol.volume:.2f} mm3 "
+              f"(was {abs(m.volume):.2f} as meshed)")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:

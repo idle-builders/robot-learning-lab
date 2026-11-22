@@ -623,8 +623,9 @@ def stage_interface_specs() -> dict:
     s4_cam_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_cam_pts)
     s4_mic_pts = hs["mic"]
     s4_mic_norms = [np.array([1.0, 0.0, 0.0])] * len(s4_mic_pts)
-    cs, cm = HH.POSTS["compute"]["sleeve"], HH.POSTS["camera"]["sleeve"]
+    cs, cm, mm = HH.POSTS["compute"]["sleeve"], HH.sleeve("camera"), HH.sleeve("mic")
     plate_t = HH.plate_faces()[1] - HH.plate_faces()[0]
+    cam_lens, mic_lens = HH.sleeve_lens("camera"), HH.sleeve_lens("mic")
 
     return {
         "stage1_neck_root_cradle": {
@@ -727,10 +728,11 @@ def stage_interface_specs() -> dict:
                 "normal": np.array([1.0, 0.0, 0.0]),
                 "normals": s4_mic_norms,
                 "centres": s4_mic_pts,
-                "sleeve_ro": cm["ro"],
-                "sleeve_ri": cm["ri"],
-                "sleeve_len": 2.0,
-                "sleeve_lens": [(MIC_TAPER["x0"] - float(c[0])) if MIC_TAPER["z0"] <= float(c[2]) <= MIC_TAPER["z1"] else 2.0 for c in s4_mic_pts],
+                "sleeve_ro": mm["ro"],
+                "sleeve_ri": mm["ri"],
+                "sleeve_len": max(mic_lens),
+                "sleeve_lens": mic_lens,
+                "threaded": True,
                 "patch_r": 2.3,
             },
             "camera": {
@@ -740,7 +742,9 @@ def stage_interface_specs() -> dict:
                 "centres": s4_cam_pts,
                 "sleeve_ro": cm["ro"],
                 "sleeve_ri": cm["ri"],
-                "sleeve_len": plate_t,
+                "sleeve_len": max(cam_lens),
+                "sleeve_lens": cam_lens,
+                "threaded": True,
                 "patch_r": 2.3,
             },
             "aux_bores": [

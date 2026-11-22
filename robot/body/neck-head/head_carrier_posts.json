@@ -1,31 +1,148 @@
 {
- "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). The post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer (and of the terminal nut) on its mesh. group: screw family of the post; toward_plate: side of the spacer along its bore axis (oriented to +Y, the robot's back) on which the carrier plate lies; spacers / terminals / screws: manifest part names in post order (the legacy screw names stay so the assembly order and the part settings keep resolving; the screw and its length are regenerated); head: standard, thread, head dimensions and the length series the BOM already buys (ISO 10642 has no M2.5 entry in robot/body/checks/data/hardware.json, so dk / k are ISO 10642 values written here: assumption until compared with the supplier's list); sleeve: pressed-in 304 SS sleeve around the post (bore from robot/actuators/interfaces/standard-parts.json sleeve.bore_for, outer radius by the wall left at the head); terminal: where the thread bites (spacer thread half the spacer length deep from its plate end, M2 machine thread in an aluminium standoff; or the nut, depth = its thickness).",
+ "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). The post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer (and of the terminal nut) on its mesh. group: screw family of the post; toward_plate: side of the spacer along its bore axis (oriented to +Y, the robot's back) on which the carrier plate lies; spacers / terminals / screws: manifest part names in post order; legacy_screws: manifest parts the generated screws replace (dropped); head: standard and thread of the screw (dk / k / length series from robot/body/checks/data/hardware.json screw_standards; compute: ISO 10642 has no M2.5 entry there, so dk / k are ISO 10642 values written here: assumption until compared with the supplier's list); sleeve: pressed-in 304 SS sleeve around the post (compute: bore from robot/actuators/interfaces/standard-parts.json sleeve.bore_for, outer radius by the wall left at the head); terminal: where the thread bites (compute: the nut, depth = its thickness). Camera and mic posts (owner 2026-11-22, same pattern as robot/body/torso/torso_screws.py): the post ends in an internally threaded 304 steel sleeve pressed into the carrier (camera: plate front face to engagement_x_d x thread diameter, i.e. at least the plate thickness; mic: the wing, its outer end trimmed to the screw tip and to the head skin), no nut. The camera spacers (supplier F-F standoffs in the CAD, bought as plain spacers) only space the board off the plate; the ISO 4762 screw is driven from the camera front through washer, board and spacer into the sleeve. The mic screw comes from the board side. The screw is the shortest stocked length that engages the whole threaded sleeve with its tip tip_margin_mm clear of every neighbour (else the longest clear one). threads: ISO 724 M2 major / minor diameter of the sleeve's modelled bore, the same values as torso_screws.THREADS; ASSUMPTION: the repo has no supplier threaded-bushing data for M2 steel press-in sleeves of OD 3.5 mm, the thread is modelled at the minor diameter and engagement_x_d = 1.0 (steel screw in a steel thread) is assumed.",
  "groups": {
   "compute": {
    "toward_plate": "-axis",
-   "spacers": ["compute_FF4_spacer_0", "compute_FF4_spacer_1", "compute_FF4_spacer_2", "compute_FF4_spacer_3"],
-   "terminals": ["fan_bridge_nut_0", "fan_bridge_nut_1", "compute_rear_nut_2", "compute_rear_nut_3"],
-   "screws": ["compute_M2p5_CS30_0", "compute_M2p5_CS30_1", "compute_M2p5_CS10_2", "compute_M2p5_CS10_3"],
-   "head": {"standard": "ISO 10642", "thread": "M2.5", "dk": 5.0, "k": 1.25, "countersunk": true, "lengths": [10, 30]},
-   "sleeve": {"ro": 3.05, "ri": 1.4, "countersink_dia": 5.0},
+   "spacers": [
+    "compute_FF4_spacer_0",
+    "compute_FF4_spacer_1",
+    "compute_FF4_spacer_2",
+    "compute_FF4_spacer_3"
+   ],
+   "terminals": [
+    "fan_bridge_nut_0",
+    "fan_bridge_nut_1",
+    "compute_rear_nut_2",
+    "compute_rear_nut_3"
+   ],
+   "screws": [
+    "compute_M2p5_CS30_0",
+    "compute_M2p5_CS30_1",
+    "compute_M2p5_CS10_2",
+    "compute_M2p5_CS10_3"
+   ],
+   "head": {
+    "standard": "ISO 10642",
+    "thread": "M2.5",
+    "dk": 5.0,
+    "k": 1.25,
+    "countersunk": true,
+    "lengths": [
+     10,
+     30
+    ]
+   },
+   "sleeve": {
+    "ro": 3.05,
+    "ri": 1.4,
+    "countersink_dia": 5.0
+   },
    "head_side": "front"
   },
   "camera": {
    "toward_plate": "+axis",
-   "spacers": ["B0410_M2_FF5_spacer_0_v23", "B0410_M2_FF5_spacer_1_v23", "B0410_M2_FF5_spacer_2_v23", "B0410_M2_FF5_spacer_3_v23",
-               "B0196_M2_FF5_spacer_0_v23", "B0196_M2_FF5_spacer_1_v23", "B0196_M2_FF5_spacer_2_v23", "B0196_M2_FF5_spacer_3_v23"],
-   "screws": ["B0410_plate_M2x4_0", "B0410_plate_M2x4_1", "B0410_plate_M2x4_2", "B0410_plate_M2x4_3",
-              "B0196_plate_M2x4_0", "B0196_plate_M2x4_1", "B0196_plate_M2x4_2", "B0196_plate_M2x4_3"],
-   "head": {"standard": "ISO 7380-1", "thread": "M2", "lengths": [4, 5, 6]},
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "rear"
+   "spacers": [
+    "B0410_M2_FF5_spacer_0_v23",
+    "B0410_M2_FF5_spacer_1_v23",
+    "B0410_M2_FF5_spacer_2_v23",
+    "B0410_M2_FF5_spacer_3_v23",
+    "B0196_M2_FF5_spacer_0_v23",
+    "B0196_M2_FF5_spacer_1_v23",
+    "B0196_M2_FF5_spacer_2_v23",
+    "B0196_M2_FF5_spacer_3_v23"
+   ],
+   "screws": [
+    "B0410_camera_M2_0",
+    "B0410_camera_M2_1",
+    "B0410_camera_M2_2",
+    "B0410_camera_M2_3",
+    "B0196_camera_M2_0",
+    "B0196_camera_M2_1",
+    "B0196_camera_M2_2",
+    "B0196_camera_M2_3"
+   ],
+   "head": {
+    "standard": "ISO 4762",
+    "thread": "M2"
+   },
+   "sleeve": {
+    "ro": 1.75,
+    "thread": "M2",
+    "engagement_x_d": 1.0
+   },
+   "head_side": "rear",
+   "washers": [
+    "B0410_camera_washer_0",
+    "B0410_camera_washer_1",
+    "B0410_camera_washer_2",
+    "B0410_camera_washer_3",
+    "B0196_camera_washer_0",
+    "B0196_camera_washer_1",
+    "B0196_camera_washer_2",
+    "B0196_camera_washer_3"
+   ],
+   "legacy_screws": [
+    "B0410_plate_M2x4_0",
+    "B0410_plate_M2x4_1",
+    "B0410_plate_M2x4_2",
+    "B0410_plate_M2x4_3",
+    "B0410_camera_M2x4_0",
+    "B0410_camera_M2x4_1",
+    "B0410_camera_M2x4_2",
+    "B0410_camera_M2x4_3",
+    "B0196_plate_M2x4_0",
+    "B0196_plate_M2x4_1",
+    "B0196_plate_M2x4_2",
+    "B0196_plate_M2x4_3",
+    "B0196_camera_M2x4_0",
+    "B0196_camera_M2x4_1",
+    "B0196_camera_M2x4_2",
+    "B0196_camera_M2x4_3"
+   ]
   },
   "mic": {
    "toward_plate": "+axis",
-   "spacers": ["mic_side_shim_0", "mic_side_shim_1"],
-   "screws": ["mic_side_M2x4_lowhead_0", "mic_side_M2x4_lowhead_1"],
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "front"
+   "spacers": [
+    "mic_side_shim_0",
+    "mic_side_shim_1"
+   ],
+   "screws": [
+    "mic_side_M2_0",
+    "mic_side_M2_1"
+   ],
+   "sleeve": {
+    "ro": 1.75,
+    "thread": "M2",
+    "wing_thickness": 2.0
+   },
+   "head_side": "front",
+   "legacy_screws": [
+    "mic_side_M2x4_lowhead_0",
+    "mic_side_M2x4_lowhead_1"
+   ],
+   "head": {
+    "standard": "ISO 7380-1",
+    "thread": "M2",
+    "lengths": [
+     3,
+     4,
+     5,
+     6
+    ]
+   },
+   "clamped": [
+    "microphone_6049_v23",
+    "mic_side_shim_0",
+    "mic_side_shim_1"
+   ]
   }
- }
+ },
+ "threads": {
+  "_doc": "ISO 724 M2: major 2.0, minor 1.567 (the threaded sleeve's modelled bore); same as torso_screws.THREADS (T-bv7bwe). Assumption: no supplier data for M2 threaded press-in sleeves in the repo.",
+  "M2": {
+   "major": 2.0,
+   "minor_dia": 1.567
+  }
+ },
+ "tip_margin_mm": 0.3
 }

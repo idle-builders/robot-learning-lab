@@ -166,8 +166,11 @@ def build(manifest_path, hardware_json=None):
             sleeve_parts[n] = (c, sizes)
             for sz, k in (sizes or {}).items():
                 lid = "sleeve:" + sz.replace(" ", "")
-                meta.setdefault(lid, dict(id=lid, name=f"304 steel compression sleeve {sz} mm (outer x inner x length)", make_buy="buy",
-                                          _from="generated: sleeve size from the connector's sleeve STEP"))
+                # a lines.json line with this exact id (no match / roles) describes the size (e.g. internally threaded sleeves)
+                hl = next((l for l in lines_doc.get("lines", []) if l["id"] == lid and not (l.get("match") or l.get("roles") or l.get("motor"))), None)
+                meta.setdefault(lid, dict(hl, _from="lines.json") if hl else
+                                dict(id=lid, name=f"304 steel compression sleeve {sz} mm (outer x inner x length)", make_buy="buy",
+                                     _from="generated: sleeve size from the connector's sleeve STEP"))
                 groups[lid].append(n); sleeve_qty[lid] += k
             if not sizes:
                 lid = f"sleeve:uncounted:{n}"
