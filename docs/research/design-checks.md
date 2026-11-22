@@ -503,9 +503,9 @@ skipped pairs are now placed: Stage 1's old bores there (dia 3.98) are filled ou
 size drilled at the new sites, the old clearance sleeve solids dropped and threaded sleeves added (Stage 1 body edited from the
 shell-pass STEP here; no chain script yet). All 6 rail pairs: M2.5 x 10 ISO 4762, threaded sleeve M2.5 3.9 OD x 3.0 (span
 y 32.1-35.1), head on the carrier face (flush sleeve end, y 42.0, head seat gap 0.0), engagement 3.0 mm in the plan (2.75
-mount_check), tip 0.1 mm past the sleeve exit, 2.0 mm to cells / fins. Carrier rail holes carry full-thickness flush clearance
+mount_check), tip 0.1 mm past the sleeve exit, rail screws 1.10 mm from the cells (reviewer measurement; not 2.0). Carrier rail holes carry full-thickness flush clearance
 sleeves (y 35.4-42.0, bore 2.6). The 8 board screws: M2 PA2 x 6 into printed pilots (dia 1.6) in bosses on the plate's rear
-face, engagement 3.93 (IMU) / 4.17-4.25 (ADC) of 4.0, tip margin 0.62 / 0.38 mm. Measured on the shoulder-u manifest, main
+face, engagement 3.93 (IMU) / 4.17-4.25 (ADC) of 4.0, pilot depth left past the tip 0.62 / 0.38 mm (that is the pilot, not a clearance; the ADC tips are 0.108 mm from fins 02/03, the IMU tips 0.39 / 0.44 mm). Measured on the shoulder-u manifest, main
 (dbe8201ca) -> this branch: screws 28 -> 30, gaps > 0.05 mm 28 -> 18, sleeves without screw 23 -> 19, engagement shortfall
 8 -> 8 (shoulder), hole offset > 0.1 mm 0 -> 0; carrier press: sleeves 14 -> 6, tool obstruction 6 -> 0, anvil 14 -> 0,
 counter support < 90 % 4 -> 6 (flat 60 % at the 5.6 mm rail end), free depth 0 -> 40 mm; carrier walls min 0.81 -> 0.81 mm;
