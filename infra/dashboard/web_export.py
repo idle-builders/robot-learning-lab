@@ -163,6 +163,8 @@ class Index:
                 rows = current(api.get("/api/results", dashboard=dashboard))
                 if dashboard == "design":  # the selected study of each section, nothing else
                     chosen = set(api.get("/api/design-selection").values())
+                    # studies the owner wants to review remotely before selecting them (robot/design.json "remote_review")
+                    chosen |= set(json.loads((ROOT / "robot/design.json").read_text()).get("remote_review") or [])
                     rows = [row for row in rows if row.get("study_id") in chosen]
                 self.manifest["lists"][dashboard] = self.write_json("list", dashboard, rows)
                 for row in rows:
