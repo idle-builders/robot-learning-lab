@@ -456,6 +456,36 @@ cells 02-05: axis free about 3 mm at r <= 1.2 mm, cell or pocket wall at r 2.0 m
 Fastening them needs a design choice (threaded insert instead of the stage-1 steel sleeve, bores moved off the cells,
 or another joint); the cradle's two sleeves at x +-16, z 252 have no partner on their axis.
 
+Threaded stage-1 sleeves (owner 2026-11-22, T-bv7bwe; `robot/body/torso/torso_screws.py build`, chain step `torso-screws`).
+The stage-1 sleeve of each pair becomes an internally threaded 304 sleeve of the same outer diameter and length (press fit
+unchanged); screw from the carrier side, no nut; the shortest ISO 4762 length that fully engages the threaded sleeve with
+its tip 0.3 mm clear of the cells, fins and boards; head seated on the outermost surface under it. Placed 8 of 16:
+| pairs | screw | threaded sleeve | engagement (plan / mount_check) | tip past sleeve | tip margin to cells |
+|---|---|---|---|---|---|
+| cradle rear x +-11.2, +-33.6 (4) | M2 x 8 | M2, 3.3 OD x 2.8 | 2.8 / 2.75 mm | 1.85 mm | 0.95 mm |
+| stage 4 x -33.6, +11.2, z 304 / 335 (4) | M2.5 x 10 | M2.5, 3.9 OD x 3.0 | 3.0 / 2.75 mm | 0.2 mm | 1.9 mm |
+Skipped (recorded in `records.json` `interface_joints`): the 6 front pairs (cradle x +-17, stage 3 x +-17): the existing
+stage-1 sleeves overlap cells 06 / 07 by 10.2 mm3 each side (exact mesh boolean; the chassis itself 0), only 1.9 / 2.3 of
+3.8 mm of the sleeve is 0.3 mm clear; and stage 4 x -11.2 z 304 / 335: a 4.5 x 2.5 mm head on the carrier face meets the
+IMU / ADC board 0.45 mm above it. The printed carrier faces stand 0.10 mm (cradle) and 0.35 mm (stage 4) proud of the
+clearance sleeve ends, so the heads bear on PAHT-CF, not on the sleeve. The stage-1 sleeve part is now the shell-pass
+STEP minus the 8 threaded positions (41 -> 33; its shoulder pitch sleeves stay at x +-42.4, not common.py's +-30.4).
+The cradle sleeves at x +-16, z 252 are the cradle half of the front-shell lower mount (boss present, about 50 % ring
+cover); the front shell's posts and its M2x10 screws sit at z 224, where the cradle has neither boss nor sleeve: a
+centre-front-shell design item, not a leftover.
+
+Checks, scoped `--parts 'combined__stage[1-4]_*'`, before -> after: connectivity contact-only break points 38 -> 35,
+parts reaching the core by contact only 153 -> 147, screw edges 172 -> 177 (cradle and stage 4 now screwed to stage 1),
+isolated 2 -> 2, groups 3 -> 3; screws 26 -> 34, engagement shortfall 8 -> 8 (none of the new ones), hole offset > 0.1 mm
+0 -> 0 (new: <= 0.002 mm), head seat gap of the new screws 0.0 mm, sleeves without screw 48 -> 32, screws with a clamp gap
+> 0.05 mm 20 -> 28 (the 8 new: stage-4 carrier to chassis 0.05-4.0 mm, cradle to chassis 0.05 mm, existing carrier
+geometry); bom lines 191 -> 195 (M2 x 8 ISO 4762 x4, M2.5 x 10 ISO 4762 x4, two threaded sleeve lines x4 each, supplier
+unknown), quantity differences 0 -> 0, sleeves in CAD 276 -> 266 (STEP count 274 -> 266); press: sleeves with support
+< 90 % 51 -> 43 and tool obstruction 41 -> 33 (the 8 removed clearance sleeves; the threaded sleeves are not in `press`,
+which reads only `*_steel_sleeves` parts); fit_class and gaps unchanged (67 pairs, 2 standing overlaps). `mount_check`
+lists the chassis as a clamped hole without sleeve for the new screws: it links sleeves to parts by the `_steel_sleeves`
+name only.
+
 ## Elephant foot and clearance per fit class (2026-11-19)
 
 `elephant_foot` slices each printed part in its print frame at 0.5 mm above the bed (mesh profile, not B-rep: it reads a

@@ -67,7 +67,8 @@ MANIFEST_CHAIN = [
 PRINTED_ROLES = {"printed_structural_connector", "printed_structural_carrier", "body_shell", "produced_backing",
                  "produced_holder", "manufactured", "insulating_mount_spacer"}
 HARDWARE_ROLES = {"fastener", "standard_fastener_reference", "nominal_fastener", "fastener_proxy", "standard_nominal",
-                  "nominal_hardware", "compression_limit_sleeves", "spacer", "case_mount_spacer", "bearing"}
+                  "nominal_hardware", "compression_limit_sleeves", "spacer", "case_mount_spacer", "bearing",
+                  "threaded_sleeve"}
 PURCHASED_ROLES = {"motor", "output", "output_horn", "horn", "actuator", "battery_cell", "purchased_module",
                    "candidate_sensor", "supplier_native", "source_power_board", "purchased_servo_output_family_reference",
                    "purchased_servo_case_family_reference"}
