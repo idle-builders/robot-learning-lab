@@ -534,7 +534,19 @@ def s_concurrent(sid):
 
 
 # ------------------------------------------------------------------------------------------------ main
+def load_scenario_modules():
+    """Scenario modules in checks/scenarios/ (one per area, so parallel work on different checks never edits this file)."""
+    import importlib
+    import pkgutil
+    sys.modules.setdefault("evaluate", sys.modules[__name__])
+    sys.path.insert(0, str(ROOT / "robot/body/checks"))
+    import scenarios
+    for m in pkgutil.iter_modules(scenarios.__path__):
+        importlib.import_module(f"scenarios.{m.name}")
+
+
 def main():
+    load_scenario_modules()
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only")
     ap.add_argument("--group")
