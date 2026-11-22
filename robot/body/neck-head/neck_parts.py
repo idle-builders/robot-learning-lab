@@ -40,11 +40,13 @@ DH = _own("defined_holes", "neck_head_defined_holes")
 
 ROOT = C.ROOT
 STAGE = {"neck_root_cradle": "stage1_neck_root_cradle", "neck_yaw_to_pitch_link": "stage2_neck_yaw_to_pitch_link",
-         "neck_pitch_to_head_cradle": "stage3_neck_pitch_to_head_cradle"}
+         "neck_pitch_to_head_cradle": "stage3_neck_pitch_to_head_cradle",
+         "head_sensor_compute_carrier": "stage4_head_sensor_compute_carrier"}
 STEEL_G_MM3 = 7.85e-3
 LEGACY = {"neck_root_cradle": ("neck_root_M2x6_", "neck_root_M2_washer_"),
           "neck_yaw_to_pitch_link": ("neck_yaw_horn_M2x5_", "neck_pitch_horn_M2x5_"),
-          "neck_pitch_to_head_cradle": ("neck_head_M2x5_", "neck_head_M2_washer_")}
+          "neck_pitch_to_head_cradle": ("neck_head_M2x5_", "neck_head_M2_washer_"),
+          "head_sensor_compute_carrier": ()}
 
 
 def _sha(f: Path) -> str:
@@ -143,29 +145,50 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
             h["depth_mm"] = min(h["depth_mm"], h["drawing_max_tap_depth_mm"])
     plans = []
     for conn in connectors:
+        if conn == "head_sensor_compute_carrier":
+            plans += head_screws(man)
+            continue
         for pl in SP.plan_connector(body, iface, conn, "", spec=DH.connectors()[conn]):
-            m = SP.screw_mesh(pl)
-            nm = pl["name"]
-            f = C.ART / "parts" / f"{nm}.npz"
-            _npz(m, f)
-            lbl = f"{pl['thread_label']}x{pl['length_mm']:g}"
-            man["parts"].append(dict(
-                name=nm, physical_part_id=nm, bom_group=pl["bom_group"], owning_link=pl["owning_link"], role="fastener_proxy",
-                mesh=_rel(f), mesh_sha256=_sha(f), mesh_units="mm",
-                bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
-                volume_mm3=round(float(m.volume), 3), mass_kg=round(float(m.volume) * STEEL_G_MM3 / 1000.0, 7),
-                material=f"{pl['head_standard']} {lbl} into {pl['hole_id'].split(':')[1]} ({pl['terminal_material']}); head dia "
-                         f"{pl['head_dia_mm']} x {pl['head_height_mm']}, shank dia {pl['thread'].lstrip('M')}, {pl['point_mm']} mm point (envelope)",
-                color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
-                overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly", inspection_reference=False,
-                mass_basis="mesh volume x 7.85 g/cm3",
-                screw_plan={k: (round(float(v), 3) if isinstance(v, (float, np.floating)) else v) for k, v in pl.items()
-                            if k in ("hole_id", "thread_label", "head_standard", "length_mm", "stack_mm", "head_gap_mm", "engagement_mm",
-                                     "reference_engagement_mm", "hole_depth_mm", "tip_margin_mm", "shortfall_mm", "overrun_mm",
-                                     "stack_change_to_fit_mm")}))
-            plans.append(pl)
-            print(f"{nm}: {lbl} into {pl['hole_id']}: stack {pl['stack_mm']}, engagement {pl['engagement_mm']} of {pl['reference_engagement_mm']}, tip margin {pl['tip_margin_mm']}")
+            plans.append(_add_screw(man, pl))
     return plans
+
+
+def head_screws(man: dict) -> list[dict]:
+    """The head carrier's 12 compute / camera screws generated from the supplier spacers / nuts (head_holes.py)."""
+    import screw_plan as SP
+    import head_holes as HH
+    plans = HH.screw_plans()
+    names = {p["name"] for p in plans}
+    man["parts"] = [p for p in man["parts"] if p["name"] not in names]
+    for pl in plans:
+        pl["bom_group"] = f"{pl['group']}_{pl['thread_label']}x{pl['length_mm']:g}"
+        _add_screw(man, pl)
+    return plans
+
+
+def _add_screw(man: dict, pl: dict) -> dict:
+    import screw_plan as SP
+    m = SP.screw_mesh(pl)
+    nm = pl["name"]
+    f = C.ART / "parts" / f"{nm}.npz"
+    _npz(m, f)
+    lbl = f"{pl['thread_label']}x{pl['length_mm']:g}"
+    man["parts"].append(dict(
+        name=nm, physical_part_id=nm, bom_group=pl["bom_group"], owning_link=pl["owning_link"], role="fastener_proxy",
+        mesh=_rel(f), mesh_sha256=_sha(f), mesh_units="mm",
+        bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
+        volume_mm3=round(float(m.volume), 3), mass_kg=round(float(m.volume) * STEEL_G_MM3 / 1000.0, 7),
+        material=f"{pl['head_standard']} {lbl} into {pl['hole_id'].split(':')[1]} ({pl['terminal_material']}); head dia "
+                 f"{pl['head_dia_mm']} x {pl['head_height_mm']}, shank dia {pl['thread'].lstrip('M')}, {pl['point_mm']} mm point (envelope)",
+        color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
+        overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly", inspection_reference=False,
+        mass_basis="mesh volume x 7.85 g/cm3",
+        screw_plan={k: (round(float(v), 3) if isinstance(v, (float, np.floating)) else v) for k, v in pl.items()
+                    if k in ("hole_id", "thread_label", "head_standard", "length_mm", "stack_mm", "head_gap_mm", "engagement_mm",
+                             "reference_engagement_mm", "hole_depth_mm", "tip_margin_mm", "shortfall_mm", "overrun_mm",
+                             "stack_change_to_fit_mm")}))
+    print(f"{nm}: {lbl} into {pl['hole_id']}: stack {pl['stack_mm']:.3f}, engagement {pl['engagement_mm']} of {pl['reference_engagement_mm']}, tip margin {pl['tip_margin_mm']}")
+    return pl
 
 
 def main() -> None:

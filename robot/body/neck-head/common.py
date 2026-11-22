@@ -542,6 +542,10 @@ def cyl_along(pt, direction, r: float, length: float):
 # engagement with the tip inside the hole (screw_plan.choose_length): the case M2 holes are 1.8 mm deep from a seat 0.2 mm
 # outside the opening, so a 2.5 mm sleeve takes M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
 # reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6).
+# Head-skin taper cut of the microphone wing's top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it
+MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 471.8}
+
+
 def stage_interface_specs() -> dict:
     """Return exact hole centers, per-hole outward normals, and pressed-in 304 SS compression sleeve specifications
     for all 4 Neck & Head connector stages:
@@ -610,24 +614,17 @@ def stage_interface_specs() -> dict:
     ]
     s4_sup_norms = [np.array([0.0, 1.0, 0.0])] * 2
 
-    s4_load_pts = [
-        # 4x ROCK4D M2.5 compute posts
-        np.array([17.6677, -12.9, 425.8503]),
-        np.array([17.6647, -12.9, 474.8643]),
-        np.array([-40.3223, -12.9, 425.8613]),
-        np.array([-40.3133, -12.9, 474.8483]),
-        # 4x B0410 M2 camera posts
-        np.array([-36.0, -12.9, 441.0]),
-        np.array([-36.0, -12.9, 471.0]),
-        np.array([-6.0, -12.9, 441.0]),
-        np.array([-6.0, -12.9, 471.0]),
-        # 4x B0196 M2 camera posts
-        np.array([7.0, -12.9, 444.1662]),
-        np.array([7.0, -12.9, 472.1662]),
-        np.array([35.0, -12.9, 444.1662]),
-        np.array([35.0, -12.9, 472.1662]),
-    ]
-    s4_load_norms = [np.array([0.0, 1.0, 0.0])] * 12
+    # compute, camera posts: bores of the supplier spacers / nuts (head_holes.py, T-5bqc3m)
+    import head_holes as HH
+    hs = HH.sites()
+    s4_load_pts = hs["compute"]
+    s4_cam_pts = hs["camera"]
+    s4_load_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_load_pts)
+    s4_cam_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_cam_pts)
+    s4_mic_pts = hs["mic"]
+    s4_mic_norms = [np.array([1.0, 0.0, 0.0])] * len(s4_mic_pts)
+    cs, cm = HH.POSTS["compute"]["sleeve"], HH.POSTS["camera"]["sleeve"]
+    plate_t = HH.plate_faces()[1] - HH.plate_faces()[0]
 
     return {
         "stage1_neck_root_cradle": {
@@ -719,18 +716,37 @@ def stage_interface_specs() -> dict:
                 "normal": np.array([0.0, 1.0, 0.0]),
                 "normals": s4_load_norms,
                 "centres": s4_load_pts,
-                "sleeve_ro": 3.05,
-                "sleeve_ri": 2.52,
-                "sleeve_len": 1.5,
+                "sleeve_ro": cs["ro"],
+                "sleeve_ri": cs["ri"],
+                "countersink_dia": cs["countersink_dia"],
+                "sleeve_len": plate_t,
                 "patch_r": 3.3,
+            },
+            "mic": {
+                "name": "microphone_posts",
+                "normal": np.array([1.0, 0.0, 0.0]),
+                "normals": s4_mic_norms,
+                "centres": s4_mic_pts,
+                "sleeve_ro": cm["ro"],
+                "sleeve_ri": cm["ri"],
+                "sleeve_len": 2.0,
+                "sleeve_lens": [(MIC_TAPER["x0"] - float(c[0])) if MIC_TAPER["z0"] <= float(c[2]) <= MIC_TAPER["z1"] else 2.0 for c in s4_mic_pts],
+                "patch_r": 2.3,
+            },
+            "camera": {
+                "name": "camera_posts",
+                "normal": np.array([0.0, 1.0, 0.0]),
+                "normals": s4_cam_norms,
+                "centres": s4_cam_pts,
+                "sleeve_ro": cm["ro"],
+                "sleeve_ri": cm["ri"],
+                "sleeve_len": plate_t,
+                "patch_r": 2.3,
             },
             "aux_bores": [
                 # 2x M2 radial head skin screw bores at X = ±44.0..45.5, Y = -14.9, Z = 451.0
                 {"pt": np.array([45.5, -14.9, 451.0]), "normal": np.array([-1.0, 0.0, 0.0]), "ri": 1.05, "length": 1.8, "driver_dir": np.array([1.0, 0.0, 0.0])},
                 {"pt": np.array([-45.5, -14.9, 451.0]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.05, "length": 1.8, "driver_dir": np.array([-1.0, 0.0, 0.0])},
-                # 2x M2 microphone side screw bores at X = 46.97..48.97, Y = 2.338, Z in {458.285, 469.715}
-                {"pt": np.array([46.97, 2.338, 458.285]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.05, "length": 2.2, "driver_dir": np.array([-1.0, 0.0, 0.0])},
-                {"pt": np.array([46.97, 2.338, 469.715]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.05, "length": 2.2, "driver_dir": np.array([-1.0, 0.0, 0.0])},
                 # 1x Ø2.5 mm acoustic port relief at X = 46.97..48.97, Y = 0.0, Z = 464.0
                 {"pt": np.array([46.97, 0.0, 464.0]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.25, "length": 2.2, "driver_dir": None},
             ],
@@ -740,25 +756,25 @@ def stage_interface_specs() -> dict:
 
 def build_stage_sleeves(stage_key: str) -> list[dict]:
     """Build all pressed-in 304 stainless steel compression sleeves for `stage_key`."""
-    from build123d import Box, Pos, Rot, Solid
+    from build123d import Box, Plane, Pos, Rot, Solid
 
     specs = stage_interface_specs()[stage_key]
     out = []
-    for role_key in ("support", "load"):
+    for role_key in [r for r in ("support", "load", "camera", "mic") if r in specs]:
         grp = specs[role_key]
         norms = grp.get("normals", [grp["normal"]] * len(grp["centres"]))
         ro = float(grp["sleeve_ro"])
         ri = float(grp["sleeve_ri"])
-        h = float(grp["sleeve_len"])
         for idx, (pt, d) in enumerate(zip(grp["centres"], norms)):
+            h = float(grp["sleeve_lens"][idx]) if "sleeve_lens" in grp else float(grp["sleeve_len"])
             outer = cyl_along(pt, d, ro, h)
             inner = cyl_along(pt - 0.05 * d, d, ri, h + 0.10)
             slv = Solid((outer - inner).wrapped)
-            # D-flat the upper-left compute spacer sleeve at (-40.31, -12.90, 474.85) along the head-skin chamfer & left wall
-            if stage_key == "stage4_head_sensor_compute_carrier" and float(pt[0]) < -38.0 and float(pt[2]) > 472.0:
-                c_dflat = Pos(-40.5, -12.15, 475.0) * Rot(0, 45, 0) * Box(10.0, 4.0, 5.0)
-                c_xflat = Pos(-45.05, -12.15, 474.85) * Box(4.0, 4.0, 8.0)
-                slv = Solid((slv - c_dflat - c_xflat).wrapped)
+            if grp.get("countersink_dia"):      # 90 deg countersink for the countersunk head, from the sleeve's head end
+                R0 = float(grp["countersink_dia"]) / 2.0
+                depth = min(h, R0 - ri)
+                cone = Solid.make_cone(R0 + 0.05, ri, depth + 0.05, Plane(origin=tuple(float(x) for x in pt - 0.05 * d), z_dir=tuple(float(x) for x in d)))
+                slv = Solid((slv - cone).wrapped)
             # D-flat the Stage 4 neck root sleeves at (0, -12.9, 413/419) to X <= 2.50 mm and Z-midplane 416.0 mm
             if stage_key == "stage4_head_sensor_compute_carrier" and role_key == "support":
                 c_rflat = Pos(4.50, -12.15, float(pt[2])) * Box(4.0, 4.0, 8.0)
