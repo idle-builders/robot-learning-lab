@@ -12,7 +12,7 @@ check of the target (robot/design.json body_manifest). This script
              __file__, so every output lands inside the copy.
   --dry-run  lists the steps and checks that every declared input resolves (on disk, through infra/storage/path-moves.json,
              or as a file an earlier step writes) without running anything.
-  --step ID  runs one step in the copy under infra/tools/memguard.py (waits while the heavy-job budget is full: 4 jobs or 24 GB of caps).
+  --step ID  runs one step in the copy under infra/tools/memguard.py (memguard waits for a slot in the heavy-job budget itself).
   run        runs every step from --from ID (default the first) in order and stops at the first failure.
   compare    compares the copy's manifests with the main checkout's live ones (the final one also records whether the
              selected manifest changed since the snapshot taken at setup): part names added / removed, native STEP and mesh sha256 (raw and content: STEP
@@ -261,10 +261,9 @@ def load_runs():
 
 def run_step(sid: str) -> int:
     s = next(x for x in CHAIN["steps"] if x["id"] == sid)
-    t_wait = time.time()
-    while budget_full(float(s.get("limit_gb", CHAIN["memguard"]["limit_gb"]))):
-        time.sleep(15)
-    waited = time.time() - t_wait
+    # memguard itself waits for a slot in the shared budget (registry ~/.cache/memguard, real jobs only); a wait loop here
+    # counted every waiting memguard wrapper as a running job and never started under load (2026-11-22)
+    waited = 0.0
     mg = CHAIN["memguard"]
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(s.get("limit_gb", mg["limit_gb"])),
            "--timeout-s", str(s.get("timeout_s", mg["timeout_s"])), "--"] + s["command"]
