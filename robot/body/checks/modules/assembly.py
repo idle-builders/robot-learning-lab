@@ -23,8 +23,10 @@ the seat-overlapping parts let go; = max_mm when they never do). Thin
 obstacles thinner than the sample step can be stepped over.
 Screw step: driver path (driver_access.measure_screw: tool blade cylinder from the head outward, data/tools.json) against the
 parts assembled at that step only; `closed_in_by` lists parts named later (this assembly's later steps and every later
-assembly) that would block the same path (body shells going on later over it are listed apart, `covered_later_by`: covering
-screws is what a cover does). Also per screw the parts it touches that are not assembled yet at its step.
+assembly) that would block the same path within the driver's reach (data/tools.json path min_length_mm from the head: the blade
+and the hand behind it, as driver_access's first-length obstruction), with their distance from the head (`closed_in_from_mm`);
+later parts further out on the path are listed apart with their distance (`closed_in_beyond_reach`); body shells going on later
+over it are listed apart, `covered_later_by`: covering screws is what a cover does). Also per screw the parts it touches that are not assembled yet at its step.
 Screws are the parts a definition declares as hardware with spec kind screw. Coverage, whole body (every manifest part, the raw manifest including parts without a
 mesh): parts (non-hardware solids, sleeves included), screws, and other hardware (nuts, washers, spacers, inserts) that no
 assembly names; per assembly the same on its own links. Measurements and counts only."""
@@ -395,9 +397,13 @@ class Walker:
                     if "error" not in r:
                         new = {b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])}
                         cover = {n for n in new if parts[n].get("role") == COVER_ROLE}     # a cover going on over its screws is the order working
-                        r["closed_in_by"] = sorted(new - cover)
+                        dist = {b["part"]: b["from_mm"] for b in rl.get("by_part", []) if b["part"] in new - cover}
+                        reach = self.tdata["path"]["min_length_mm"]                       # a part further out is passed by tilting the driver
+                        r["closed_in_by"] = sorted(n for n, d in dist.items() if d <= reach)
+                        r["closed_in_from_mm"] = {n: dist[n] for n in r["closed_in_by"]}
+                        r["closed_in_beyond_reach"] = {n: d for n, d in sorted(dist.items(), key=lambda t: t[1]) if d > reach}
                         r["covered_later_by"] = sorted(cover)
-                        r["closed_in_mm3"] = round(sum(b["mm3"] for b in rl.get("by_part", []) if b["part"] in new - cover), 3)
+                        r["closed_in_mm3"] = round(sum(b["mm3"] for b in rl.get("by_part", []) if b["part"] in r["closed_in_by"]), 3)
                     r["touches_not_yet_assembled"] = [n for n in info["touched"] if n not in assembled]
                     screws[k] = r
                 ok = [r for r in screws.values() if "error" not in r]
@@ -406,6 +412,7 @@ class Walker:
                            first_part=next((r["first_part"] for r in ok if r["first_part"]), None),
                            obstruction_within_min_length_mm3=max([r["obstruction_within_min_length_mm3"] for r in ok], default=0.0),
                            closed_in_by=sorted({p for r in ok for p in r.get("closed_in_by", [])}),
+                           closed_in_beyond_reach=sorted({p for r in ok for p in r.get("closed_in_beyond_reach", {})}),
                            covered_later_by=sorted({p for r in ok for p in r.get("covered_later_by", [])}),
                            touches_not_yet_assembled=sorted({p for r in screws.values() for p in r["touches_not_yet_assembled"]}),
                            screw_errors={k: r["error"] for k, r in screws.items() if "error" in r})
