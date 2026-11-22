@@ -130,7 +130,9 @@ STEP_ROLES = {"printed_structural_connector": 0.0, "printed_structural_carrier":
 # (ST3025 "motor" STEPs hold the housing as 11 pieces, only one over 4000 mm3: screen_solid then retries with every solid)
 
 
-SOLID_VERSION = "v2"   # 2026-11-19: the part's own closed mesh before any voxel fill; STEP retried with all solids and
+SOLID_VERSION = "v3"   # 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
+                       # had been remembered as an unusable STEP); v2 entries are ignored.
+                       # v2 (2026-11-19): the part's own closed mesh before any voxel fill; STEP retried with all solids and
                        # coarser on a fresh import. Older not-usable entries were written by v1 and are ignored.
 
 
@@ -166,11 +168,12 @@ def screen_solid(body, n, changed):
     # an unscoped run scopes every part, so it never finished (T-c4sy9d, 2026-11-20); those take the coarse path
     fine = n in changed and not (step and role not in STEP_ROLES and _mb(step) > FINE_STEP_MAX_MB)
     tol = 0.03 if fine else 0.1                     # unchanged parts: coarser screening mesh, faster sweep
+    step_why = None                                 # why the STEP is not the screening solid: named in the solid's `how`
     if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
         fail_key = f"{SOLID_VERSION}:{n}:{sha(BL.src(step))[:16]}:{tol}"
         failed = _failed()
         if fail_key in failed and n not in changed:
-            step = None
+            step, step_why = None, failed[fail_key]
     if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
         b = np.array(p["bounds_mm"], float)
         why = None
@@ -192,7 +195,14 @@ def screen_solid(body, n, changed):
                 t_used = m.metadata.get("tol", tol)
                 return m, f"native STEP tessellation ({t_used} mm)" + (" housing solids" if mins else "")
             why = f"frame or manifold mismatch (solids >= {mins:g} mm3)"
-        _failed(fail_key, why)
+            if m is not None and len(m.faces) and m.bounds is not None:
+                d = np.asarray(m.bounds, float) - b
+                if np.abs(d[0] - d[1]).max() < 0.05 and np.abs(d[0]).max() > 0.5:   # every face of the box moved alike
+                    why = (f"the STEP is the manifest mesh's shape moved by {np.round(d[0], 2).tolist()} mm (all six box faces alike): "
+                           "a placement or native_step_offset_mm to fix in its builder")
+        if not str(why).startswith(("TypeError", "AttributeError", "NameError", "KeyError", "ImportError", "ModuleNotFoundError")):
+            _failed(fail_key, why)          # a property of the STEP: remembered; a tool exception is retried next run
+        step_why = why
         print(f"  {n}: STEP solid not used ({why}); mesh solid instead (remembered)", flush=True)
     mesh_file = BL.src(p["mesh"])
     p["mesh_sha256"] = sha(mesh_file)               # key roll_flip_checks' solid cache by the actual file
@@ -201,7 +211,8 @@ def screen_solid(body, n, changed):
         full = full.copy(); full.invert()
     if len(full.faces) and kit.mf(full).status().name == "NoError" and not kit.mf(full).is_empty():
         s = R.slim(full, 40000)
-        return s, "closed CAD mesh" + (" (decimated within 1.5 % of its volume)" if len(s.faces) < len(full.faces) else "")
+        return s, ("closed CAD mesh" + (" (decimated within 1.5 % of its volume)" if len(s.faces) < len(full.faces) else "")
+                   + (f"; STEP not used: {step_why}" if step_why else ""))
     s = R.closed(body, n)
     if s.volume < 0:                                # inside-out cached solid (center_front_shell): manifold3d would see it empty
         s = s.copy(); s.invert()
