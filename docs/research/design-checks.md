@@ -783,6 +783,16 @@ fasteners, fem), run with `evaluate.py`. Before -> after, measured:
 | bonded / co-printed edge (T-5ptw44) | `joined` edge from `joined_to` on a definition entry; waits for the schema property and the chest indicator's entry (BOM session's files) |
 | FEM released members, empty patch, progress, collars (T-r922sr) | two released idler members: 324 -> 654 nodes released (results = stored setup); singular matrix -> a named error in 0.2 s; 131 s silent -> a line at most every 13.5 s; collars from the bore (head carrier ratio 3.58 -> 3.57: its bores equal the sleeve OD) |
 
+Integrated run on the merged code (all 44 truth / robust scenarios of every area in two shards in a fresh worktree, under
+load 15-30 from other sessions' jobs): it found one real defect the per-area runs had not: `mass` took the solid centroid of any
+part another check had loaded in the same process, so mass alone and mass after gaps / clearance differed and the result cache
+served one for the other (cache-stale-hunt: 2 stale results); fixed (d37241152), then 0 stale and `check-context-independence`
+gives identical results for each light check alone and grouped. Three checks stalled for 970-1010 s once (geometry, clearance,
+screws on the fan plate) and took 4-16 s when rerun at once; the stack named plain computation each time; each check now
+reports its CPU seconds next to its wall seconds (`cpu_s`), so the next stall says whether it computed or waited. The first
+whole-body run after the solid v3 bump took 1547 s (scoped solids 804 s: the earlier rejections re-evaluated once); the next
+365 s (CPU equal to wall; geometry 56 -> 79 s for the mesh-only parts and the exact sleeve overlaps).
+
 Left with their owners: stale load-path slice ranges (shoulder), the `joined_to` schema property (BOM), shoulder_clevis._density
 still reading part_settings.json (shoulder: the selected body cannot be regenerated at HEAD), seeded single-horn assembly steps
 (BOM), the ankle-coupler hole stopgap (lower leg), the clamp width vs clamped part measurement (hip: proposed).
