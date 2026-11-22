@@ -6,7 +6,7 @@
 # assembly_order.json; part ownership by the generator whose output folder holds the part's file.
 schema: cove50-body-definition/1
 definition: held-parts
-owner: (set by the owning session)
+owner: "session Fix floating parts (claude/opus-5.5), Idle T-3npyjq"
 generators:
 - id: held-parts
   command:
