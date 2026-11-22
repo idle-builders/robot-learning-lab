@@ -46,6 +46,7 @@ DEFAULT_RES = dict(limit_gb=6, timeout_s=900)
 # would invalidate every entry whenever any session uploads anything (same rule as checks/resultcache.py)
 IGNORE_READS = ("infra/tools/memguard.py", "data/private-archive.json", "data/regenerable-artifacts.json", "data/blob-store")
 TMP_SUFFIX = (".gc-tmp", ".tmp", ".part")
+WRITABLE = "artifacts/robot/body"      # where generators write; snapshotted around every run
 
 
 def generators(run_sections=()):
@@ -93,7 +94,9 @@ def covers(root, path):
 def run_one(g, log_dir: Path):
     """Run generator g here with read / write recording; returns (rc, reads, dirs, outputs, deleted, notes, seconds, peak)."""
     roots = roots_of(g)
-    before = scan(roots)
+    # the whole writable body area, not only the declared outputs: builders also write files they do not declare (some
+    # from OpenCascade, invisible to Python), and a file a run reads and then rewrites needs its content from before
+    before = scan(roots + [WRITABLE])
     pre_sha = {r: GC.file_state(ROOT, r) for r in before}
     GC.idx().flush()
     res = {**DEFAULT_RES, **(g.get("resources") or {})}
@@ -118,28 +121,32 @@ def run_one(g, log_dir: Path):
     shutil.rmtree(rec, ignore_errors=True)
     if rc != 0:
         return rc, None, None, None, None, [], secs, peak[-1] if peak else None
-    after = scan(roots)
+    after = scan(roots + [WRITABLE])
     outputs, notes = {}, []
     for r, st in after.items():
         if before.get(r) != st:
-            outputs[r] = GC.file_state(ROOT, r)
-    for r in sorted(W):                                   # Python writes outside the declared outputs
-        if r in outputs or any(covers(x, r) for x in roots) or not (ROOT / r).is_file() or r.endswith(TMP_SUFFIX):
+            h = GC.file_state(ROOT, r)
+            if h == pre_sha.get(r):
+                continue                                   # rewritten with the same content
+            outputs[r] = h
+    for r in sorted(W):                                   # Python writes elsewhere under artifacts/
+        if r in outputs or r in after or not (ROOT / r).is_file() or r.endswith(TMP_SUFFIX) or not r.startswith("artifacts/"):
             continue
-        if r.startswith("artifacts/"):
-            outputs[r] = GC.file_state(ROOT, r)
-            notes.append(f"undeclared output: {r}")
-    deleted = sorted(set(before) - set(after))
+        outputs[r] = GC.file_state(ROOT, r)
+    undeclared = sorted(r for r in outputs if not any(covers(x, r) for x in roots))
+    if undeclared:
+        notes.append(f"{len(undeclared)} outputs outside the declared outputs, e.g. {', '.join(undeclared[:3])}")
+    deleted = sorted(r for r in set(before) - set(after) if any(covers(x, r) for x in roots))
     reads = {}
     for r in sorted(R):
         if r.startswith(IGNORE_READS):
             continue
         if r in pre_sha:
-            reads[r] = pre_sha[r]                          # under the declared outputs: its content before the run
-        elif r in outputs and any(covers(x, r) for x in roots):
+            reads[r] = pre_sha[r]                          # its content before the run (it may have rewritten it)
+        elif r in outputs and (r.startswith(WRITABLE + "/") or any(covers(x, r) for x in roots)):
             reads[r] = "missing"                           # a file it created itself: before the run there was none
         elif r in outputs:
-            reads[r] = "unknown"; notes.append(f"read and rewrote a file outside its declared outputs: {r}")
+            reads[r] = "unknown"; notes.append(f"read and rewrote a file outside {WRITABLE}: {r}")
         else:
             reads[r] = GC.file_state(ROOT, r)
     dirs = {r: GC.dir_state(ROOT, r) for r in sorted(Dl) if data_dir(r) and not any(covers(x, r) or covers(r, x) for x in roots)}
@@ -159,14 +166,18 @@ def data_dir(r):
 
 
 def late_reads(reads, pos, plan):
-    """Files read that a generator at or after position pos writes (inputs the declared order cannot honour)."""
-    out = []
-    for r in reads:
-        for j, (h, _) in enumerate(plan):
-            if j >= pos and h is not plan[pos][0] and any(covers(o, r) for o in h.get("outputs", []) + h.get("in_place_edits", [])):
-                out.append(f"reads {r}, which {h['id']} (runs later) writes")
-                break
-    return out
+    """Files this run read that a generator later in the order writes (by the outputs its newest cache entry recorded):
+    inputs the declared order cannot honour, so this generator reads what the previous make left there and the chain only
+    settles after another pass. Grouped per writer."""
+    by = {}
+    for j in range(pos + 1, len(plan)):
+        h = plan[j][0]
+        e = next(GC.entries(h["id"]), None)
+        outs = set(e["outputs"]) if e else set()
+        hit = sorted(r for r in reads if r in outs)
+        if hit:
+            by[h["id"]] = hit
+    return [f"reads {len(v)} file(s) that {k} (runs later) writes, e.g. {', '.join(v[:2])}" for k, v in by.items()]
 
 
 def lock():

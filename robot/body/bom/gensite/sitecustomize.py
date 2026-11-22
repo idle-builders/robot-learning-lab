@@ -9,6 +9,11 @@ run (the generator and its Python subprocesses) writes $GENCACHE_LOG/<pid>.json 
   its .py, so the source is recorded from sys.modules);
 - dirs: folders listed (os.listdir / os.scandir / glob), whose contents can change a result;
 - writes: files opened for writing or renamed into place (used to name undeclared outputs).
+STEP files written through OpenCascade (STEPControl_Writer / STEPCAFControl_Writer.Write, which build123d export_step uses)
+get a fixed header time (2000-01-01T00:00:00) right after the write, before the builder hashes them: OpenCascade stamps the
+write time into FILE_NAME, the manifests record each STEP's raw sha256, and so every rerun that wrote the same geometry
+changed the manifest and everything after it (measured 2026-11-22: 27 manifest rows differed between two passes only by
+these hashes). The geometry is untouched; STEPs written outside make keep OpenCascade's stamp.
 Not seen: files read by non-Python subprocesses, and packages outside the repository (.venv)."""
 import os
 import sys
@@ -103,11 +108,45 @@ if _LOG:
         except TypeError:          # a final class: leave it
             pass
 
+    import re as _re
+    _STAMP = _re.compile(rb"(FILE_NAME\s*\(\s*'(?:[^']|'')*'\s*,\s*')\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(')")
+
+    def _stable_step(path):
+        try:
+            p = os.fsdecode(path)
+            with open(p, "rb") as fh:
+                b = fh.read()
+            head, n = _STAMP.subn(rb"\g<1>2000-01-01T00:00:00\g<2>", b[:4096], count=1)
+            if n and head != b[:4096]:
+                with open(p, "r+b") as fh:          # same length: the stamp has a fixed width
+                    fh.write(head)
+        except Exception:  # noqa: BLE001
+            pass
+
+    def _wrap_writer(mod, cls):
+        C = getattr(mod, cls, None)
+        if C is None or getattr(C, "_gencache", False):
+            return
+        try:
+            class Wr(C):
+                _gencache = True
+
+                def Write(self, p, *a):
+                    r = super().Write(p, *a)
+                    _stable_step(p)
+                    return r
+            Wr.__name__ = Wr.__qualname__ = cls
+            setattr(mod, cls, Wr)
+        except TypeError:
+            pass
+
     def _patch(name, mod):
         if name == "OCP.STEPControl":
             _wrap_reader(mod, "STEPControl_Reader")
+            _wrap_writer(mod, "STEPControl_Writer")
         elif name == "OCP.STEPCAFControl":
             _wrap_reader(mod, "STEPCAFControl_Reader")
+            _wrap_writer(mod, "STEPCAFControl_Writer")
         elif name == "OCP.BRepTools":
             B = getattr(mod, "BRepTools", None)
             f = getattr(B, "Read_s", None) if B is not None else None
