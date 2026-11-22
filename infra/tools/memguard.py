@@ -89,6 +89,22 @@ def _running_jobs() -> list[tuple[int, float, float]]:
     return out
 
 
+def _oldest_waiter(since: float) -> float | None:
+    """--limit-gb of the live job that has waited longest, if it started waiting before `since` (this job's own start)."""
+    best = None
+    for f in SLOTS.glob("*.json"):
+        try:
+            d = json.loads(f.read_text())
+        except (OSError, ValueError):
+            continue
+        pid = int(d.get("pid", 0))
+        if pid == os.getpid() or d.get("state") != "waiting" or not _alive(pid) or float(d.get("since", since)) >= since:
+            continue
+        if best is None or float(d["since"]) < best[0]:
+            best = (float(d["since"]), float(d["limit_gb"]))
+    return best[1] if best else None
+
+
 def _claim_slot(limit_gb: float, args: list[str]) -> Path | None:
     """Wait until the job fits the budget, then register it as running. None when the registry is unusable."""
     try:
@@ -104,7 +120,11 @@ def _claim_slot(limit_gb: float, args: list[str]) -> Path | None:
         try:
             jobs = _running_jobs()
             used = sum(r for _, _, r in jobs)
-            if used + limit_gb <= BUDGET_GB:
+            # fairness: a job may start ahead of the longest-waiting other job only if that one still fits after it, so a big
+            # job is not starved by a stream of small ones fitting into the gaps (memory-only admission, 2026-11-22)
+            ahead = _oldest_waiter(t0)
+            room = limit_gb + (ahead if ahead is not None else 0.0)
+            if used + limit_gb <= BUDGET_GB and (ahead is None or used + room <= BUDGET_GB):
                 me.write_text(json.dumps(dict(pid=os.getpid(), limit_gb=limit_gb, state="running", since=time.time(),
                                               cwd=os.getcwd(), cmd=" ".join(args[:6]))))
                 if said:

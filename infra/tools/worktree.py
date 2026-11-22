@@ -41,9 +41,9 @@ def main() -> int:
     excl.parent.mkdir(parents=True, exist_ok=True)
     have = excl.read_text().splitlines() if excl.exists() else []
     with excl.open("a") as fh:                              # the links are not ignored by the directory patterns of .gitignore
-        for n in LINKS:
-            if n not in have:
-                fh.write(n + "\n")
+        for n in LINKS:                                     # anchored: a bare `data` also ignored robot/body/checks/data
+            if f"/{n}" not in have:
+                fh.write(f"/{n}\n")
     t0 = time.time()
     clone = ["cp", "-c", "-R"] if sys.platform == "darwin" else ["cp", "-R", "--reflink=auto"]
     subprocess.run(clone + [str(main_co / "artifacts"), str(dest / "artifacts")], check=True)

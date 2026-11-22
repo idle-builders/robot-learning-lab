@@ -74,10 +74,14 @@ def _ref_volume_uncached(ctx, n):
     from checks import core
     if p.get("native_step") and not core.BL.src(p["native_step"]).exists():
         p = {**p, "native_step": None}
-    big_bought = p.get("role") not in core.STEP_ROLES and p.get("native_step") and core._mb(p["native_step"]) > core.FINE_STEP_MAX_MB
-    if n in ctx.scope and p.get("native_step") and not p.get("placement_offset_mm") and (p.get("native_solid_count", 1) > 1 or not rec) and not big_bought:
-        # scoped parts only: a neighbour's fused multi-solid STEP (battery cells, supplier boards) costs minutes to
-        # tessellate just for this comparison; neighbours use their own closed mesh below
+    big = p.get("native_step") and core._mb(p["native_step"]) > core.FINE_STEP_MAX_MB
+    big_bought = p.get("role") not in core.STEP_ROLES and big
+    # a STEP up to FINE_STEP_MAX_MB is the reference for every part (scoped or neighbour): the recorded volume_mm3 goes
+    # stale when a builder changes the part (the stage-1 chassis sleeves read -7 % against 643.45 mm3 recorded before sleeves
+    # were removed; the STEP's 31 solids give 603.6, the mesh 598.6), and native_solid_count is often not recorded
+    if p.get("native_step") and not p.get("placement_offset_mm") and ((n in ctx.scope and not big_bought) or not big):
+        # big STEPs (battery cells, supplier boards, over FINE_STEP_MAX_MB) cost minutes to tessellate just for this
+        # comparison: they use the recorded volume or their own closed mesh below
         # several STEP solids overlap (a servo: 6 solids, summed 41257 mm3, fused 32983): the recorded / summed volume
         # double-counts the overlap, so the reference is the fused volume of all solids
         try:
@@ -223,6 +227,12 @@ def run_checks_here(ctx, checks, names, out_file, cache=None):
 SETUP_TIMERS = ("solids (scope)", "solids (others)", "neighbours")     # every child builds its own solids and neighbour list
 
 
+def man_rel(man):
+    """The manifest as the report names it: repository-relative, or absolute when it lies outside the repository (a baseline
+    copy in a session scratchpad; refused before 2026-11-22). Its part files are repository-relative either way."""
+    return str(man.relative_to(ROOT)) if man.is_relative_to(ROOT) else str(man)
+
+
 def label_of(a, split):
     """The run's label, lower case: macOS paths ignore case, so 'triage-C' and 'triage-c' were one folder and one run's
     report silently replaced the other's (2026-11-22)."""
@@ -309,6 +319,62 @@ def estimate(run, n_parts, poses):
     return out
 
 
+def manifest_freshness(man):
+    """Signs that the checked manifest is older than what it is built from (2026-11-22: the selected body lacked 20 parts and
+    named old torso STEPs because the generators after the roll-flip manifest had not been rerun, and nothing said so).
+    1. recorded sources: every (path, sha256) the generators wrote into the manifest's metadata (`source_manifest` +
+       `source_manifest_sha256`, `{path, sha256}` ...) whose file has changed since;
+    2. declared upstream: the manifests the body definitions' generators chain into this one (`manifest_out` of the
+       generators whose outputs this one's generator reads, transitively), by file time, when one was written after it.
+    A list of findings (measurements: what changed, when); empty when nothing points at a stale manifest."""
+    from checks.core import sha
+    out = []
+    m = json.loads(man.read_text())
+
+    def walk(d, where):
+        if isinstance(d, dict):
+            for k, v in d.items():
+                if isinstance(v, str) and (k.endswith("manifest") or k in ("path", "source", "source_body")):
+                    h = d.get(f"{k}_sha256") or (d.get("sha256") if k == "path" else None)
+                    p = ROOT / v
+                    if h and p.is_file():
+                        now = sha(p)
+                        if now != h:
+                            out.append(dict(kind="recorded source changed", field=f"{where}{k}", path=v, recorded_sha256=h[:12], now_sha256=now[:12],
+                                            changed_at=time.strftime("%m-%d %H:%M", time.localtime(p.stat().st_mtime))))
+                elif isinstance(v, (dict, list)):
+                    walk(v, f"{where}{k}.")
+        elif isinstance(d, list):
+            for x in d:
+                walk(x, where)
+    walk({k: v for k, v in m.items() if k not in ("parts", "joints", "controls", "bom")}, "")
+    try:
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        D = DEF.load()
+        rel = str(man.relative_to(ROOT)) if man.is_relative_to(ROOT) else str(man)
+        by_out = {}
+        for g in D.generators:
+            for o in [g.get("manifest_out")] + g.get("in_place_edits", []):
+                if o:
+                    by_out.setdefault(o, []).append(g)
+        seen, todo, t_man = set(), [rel], man.stat().st_mtime
+        while todo:
+            o = todo.pop()
+            for g in by_out.get(o, []):
+                for inp in g.get("inputs", []):
+                    if inp in by_out and inp not in seen:
+                        seen.add(inp); todo.append(inp)
+        for up in sorted(seen):
+            p = ROOT / up
+            if p.is_file() and p.stat().st_mtime > t_man + 1.0:
+                out.append(dict(kind="upstream manifest written later", path=up, by_generators=sorted({g["id"] for g in by_out[up]}),
+                                later_by_s=round(p.stat().st_mtime - t_man), written_at=time.strftime("%m-%d %H:%M", time.localtime(p.stat().st_mtime))))
+    except Exception as exc:  # noqa: BLE001  the definitions are another session's; a broken one must not stop a check run
+        out.append(dict(kind="declared upstream not read", error=_why(exc)))
+    return out
+
+
 def make_plan(a, man, split):
     """Plan child: resolve the scope, which checks apply, the FEM parts, the last-run keys; write them to a JSON file."""
     ctx, checks, out_dir = child_ctx(a, man, split)
@@ -328,17 +394,18 @@ def make_plan(a, man, split):
     todo = [n for n in (want or checks) if n in checks]
     run = [n for n in todo if checks[n]["applies"](ctx)]
     nbs = list(ctx.neighbours())
-    plan = dict(manifest=str(man.relative_to(ROOT)), manifest_sha256=sha(man), names=names, desc=desc, todo=todo, run=run,
+    plan = dict(manifest=man_rel(man), manifest_sha256=sha(man), names=names, desc=desc, todo=todo, run=run,
                not_applicable=[n for n in todo if n not in run], settings={n: ctx.settings(n) for n in names},
                definitions={n: dict(file=ctx.definition(n)[0], entry=ctx.definition(n)[1], settings_source=ctx.settings_source.get(n, {})) for n in ctx.body.parts},
                out_dir=str(out_dir),
                fem_parts=[n for n in names if FC.merged_setup(ctx, n, a.fem_variant)] if "fem" in run else [],
                keys={n: S.part_key(ctx.body.parts[n]) for n in names + nbs}, last_file=str(S.LAST / (man.stem + ".json")))
     plan["estimate"] = estimate(run, len(names), a.poses)
+    plan["manifest_freshness"] = manifest_freshness(man)
     plan["cached"], plan["fem_cached"], plan["cache_misses"] = {}, {}, {}
     from checks import resultcache as RC
-    if RC.enabled() and not a.no_cache:
-        mrel, opts = str(man.relative_to(ROOT)), RC.options_of(a)
+    if RC.enabled() and not a.no_cache and man.is_relative_to(ROOT):   # outside the repository its reads are not recorded
+        mrel, opts = man_rel(man), RC.options_of(a)
         for n in run:
             if n == "fem":
                 for p in plan["fem_parts"]:
@@ -430,7 +497,7 @@ def main(argv=None):
         ctx, checks, _ = child_ctx(a, man, split)
         ctx.scope = split(a._scope)
         run_checks_here(ctx, checks, split(a.checks), a._out,
-                        cache=dict(manifest=str(man.relative_to(ROOT)), options=RC.options_of(a), label=label_of(a, split)))
+                        cache=dict(manifest=man_rel(man), options=RC.options_of(a), label=label_of(a, split)) if man.is_relative_to(ROOT) else None)
         return
     me = [sys.executable, "-B", str(Path(__file__).resolve())]
     label = label_of(a, split)
@@ -492,6 +559,15 @@ def main(argv=None):
     if pl.get("nothing_changed"):
         return
     names, run = pl["names"], pl["run"]
+    fresh = pl.get("manifest_freshness") or []
+    for x in fresh:
+        if x["kind"] == "recorded source changed":
+            print(f"manifest freshness: {x['field']} = {x['path']} has changed since this manifest was built "
+                  f"(recorded {x['recorded_sha256']}, now {x['now_sha256']}, file of {x['changed_at']})", file=sys.stderr, flush=True)
+        elif x["kind"] == "upstream manifest written later":
+            print(f"manifest freshness: upstream {x['path']} ({', '.join(x['by_generators'])}) was written {x['later_by_s'] // 60} min "
+                  f"after the checked manifest ({x['written_at']}): the checked body may lack its changes; rerun the generators after it "
+                  "(robot/body/bom/rebuild_chain.py --dry-run lists the order)", file=sys.stderr, flush=True)
     cached = {n: c for n, c in pl.get("cached", {}).items() if n in run}
     if cached:
         print(f"cached (inputs unchanged): " + ", ".join(f"{n} (from {c['at'][11:16]}, {c['inputs']} inputs)" for n, c in cached.items())
@@ -523,6 +599,7 @@ def main(argv=None):
     # complete stays false until the last write: a killed or still running run's report reads as unfinished
     rep = dict(complete=False, label=label, manifest=pl["manifest"], manifest_sha256=pl["manifest_sha256"], scope=dict(selectors=pl["desc"], parts=names),
                pose_set=a.poses, process_override=a.process, checks={}, not_applicable=pl["not_applicable"], solids={}, other_solids={}, part_settings=pl["settings"])
+    rep["manifest_freshness"] = pl.get("manifest_freshness") or []
     if pl.get("checks_left_out"):
         rep["checks_left_out"] = pl["checks_left_out"]
     f = out_dir / "report.json"
@@ -711,6 +788,9 @@ def keep_awake():
 
 def summary(rep, top=6):
     sc = rep["scope"]
+    hows = {**{n: v.get("how", "") for n, v in rep.get("solids", {}).items()}, **rep.get("other_solids", {})}
+    approximate = {n: ("voxel fill of an open mesh" if "voxel" in h else "convex hull of an open mesh")
+                   for n, h in hows.items() if "voxel" in h or "hull" in h}
     print(f"manifest {rep['manifest']} ({rep['manifest_sha256'][:12]}), scope {sc['selectors']}: {len(sc['parts'])} parts"
           + (f" ({', '.join(sc['parts'][:6])}{' ...' if len(sc['parts']) > 6 else ''})"))
     odd = sorted(n for n, h in rep["other_solids"].items() if "hull" in h)
@@ -751,7 +831,10 @@ def summary(rep, top=6):
             loc = f" at {c['location_mm']}" if c.get("location_mm") else ""
             mate = f" x {c['mating_part']}" if c.get("mating_part") else ""
             pose = f" @ {c['pose']}" if c.get("pose") else ""
-            print(f"  {c['part']}{mate}: {c['value']:g} {c['unit']} ({c['what']}){pose}{loc}")
+            # an overlap or distance against a voxel-filled / convex-hull screening solid is approximate: say so on the line
+            approx = [f"{n}: {approximate[n]}" for n in (c.get("part"), c.get("mating_part")) if n in approximate]
+            note = f"  [approximate: {'; '.join(approx)}]" if approx and str(c.get("unit", "")).startswith(("mm3", "mm min", "mm distance")) else ""
+            print(f"  {c['part']}{mate}: {c['value']:g} {c['unit']} ({c['what']}){pose}{loc}{note}")
         for ev in r["evidence"]:
             print(f"  evidence: {ev}")
     if rep["not_applicable"]:
