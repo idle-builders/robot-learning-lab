@@ -205,6 +205,9 @@ def screen_solid(body, n, changed):
         step_why = why
         print(f"  {n}: STEP solid not used ({why}); mesh solid instead (remembered)", flush=True)
     mesh_file = BL.src(p["mesh"])
+    if not mesh_file.is_file():                     # nothing left to screen it with: say which part and why, not a bare stat error
+        raise FileNotFoundError(f"{n}: no screening solid: native STEP " + (f"not used ({step_why})" if step_why else "absent")
+                                + f" and its mesh {p['mesh']} resolves nowhere")
     p["mesh_sha256"] = sha(mesh_file)               # key roll_flip_checks' solid cache by the actual file
     full = body.mesh(n)
     if full.volume < 0:
