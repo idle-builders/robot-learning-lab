@@ -20,10 +20,11 @@ generators:
   outputs:
   - artifacts/robot/body/assembly/neck-collar/records.json
   - artifacts/robot/body/assembly/neck-collar/parts
-  notes: 'head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33, T-6rr3sa): inward tab to a 1.1 mm boss on the link plate (thread 4.6 deep), two 3.6/2.2 x 3.5
-    steel sleeves, a vertical flat channel in the outer wall (screw heads and the press tip), two M2x8 screws, two dia 1.6 pilots in the link; the collar is a
+  notes: 'head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33, T-6rr3sa): inward tab to a 1.1 mm boss on the link plate (thread 4.6 deep), one 3.6/2.2 x 3.5
+    steel sleeve at the collar''s mid height with a teardrop roof, a vertical flat channel in the outer wall (screw head and the press tip), one M2x8 screw, a dia 1.6
+    pilot in the link, and a locating ridge on the tab face that stands in a groove of the link boss (anti-rotation, slides in along y with the collar); the collar is a
     parametric B-rep with a native STEP (ring cut by ruled splines measured from the old head-envelope mesh; neck_collar_envelope.json, with the notch and head
-    cut re-measured over the neck pitch range by `neck_collar.py sweep`); reads only the shell-pass manifest and the neck-head link STEP; roll_flip_checks swaps
+    cut re-measured over the head poses by `neck_collar.py sweep`); reads only the shell-pass manifest and the neck-head link STEP; roll_flip_checks swaps
     its records in after neck_parts.'
   after:
   - shell-pass
@@ -47,12 +48,12 @@ parts:
     set_by: 'builder/opus-5.5 2026-11-22 (T-vjw5z8): +z (ring base flange z 394.2 on the bed) chosen from the six axes measured on the native
       STEP (overhang beyond 70 deg / bed contact / support standing on the part): +z 15.1 mm2 / 712 mm2 / 15 mm2 (only the sleeve-bore tops of
       the screw tab), -z 159 / 0 / 13, +x 243 / 0 / 113, -x 274 / 0 / 158, +y 132 / 0 / 12, -y 83 / 0 / 24; the head-envelope edge is a curve,
-      so only the flange gives a flat bed face'
+      so only the flange gives a flat bed face. T-6rr3sa: with the 45 deg bore roof the +z overhang beyond 70 deg is 0 mm2 (bed contact 472 mm2 at 0.2 mm layers)'
   section: Neck / head
   fem:
-    _doc: 'Body shell (T-6rr3sa, builder/opus-5.5 2026-11-22): the collar carries no head load (the head rests on the neck pitch cradle); it is held by its two
-      screws through the 3.6 / 2.2 x 3.5 sleeves to the link plate and is loaded by what can touch it: the head skin pressing on its rim (the skin sits 0.9 mm
-      off, a hand pushing the head down) and a sideways push on the same rim. Supports = the part''s own sleeve bores at the link, load = the rim surface
+    _doc: 'Body shell (T-6rr3sa, builder/opus-5.5 2026-11-22): the collar carries no head load (the head rests on the neck pitch cradle); it is held by its one
+      screw through the 3.6 / 2.2 x 3.5 sleeve and its ridge (in a groove of the link boss) to the link and is loaded by what can touch it: the head skin pressing on its rim (the skin sits 0.9 mm
+      off, a hand pushing the head down) and a sideways push on the same rim. Supports = the part''s own sleeve bore at the link and the ridge flanks (the ridge sits 0.25 mm off its groove: a rotation of about 4 deg closes it; the setup treats it as in contact), load = the rim surface
       within 2 mm of the head skin, wrench at the load patch centroid. 0.7 mm steel collars around the sleeve bores. Loads are nominal assumptions
       (5 N finger press, 20 N hard press down, 10 N sideways; no stored shell setup exists to follow): they say whether the 0.8 - 2.4 mm shell walls survive a hand, not a design target.'
     mesh_h_mm: 1.2
@@ -76,6 +77,17 @@ parts:
           gap_mm: 2.0
           r_max_mm: 5.0
           rim_mm: 2.0
+      link_ridge:
+        box:
+          x:
+          - -25.5
+          - -24.5
+          y:
+          - 4.6
+          - 16.5
+          z:
+          - 395.0
+          - 398.2
     load:
       contact:
       - original_profile_head_skin_v23
@@ -470,7 +482,7 @@ parts:
   contains:
   - line: sleeve:3.6x2.2x3.5
     name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
-    quantity: 2
+    quantity: 1
     make_buy: buy
     spec:
       kind: sleeve
@@ -481,14 +493,12 @@ parts:
     supplier: unknown
     part_number: unknown
   section: Neck / head
-- match:
-  - head_neck_collar_M2x8_0
-  - head_neck_collar_M2x8_1
+- match: head_neck_collar_M2x8_0
   kind: hardware
   line: hw:M2-x-8-ISO-7380-1
   name: M2 x 8 ISO 7380-1
   make_buy: buy
-  quantity: 2
+  quantity: 1
   spec:
     kind: screw
     thread: M2
@@ -541,9 +551,8 @@ assembly:
     subassembly: neck_head
     screw:
     - head_neck_collar_M2x8_0
-    - head_neck_collar_M2x8_1
     direction: screw axis
     after:
     - neck_head:p039
     status: seeded
-    derived: 2 screw(s) whose joined parts are all placed after head_neck_collar; driver path vs placed parts
+    derived: 1 screw whose joined parts are all placed after head_neck_collar; driver path vs placed parts
