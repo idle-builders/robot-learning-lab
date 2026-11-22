@@ -2,15 +2,17 @@
 
 The part comes from the motor refit (motor_refit.py, truss-box stage 6 edited for the ST3025 hip pitch case). Its screws
 were drawn for the old C047 case and the horn reference of r1: 4 M3x14 reached 1.5 of the horn flange's 2.5 mm, the head
-seat of the sleeves sat 12.0 mm from the horn, the driver channel (dia 3.4) was narrower than the hex-key blade, and the
+seat of the sleeves sat 12.0 mm from the horn, and the
 4 front PA2x4 stood at C047 hole positions that the ST3025 case does not have (shank in solid print). This script edits the
 refit STEP with the same B-rep operations (cad_ops) and takes every hole position from the standard-part definitions
 (robot/actuators/interfaces/standard-parts.json, registered instances) through screw_plan.hole_positions:
 
   yaw horn   4 x ST3215.horn+y.n (aluminium, tapped through the 2.5 mm flange, reference engagement 2.5 mm): the head seat
              sits at opening - (L - point - reference engagement) of the standard length L (screw_plan.choose_length), the
-             sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it), the head
-             cavity ends at the seat, the driver channel is as wide as the driver blade plus clearance.
+             sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it). Driving: the
+             sleeve of the front screws z.1 / z.2 (y -6 / 10, Z 247) ends 0.09 mm short of the yaw axes (59,-5) / (59,9), whose hole
+             positions are fixed, so no straight tool passes (obstruction 62 mm3 part + 4.5 mm3 sleeve at r 1.45). The key is tilted
+             12-25 deg toward the free +x side (ISO 2936 ball-end hex key, 2.5 mm AF): nothing of the part or the sleeves is in that cone.
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
   recreate:  .venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build   (parts + records.json in OUT)
@@ -40,38 +42,17 @@ PART, SLEEVES = "hip_yaw_to_pitch_combined", "hip_yaw_to_pitch_combined_steel_sl
 R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
 R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
 COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
-CBORE_R = 2.85                           # head cavity (M3 cap head dk 5.5)
-CBORE_Z0 = 251.0                         # head cavity floor (the refit had 251.5)
-DRIVER_R = 2.4                           # driver channel: hex-key blade 4.0 (data/tools.json) + 0.8 clearance; 2.2 grazed the wall face at x 56.79
-CHANNEL_Z0 = 215.0
 DECK_BOTTOM = 262.75
-FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
-BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path: they get a rib (nothing is trimmed, see @lore below)
-RIB_LEN, RIB_H = 7.0, 3.5         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
-CBORE_FILLET = 0.3                       # round at the floor of each yaw head pocket where it steps down to the driver channel (floor annulus 0.45 wide): the heavy-case stress peak sat at (59,9), and with only that one rounded it moved to the twin (59,-5)
-POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
-
-
-def rounded_bottom(cyl, r):
-    """Cylinder tool with its lower circular edge rounded: the pocket it cuts gets a filleted floor corner."""
-    from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
-    from OCP.TopAbs import TopAbs_EDGE
-    from OCP.TopExp import TopExp_Explorer
-    from OCP.TopoDS import TopoDS
-    from OCP.Bnd import Bnd_Box
-    from OCP.BRepBndLib import BRepBndLib
-    mk = BRepFilletAPI_MakeFillet(cyl)
-    e = TopExp_Explorer(cyl, TopAbs_EDGE)
-    zs = []
-    while e.More():
-        ed = TopoDS.Edge_s(e.Current()); b = Bnd_Box(); BRepBndLib.Add_s(ed, b); x0, y0, z0, x1, y1, z1 = b.Get()
-        zs.append((z0, z1, ed)); e.Next()
-    zmin = min(z for z, _, _ in zs)
-    for z0, z1, ed in zs:
-        if abs(z0 - zmin) < 1e-6 and abs(z1 - zmin) < 1e-6 and (z1 - z0) < 1e-6:
-            mk.Add(r, ed)
-    mk.Build()
-    return mk.Shape() if mk.IsDone() else cyl
+FRONT_PAD_R = FRONT_POCKET_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
+HUB_R, DECK_R = 3.45, 10.55              # deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis
+HUB = (59.0, 2.0)
+HUB_Z0 = 262.0
+HUB_TOOL = C.cylinder((59.0, 2.0, HUB_Z0), (59.0, 2.0, 264.0), HUB_R)
+YAW_TOP = 274.75
+# the refit's bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick
+# stay; a box per yaw axis takes them off in clean planes (y ranges keep 0.45 mm off the refit's own y steps at -7.45 / 11.85, so no new micro-edges)
+RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
+FOOT_CUTS = (((56.0, -7.0, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
 
 
 def window_stack(length, point, ref):
@@ -104,13 +85,11 @@ def build_right():
     stack = window_stack(L, pt, ref)
     seat = round(h0["opening"][2] - stack, 2)
     print(f"yaw: M3x{L:g}, ref engagement {ref}, hole depth {depth}, stack {stack:.2f}, head seat z {seat:.2f}", flush=True)
-    chan, add, cut, new_sleeves = [], [], [], []
+    add, cut, new_sleeves = [], [], []
     for h in yaw:
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
-        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), POCKET))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
+        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), HUB_TOOL))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
-        cb = C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R)
-        chan += [rounded_bottom(cb, CBORE_FILLET) if CBORE_FILLET else cb, C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
                                  C.cylinder((x, y, seat - 0.5), (x, y, z0 + 0.5), R_SLEEVE_YAW[1])))
@@ -133,24 +112,16 @@ def build_right():
         new_sleeves.append(C.cut(C.cylinder((x_face, y, z), (seat_f, y, z), R_SLEEVE_FRONT[0]),
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
-    def reaches(h):   # the blade disc overlaps a front pad's x-y footprint (x_face..seat_f, y +- pad radius)
-        x, y, _ = h["opening"]
-        dx = max(0.0, x_face - x, x - seat_f)
-        return min(max(0.0, abs(y - f["opening"][1]) - FRONT_PAD_R) for f in front) ** 2 + dx ** 2 < BLADE_R ** 2
-    ribs = []                                     # a front boss in a yaw blade path gets a rib on the far side of the channel that carries the load around the channel
+    # deck walls: the refit's hub pocket (R 4.2) and disc (R 10.0) leave 0.55 / 0.75 mm round the yaw bores; this disc makes both 1.30
+    add.append(C.cut(C.cylinder((HUB[0], HUB[1], DECK_BOTTOM), (HUB[0], HUB[1], YAW_TOP), DECK_R), C.cylinder((HUB[0], HUB[1], DECK_BOTTOM - 1.0), (HUB[0], HUB[1], YAW_TOP + 1.0), HUB_R)))
+    P = C.cut_many(P, [C.box(lo, hi) for lo, hi in FOOT_CUTS])
     for h in front:
         _, y, z = h["opening"]
-        for yw in yaw:
-            if abs(y - yw["opening"][1]) < 2.0 and abs(z - 247.0) < 3.0 and reaches(yw):
-                sg = 1.0 if y > yw["opening"][1] else -1.0
-                # ends at the seat plane: the head pocket (cut from seat_f outward) only trims inside its radius, so a rib
-                # reaching seat_f + 0.5 like the pads left a 0.5 mm ledge round the sleeve end (press support 73 -> 45 %)
-                ribs.append(((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f, max(y, y + sg * RIB_LEN), z + RIB_H)))
-    ribs = [C.box(lo, hi) for lo, hi in ribs]
-    P = C.fuse(P, *ribs) if ribs else P
-    P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
+        if abs(y - HUB[1]) > 4.0 and RIB_LEN > 0:
+            sg = 1.0 if y > HUB[1] else -1.0
+            P = C.fuse(P, C.box((RIB_X[0], min(y, y + sg * RIB_LEN), RIB_Z[0]), (RIB_X[1], max(y, y + sg * RIB_LEN), RIB_Z[1])))
     P = C.fuse(P, *add, *fpads)
-    # @lore the front pads are not trimmed out of the yaw blade paths: the screw planner measures the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad reads 0.95 mm and picks M2x5 with the head 1.3 mm inside the sleeve; the steel sleeve end sits in that path anyway
+    # @lore no driver channel through the front bosses: the screw planner reads the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad picks M2x5 with the head 1.3 mm inside the sleeve; and the sleeve end sits 0.09 mm off the yaw axis, so a channel never makes a straight path. A tilted ball-end key does.
     P = C.cut_many(P, cut + fcuts)
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
