@@ -271,6 +271,18 @@ def build(manifest_path, hardware_json=None, assembly_report_path=None, definiti
                 contains_per_part[n][c["line"]] += c["quantity"]
         if e["kind"] == "hardware" and e.get("make_buy") == "buy" and not e.get("spec"):
             D.find("hardware_without_spec", e["file"], f"parts[{e['index']}] line {e['line']}", f"{len(hit)} hardware part(s) with no declared spec")
+    blocks = ("process", "expected_hardware", "fit_classes", "covers", "exact_fit", "loadpath_slices", "geometry_thresholds", "fem", "edges")
+    for n, e in claims.items():
+        tag = f"parts[{e['index']}] line {e['line']}"
+        for k in blocks:
+            if k in e and k in settings.get(n, {}):
+                D.find("setting_shadowed", e["file"], tag, f"{n}: part_settings.json {k} is not read (the definition's wins): delete it there", part=n)
+        if e["kind"] == "printed" and parts[n].get("role") in ("printed_structural_connector", "printed_structural_carrier") \
+                and "fem" not in e and "fem" not in settings.get(n, {}):
+            D.find("connector_without_fem", e["file"], tag, f"{n}: printed connector / carrier without an FEM setup (fem block)", part=n)
+    for n in settings:
+        if not n.startswith("_") and n not in parts:
+            D.find("setting_for_absent_part", "robot/body/checks/data/part_settings.json", n, f"{n}: settings for a part the manifest does not hold")
     if not any(g.get("manifest_out") == manifest_path for g in D.generators):
         D.find("manifest_without_generator", None, None, f"{manifest_path}: no definition declares a generator with this manifest_out (the rebuild cannot recreate it)")
     for g, inp, exists in D.external_inputs():
