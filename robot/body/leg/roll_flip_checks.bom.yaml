@@ -40,15 +40,10 @@ generators:
   - -B
   - robot/body/leg/roll_flip_checks.py
   - manifest
+  composes: roll-flip                # applies every definition's `compose` entry into roll-flip; their `needs` run first
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
   - artifacts/robot/body/leg/roll-flip/cad-manifest.json
-  - artifacts/robot/body/torso/torso-screws/records.json
-  - artifacts/robot/body/leg/foot-screws/records.json
-  - artifacts/robot/body/leg/hip-yaw-screws/records.json
-  - artifacts/robot/body/assembly/held-parts/records.json
-  - artifacts/robot/body/assembly/neck-collar/records.json
-  - artifacts/robot/body/leg/ankle-coupler-screws/records.json
   outputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
@@ -1045,3 +1040,10 @@ assembly:
     - left_leg:ankle-horn-M3x6
     status: seeded
     derived: 4 screw(s) whose joined parts are all placed after L_ankle_coupler_combined; driver path vs placed parts
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: hip-screws
+  into: roll-flip
+  call: robot/body/leg/roll_flip_checks.py:add_hip_screws
+  takes: manifest
+  after: [held-parts]
+  notes: hip / thigh screws generated from their defined holes, on the swapped-in connectors

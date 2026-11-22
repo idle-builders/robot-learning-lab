@@ -243,6 +243,60 @@
      "description": "Hand-stated measurements with units and their source report (shown before the generated check summary)."
     }
    }
+  },
+  "compose": {
+   "type": "array",
+   "description": "This builder's edits of a body manifest that another generator composes (robot/body/bom/compose.py): the composing script calls compose.apply(stage, manifest), which applies every entry declared `into` that stage, ordered by `after`. Adding a section's edit is a new entry here, never an edit of the composing script.",
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "into",
+     "call",
+     "takes"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Unique over all definitions."
+     },
+     "into": {
+      "type": "string",
+      "description": "The stage it edits (a generator's `composes`)."
+     },
+     "call": {
+      "type": "string",
+      "pattern": "^[^:]+\\.py:[A-Za-z_][A-Za-z0-9_]*$",
+      "description": "repository-relative script : function"
+     },
+     "takes": {
+      "enum": [
+       "parts",
+       "manifest"
+      ],
+      "description": "parts: function(parts list) -> new parts list; manifest: function(manifest dict) -> log lines (edits it in place)."
+     },
+     "after": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "compose ids applied before this one (any definition)."
+     },
+     "needs": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "generator ids whose outputs the function reads: they run before the composing generator."
+     },
+     "notes": {
+      "type": "string"
+     }
+    }
+   }
   }
  },
  "$defs": {
@@ -348,6 +402,11 @@
      "type": "boolean",
      "default": false,
      "description": "Presentation output only (renders, figures): never a rebuild input; with rebuild false it is not linked into the rebuild copy."
+    },
+    "composes": {
+     "type": "string",
+     "pattern": "^[a-z0-9][a-z0-9-]*$",
+     "description": "The composition stage this generator applies (robot/body/bom/compose.py apply(stage, manifest)): every definition's `compose` entry into this stage is applied by it, and the generators those entries `need` run before it."
     }
    }
   },

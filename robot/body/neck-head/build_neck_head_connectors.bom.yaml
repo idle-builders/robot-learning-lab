@@ -1573,3 +1573,10 @@ assembly:
     derived: 4 screw(s) whose joined parts are all placed after B0196_supplier_native_v23; driver path vs placed parts; moved after s024 (its
       part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23 blocked
       that screw's driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3)
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: neck-parts
+  into: roll-flip
+  call: robot/body/neck-head/neck_parts.py:apply
+  takes: manifest
+  after: [hip-screws]
+  notes: rebuilt XM335 neck connectors + their screws, when built (T-6dvwjq)

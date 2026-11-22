@@ -143,6 +143,17 @@ def hip_screws(parts, man, only=None):
     return rows, plans
 
 
+def add_hip_screws(man):
+    """compose entry `hip-screws` (roll_flip_checks.bom.yaml): the hip / thigh screws generated from their defined holes,
+    added to the composed manifest after the connectors they land in are swapped in."""
+    sys.path.insert(0, str(ROOT / "robot/body/leg"))
+    import foot_screws as FS
+    with FS.left_labels():
+        srows, _ = hip_screws(man["parts"], man)
+    man["parts"] = man["parts"] + srows
+    return [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
+
+
 def _keep_shell_step_rows(man):
     """Carry the outputs of `thigh_shell.py build` / `shin-cover` over from the previous variant manifest, so a manifest
     rebuild without those two steps no longer drops the blue thigh shells and their post hardware or restores the
@@ -224,29 +235,13 @@ def build_manifest():
                               mass_basis=f"native STEP volume x {r['polymer_density_g_cm3']} g/cm3 ({r['polymer_material']}, "
                                          "part setting material, checks/data/materials.json)" if role != "compression_limit_sleeves"
                               else "304 SS sleeves, native STEP volume", roll_flip="new part (build_upper_hip_connectors.py --roll-flip)"))
-    sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
-    import ankle_coupler_screws as ACS      # run its `build` first (T-9wpegg): edited ankle coupler + sleeves
-    parts = ACS.swap_parts(parts)
-    sys.path.insert(0, str(ROOT / "robot/body/torso"))
-    import torso_screws as TS               # T-nh6ytf: stage 3 carrier rebuilt, stale torso_mate hardware dropped (warns when not built)
-    parts = TS.swap_parts(parts)
-    import foot_screws as FS                # run its `build` first (T-rptay5): edited foot monocoque + sleeves
-    parts = FS.swap_parts(parts)
-    import hip_yaw_screws as HYS            # run its `build` first (T-v3kzs4): edited hip yaw-to-pitch connector + sleeves
-    parts = HYS.swap_parts(parts)
-    sys.path.insert(0, str(ROOT / "robot/body/assembly"))
-    import held_parts as HP                 # run its `build` first (T-3npyjq): fan bridge plate, chest indicator, R roll case, stale screws
-    parts = HP.swap_parts(parts)
-    with FS.left_labels():
-        srows, plans = hip_screws(parts, man)
-    parts += srows
-    log += [f"{r['name']}: {r['screw_plan']['thread_label']}x{r['screw_plan']['length_mm']:g} ({r['screw_plan']['head_standard']}) into {r['screw_plan']['hole_id']}" for r in srows]
     man["parts"] = parts
-    sys.path.insert(0, str(ROOT / "robot/body/neck-head"))
-    import neck_parts as NP                 # T-6dvwjq: rebuilt XM335 neck connectors + their screws, when built (warns if not)
-    log += NP.apply(man)
-    import neck_collar as NC                # run its `build` first (T-a2mt33): head_neck_collar screwed to the yaw-to-pitch link (after NP: edits the link)
-    man["parts"] = NC.swap_parts(man["parts"])
+    # the other sections' edits of this manifest (edited connectors, generated screws, held parts) and the hip screws are
+    # declared as `compose` entries into stage roll-flip in their own definitions (robot/body/bom/compose.py); a new
+    # section edit is an entry in its definition, not an import here (owner 2026-11-22)
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import compose
+    log += compose.apply("roll-flip", man)
     log += _keep_shell_step_rows(man)
     parts = man["parts"]
     man["study_id"] = man["result_id"] = "cove50-hip-roll-flip"
