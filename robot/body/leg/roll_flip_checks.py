@@ -23,6 +23,7 @@ import hashlib
 import importlib.util
 import itertools
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -296,7 +297,9 @@ def fit_poses():
 
 
 # ------------------------------------------------------------------------------------------------ closed solids
-SOLIDS = ROOT / ".cache/work/roll-flip/solids"
+sys.path.insert(0, str(ROOT / "robot/body"))
+from checks import cachefs  # noqa: E402
+SOLIDS = cachefs.work() / "roll-flip/solids"    # keyed by the part name and its mesh sha256: shared with the worktrees
 VOX = 0.4
 
 
@@ -309,8 +312,9 @@ def closed(body, n):
     p = body.parts[n]
     tag = (p.get("mesh_sha256") or p.get("native_step_sha256") or "nohash")[:12]
     f = SOLIDS / f"{n}-{tag}.npz"
-    if f.exists():
-        d = np.load(f); return trimesh.Trimesh(d["v"], d["f"], process=False)
+    d = cachefs.load_npz(f) if f.exists() else None
+    if d is not None:
+        return trimesh.Trimesh(d["v"], d["f"], process=False)
     s = solid(body, n)
     if n[2:] == CASE:   # box-like: leg_motion's solid (its hull), as in F-03; turned with the case in the variant
         return s
@@ -322,7 +326,7 @@ def closed(body, n):
     g = None
     if p.get("role") == "printed_structural_connector" and step:   # gmsh conforming surface of the native STEP,
         import subprocess                                           # in a subprocess under a hard 300 s limit
-        tmp = SOLIDS / f"{n}-gmsh.npz"; SOLIDS.mkdir(parents=True, exist_ok=True)
+        tmp = SOLIDS / f"{n}-gmsh-{os.getpid()}.npz"; SOLIDS.mkdir(parents=True, exist_ok=True)
         code = ("import sys, numpy as np; sys.path.insert(0, %r); from surface_mesh import step_to_closed_mesh; "
                 "g = step_to_closed_mesh(%r, 1.0); np.savez(%r, v=g.vertices, f=g.faces)"
                 % (str(ROOT / "robot/body/motor-refit"), str(F.src(step)), str(tmp)))
@@ -339,8 +343,7 @@ def closed(body, n):
         ok = kit.mf(g).status().name == "NoError"   # manifold3d accepts the few 4-face edges where faces touch
         if ok and abs(g.volume - v_ref) < 0.02 * v_ref:
             g = slim(g)
-            SOLIDS.mkdir(parents=True, exist_ok=True)
-            np.savez_compressed(f, v=np.asarray(g.vertices), f=np.asarray(g.faces))
+            cachefs.savez(f, v=np.asarray(g.vertices), f=np.asarray(g.faces))
             return g
     if s.volume > 0.98 * hull.volume or not s.is_watertight:
         from scipy.ndimage import binary_closing, binary_fill_holes, gaussian_filter
@@ -363,8 +366,7 @@ def closed(body, n):
         else:
             m = hull
     m = slim(m)
-    SOLIDS.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(f, v=np.asarray(m.vertices), f=np.asarray(m.faces))
+    cachefs.savez(f, v=np.asarray(m.vertices), f=np.asarray(m.faces))
     return m
 
 

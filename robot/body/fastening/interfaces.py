@@ -21,7 +21,10 @@ from scipy.spatial import cKDTree
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 DEFS = ROOT / "robot/actuators/interfaces/standard-parts.json"
-CACHE = ROOT / ".cache/work/mount-check/canon"
+import sys  # noqa: E402
+sys.path.insert(0, str(ROOT / "robot/body"))
+from checks import cachefs  # noqa: E402
+CACHE = cachefs.work() / "mount-check/canon"   # keyed by STEP / mesh sha256: shared with the worktrees
 
 MOTOR_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference", "output", "output_horn", "horn",
                "purchased_servo_output_family_reference"}
@@ -61,8 +64,8 @@ def canonical(defs: dict, key: str, member: str):
     m = defs["motors"][key]
     CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / f"{key}-{member}-{m['step_sha256'][:12]}-{'-'.join(map(str, m['case_exterior']))}.npz"
-    if f.exists():
-        z = np.load(f)
+    z = cachefs.load_npz(f) if f.exists() else None
+    if z is not None:
         return trimesh.Trimesh(z["v"], z["f"], process=False)
     from build123d import import_step
     shape = import_step(str(ROOT / m["step"]))
@@ -79,7 +82,7 @@ def canonical(defs: dict, key: str, member: str):
         v, t = solids[i].tessellate(0.05, 0.3)
         vs.append(np.array([(p.X, p.Y, p.Z) for p in v])); fs.append(np.array(t) + off); off += len(v)
     V, Fc = np.vstack(vs), np.vstack(fs)
-    np.savez_compressed(f, v=V, f=Fc)
+    cachefs.savez(f, v=V, f=Fc)
     return trimesh.Trimesh(V, Fc, process=False)
 
 
@@ -265,8 +268,9 @@ def cached_fit(defs, key, member, body, n):
     tag = hashlib.sha256(json.dumps([h, p.get("placement_offset_mm"), defs["motors"][key]["step_sha256"], member,
                                      defs["motors"][key]["case_exterior"], 7]).encode()).hexdigest()[:16]
     f = CACHE / "fits" / f"{tag}.json"
-    if f.exists():
-        z = json.loads(f.read_text()); z["T"] = np.array(z["T"]); return z
+    z = cachefs.read_json(f) if f.exists() else None
+    if z is not None:
+        z["T"] = np.array(z["T"]); return z
     tries = ("output", "horn", "idler") if member == "output" else (member,)
     # STS3250 and ST3215 share one case frame and hole pattern; the body may model one with the other's CAD
     shapes = (key, "ST3215") if key == "STS3250" else (key, "STS3250") if key == "ST3215" else (key,)
@@ -280,8 +284,7 @@ def cached_fit(defs, key, member, body, n):
     fit = min(fits, key=lambda x: x["rms"])
     if fit["member_fitted"] in ("horn", "idler", "output"):
         fit["T"], fit["hole_snap"] = snap_rotation(defs, key, fit["member_fitted"], fit["T"], body.mesh(n))
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(json.dumps({**fit, "T": fit["T"].tolist()}))
+    cachefs.write_text(f, json.dumps({**fit, "T": fit["T"].tolist()}))
     return fit
 
 

@@ -16,10 +16,11 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "robot/body/leg"))
 import roll_flip_checks as R  # noqa: E402  (sets up kit, leg_motion, motor-refit paths)
 from checks import bodylib as BL
+from checks import cachefs
 
 kit = R.kit
-WORK = ROOT / ".cache/work/cad-speed"
-CACHE = WORK / "cache"
+WORK = ROOT / ".cache/work/cad-speed"          # reports: this checkout's own
+CACHE = cachefs.work() / "cad-speed/cache"     # content-addressed caches: shared with the worktrees (checks/cachefs.py)
 DATA = HERE / "data"
 T = {}
 
@@ -36,25 +37,28 @@ def load_body(manifest: Path):
 # ------------------------------------------------------------------------------------------------ hashing / caches
 _SHA_FILE = CACHE / "sha256.json"
 _SHA: dict = {}
+_SHA_NEW: dict = {}
 
 
 def sha(path: Path) -> str:
-    """sha256 of a file, remembered by (size, mtime_ns) across runs."""
+    """sha256 of a file, remembered by (absolute path, size, mtime_ns) across runs."""
     global _SHA
-    if not _SHA and _SHA_FILE.exists():
-        _SHA = json.loads(_SHA_FILE.read_text())
+    if not _SHA:
+        _SHA = cachefs.read_json(_SHA_FILE, {}) or {}
     st = path.stat()
     k = str(path)
     if k in _SHA and _SHA[k][0] == st.st_size and _SHA[k][1] == st.st_mtime_ns:
         return _SHA[k][2]
     h = hashlib.sha256(path.read_bytes()).hexdigest()
-    _SHA[k] = (st.st_size, st.st_mtime_ns, h)
+    _SHA[k] = _SHA_NEW[k] = (st.st_size, st.st_mtime_ns, h)
     return h
 
 
 def save_sha():
-    CACHE.mkdir(parents=True, exist_ok=True)
-    _SHA_FILE.write_text(json.dumps(_SHA))
+    """Add this process's new hashes to the shared index (merged under a lock: concurrent runs keep each other's)."""
+    if _SHA_NEW:
+        cachefs.update_json(_SHA_FILE, _SHA_NEW)
+        _SHA_NEW.clear()
 
 
 def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_solid_mm3=0.0):
@@ -67,8 +71,8 @@ def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_sol
     key = (f"{sha(step)[:16]}-{tol}-{ang}-{int(largest)}-{min_solid_mm3:g}-"
            f"{'_'.join(f'{v:g}' for v in (offset or (0, 0, 0)))}")
     f = CACHE / "step-mesh" / f"{key}.npz"
-    if f.exists():
-        d = np.load(f)
+    d = cachefs.load_npz(f) if f.exists() else None
+    if d is not None and "f" in d:
         if len(d["f"]):                       # an empty entry was written by the old fallback: rebuild
             m = trimesh.Trimesh(d["v"], d["f"], process=False)
             m.metadata["tol"] = float(d["t"]) if "t" in d else tol
@@ -103,7 +107,7 @@ def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_sol
         u = parts[0] if len(parts) == 1 else M.Manifold.batch_boolean(parts, M.OpType.Add)
         m = kit.tm(u) if u.status().name == "NoError" and not u.is_empty() else trimesh.util.concatenate(pieces)
         f.parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(f, v=np.asarray(m.vertices), f=np.asarray(m.faces), t=t_try)
+        cachefs.savez(f, v=np.asarray(m.vertices), f=np.asarray(m.faces), t=t_try)
         m.metadata["tol"] = t_try
         return m
     raise err
@@ -114,12 +118,9 @@ _FAILED_FILE = CACHE / "step-mesh" / "not-usable.json"
 
 def _failed(key=None, why=None):
     """STEPs that did not give a usable screening solid (keyed by part, STEP sha, tolerance): not retried."""
-    d = json.loads(_FAILED_FILE.read_text()) if _FAILED_FILE.exists() else {}
     if key:
-        d[key] = why
-        _FAILED_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _FAILED_FILE.write_text(json.dumps(d, indent=0))
-    return d
+        return cachefs.update_json(_FAILED_FILE, {key: why})
+    return cachefs.read_json(_FAILED_FILE, {}) or {}
 
 
 STEP_ROLES = {"printed_structural_connector": 0.0, "printed_structural_carrier": 0.0,

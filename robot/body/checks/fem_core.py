@@ -60,6 +60,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.spatial import cKDTree
 
 from checks import bodylib as BL
+from checks import cachefs
 from checks import fem_lib as FL
 from checks.core import CACHE, DATA, ROOT, WORK, R, sha
 from checks.fem_lib import hooke, materials  # noqa: F401
@@ -256,8 +257,8 @@ def get_mesh(ctx, part, setup):
     h = float(setup.get("mesh_h_mm", 2.2))
     key = "-".join(f"{lab}{sha(p)[:12]}" for lab, p in steps) + f"-h{h:g}"
     f = CACHE / "fem-mesh" / f"{key}.npz"
-    if f.exists():
-        d = np.load(f)
+    d = cachefs.load_npz(f) if f.exists() else None
+    if d is not None:
         return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part}, setup)
     t0 = time.time()
     try:
@@ -266,8 +267,7 @@ def get_mesh(ctx, part, setup):
         # near-coincident faces make the surface mesh intersect (arm roll-to-yaw part: 214 faces); the same part with merged same-domain faces meshes
         steps[0] = ("polymer", cleaned_step(steps[0][1]))
         mesh = LL().mesh_compound_steps(steps, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
-    f.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+    cachefs.savez(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
     return apply_regions(ctx, mesh | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
 
 
