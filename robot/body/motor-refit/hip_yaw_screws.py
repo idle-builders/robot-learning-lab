@@ -1,4 +1,4 @@
-"""Hip yaw-to-pitch connector (R/L_hip_yaw_to_pitch_combined): mountable A14 screws and pressable sleeves (Idle T-v3kzs4).
+"""Hip yaw-to-pitch connector (R/L_hip_yaw_to_pitch_combined): mountable A14 screws and pressable sleeves.
 
 The part comes from the motor refit (motor_refit.py, truss-box stage 6 edited for the ST3025 hip pitch case). Its screws
 were drawn for the old C047 case and the horn reference of r1: 4 M3x14 reached 1.5 of the horn flange's 2.5 mm, the head
@@ -39,16 +39,40 @@ PART, SLEEVES = "hip_yaw_to_pitch_combined", "hip_yaw_to_pitch_combined_steel_sl
 
 R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
 R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
-COLLAR_R = 5.0                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
+COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
 CBORE_R = 2.85                           # head cavity (M3 cap head dk 5.5)
 CBORE_Z0 = 251.0                         # head cavity floor (the refit had 251.5)
 DRIVER_R = 2.4                           # driver channel: hex-key blade 4.0 (data/tools.json) + 0.8 clearance; 2.2 grazed the wall face at x 56.79
 CHANNEL_Z0 = 215.0
 DECK_BOTTOM = 262.75
 FRONT_PAD_R, FRONT_POCKET_R = 3.0, 3.0
-BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path; they stay full height (see @lore below) and get a rib
-RIB_LEN, RIB_H = 7.0, 3.8         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
+BLADE_R = 2.0                            # driver blade 4.0 (data/tools.json): marks the front bosses (z.1 / z.2) that stand in a yaw screw's blade path: they get a rib (nothing is trimmed, see @lore below)
+RIB_LEN, RIB_H = 7.0, 3.5         # rib behind a front boss in a blade path: length away from the channel, half height (wider than the boss, so its faces meet the boss cylinder in clean edges)
+CBORE_FILLET = 0.3                       # round at the floor of the head pocket of yaw screw (59,9) where it steps down to the driver channel (floor annulus 0.45 wide): the heavy-case stress peak (the others stay sharp: a fillet on all four adds 8 micro-edges)
+FILLET_AT = (59.0, 9.0)
 POCKET = C.cylinder((59.0, 2.0, 262.0), (59.0, 2.0, 264.0), 4.2)   # the refit's central pocket under the deck (Z 262.0-274.75, R 4.2)
+
+
+def rounded_bottom(cyl, r):
+    """Cylinder tool with its lower circular edge rounded: the pocket it cuts gets a filleted floor corner."""
+    from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
+    from OCP.TopAbs import TopAbs_EDGE
+    from OCP.TopExp import TopExp_Explorer
+    from OCP.TopoDS import TopoDS
+    from OCP.Bnd import Bnd_Box
+    from OCP.BRepBndLib import BRepBndLib
+    mk = BRepFilletAPI_MakeFillet(cyl)
+    e = TopExp_Explorer(cyl, TopAbs_EDGE)
+    zs = []
+    while e.More():
+        ed = TopoDS.Edge_s(e.Current()); b = Bnd_Box(); BRepBndLib.Add_s(ed, b); x0, y0, z0, x1, y1, z1 = b.Get()
+        zs.append((z0, z1, ed)); e.Next()
+    zmin = min(z for z, _, _ in zs)
+    for z0, z1, ed in zs:
+        if abs(z0 - zmin) < 1e-6 and abs(z1 - zmin) < 1e-6 and (z1 - z0) < 1e-6:
+            mk.Add(r, ed)
+    mk.Build()
+    return mk.Shape() if mk.IsDone() else cyl
 
 
 def window_stack(length, point, ref):
@@ -86,7 +110,8 @@ def build_right():
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
         add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), POCKET))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
-        chan += [C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R), C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
+        cb = C.cylinder((x, y, CBORE_Z0), (x, y, seat), CBORE_R)
+        chan += [rounded_bottom(cb, CBORE_FILLET) if CBORE_FILLET and abs(x - FILLET_AT[0]) < 0.1 and abs(y - FILLET_AT[1]) < 0.1 else cb, C.cylinder((x, y, CHANNEL_Z0), (x, y, 252.5), DRIVER_R)]
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
                                  C.cylinder((x, y, seat - 0.5), (x, y, z0 + 0.5), R_SLEEVE_YAW[1])))
@@ -121,7 +146,8 @@ def build_right():
                 sg = 1.0 if y > yw["opening"][1] else -1.0
                 # ends at the seat plane: the head pocket (cut from seat_f outward) only trims inside its radius, so a rib
                 # reaching seat_f + 0.5 like the pads left a 0.5 mm ledge round the sleeve end (press support 73 -> 45 %)
-                ribs.append(C.box((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f, max(y, y + sg * RIB_LEN), z + RIB_H)))
+                ribs.append(((x_face, min(y, y + sg * RIB_LEN), z - RIB_H), (seat_f, max(y, y + sg * RIB_LEN), z + RIB_H)))
+    ribs = [C.box(lo, hi) for lo, hi in ribs]
     P = C.fuse(P, *ribs) if ribs else P
     P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
     P = C.fuse(P, *add, *fpads)
@@ -145,6 +171,10 @@ def build():
             sh = r[key] if side == "R" else C.mirror_x(r[key])
             nm = f"{side}_{base}"
             rec = MR.save(nm, sh, kind)
+            if kind == "printed":   # the refit writes 1.22 g/cm3; the printed material's density is in the checks' materials table (PAHT-CF 1.06)
+                rho = json.loads((ROOT / "robot/body/checks/data/materials.json").read_text())["Bambu PAHT-CF"]["density_g_cm3"]
+                rec["mass_kg"] = round(C.volume(sh) * rho * 1e-6, 6)
+                rec["mass_basis"] = f"native STEP volume x {rho} g/cm3 (Bambu PAHT-CF, checks/data/materials.json)"
             if kind == "purchased":
                 rec["mass_kg"] = round(C.volume(sh) * 7.85e-6, 6)
                 rec["mass_basis"] = "native STEP volume x 7.85 g/cm3 (304 SS)"
@@ -168,14 +198,14 @@ def swap_parts(parts):
     """The manifest part list with the yaw-to-pitch connector + sleeves of both sides replaced by the edited ones (offset 0)."""
     if not (OUT / "records.json").exists():   # derived output not built here: keep the manifest buildable, say so loudly
         print(f"WARNING hip yaw-to-pitch: {(OUT / 'records.json').relative_to(ROOT)} missing, the UNEDITED connector stays in the "
-              "manifest; run `.venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build` (T-v3kzs4) first")
+              "manifest; run `.venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build` first")
         return parts
     recs = json.loads((OUT / "records.json").read_text())["records"]
     res = []
     for p in parts:
         if p["name"] in recs:
             q = dict(p); q.update(recs[p["name"]]); q.pop("placement_offset_mm", None)
-            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py (T-v3kzs4)"
+            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py"
             res.append(q)
         else:
             res.append(p)
@@ -190,7 +220,7 @@ def patch_parts(parts, man):
         n = p["name"]
         if n in recs:
             q = dict(p); q.update({k: v for k, v in recs[n].items()}); q.pop("placement_offset_mm", None)
-            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py (T-v3kzs4)"
+            q["hip_yaw_screws"] = "edited by robot/body/motor-refit/hip_yaw_screws.py"
             res.append(q)
         elif n[2:].startswith(("A14_yaw_M3x14_", "A14_front_PA2x4_")):
             continue
