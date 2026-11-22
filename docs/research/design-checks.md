@@ -537,7 +537,7 @@ BOM row: STEP disk, producer neck_collar.py, +z (no seeded), no flags; defects.j
 
 Neck collar redesign for the checks (T-6rr3sa, 22 Nov; owner: the collar passes every design verification check). Baseline (17831ca46, library poses, all checks): engagement 3.25 of 4.0 mm,
 wall 0.004 mm (127.8 mm2 under one line, the flange tip where the head cut meets the base) and a 0.055 mm gap at the tab, press entry tool 45 / 18 mm3 (8 mm tip, 4.4 recess) and counter
-support 73 / 62 %, boss wall 0.79 mm, clearance 15.7 mm3 (neck pitch case at +35), 0.3 mm3 (cradle), 9.3 mm3 (head skin at pitch -30; collision_sweep), 205 micro-edge / sliver count 2, no FEM setup.
+support 73 / 62 %, boss wall 0.79 mm, clearance 15.7 mm3 (neck pitch case at +35), 0.3 mm3 (cradle), 9.3 mm3 (head skin at pitch -30; collision_sweep), 0 sliver faces by tolerance but a 2.5 mm2 / 10 mm2 scatter of micro-edges at the tab, heat margin -2.0 C (PETG-CF 68 C against the 70 C case assumption), no FEM setup.
 Changes (all B-rep, `neck_collar.py build` / `sweep`): (1) link: 1.1 mm boss on the plate's outer face (y 5-13.3, z 394.4-405.4) plus a plug in the plate's lightening window beside the pilots,
 the tab grows to the boss face (x -25.6), sleeves 3.6 / 2.2 x 3.5, M2x8: thread 4.6 deep, engagement 4.25 of 4.0 (0.0 shortfall); (2) screws moved to y 9.0, z 397.4 / 401.9 (boss wall, window edge, counter disc);
 (3) a vertical flat channel in the collar's outer left wall (8.1 mm wide, floor x -29.1, 0-1.8 mm deep, replaces the two dia 4.4 recesses): heads bear flat, the dia 8 press tip has a free path (entry tool 0 / 0 mm3);
@@ -546,10 +546,10 @@ the notch is now a flat floor per theta (62-136 deg; the old notch kept a 1.2 sl
 (5) a trim removes the footprint where the head cut leaves under 1.4 mm over the flange (sliver 0.004 mm gone), the notch floor (z 394.8 at the deepest, 0.6 mm over the bed) is the only link between the ring's halves;
 (6) 0.4 mm chamfer on the tab's bed edge (elephant foot). Look change: the collar's left side shows a flat channel 8 mm wide, 1.8 mm deep at most, the flange is cut back where the head cut came down to the base, and the back notch is wider and flat;
 nothing stands out. Renders: .cache/work/collar-renders/collar-before-after.png (before = HEAD build, after).
-Collar after (full run `collar-final`, library poses): clearance min distance 0.32 mm (case at +35), 0.58 mm (cradle), collision_sweep skin 0.16 mm3 at yaw -60 pitch -30 (was 9.3), geometry 4 sliver faces
+Collar after (full run, library poses, all checks incl. exact fit: no collar overlap, 0.59 mm to the cradle, 5.8 mm to the case at standing): clearance min distance 0.32 mm (case at +35), 0.58 mm (cradle), collision_sweep skin 0.16 mm3 at yaw -60 pitch -30 (was 9.3), geometry 4 sliver faces
 (0.0039 mm2) and 2 micro-edges (0.08 mm) left at the tab corner and channel flank, walls 2.0 mm2 under one line (was 127.8), boss wall 0.9 mm, press support 71 / 75 % (flat tab face; limit: 2 sleeves 4.5 mm apart
-need a dia 10 disc each, the collar is 11.8 mm high), overhang 10.1 mm2 (sleeve-bore tops, support 0 g in the slicer), heat margin as before, driver access 0 mm3, assembly steps clear, connectivity by screw, BOM row without flags.
-FEM (new setup on the collar: sleeve bores at the link clamped, load = rim within 2 mm of the head skin, 5 N / 20 N down and 10 N sideways): p99 strength ratio PETG-CF 1.79 / 0.45 / 2.69, PAHT-CF 2.68 / 0.67 / 4.01; the 20 N hard press bends the C-shaped ring (displacement 50-77 mm at the free ends).
+need a dia 10 disc each, the collar is 11.8 mm high), overhang 10.1 mm2 (sleeve-bore tops, support 0 g in the slicer), heat margin +100 C at 1.8 MPa (material now PAHT-CF, nozzle 0.4: the collar is screwed to a PAHT-CF link; the 0.6 mm default made the thin walls worse), driver access 0 mm3, assembly steps clear, connectivity by screw, BOM row without flags.
+FEM (new setup on the collar: sleeve bores at the link clamped, load = rim within 2 mm of the head skin, 5 N / 20 N down and 10 N sideways, nominal assumptions): p99 strength ratio PETG-CF 1.79 / 0.45 / 2.69, PAHT-CF 2.68 / 0.67 / 4.01; the 20 N hard press bends the C-shaped ring (displacement 50-77 mm at the free ends).
 Link: p99 von Mises (adverse neck stall, PAHT-CF) 34.7 -> 30.0 MPa, strength ratio 2.54 -> 2.94, fall 3.13 -> 3.42; volume 4809 -> 4964 mm3; walls under one line 0 -> 0.
 
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
