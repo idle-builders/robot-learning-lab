@@ -46,6 +46,7 @@ generators:
   in_place_edits:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  resources: {limit_gb: 9, timeout_s: 900}   # peaks measured under make.py 2026-11-22: 5.96 and 6.41 GB (the 6 GB default stopped it)
   notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws.
   after:
   - thigh-shell

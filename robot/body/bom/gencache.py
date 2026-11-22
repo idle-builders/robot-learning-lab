@@ -35,7 +35,7 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import cachefs  # noqa: E402
 
-VERSION = 1
+VERSION = 2          # 2: an entry lists every file its run wrote (1 listed only the files whose content changed)
 GRACE_DAYS = float(os.environ.get("GENCACHE_GRACE_DAYS", "3"))
 
 

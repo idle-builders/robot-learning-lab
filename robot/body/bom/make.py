@@ -124,11 +124,8 @@ def run_one(g, log_dir: Path):
     after = scan(roots + [WRITABLE])
     outputs, notes = {}, []
     for r, st in after.items():
-        if before.get(r) != st:
-            h = GC.file_state(ROOT, r)
-            if h == pre_sha.get(r):
-                continue                                   # rewritten with the same content
-            outputs[r] = h
+        if before.get(r) != st:                           # written by this run, also when with the same content: an entry
+            outputs[r] = GC.file_state(ROOT, r)            # names every file the run writes, so a restore leaves none stale
     for r in sorted(W):                                   # Python writes elsewhere under artifacts/
         if r in outputs or r in after or not (ROOT / r).is_file() or r.endswith(TMP_SUFFIX) or not r.startswith("artifacts/"):
             continue
@@ -193,7 +190,10 @@ def lock():
     return fh
 
 
-def make(status_only=False, run_sections=(), only=None, upto=None):
+MAX_PASSES = 3
+
+
+def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
     plan, D = generators(run_sections)
     log_dir = ROOT / ".cache/work/make-logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -205,7 +205,7 @@ def make(status_only=False, run_sections=(), only=None, upto=None):
         t0 = time.time()
         e, why = GC.lookup(gid, ROOT, g["command"])
         if e is not None:
-            if status_only:
+            if status_only and not quiet:
                 print(f"  reuse  {gid:34s} made {e['at'][:16]} in {Path(e['checkout']).name}" + (" (after an upstream rerun: may change)" if upstream_missed else ""))
             else:
                 c, s, rm = GC.restore(e, ROOT)
@@ -215,12 +215,13 @@ def make(status_only=False, run_sections=(), only=None, upto=None):
             summary.append(dict(id=gid, action="reused", seconds=round(time.time() - t0, 2)))
             continue
         if not managed:
-            if status_only or why != "never run through make":
+            if not quiet and (status_only or why != "never run through make"):
                 print(f"  as-is  {gid:34s} section builder (rebuild false): outputs taken as they are ({why}; --run {gid} reruns it)")
             summary.append(dict(id=gid, action="as-is", why=why))
             continue
         if status_only:
-            print(f"  RUNS   {gid:34s} {why}")
+            if not quiet:
+                print(f"  RUNS   {gid:34s} {why}")
             upstream_missed = True
             summary.append(dict(id=gid, action="runs", why=why))
             continue
@@ -241,6 +242,8 @@ def make(status_only=False, run_sections=(), only=None, upto=None):
         if upto and gid == upto:
             break
     GC.idx().flush()
+    if quiet:
+        return 0, summary
     n = {k: sum(s["action"] == k for s in summary) for k in ("reused", "ran", "runs", "as-is")}
     print(f"make{' status' if status_only else ''}: {n['reused']} reused, {n['ran'] if not status_only else n['runs']} "
           f"{'ran' if not status_only else 'would run'}, {n['as-is']} section builders as they are; {time.time() - t_all:.0f} s; "
@@ -299,7 +302,23 @@ def main():
         rc, _ = make(status_only=True, run_sections=runs, only=only)
         return rc
     _lk = lock()
-    rc, _ = make(run_sections=runs, only=only, upto=a.upto)
+    rc, summary = make(run_sections=runs, only=only, upto=a.upto)
+    # the chain has loops (generators that read what a later one rewrites, see the findings): a pass that ran something may
+    # leave earlier generators out of date; repeat until a pass runs nothing, at most MAX_PASSES
+    n = 1
+    while rc == 0 and not only and not a.upto and any(s["action"] == "ran" for s in summary) and n < MAX_PASSES:
+        _, st = make(status_only=True, run_sections=runs, quiet=True)
+        if not any(s["action"] == "runs" for s in st):
+            break
+        n += 1
+        print(f"pass {n}: {', '.join(s['id'] for s in st if s['action'] == 'runs')} read files the previous pass changed")
+        rc, summary = make(run_sections=runs)
+    if rc == 0 and n > 1:
+        _, st = make(status_only=True, run_sections=runs, quiet=True)
+        left = [s["id"] for s in st if s["action"] == "runs"]
+        print(f"settled after {n} passes" if not left else
+              f"NOT settled after {n} passes: {', '.join(left)} still see changed inputs (a builder that writes different "
+              f"content from the same inputs, or a loop in the chain); see their findings")
     if rc == 0 and a.report:
         rc = report()
     return rc
