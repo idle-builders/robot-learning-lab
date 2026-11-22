@@ -586,7 +586,9 @@ def _theta_extreme(inter, top):
     out[~np.isfinite(out)] = np.nan
     w = 2                                                    # +-1 deg: bin edges never let a corner slip between angles
     stack = np.array([np.roll(out, s) for s in range(-w, w + 1)])
-    with np.errstate(all="ignore"):
+    import warnings
+    with np.errstate(all="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)          # all-NaN angle = no part there = no limit (stays NaN)
         return np.nanmin(stack, 0) if top else np.nanmax(stack, 0)
 
 
