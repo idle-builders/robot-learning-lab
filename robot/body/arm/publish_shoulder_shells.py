@@ -85,8 +85,7 @@ def record():
                            cad=dict(model_units="m", views=[dict(label="Complete body with the parametric shoulder shells", model_path=rel(GLB))],
                                     parts_path=rel(MANIFEST), report_path=rel(REPORT), hide_shell_toggle=True, show_shells=True,
                                     motion_note="Joint sliders are inspection commands over the manifest ranges, not qualified travel."),
-                           evidence=[dict(id="parameters", title="Shape parameters (shoulder_shells.py)", kind="data", value=params),
-                                     dict(id="build", title="Shell build report", kind="data", value={k: rep[k] for k in list(rep)[:12]} if isinstance(rep, dict) else {})]))
+                           evidence=[dict(id="parameters", title="Shape parameters (shoulder_shells.py)", kind="data", value=params)]))
     (ART / "publication.json").write_text(json.dumps(pub, indent=1, default=str) + "\n")
     print(rel(ART / "publication.json"))
 
