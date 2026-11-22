@@ -413,34 +413,88 @@ def stage_interface_specs() -> dict[str, dict[str, Any]]:
             "load_arm_mm": 32.0,
         },
         "stage4_rear_imu_adc_carrier": {
-            "support_face_label": "6x M2.5 Dorsal Honeycomb Valley Standoff Rails to Stage 1 (X=-33.6, -11.2, +11.2 mm at Z=304.0 & 335.0 mm)",
-            "load_face_label": "4x M2 Body IMU 4517 Mounts + 4x M2 Foot ADC 6494 Mounts",
+            "support_face_label": "6x M2 Dorsal Honeycomb Valley Standoff Rails to Stage 1 (X=-33.6, -11.2, +11.2 mm; heads on the carrier's outer face outside the IMU / ADC footprints)",
+            "load_face_label": "4x M2 Body IMU 4517 Mounts + 4x M2 Foot ADC 6494 Mounts (printed pilots in the plate bosses, no sleeves)",
             "print_layer_normal": (0.0, 1.0, 0.0),
             "slice_axis": 2,  # Z slices from IMU (Z=297.65) through spine anchors (Z=304..335) to ADC (Z=345.35)
+            # Rail screws: the clamped carrier rail carries the full-thickness flush sleeve (Stage 1 face to the outer face,
+            # head on the outer face), the receiving Stage 1 rail is a printed pilot without sleeve (T-nh6ytf decision M).
             "support_bores": [
-                {"center": (-33.6, 38.65, 304.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
-                {"center": (-33.6, 38.65, 335.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
-                {"center": (-11.2, 38.65, 304.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
-                {"center": (-11.2, 38.65, 335.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
-                {"center": ( 11.2, 38.65, 304.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
-                {"center": ( 11.2, 38.65, 335.0), "normal": (0.0, 1.0, 0.0), "r_id": 1.30, "r_od": 1.95, "length": 5.8},
+                {"center": (x, (STAGE4_RAIL_Y0 + STAGE4_FRONT_Y) / 2, z), "normal": (0.0, 1.0, 0.0), "r_id": 1.10, "r_od": 1.70,
+                 "length": STAGE4_FRONT_Y - STAGE4_RAIL_Y0}
+                for x, z in stage4_rail_sites()
             ],
-            "load_bores": [
-                # 4x M2 Body IMU 4517 sleeves (cleared past r=1.05 mm to eliminate baseline 4.52 mm^3 overlap)
-                {"center": (-22.16, 40.8, 310.35), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (-1.84, 40.8, 310.35), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (-22.16, 40.8, 297.65), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (-1.84, 40.8, 297.65), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                # 4x M2 Foot ADC 6494 sleeves
-                {"center": (-24.70, 40.8, 345.35), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (0.70, 40.8, 345.35), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (-24.70, 40.8, 332.65), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-                {"center": (0.70, 40.8, 332.65), "normal": (0.0, 1.0, 0.0), "r_id": 1.05, "r_od": 1.60, "length": 2.2},
-            ],
+            # Board screws end in printed pilots of the plate (stage4_board_sites, from the boards' own STEP): no sleeve.
+            "load_bores": [],
             "aux_bores": [],
             "load_arm_mm": 27.35,
         },
     }
+
+
+# Stage 4 IMU / ADC carrier (mm, body frame). The plate's outer face is the boards' seat face (0.00 contact); the rails run from
+# Stage 1's dorsal rail face (Y 35.40, builder stage 1) to it. Rail screw sites keep the old X = -33.6 / -11.2 / +11.2 and
+# Z 304 / 335, except the two on X = -11.2, which sat under the IMU (Z 295.1-312.9) and the ADC (Z 330.1-347.9) boards: they
+# move to the free strip between the boards, +-STAGE4_RAIL_MID_OFFSET about its middle.
+STAGE4_RAIL_Y0 = 35.40
+STAGE4_PLATE_REAR_Y = 39.10
+STAGE4_BOSS_REAR_Y = 37.45          # board-screw boss ends 0.23 mm in front of the low-profile fins of Cell_02 / Cell_03 (tip Y 37.22)
+STAGE4_FRONT_Y = 42.00              # = the boards' back face (min Y of both supplier STEPs, checked in stage4_board_sites)
+STAGE4_RAIL_MID_OFFSET = 5.0
+STAGE4_BOARDS = ("body_IMU_4517", "foot_ADC_6494")
+
+
+def _board_hole_faces(part: str) -> list[dict]:
+    """Mount holes of a supplier board's own STEP: the cylindrical faces of radius 1.1-1.4 mm with their axis along Y (the vias are
+    0.5 mm, the board's other cylinders are parts of connectors), grouped by axis position (X, Z): Y span of the faces of one hole
+    and the board's extent."""
+    from build123d import GeomType, import_step
+    shape = import_step(str(_manifest_step(part)))
+    bb = shape.bounding_box()
+    holes = {}
+    for f in shape.faces():
+        if f.geom_type != GeomType.CYLINDER or not 1.1 < f.radius < 1.4 or abs(f.axis_of_rotation.direction.Y) < 0.99:
+            continue
+        a = f.axis_of_rotation.position
+        h = holes.setdefault((round(a.X, 2), round(a.Z, 2)), dict(x=round(a.X, 3), z=round(a.Z, 3), r_mm=f.radius, y0=1e9, y1=-1e9))
+        fb = f.bounding_box()
+        h["y0"], h["y1"] = min(h["y0"], fb.min.Y), max(h["y1"], fb.max.Y)
+    return [dict(board=part, board_y=(bb.min.Y, bb.max.Y), board_x=(bb.min.X, bb.max.X), board_z=(bb.min.Z, bb.max.Z), **h)
+            for h in holes.values()]
+
+
+_BOARD_SITES: list[dict] = []
+
+
+def stage4_board_sites() -> list[dict]:
+    """The 8 IMU / ADC mount holes read from the boards' own STEP files, ordered IMU first, then by Z descending and X
+    ascending: board, x, z (hole axis, Y), y_seat (the board's back face on the carrier), y_top (the hole's far end, the
+    face a head bears on), the board's X / Z extent."""
+    if not _BOARD_SITES:
+        for part in STAGE4_BOARDS:
+            hs = _board_hole_faces(part)
+            assert len(hs) == 4, (part, [(h["x"], h["z"]) for h in hs])
+            for h in sorted(hs, key=lambda h: (-h["z"], h["x"])):
+                _BOARD_SITES.append(dict(board=part, x=h["x"], z=h["z"], hole_dia_mm=round(2 * h["r_mm"], 3), y_seat=round(h["board_y"][0], 3),
+                                         y_top=round(h["y1"], 3), board_x=h["board_x"], board_z=h["board_z"]))
+    return _BOARD_SITES
+
+
+_RAIL_SITES: list[tuple[float, float]] = []
+
+
+def stage4_rail_sites() -> list[tuple[float, float]]:
+    """(x, z) of the 6 rail screws: the old sites, the two on X = -11.2 moved into the strip between the boards."""
+    if not _RAIL_SITES:
+        spans = []
+        for b in STAGE4_BOARDS:
+            bb = import_step(str(_manifest_step(b))).bounding_box()
+            spans.append((bb.min.Z, bb.max.Z))
+        zs = sorted(spans)
+        mid = (zs[0][1] + zs[1][0]) / 2.0
+        _RAIL_SITES.extend([(-33.6, 304.0), (-33.6, 335.0), (-11.2, round(mid - STAGE4_RAIL_MID_OFFSET, 3)),
+                            (-11.2, round(mid + STAGE4_RAIL_MID_OFFSET, 3)), (11.2, 304.0), (11.2, 335.0)])
+    return list(_RAIL_SITES)
 
 
 def build_stage_sleeves(stage: str) -> tuple[Compound, float, float]:
