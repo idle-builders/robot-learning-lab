@@ -24,9 +24,9 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
              (x 58.91-59.3) round the front pockets and crescents at the bottom bar's old hole. Ramp and tongues are filled to a 1.6 mm step (x 57.2-58.8, up to
              z 251.5, the fill carries the load the thin ramp did: FEM heavy (Bambu PAHT-CF) 1.22-1.23, 1.19 with the fill top at 250.55) and cut above it,
              the rim is cut flush, the crescents are cut at the old hole's centre plane (-y) / the refit's own inner face y 12.152 (+y).
-             Left: the refit's window walls and middle plate round out from x 58.8 (z 250.61 / 251.14) to 58.91 / 58.82 at the fill top, so
-             0.002-0.03 mm2 side faces stand above the fill's flat front; filling or padding to the seat plane 58.91 left more and smaller
-             micro-edges (0.0002 mm) or 0.006 mm walls along the padded fillets, a lower fill top costs FEM heavy 1.19.
+             The 0.002-0.03 mm2 faces at the fill top (y -7.85 / -1.6 / 5.6 / 11.85) were split pieces of the window walls' and the
+             middle plate's side planes, whose front rounds out past x 58.8 there: the part is unified after the cuts. Filling or padding the
+             front to the seat plane 58.91 instead left 0.0002 mm edges or 0.006 mm walls along the padded fillets.
   ear        a 0.6 mm chamfer along the ear's outer vertical edge (55.8, 19.0) gives 0.5 mm to the spine chassis tab at standing (0.30 before).
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
@@ -172,7 +172,7 @@ def build_right():
             C.box((seat_f, -10.5, 224.0), (59.6, 12.5, FRONT_TOP))]
     floor = C.cylinder((HUB[0], HUB[1], seat), (HUB[0], HUB[1], DECK_BOTTOM), HUB_R)   # the refit's pocket floor (262.0) down to the seat: no 0.25 mm step against the collar layer
     P = C.cut_many(P, cut + fcuts + notch + trim + [ear_chamfer_tool(), floor])
-    P = C.largest_solid(P)
+    P = C.largest_solid(C.unify(P))   # one face per plane / cylinder: the cuts left coplanar faces split (0.002-0.03 mm2 pieces, 0.007-0.25 mm edges)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
     out["plan"] = dict(yaw_length=L, yaw_stack=stack, yaw_seat_z=seat, front_length=Lf, front_stack=stack_f, front_seat_x=seat_f)
