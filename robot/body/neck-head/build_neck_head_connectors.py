@@ -480,12 +480,15 @@ def build_stage4(family: str) -> Solid:
     g = specs4["mic"]
     boss = [cyl_along(c, np.array([1.0, 0.0, 0.0]), float(g["sleeve_ro"]) + 0.7, float(h))
             for c, h in zip(g["centres"], g["sleeve_lens"]) if MIC_TAPER["z0"] <= float(c[2]) <= MIC_TAPER["z1"]]
-    # @lore the threaded camera sleeves stand 0.5 mm behind the plate (1 d of thread): a pad of the ear's radius up to the sleeve end
-    # keeps the heated press tool's counter face flat round them (support 44-57 % without it, 100 % flush before)
+    # @lore the threaded camera sleeves stand 0.5 mm behind the plate (1 d of thread): a flat boss 0.5 mm thick over the press anvil's face
+    # (dia 10, clipped to the plate outline) ends flush with the sleeve, so the heated press tool's counter face is as flat as the
+    # plate was (support 50 % with a 0.7 mm rim only, back to the flush-sleeve levels with this boss; T-5bqc3m)
     g = specs4["camera"]
-    boss += [cyl_along(np.asarray(c, float) + (y_rear - y_front) * np.array([0.0, 1.0, 0.0]), np.array([0.0, 1.0, 0.0]),
-                       float(g["sleeve_ro"]) + 0.7, float(h) - (y_rear - y_front))
-             for c, h in zip(g["centres"], g["sleeve_lens"]) if float(h) > (y_rear - y_front) + 1e-6]
+    boss = [b for b in boss]
+    for c, h in zip(g["centres"], g["sleeve_lens"]):
+        if float(h) > (y_rear - y_front) + 1e-6:
+            disc = (Pos(float(c[0]), float(c[2])) * Circle(5.0 + 0.2)) & f_main
+            boss.append(extrude_xy_to_y(disc.faces()[0], y_rear, y_front + float(h)))
     raw = s_plate + rib1 + rib2 + rib3 + rib4 + s_lug_l + s_lug_r + s_mic_br + s_mic_side
     for b in boss:
         raw = raw + b
