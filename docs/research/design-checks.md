@@ -512,9 +512,12 @@ counter support < 90 % 4 -> 6 (flat 60 % at the 5.6 mm rail end), free depth 0 -
 driver path blocked by center_back_shell on all screws (5.8-14.5 mm3), as before; Stage 1 walls min 0.004 -> 0.004 mm (under
 1 line 6374 -> 6318 mm2), wall around the rail bores 0.46-0.48 mm at the sleeve inner end at the new sites as at the old;
 fit overlaps 3 -> 3 pairs, identical (own sleeves 0.498 mm3, both pitch cases 5430 mm3); FEM p99 PAHT combined stall
-15.126 -> 15.115 MPa, strength ratio 5.82 -> 5.82, peak 84.8 -> 80.0 MPa; BOM lines 196 -> 194 (M2.5 x 10 and threaded
+15.126 -> 15.157 MPa (mesh h 2.2, 36468 nodes; the mesh differs, ratio and peak not re-read), strength ratio 5.82 -> 5.82; BOM lines 196 -> 193 (M2.5 x 10 and threaded
 sleeve M2.5 4 -> 6, rail clearance sleeves 3.9 x 2.6 x 5.8 / x 3.0 and the 8 board sleeves 3.2 x 2.1 x 2.2 dropped,
-3.9 x 2.6 x 6.6 x 6 added).
+3.9 x 2.6 x 6.6 x 6 added). The moved rail bores
+(x -11.2, z 316.5 / 326.5) are stepped: sleeve bore r 1.99 to y 31.9, tip clearance bore r 1.5 on to y 31.4, so the M2.5 x 10
+tip (y 32.0) stays 0.6 mm off the floor (ISO 4762 length tolerance +-0.29) and the floor keeps 0.72 mm to the battery pocket
+at r 1.5 (0.38 mm at the r 1.99 rim, as before); a full-radius bore to y 31.4 broke into the pockets (0.0057 mm3 per site).
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 
