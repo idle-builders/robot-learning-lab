@@ -125,9 +125,8 @@ def build_right():
     P = C.fuse(P, *ribs) if ribs else P
     P = C.cut_many(P, chan)                       # driver channels first: a front pad inside one stays (it carries its sleeve)
     P = C.fuse(P, *add, *fpads)
+    # @lore the front pads are not trimmed out of the yaw blade paths: the screw planner measures the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad reads 0.95 mm and picks M2x5 with the head 1.3 mm inside the sleeve; the steel sleeve end sits in that path anyway
     P = C.cut_many(P, cut + fcuts)
-    keep = [h["opening"] for h in yaw if reaches(h)]
-    P = C.cut_many(P, [C.cylinder((round(x, 2), round(y, 2), seat - 40.0), (round(x, 2), round(y, 2), seat), BLADE_R) for x, y, _ in keep])
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
