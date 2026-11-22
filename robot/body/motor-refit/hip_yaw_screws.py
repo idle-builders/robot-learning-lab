@@ -13,6 +13,10 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
              sleeve of the front screws z.1 / z.2 (y -6 / 10, Z 247) ends 0.09 mm short of the yaw axes (59,-5) / (59,9), whose hole
              positions are fixed, so no straight tool passes (obstruction 62 mm3 part + 4.5 mm3 sleeve at r 1.45). The key is tilted
              12-25 deg toward the free +x side (ISO 2936 ball-end hex key, 2.5 mm AF): nothing of the part or the sleeves is in that cone.
+             The window edges (y -7.85 / 11.85) stood 0.1 mm off the heads (R 2.75): a R 3.25 pocket in the wall gives 0.5 mm.
+  lattice    the front lattice's flat top (refit z 250.0012) is raised to 250.056, the crown of the outer front pads: one plane,
+             1.25 mm of print over the sleeves; the head pockets of those two screws are open to the top (no skin, no 0.05 mm breakout).
+  ear        a 0.6 mm chamfer along the ear's outer vertical edge (55.8, 19.0) gives 0.5 mm to the spine chassis tab at standing (0.30 before).
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
   recreate:  .venv/bin/python -B robot/body/motor-refit/hip_yaw_screws.py build   (parts + records.json in OUT)
@@ -43,7 +47,9 @@ R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (stand
 R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
 COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
 DECK_BOTTOM = 262.75
-FRONT_PAD_R = FRONT_POCKET_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
+FRONT_PAD_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
+LATTICE_TOP, FRONT_TOP = 250.0, 250.056   # the refit's flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves
+YAW_NOTCH_R, YAW_NOTCH_Z = 3.25, (258.25, 261.75)   # window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar's underside
 HUB_R, DECK_R = 3.45, 10.55              # deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis
 HUB = (59.0, 2.0)
 HUB_Z0 = 262.0
@@ -53,6 +59,17 @@ YAW_TOP = 274.75
 # stay; a box per yaw axis takes them off in clean planes (y ranges keep 0.45 mm off the refit's own y steps at -7.45 / 11.85, so no new micro-edges)
 RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
 FOOT_CUTS = (((56.0, -7.0, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
+
+
+EAR_CORNER, EAR_CHAMFER = (55.8, 19.0), 0.6   # the ear's outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room
+
+
+def ear_chamfer_tool():
+    import numpy as np
+    a = EAR_CHAMFER * 2 ** 0.5
+    T = np.eye(4); c, s_ = np.cos(np.pi / 4), np.sin(np.pi / 4)
+    T[:2, :2] = [[c, -s_], [s_, c]]; T[0, 3], T[1, 3] = EAR_CORNER
+    return C.transform(C.box((-a / 2, -a / 2, 224.0), (a / 2, a / 2, 267.0)), T)
 
 
 def window_stack(length, point, ref):
@@ -106,9 +123,13 @@ def build_right():
     fpads, fcuts = [], []
     for h in front:
         _, y, z = h["opening"]
-        fpads.append(C.cylinder((x_face, y, z), (seat_f + 0.5, y, z), FRONT_PAD_R))
+        outer = z + FRONT_PAD_R > FRONT_TOP - 0.1          # the two outer bosses reach the lattice top
+        pr = FRONT_TOP - z if outer else FRONT_PAD_R       # crown exactly on the raised lattice top; the pocket takes the same radius (a 1 um shell of the pad would stay otherwise)
+        fpads.append(C.cylinder((x_face, y, z), (seat_f + 0.5, y, z), pr))
         fcuts += [C.cylinder((x_face - 1.0, y, z), (x_face + 8, y, z), R_SLEEVE_FRONT[0]),
-                  C.cylinder((seat_f, y, z), (seat_f + 6, y, z), FRONT_POCKET_R)]
+                  C.cylinder((seat_f, y, z), (seat_f + 6, y, z), pr)]
+        if outer:   # head pocket open to the top: a pocket crown 0.00-0.06 mm off the lattice top would leave a skin or a 0.05 mm breakout
+            fcuts.append(C.box((seat_f, y - pr, z), (seat_f + 6, y + pr, FRONT_TOP + 0.3)))
         new_sleeves.append(C.cut(C.cylinder((x_face, y, z), (seat_f, y, z), R_SLEEVE_FRONT[0]),
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
@@ -120,9 +141,12 @@ def build_right():
         if abs(y - HUB[1]) > 4.0 and RIB_LEN > 0:
             sg = 1.0 if y > HUB[1] else -1.0
             P = C.fuse(P, C.box((RIB_X[0], min(y, y + sg * RIB_LEN), RIB_Z[0]), (RIB_X[1], max(y, y + sg * RIB_LEN), RIB_Z[1])))
+    P, v_top = C.pad(P, "z", LATTICE_TOP, FRONT_TOP, ((56.6, -9.6, 0.0), (59.4, 12.0, 0.0)))   # region z is replaced by the slab; solids are counted below
+    print(f"lattice top raised to {FRONT_TOP}: {v_top:.2f} mm3, solids {C.n_solids(P)}", flush=True)
     P = C.fuse(P, *add, *fpads)
     # @lore no driver channel through the front bosses: the screw planner reads the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad picks M2x5 with the head 1.3 mm inside the sleeve; and the sleeve end sits 0.09 mm off the yaw axis, so a channel never makes a straight path. A tilted ball-end key does.
-    P = C.cut_many(P, cut + fcuts)
+    notch = [C.cylinder((x, y, YAW_NOTCH_Z[0]), (x, y, YAW_NOTCH_Z[1]), YAW_NOTCH_R) for x, y in ((59.0, -5.0), (59.0, 9.0))]
+    P = C.cut_many(P, cut + fcuts + notch + [ear_chamfer_tool()])
     P = C.largest_solid(P)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
