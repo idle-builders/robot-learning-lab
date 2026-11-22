@@ -42,6 +42,12 @@ subassembly, with the assembly check's measurement per step), `findings.json`, `
 `.cache/work/body-rebuild/`) runs the declared generators in the order their inputs and outputs give, then the same three
 commands and the dashboard record (to a file).
 
+Dashboard: `.venv/bin/python -B robot/body/bom/publish_body.py --publish` (main checkout) publishes the selected-body record
+from a consistent snapshot: the definitions as committed at HEAD and a manifest whose files hash-match what it recorded.
+Other sessions' uncommitted work is listed on the record as not included and never blocks it; the record's version is
+that commit. A manifest file that no longer matches its recorded sha256 is a finding (`file_changed_since_manifest`)
+naming the definition. `rebuild_chain.py setup --commit HEAD` builds the isolated copy from a commit the same way.
+
 ## The definition file
 
 ```yaml
