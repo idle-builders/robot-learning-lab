@@ -168,6 +168,11 @@ def put_blob(p: Path, sha: str):
 
 
 # ------------------------------------------------------------------------------------------------ entries
+def newest_outputs(gid: str) -> set:
+    e = next(entries(gid), None)
+    return set(e["outputs"]) if e else set()
+
+
 def entries(gid: str):
     d = store() / "entries" / gid
     fs = sorted(d.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True) if d.is_dir() else []
@@ -178,13 +183,26 @@ def entries(gid: str):
             yield e
 
 
-def why_invalid(e, root: Path, overlay=None):
+def feedback(e, earlier: set, later: set) -> set:
+    """Reads of entry e that are feedback, not inputs: files no earlier generator writes that this generator (its own
+    outputs) or a later one writes. Their content is what the previous make left there (the chain has loops: a builder
+    reading its own last output, or a manifest a later step writes); in a settled chain it follows from the real inputs,
+    so a checkout with another history must not miss on them. A file an earlier generator wrote and this one edits in
+    place stays an input."""
+    return {r for r in e["reads"] if r not in earlier and (r in e["outputs"] or r in later)}
+
+
+def why_invalid(e, root: Path, overlay=None, earlier=frozenset(), later=frozenset()):
     """None when every input entry e recorded is unchanged in the checkout at root, else the first input that changed.
-    overlay {rel: sha}: files as earlier restores in the same walk would leave them (make.py status)."""
-    if any(v == "unknown" for v in e["reads"].values()):
+    overlay {rel: sha}: files as earlier restores in the same walk would leave them (make.py status); earlier / later:
+    files the generators before / after this one write (feedback reads are skipped)."""
+    fb = feedback(e, earlier, later)
+    if any(v == "unknown" for r, v in e["reads"].items() if r not in fb):
         return "a file it read was also written by it, outside its declared outputs (pre-run content unknown)"
     ov = overlay or {}
     for r, h in e["reads"].items():
+        if r in fb:
+            continue
         if (ov[r] if r in ov else file_state(root, r)) != h:
             return f"changed: {r}"
     for r, h in e.get("dirs", {}).items():
@@ -196,14 +214,14 @@ def why_invalid(e, root: Path, overlay=None):
     return None
 
 
-def lookup(gid: str, root: Path, command, overlay=None):
+def lookup(gid: str, root: Path, command, overlay=None, earlier=frozenset(), later=frozenset()):
     """(entry, None) for the newest valid entry of generator gid with this command; else (None, why the newest is not)."""
     why = "never run through make"
     for e in entries(gid):
         if e["command"] != command:
             why = why if why != "never run through make" else "command changed"
             continue
-        w = why_invalid(e, root, overlay)
+        w = why_invalid(e, root, overlay, earlier, later)
         if w is None:
             return e, None
         if why in ("never run through make", "command changed"):

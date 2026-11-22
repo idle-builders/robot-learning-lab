@@ -200,12 +200,15 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
     log_dir.mkdir(parents=True, exist_ok=True)
     summary, upstream_missed, t_all = [], False, time.time()
     overlay = {}                    # status: files as the restores before this generator would leave them
+    outs = {g["id"]: GC.newest_outputs(g["id"]) for g, _ in plan}   # who writes what (newest entries; feedback reads)
     for pos, (g, managed) in enumerate(plan):
         gid = g["id"]
         if only and gid not in only:
             continue
         t0 = time.time()
-        e, why = GC.lookup(gid, ROOT, g["command"], overlay if status_only else None)
+        earlier = set().union(*(outs[h["id"]] for h, _ in plan[:pos])) if pos else set()
+        later = set().union(*(outs[h["id"]] for h, _ in plan[pos + 1:])) if pos + 1 < len(plan) else set()
+        e, why = GC.lookup(gid, ROOT, g["command"], overlay if status_only else None, earlier, later)
         if e is not None:
             if status_only:
                 overlay.update(e["outputs"]); overlay.update({r: "missing" for r in e.get("deleted", [])})
@@ -236,8 +239,9 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
             print("\n".join("        " + l for l in (log_dir / f"{gid}.log").read_text(errors="replace").splitlines()[-12:]))
             summary.append(dict(id=gid, action="failed", rc=rc, seconds=round(secs, 1)))
             return rc, summary
-        notes += late_reads(reads, pos, plan)
+        notes += late_reads({r: h for r, h in reads.items() if r not in outputs}, pos, plan)
         e = GC.save(gid, g["command"], reads, dirs, outputs, deleted, ROOT, file=g["file"], seconds=round(secs, 1), peak_gb=peak, notes=notes)
+        outs[gid] = set(outputs)
         GC.mark(ROOT, gid, e)
         print(f"  ran    {gid:34s} {secs:.0f} s, peak {peak} GB, {len(reads)} inputs read, {len(outputs)} outputs stored")
         for n in notes:
