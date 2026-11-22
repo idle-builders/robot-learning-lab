@@ -156,6 +156,8 @@ def spec_of(p, mesh=None):
         if not thr and m:
             thr = min(THREADS, key=lambda t: abs(THREADS[t] - m["shank_dia"])); s["source_of_spec"].append("thread from shank diameter")
         L = nom.get("nominal_length_mm")
+        if (p.get("screw_plan") or {}).get("length_mm"):
+            L = float(p["screw_plan"]["length_mm"]); s["source_of_spec"].append("length from screw_plan")   # names are stale (T-tt3v4q)
         csk = bool(re.search(r"(_CS\d|csk|countersunk)", name, re.I))
         plan = p.get("screw_plan") or {}
         head = plan.get("head_standard")
