@@ -154,14 +154,16 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
 
 
 def head_screws(man: dict) -> list[dict]:
-    """The head carrier's 4 compute, 8 camera and 2 mic screws generated from the supplier spacers / nuts / sleeves (head_holes.py);
-    the legacy camera / plate / mic screws they replace are dropped."""
+    """The head carrier's 4 compute, 8 camera and 2 mic screws generated from the supplier spacers / nuts and the catalogue inserts
+    (head_holes.py); the legacy camera / plate / mic screws they replace are dropped, the camera standoffs and mic shims go (printed
+    columns / skin bosses take their place) and the skin gets its two mic bosses with the inserts."""
     import screw_plan as SP
     import head_holes as HH
-    plans = HH.screw_plans()
+    plans = HH.screw_plans()                 # measures (and caches) the standoff / shim bores before they are dropped
     import re
-    plain_spacers(man)
-    names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])}
+    skin_mic_bosses(man)
+    drop = {n for g in HH.POSTS.values() if g is not HH.POSTS["compute"] for n in g["spacers"]}
+    names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])} | drop
     # an earlier generated length of the same post: B0410_camera_M2_0 is stored as B0410_camera_M2x<L>_0
     stale = [re.compile(re.escape(b).replace("_M2_", r"_M2(?:x[0-9p.]+)?_") + "$") for g in HH.POSTS.values() if "legacy_screws" in g for b in g["screws"]]
     man["parts"] = [p for p in man["parts"] if p["name"] not in names and not any(r.match(p["name"]) for r in stale)]
@@ -171,40 +173,109 @@ def head_screws(man: dict) -> list[dict]:
     return plans
 
 
-def plain_spacers(man: dict) -> None:
-    """The 8 camera spacers become plain (clearance bore 2.2 mm) hex spacers of the supplier standoff's own outside size and
-    length: the screw is driven from the camera front into the carrier's threaded sleeve (owner 2026-11-22, T-5bqc3m), so
-    the spacer carries no thread. Position, hex size (across flats = the standoff's extent across its flats) and length are
-    measured on the standoff mesh in the manifest; the bore is the clearance bore of an M2 screw (the checks' 'clearance
-    hole' size: ISO 273 fine series 2.2 mm). Writes STEP + NPZ into this folder's parts/ and points the manifest entries at them."""
+def skin_mic_bosses(man: dict) -> None:
+    """Two printed bosses on the head skin's inner side carry the microphone's two catalogue M2 heat-set inserts (T-5bqc3m, replaces
+    the carrier's mic wing, which left 2.4 mm between board and skin at the upper screw for a 3 mm insert). Each boss is a cylinder
+    (head_carrier_posts.json mic.boss.ro) from the board's back face to a plane inside the skin wall (least-squares plane through the wall's
+    mid surface over the boss footprint), so the skin's outer surface is untouched; the insert hole (OD of the insert, its length) and a
+    narrow hole for the screw's point are cut from the board face. Writes the skin mesh into this folder's parts/, the inserts as the
+    skin's `_steel_sleeves` part, and points the manifest at both. Idempotent (a second run unions / cuts the same solids)."""
+    import copy
+    import manifold3d as md
     import trimesh
-    from build123d import Cylinder, Location, Polygon, Rot, Solid, export_step, extrude
+    from build123d import Compound, export_step
     import head_holes as HH
-    body, _ = HH._body()
-    for sp in HH.POSTS["camera"]["spacers"]:
-        e = _entry(man, sp)
-        m = body.mesh(sp)
-        lo, hi = m.bounds
-        ext = hi - lo
-        b = HH.bore(m)
-        assert b["axis"] == 1 and ext[0] > ext[2], (sp, ext, b["axis"])      # length axis y, hex corners along x
-        across_corners, af = float(ext[0]), float(ext[2])
-        bc = b["centre"]                                        # the old bore's axis: the plain spacer keeps it
-        hexa = Polygon(*[(across_corners / 2 * np.cos(np.pi / 3 * k), across_corners / 2 * np.sin(np.pi / 3 * k)) for k in range(6)], align=None)
-        prism = extrude(hexa, amount=float(ext[1])) - Cylinder(1.1, float(ext[1]) + 1.0)      # axis z, centred on the origin in x, y
-        sol = Solid((Rot(90, 0, 0) * prism).wrapped)
-        bb = sol.bounding_box()
-        sol = Solid(sol.moved(Location((float(bc[0] - (bb.min.X + bb.max.X) / 2), float(lo[1] - bb.min.Y), float(bc[2] - (bb.min.Z + bb.max.Z) / 2)))).wrapped)
-        step, npz = C.ART / "parts" / f"{sp}.step", C.ART / "parts" / f"{sp}.npz"
-        export_step(sol, str(step))
-        C.save_solid_npz(sol, npz, tol=0.05)
-        z = np.load(npz); nm = trimesh.Trimesh(z["vertices"], z["faces"], process=False)
-        e.update(native_step=_rel(step), native_step_sha256=_sha(step), mesh=_rel(npz), mesh_sha256=_sha(npz),
-                 bounds_mm=[np.round(nm.bounds[0], 3).tolist(), np.round(nm.bounds[1], 3).tolist()],
-                 volume_mm3=round(float(sol.volume), 3),
-                 neck_parts="plain hex spacer rebuilt by robot/body/neck-head/neck_parts.py (T-5bqc3m): clearance bore 2.2, outside as the supplier F-F standoff")
-        print(f"{sp}: plain spacer across flats {af:.2f} corners {across_corners:.2f} length {ext[1]:.2f}, bore 2.2, volume {sol.volume:.2f} mm3 "
-              f"(was {abs(m.volume):.2f} as meshed)")
+    from checks import bodylib as BL
+    body, dman = HH._body()
+    spec = HH.POSTS["mic"]
+    bs, sl = spec["boss"], HH.sleeve("mic")
+    name = bs["skin_part"]
+    npz = C.ART / "parts" / f"{name}.npz"
+    # the skin as it was before this function touched it: the manifests' own entry unless that is already our output (then the entry's
+    # recorded source), so a second run (rebuild chain, default manifest already bossed) cuts the same solids from the same skin
+    srcs = []
+    for m_ in (man, dman):
+        pe = next(p for p in m_["parts"] if p["name"] == name)
+        srcs += [pe.get("mic_boss_source_mesh"), pe["mesh"]]
+    src = next(x for x in srcs if x and (ROOT / x).resolve() != npz.resolve())
+    skin = BL.load_mesh(src)
+    posts = HH.threaded_posts()["mic"]
+    ro, L = float(bs["ro"]), float(sl["length"])
+    rays = skin.ray
+
+    def wall(y, z):        # (inner, outer) x of the skin at (y, z): the first two hits of a ray from the inside
+        loc, _, _ = rays.intersects_location([[30.0, y, z]], [[1.0, 0.0, 0.0]])
+        xs = np.sort(loc[:, 0])
+        return float(xs[0]), float(xs[-1])
+
+    def to_mf(m):
+        return md.Manifold(md.Mesh(np.asarray(m.vertices, np.float32), np.asarray(m.faces, np.uint32)))
+
+    def cyl_x(x0, x1, r, y, z):
+        c = md.Manifold.cylinder(float(x1 - x0), float(r), float(r), 64)          # along z from 0
+        return c.rotate([0.0, 90.0, 0.0]).translate([float(x0), float(y), float(z)])
+
+    res = to_mf(skin)
+    holes = []
+    for r in posts:
+        pl = r["plan"]
+        c = np.asarray(pl["opening"], float)           # on the board's back face
+        x0 = float(c[0])
+        ang = np.linspace(0, 2 * np.pi, 24, endpoint=False)
+        pts = [(c[1] + ro * k * np.cos(t), c[2] + ro * k * np.sin(t)) for k in (0.0, 0.5, 1.0) for t in (ang if k else [0.0])]
+        w = np.array([wall(y, z) for y, z in pts])
+        mid = (w[:, 0] + w[:, 1]) / 2
+        A = np.c_[np.ones(len(pts)), np.array(pts) - c[1:]]
+        coef = np.linalg.lstsq(A, mid, rcond=None)[0]            # x = a + b dy + c dz through the wall's mid surface
+        nrm = np.array([-1.0, coef[1], coef[2]]); nl = float(np.linalg.norm(nrm))
+        # boss = the cylinder trimmed to the side of the plane that holds the board (x <= plane)
+        cy = cyl_x(x0, float(mid.max() + 2.0), ro, c[1], c[2])
+        # plane in world coordinates: x = a + b (y - cy) + c (z - cz); it passes through (a, cy, cz)
+        n_w = nrm / nl
+        p_on = np.array([coef[0], c[1], c[2]])                   # a point of the plane
+        boss = cy.trim_by_plane(tuple(n_w), float(np.dot(n_w, p_on)))
+        res = res + boss
+        resid = w[:, 1] - (coef[0] + A[:, 1:] @ coef[1:])       # outer surface minus the plane: the wall left behind the boss end
+        print(f"{pl['name']}: boss R{ro} x {x0:.2f} .. wall mid plane x {coef[0]:.2f} (slope y {coef[1]:+.3f} z {coef[2]:+.3f}); "
+              f"skin inner {w[:, 0].min():.2f}..{w[:, 0].max():.2f}, outer {w[:, 1].min():.2f}..{w[:, 1].max():.2f}; end plane to outer {resid.min():.2f} mm")
+        holes.append(cyl_x(x0 - 0.5, x0 + L, float(sl["ro"]), c[1], c[2]))
+        holes.append(cyl_x(x0 + L - 0.1, x0 + L + float(bs["tip_hole_extra_mm"]), float(bs["tip_hole_ro"]), c[1], c[2]))
+    for h in holes:
+        res = res - h
+    m = res.to_mesh()
+    v, f = np.asarray(m.vert_properties)[:, :3], np.asarray(m.tri_verts)
+    _npz(trimesh.Trimesh(v, f, process=False), npz)
+    mesh = trimesh.Trimesh(v, f, process=False)
+    e = _entry(man, name)
+    e.update(mic_boss_source_mesh=src, mesh=_rel(npz), mesh_sha256=_sha(npz), bounds_mm=[np.round(mesh.bounds[0], 3).tolist(), np.round(mesh.bounds[1], 3).tolist()],
+             mesh_note="range notch applied to the mesh (T-jrnxfn); two microphone insert bosses on the inner side added (T-5bqc3m, neck_parts.py skin_mic_bosses); "
+                       "the native STEP predates both and is dropped")
+    for k in ("native_step", "native_step_sha256"):
+        e.pop(k, None)
+    # the inserts: tubes OD 2 ro, bore = the thread's minor diameter, from the board's back face into the boss
+    slv = []
+    for r in posts:
+        c = np.asarray(r["plan"]["opening"], float)
+        outer = C.cyl_along(c, np.array([1.0, 0.0, 0.0]), float(sl["ro"]), L)
+        inner = C.cyl_along(c - 0.05 * np.array([1.0, 0.0, 0.0]), np.array([1.0, 0.0, 0.0]), float(sl["ri"]), L + 0.1)
+        from build123d import Solid
+        slv.append(Solid((outer - inner).wrapped))
+    sname = f"{name}_steel_sleeves"
+    sstep, snpz = C.ART / "parts" / f"{sname}.step", C.ART / "parts" / f"{sname}.npz"
+    export_step(Compound(children=slv), str(sstep))
+    parts = []
+    for s_ in slv:
+        vv, ff = C.solid_to_watertight_arrays(s_, tol=0.04)
+        parts.append(trimesh.Trimesh(vv, ff, process=False))
+    allm = trimesh.util.concatenate(parts)
+    _npz(allm, snpz)
+    tmpl = copy.deepcopy(_entry(man, "combined__head_sensor_compute_carrier_steel_sleeves"))
+    tmpl.update(name=sname, native_step=_rel(sstep), native_step_sha256=_sha(sstep), mesh=_rel(snpz), mesh_sha256=_sha(snpz),
+                bounds_mm=[np.round(allm.bounds[0], 3).tolist(), np.round(allm.bounds[1], 3).tolist()], native_solid_count=len(slv),
+                native_validity=[True] * len(slv), mass_kg=round(sum(float(s_.volume) for s_ in slv) * 8.5e-6, 6),
+                neck_parts="2 M2 x 3 mm brass heat-set inserts in the head skin's mic bosses (neck_parts.py skin_mic_bosses, T-5bqc3m)")
+    man["parts"] = [p for p in man["parts"] if p["name"] != sname] + [tmpl]
+    print(f"{name}: 2 mic bosses + inserts, {abs(float(mesh.volume)):.1f} mm3 (was {abs(float(skin.volume)):.1f})")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:

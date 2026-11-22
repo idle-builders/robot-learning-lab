@@ -724,18 +724,15 @@ old coverage read as no surface; sleeve 1 wall share 24.2 % against 25.0 % from 
 against 32.0 mm from OCC pin booleans (0.5 mm steps). Limits: spacer width is not a variable (a narrow block is assumed);
 recess / open points are not supported.
 
-## Head carrier camera and mic screws into threaded sleeves (2026-11-22, T-5bqc3m)
+## Head carrier camera and mic screws into catalogue heat-set inserts (2026-11-22, T-5bqc3m)
 
-Owner 2026-11-22: the 8 camera screws were driven from behind the plate, where the ROCK4D blocked insertion and driver 100 %; the
-2 mic screws had no terminal. Now (same pattern as the torso's threaded stage-1 sleeves, T-bv7bwe): the camera posts end in an
-internally threaded 304 sleeve pressed into the carrier (plate front face to 0.5 mm behind it, 2.0 mm = 1 d of thread; a 0.7 mm
-pad round its rear end keeps the press counter face), a plain hex spacer (the supplier standoff's outside, clearance bore 2.2)
-holds the board off the plate, and an ISO 4762 M2x10 with washer is driven from the camera front. The mic wing carries a threaded
-sleeve per post (no nut), the screw comes from the mic board side: M2x4 (sleeve 2.0 mm, engagement 2.0) and, under the head skin's
-taper where the wing is 0.83 mm thick, M2x3 (sleeve 1.17 mm, 0.34 mm proud on a 0.7 mm rim). Screw length: shortest stocked length
-that engages the whole sleeve with the tip 0.3 mm clear of every head-link part, else the longest clear one (mic upper post).
-Sites, head seats and sleeve lengths come from the spacer / washer / shim / mic-board meshes (robot/body/neck-head/head_holes.py).
-ASSUMPTIONS (no supplier data in the repo): M2 thread modelled at the ISO 724 minor diameter 1.567 mm (as torso_screws.THREADS), 1 d
-engagement in steel, a press-in M2 threaded sleeve of OD 3.5 mm (wall about 1 mm) may have to be made; the ISO 7380-1 M2x3 exists
-by analogy (data/hardware.json lists M2 from 4 mm). Measured carrier numbers: robot/body/checks/run.py runs hc-final (before) and
-hc-threaded5 (after) under .cache/work/cad-speed/checks/.
+Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned 304 sleeves of OD 3.5 with a 1 mm wall,
+clearances of 0.3-0.5 mm, walls of two print lines). The 8 camera screws are driven from the camera front through washer, board and a
+printed 5 mm column (replaces the supplier F-F standoff, clearance bore 2.4) into an M2 x 3 mm brass heat-set insert that is pushed from
+the plate's rear face (before ROCK4D goes on) up to the column bore's ledge and ends 0.1 mm inside the rear face; ISO 4762 M2x8 (engagement
+2.0-2.1 mm = 1 d, the 0.5 mm point inside the insert), nothing stands behind the plate any more. The 2 mic screws leave the carrier: the mic
+wing is gone, two printed bosses on the head skin's inner side (R 3.0, trimmed to the skin wall's mid plane, outer surface untouched)
+carry the inserts, the board rests on the boss ends without a shim, ISO 7380-style M2x5 from the board side (driven before ROCK4D goes on).
+Insert sizes are catalogue-class (OD 3.2-3.6, L 3-4 mm; Ruthex / CNC Kitchen / Voron class); no supplier data in the repo: the thread is modelled
+at the ISO 724 minor diameter 1.567 mm, 1 d engagement for a steel screw in a brass thread, insert OD 3.5 = hole size (assumption).
+Sites come from the standoff / shim bores (cached in robot/body/neck-head/head_carrier_measured.json, since the parts are dropped from the manifest).

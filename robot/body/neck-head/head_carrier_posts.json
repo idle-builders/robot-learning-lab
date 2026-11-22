@@ -1,5 +1,5 @@
 {
- "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). The post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer (and of the terminal nut) on its mesh. group: screw family of the post; toward_plate: side of the spacer along its bore axis (oriented to +Y, the robot's back) on which the carrier plate lies; spacers / terminals / screws: manifest part names in post order; legacy_screws: manifest parts the generated screws replace (dropped); head: standard and thread of the screw (dk / k / length series from robot/body/checks/data/hardware.json screw_standards; compute: ISO 10642 has no M2.5 entry there, so dk / k are ISO 10642 values written here: assumption until compared with the supplier's list); sleeve: pressed-in 304 SS sleeve around the post (compute: bore from robot/actuators/interfaces/standard-parts.json sleeve.bore_for, outer radius by the wall left at the head); terminal: where the thread bites (compute: the nut, depth = its thickness). Camera and mic posts (owner 2026-11-22, same pattern as robot/body/torso/torso_screws.py): the post ends in an internally threaded 304 steel sleeve pressed into the carrier (camera: plate front face to engagement_x_d x thread diameter, i.e. at least the plate thickness; mic: the wing, its outer end trimmed to the screw tip and to the head skin), no nut. The camera spacers (supplier F-F standoffs in the CAD, bought as plain spacers) only space the board off the plate; the ISO 4762 screw is driven from the camera front through washer, board and spacer into the sleeve. The mic screw comes from the board side. The screw is the shortest stocked length that engages the whole threaded sleeve with its tip tip_margin_mm clear of every neighbour (else the longest clear one). threads: ISO 724 M2 major / minor diameter of the sleeve's modelled bore, the same values as torso_screws.THREADS; SOURCING: a press-in internally threaded M2 sleeve of OD 3.5 mm (wall about 1 mm, 2.0 mm long) has no supplier source in the repo and may have to be made (turned from 304 bar). ASSUMPTION: the repo has no supplier threaded-bushing data for M2 steel press-in sleeves of OD 3.5 mm, the thread is modelled at the minor diameter and engagement_x_d = 1.0 (steel screw in a steel thread) is assumed.",
+ "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). Post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer / shim / terminal nut on its mesh (cached in head_carrier_measured.json, so a manifest from which the spacers are already dropped still gives the same sites). group: screw family of the post; spacers / terminals / screws: manifest part names in post order; legacy_screws: manifest parts the generated screws replace; head: standard and thread of the screw (dk / k / lengths from robot/body/checks/data/hardware.json screw_standards; compute: ISO 10642 M2.5 dk / k written here, assumption). compute: pressed 304 sleeve around the post, screw into the nut. camera (owner 2026-11-22: only catalogue hardware, printable and hand-assemblable): the 8 supplier F-F standoffs are replaced by a printed column (column.ro, column.height 4.97 = the standoff's 5 mm less 0.03 mm so the board face never overlaps the column in the fit check; the screw clamp closes it) on the carrier plate with a clearance bore (column.bore_dia); a catalogue M2 brass heat-set insert (sleeve: OD 2 x ro, length) is pushed from the plate's rear face (before ROCK4D goes on) up to the bore's ledge and ends flush with the rear face; the ISO 4762 M2 screw is driven from the camera front through washer, board and column into the insert (engagement_x_d x M2 = 2.0 mm reference; length by screw_plan.choose_length, tip 0.5 mm point inside the insert). mic: the two inserts sit in two printed bosses of the head skin's inner side (boss.ro, skin_part) in place of the carrier's mic wing; the mic board rests on the boss ends (no shim), the ISO 7380-style M2 button screw is driven from the board side (before ROCK4D goes on, 0.34 mm head to ROCK4D). Insert sizes: catalogue-class M2 x 3.0 mm, OD 3.2-3.6 mm knurled (Ruthex / CNC Kitchen / Voron class); the modelled OD 3.5 is the hole size (no overlap check against the melted-in plastic). threads: ISO 724 M2 major / minor diameter of the insert's modelled bore (same values as torso_screws.THREADS). ASSUMPTIONS: no supplier data for the insert in the repo; thread modelled at the minor diameter; 1 d engagement for a steel screw in a brass thread. camera insert recess_mm: the insert's rear end sits 0.1 mm inside the plate's rear face (a heat-set insert is never exactly flush; the 0.07 mm thicker B0196 board still reaches the 1 d engagement with M2x8).",
  "groups": {
   "compute": {
    "toward_plate": "-axis",
@@ -66,9 +66,12 @@
     "thread": "M2"
    },
    "sleeve": {
+    "kind": "heat-set insert",
     "ro": 1.75,
     "thread": "M2",
-    "engagement_x_d": 1.0
+    "length": 3.0,
+    "engagement_x_d": 1.0,
+    "recess_mm": 0.1
    },
    "head_side": "rear",
    "washers": [
@@ -98,7 +101,12 @@
     "B0196_camera_M2x4_1",
     "B0196_camera_M2x4_2",
     "B0196_camera_M2x4_3"
-   ]
+   ],
+   "column": {
+    "ro": 3.0,
+    "bore_dia": 2.4,
+    "height": 4.97
+   }
   },
   "mic": {
    "toward_plate": "+axis",
@@ -111,9 +119,11 @@
     "mic_side_M2_1"
    ],
    "sleeve": {
+    "kind": "heat-set insert",
     "ro": 1.75,
     "thread": "M2",
-    "wing_thickness": 2.0
+    "length": 3.0,
+    "engagement_x_d": 1.0
    },
    "head_side": "front",
    "legacy_screws": [
@@ -130,10 +140,14 @@
      6
     ]
    },
+   "boss": {
+    "ro": 3.0,
+    "tip_hole_ro": 1.0,
+    "tip_hole_extra_mm": 0.45,
+    "skin_part": "original_profile_head_skin_v23"
+   },
    "clamped": [
-    "microphone_6049_v23",
-    "mic_side_shim_0",
-    "mic_side_shim_1"
+    "microphone_6049_v23"
    ]
   }
  },

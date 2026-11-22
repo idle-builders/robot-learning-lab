@@ -621,11 +621,9 @@ def stage_interface_specs() -> dict:
     s4_cam_pts = hs["camera"]
     s4_load_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_load_pts)
     s4_cam_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_cam_pts)
-    s4_mic_pts = hs["mic"]
-    s4_mic_norms = [np.array([1.0, 0.0, 0.0])] * len(s4_mic_pts)
-    cs, cm, mm = HH.POSTS["compute"]["sleeve"], HH.sleeve("camera"), HH.sleeve("mic")
+    cs, cm = HH.POSTS["compute"]["sleeve"], HH.sleeve("camera")
     plate_t = HH.plate_faces()[1] - HH.plate_faces()[0]
-    cam_lens, mic_lens = HH.sleeve_lens("camera"), HH.sleeve_lens("mic")
+    cam_lens, cam_starts = HH.sleeve_lens("camera"), HH.sleeve_starts("camera")
 
     return {
         "stage1_neck_root_cradle": {
@@ -723,18 +721,6 @@ def stage_interface_specs() -> dict:
                 "sleeve_len": plate_t,
                 "patch_r": 3.3,
             },
-            "mic": {
-                "name": "microphone_posts",
-                "normal": np.array([1.0, 0.0, 0.0]),
-                "normals": s4_mic_norms,
-                "centres": s4_mic_pts,
-                "sleeve_ro": mm["ro"],
-                "sleeve_ri": mm["ri"],
-                "sleeve_len": max(mic_lens),
-                "sleeve_lens": mic_lens,
-                "threaded": True,
-                "patch_r": 2.3,
-            },
             "camera": {
                 "name": "camera_posts",
                 "normal": np.array([0.0, 1.0, 0.0]),
@@ -744,15 +730,15 @@ def stage_interface_specs() -> dict:
                 "sleeve_ri": cm["ri"],
                 "sleeve_len": max(cam_lens),
                 "sleeve_lens": cam_lens,
+                "sleeve_starts": cam_starts,
                 "threaded": True,
+                "column": HH.POSTS["camera"]["column"],
                 "patch_r": 2.3,
             },
             "aux_bores": [
                 # 2x M2 radial head skin screw bores at X = ±44.0..45.5, Y = -14.9, Z = 451.0
                 {"pt": np.array([45.5, -14.9, 451.0]), "normal": np.array([-1.0, 0.0, 0.0]), "ri": 1.05, "length": 1.8, "driver_dir": np.array([1.0, 0.0, 0.0])},
                 {"pt": np.array([-45.5, -14.9, 451.0]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.05, "length": 1.8, "driver_dir": np.array([-1.0, 0.0, 0.0])},
-                # 1x Ø2.5 mm acoustic port relief at X = 46.97..48.97, Y = 0.0, Z = 464.0
-                {"pt": np.array([46.97, 0.0, 464.0]), "normal": np.array([1.0, 0.0, 0.0]), "ri": 1.25, "length": 2.2, "driver_dir": None},
             ],
         },
     }
@@ -771,6 +757,8 @@ def build_stage_sleeves(stage_key: str) -> list[dict]:
         ri = float(grp["sleeve_ri"])
         for idx, (pt, d) in enumerate(zip(grp["centres"], norms)):
             h = float(grp["sleeve_lens"][idx]) if "sleeve_lens" in grp else float(grp["sleeve_len"])
+            if "sleeve_starts" in grp:      # an insert that starts away from the site's plane (camera: inside the printed column)
+                pt = pt + (float(grp["sleeve_starts"][idx]) - float(np.dot(pt, d))) * np.asarray(d, float)
             outer = cyl_along(pt, d, ro, h)
             inner = cyl_along(pt - 0.05 * d, d, ri, h + 0.10)
             slv = Solid((outer - inner).wrapped)
