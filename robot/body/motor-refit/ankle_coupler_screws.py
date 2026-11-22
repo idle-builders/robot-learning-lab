@@ -28,7 +28,8 @@ horn hub plane, not on the flange); the walls between sleeve and central hole we
   screws    4 + 4 x ISO 7380-1 M3x6 (screw_plan standard lengths; stack = L - point - reference engagement: horn 2.55, idler
             2.0; the plate is not thickened, the longest length whose stack fits), connector entry ankle_coupler_combined groups ST3025_horn / ST3025_idler in connector_screws.json.
   bosses    printed boss of radius EAR_R from the measured wheel face to the head seat under every sleeve (horn side: 2.0 mm
-            long, clipped to the horn hub's radius + clearance), so the sleeves end on the flange face (0.00 contact); the
+            long, clipped to the horn hub's radius + clearance; both clipped to a cylinder about the wheel axis SHIN_CLEAR inside the
+            own shin's bore, measured from the shin mesh), so the sleeves end on the flange face (0.00 contact); the
             plate above is pocketed to the head seat as for the horn-roll side.
   rim       the plate's 0.6 mm locating rim is notched where the anvil annulus stands (it ended 0.4 / 3 mm beyond the wheel face).
   centre    the plate's central hole is closed to WHEEL_CENTRE_R (the shaft screws stay reachable).
@@ -72,7 +73,7 @@ CENTRE_OLD_R = 4.5
 WHEEL_CENTRE_R = 3.4                # wheel side: central hole after closing: 7 - 2.25 - 3.4 = 1.35 mm wall = 2 lines of the 0.62 mm line (0.6 nozzle)
 ANVIL_R = 10.0 / 2 + 0.3           # anvil annulus radius of checks/press_lib.py (ANVIL_D / 2) + clearance
 RIM_NOTCH_L = 4.0                   # notch depth below the wheel face (the rim ends 0.4 mm below it on the horn side, 3 mm on the idler side)
-OUTLINE_MARGIN = 0.3                # boss may stand this far beyond the plate's round outline
+SHIN_CLEAR = 0.39                   # boss stays this far inside the own shin's bore (the old coupler cleared it by 0.48 / 0.39 mm)
 HUB_CLEAR = 0.05                    # horn hub: printed boss stays this far from the hub
 POCKET_TOP = 3.0                    # pocket cut runs this far above the pad's outer face
 BACK_PAD_TOP = 23.8                 # outer face of the motor-refit pad (motor_refit.py: pad 20.8 -> 23.8)
@@ -204,6 +205,27 @@ def install_wheel_holes():
     SP.hole_positions = hole_positions
 
 
+def shin_bore_r(shin, cy, cz, x0=72.0, x1=80.0):
+    """Radius of the shin's bore about the ankle-pitch axis (cy, cz): the nearest shin section vertex over the wheel-side span."""
+    r = []
+    for x in np.arange(x0, x1 + 1e-9, 1.0):
+        sec = shin.section(plane_origin=[x, 0, 0], plane_normal=[1, 0, 0])
+        if sec is not None:
+            d = np.linalg.norm(np.asarray(sec.vertices)[:, 1:3] - np.array([cy, cz]), axis=1)
+            d = d[(d > 8.0) & (d < 14.0)]
+            if len(d):
+                r.append(d.min())
+    return float(min(r))
+
+
+def axis_cylinder(xa, xb, cy, cz, r):
+    """Cylinder about the wheel axis (along x) with its seam at 45 deg between the hole axes: a clip or hub cutter whose seam ran through
+    a boss face left an unorientable face (BRepCheck) and unreliable booleans and distances on the right coupler."""
+    from OCP.BRepPrimAPI import BRepPrimAPI_MakeCylinder
+    from OCP.gp import gp_Ax2, gp_Dir, gp_Pnt
+    return BRepPrimAPI_MakeCylinder(gp_Ax2(gp_Pnt(xa, cy, cz), gp_Dir(1, 0, 0), gp_Dir(0, 1, 1)), float(r), float(xb - xa)).Shape()
+
+
 def wheel_face(mesh, h, ring=3.0, n=8):
     """x of the wheel flange face around a hole: median of the first hit of axial rays on a ring around the hole opening."""
     a = np.asarray(h["axis_out"], float); o = np.asarray(h["opening"], float)
@@ -212,7 +234,7 @@ def wheel_face(mesh, h, ring=3.0, n=8):
     return float(np.median(loc[:, 0])) if len(loc) else None
 
 
-def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh):
+def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh, shin_mesh):
     """Boss, head-seat pocket and closed centre for the 8 ankle-pitch sleeves of the right coupler; returns (part, new sleeves, plan)."""
     import screw_plan as SP
     g = SP.connectors()[CONNECTOR]["groups"]
@@ -222,6 +244,8 @@ def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh):
     hh = [h for name, _ in WHEEL_GROUPS for h in grp[name] if name == "ST3025_horn"]
     cy = float(np.mean([h["opening"][1] for h in hh])); cz = float(np.mean([h["opening"][2] for h in hh]))
     add, pockets, bores, new_sleeves, plan, notch = [], [], [], [], {}, []
+    bore_r = shin_bore_r(shin_mesh, cy, cz)
+    print(f"shin bore r {bore_r:.3f} about the ankle-pitch axis -> bosses clipped to r {bore_r - SHIN_CLEAR:.3f}", flush=True)
     for name, member in WHEEL_GROUPS:
         holes = grp[name]; h0 = holes[0]
         s = float(np.sign(h0["axis_out"][0]))
@@ -240,9 +264,6 @@ def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh):
         x_seat = x_open + s * stack
         print(f"{name}: M3x{L:g} stack {stack:.2f} (ref {ref}, depth {depth}); opening x {x_open:.2f}, wheel face {base:.2f}, "
               f"plate {x_in:.2f}..{x_out:.2f}, head seat {x_seat:.2f}", flush=True)
-        sec = old_part_mesh.section(plane_origin=[x_out - s * 0.5, 0, 0], plane_normal=[1, 0, 0])      # the plate's round outline around the wheel axis
-        d = np.linalg.norm(np.asarray(sec.vertices)[:, 1:3] - np.array([cy, cz]), axis=1)
-        outline_r = float(np.median(d[(d > 8.0) & (d < 12.0)]))
         hub_r = None
         if member == "horn":                     # the wheel's hub stands proud of the flange face under the plate: clip the boss to it
             sec = mesh.section(plane_origin=[base + s * 1.0, 0, 0], plane_normal=[1, 0, 0])
@@ -252,19 +273,12 @@ def wheel_side(P, old_sleeves, iface, st, mesh, old_part_mesh):
         for h in holes:
             y, z = float(h["opening"][1]), float(h["opening"][2])
             boss = C.cylinder((base, y, z), (x_seat + s * EAR_LIP, y, z), EAR_R)
-            # not beyond the plate's outline: the shin cheek closes to 0.4 mm of it (the bare boss overlapped the shin by 43 mm3 in the deep crouch)
-            ry, rz = y - cy, z - cz                                   # radial direction of the hole (the four holes lie on the y / z axes of the wheel)
-            lim = outline_r + OUTLINE_MARGIN
+            # inside the own shin's bore about the ankle-pitch axis, minus clearance: the flat box at outline_r + 0.3 left the boss
+            # corners at r ~ 11.3 into the bore (r 10.98), 23 of 23 poses; a cylinder about the axis keeps every point of the boss under it
             xa, xb = sorted((base - s * 1.0, x_seat + s * (EAR_LIP + 1.0)))
-            if abs(ry) > abs(rz):
-                lo, hi = (cy - 30, cy + lim) if ry > 0 else (cy - lim, cy + 30)
-                keep = C.box((xa, lo, cz - 30), (xb, hi, cz + 30))
-            else:
-                lo, hi = (cz - 30, cz + lim) if rz > 0 else (cz - lim, cz + 30)
-                keep = C.box((xa, cy - 30, lo), (xb, cy + 30, hi))
-            boss = C.common(boss, keep)
+            boss = C.common(boss, axis_cylinder(xa, xb, cy, cz, bore_r - SHIN_CLEAR))
             if hub_r:
-                boss = C.cut(boss, C.cylinder((x_in - s * 0.0, cy, cz), (base - s * 1.0, cy, cz), hub_r + HUB_CLEAR))
+                boss = C.cut(boss, axis_cylinder(*sorted((x_in, base - s * 1.0)), cy, cz, hub_r + HUB_CLEAR))
             add.append(boss)
             # the plate's thin locating rim ends beyond the wheel face: notch it where the anvil annulus stands (press_lib ANVIL_D)
             notch.append(C.cylinder((base, y, z), (base - s * RIM_NOTCH_L, y, z), ANVIL_R))
@@ -345,7 +359,7 @@ def build_right():
     P = fillet_ear_junctions(P, holes, y_face, y_seat, (cx, cz))
     assert C.valid(P), "edited coupler is not a valid solid"
     print(f"printed volume {v0:.0f} -> {C.volume(P):.0f} mm3, solids {C.n_solids(P)}", flush=True)
-    P, wheel_sleeves, wheel_plan = wheel_side(P, keep, iface, st, body.mesh("R_" + WHEEL), body.mesh("R_" + PART))
+    P, wheel_sleeves, wheel_plan = wheel_side(P, keep, iface, st, body.mesh("R_" + WHEEL), body.mesh("R_" + PART), body.mesh("R_shin_combined"))
     return dict(part=P, sleeves=MR.compound(new_sleeves + wheel_sleeves),
                 plan=dict(wheel=wheel_plan, length_mm=L, stack_mm=stack, head_seat_y=y_seat, plate_floor_before_mm=floor_now,
                           centre_pocket_r_mm=CENTRE_R, pocket_r_mm=TIP_R, volume_before_mm3=v0, volume_after_mm3=C.volume(P)))
