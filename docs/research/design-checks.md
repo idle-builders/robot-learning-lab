@@ -429,7 +429,7 @@ part moves 2 mm along +-x / +-y / +-z at standing against every part within 3 mm
 | head skin + B0196 camera (group) | same | skin: no screw (nearest compute screw 1.92 mm), free along -y and +z; B0196: camera screws enter only the camera, plate screws only the carrier and end 1.1-2.3 mm short; the 4 M2 F-F 5 mm standoffs between them exist in the sensor layout parts but not in the manifest | real gap: head skin has no mount. B0196 standoffs: artefact (T-bv7bwe): the 4 `B0196_M2_FF5_spacer_*_v23` are in the manifest (role `spacer`), but `mount_check.HARDWARE_ROLES` lacked `spacer`, so the graph dropped them; fixed, camera and plate screw join through each spacer (8 / 8 ring points) |
 | B0410 camera (isolated) | same | 1.23 mm from the carrier; plate screws end 2.1-2.7 mm short; its 4 F-F standoffs are missing the same way | artefact (T-bv7bwe): same `spacer` role fix; B0410 now reaches the core by screw |
 | fan stack (group) | same | 4 M3 x 15.7 screws clamp only the fan (8 / 8 ring points) and the lead guide; nearest other part 1.05 mm (Radian heatsink, beside the axis) | real design gap: the fan bolts to nothing. Fixed 22 Nov (T-3npyjq, `robot/body/assembly/held_parts.py`): the compute M2.5x30 nuts floated 2.0 mm off the bridge standoffs, where the 2 mm fan bridge plate was never modelled; plate added (4 flush sleeves), fan screwed to it by its two upper holes (M3x16); fan stack reaches the core by screw |
-| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | real design gap (and a data defect); needs screw lands on the neck yaw-to-pitch link (T-3npyjq follow-up) |
+| head_neck_collar (isolated) | same | 0.82 mm from the head skin, 0.98 mm from the neck link; no screw; free in four directions; its `native_step` names the head skin STEP | fixed (T-a2mt33): screwed to the yaw-to-pitch link plate by 2 x M2x8 through 3.6 / 2.2 sleeves, chain to the core by contact+screw; `native_step` dropped |
 | chest indicator relief (isolated) | same | 0.229 mm from the front shell (0.2 mm contact tolerance); blocked +-x 29 mm3, free +y | real design gap: no retention (bond, press or lip not specified). Fixed 22 Nov (T-3npyjq): printed with the front shell on the X2D second nozzle; rebuilt to fill its pocket (0.00 mm, 0.04 mm3 to the shell), reaches the core by contact (bonded) |
 | palms (new 20 Nov), palm upper and fingers | palm lower screwed (wrist screws from bounds); palm upper and fingers contact-only | the hand servo case and horn have no mesh, so no joint edge can form | artefact: mesh-less hand servo |
 | forearm front covers | contact-only | L_fore_front_M3x8_187 inside the forearm (12 points), 1.07 mm from the cover | unresolved: screw placed before the shell morph, or missing hole |
@@ -455,6 +455,18 @@ facing a pocket: mount_check reads +3.7 mm sleeve-to-fan on both plate screws. c
 shelves motor_refit removed) dropped. R_roll_servo_case_reference: vendor solid 2 rebuilt from its outer shell (7 void shells, +17 mm3),
 invalid solids 1 -> 0. Connectivity on the patched selected body: isolated head_neck_collar only; groups not reaching the core: pelvis cells
 08 and 09 (2 x 3 parts); 156 contact-only, 38 break points; edges screw 185, contact 387, sleeve 33, joint 34.
+
+Neck collar mount (T-a2mt33, 22 Nov, `robot/body/assembly/neck_collar.py build`, swapped in by `roll_flip_checks.py manifest` after `neck_parts`):
+head_neck_collar is screwed to the left plate of the neck yaw-to-pitch link (x -24.5..-21, the collar's inner wall stood 1.9-3.8 mm off it at y 5-14). An inward
+tab (y 5-14.2, z 394.4-405.6, +182 mm3 PETG-CF) grows to the plate face (layer gap 0.000 mm at the tab, 3.35 mm where the wall curves away), two 3.6 / 2.2 sleeves
+(4.5 mm) at y 10.5, z 398.3 / 402.8, M2x8 ISO 7380-1 heads in dia 4.4 recesses whose flat floor is the sleeve end (the outer wall slopes about 15 deg; nothing
+stands out of the outer surface), dia 1.6 pilots through the plate (-14 mm3 on the link). mount_check: engagement 3.25 of the 4.0 reference (shortfall 0.75: the plate
+is 3.5 mm), hole offset 0.000, head seat gap 0.000, head bearing ring 0.655 mm, tip margin 0.5 mm. Press (own script on the collar mesh; the shared check needs a native
+STEP): counter support 73 / 62 % flat from the head side, entry tool path 45 / 18 mm3 (the assumed 8 mm tip is wider than the 4.4 recess), from the inside the ring wall blocks
+the 20 mm tool body (632 / 538 mm3). Driver access from the head side: 0 mm3 within 100 mm. Clearance over neck pitch (library poses) is unchanged against the unedited
+collar: 15 mm3 with the neck pitch case at pitch +35 (y 25.5, far from the tab) and 0.1 mm3 with the cradle sleeves at the corner pose; head skin gap 0.822 mm. Connectivity: head_neck_collar
+reaches the core (contact+screw), isolated parts 0, groups not reaching the core 2 (pelvis cells 08 / 09). The collar stays a mesh part (the ring is cut by a head-envelope mesh,
+so no B-rep rebuild; mesh booleans for tab, recesses, holes); its bad `native_step` is dropped; defects.json still lists it.
 
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /

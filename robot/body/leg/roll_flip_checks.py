@@ -244,6 +244,8 @@ def build_manifest():
     sys.path.insert(0, str(ROOT / "robot/body/neck-head"))
     import neck_parts as NP                 # T-6dvwjq: rebuilt XM335 neck connectors + their screws, when built (warns if not)
     log += NP.apply(man)
+    import neck_collar as NC                # run its `build` first (T-a2mt33): head_neck_collar screwed to the yaw-to-pitch link (after NP: edits the link)
+    man["parts"] = NC.swap_parts(man["parts"])
     log += _keep_shell_step_rows(man)
     parts = man["parts"]
     man["study_id"] = man["result_id"] = "cove50-hip-roll-flip"

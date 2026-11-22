@@ -8361,6 +8361,17 @@
       "sleeves": 4
     }
   },
+  "head_neck_collar": {
+    "process": {
+      "printer": "Bambu X2D",
+      "material": "Bambu PETG-CF",
+      "up": "+z",
+      "up_source": "builder 2026-11-22 (T-a2mt33): the ring's base flange (z 394.2) on the bed, the only flat face; the screw tab (z 394.4) is a short ceiling on the wall (overhang check reads them). Seeded, not designer-confirmed.",
+      "seeded_keys": [
+        "up"
+      ]
+    }
+  },
   "R_fore_front_hard_cover": {
     "process": {
       "material": "Bambu PETG-CF",

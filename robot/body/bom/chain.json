@@ -222,6 +222,26 @@
    "notes": "Parts nothing held (T-3npyjq): the fan bridge plate + sleeves and the fan's two upper screws re-seated on it, the chest indicator rebuilt to fill its pocket (printed with the front shell), the R roll case's invalid vendor solid rebuilt from its outer shell, the stale r1 front-shell screws and the fan's lower right screw stack dropped; roll_flip_checks manifest swaps them in. Reads the indicator, case and fan sources named by the shell-pass manifest."
   },
   {
+   "id": "neck-collar",
+   "command": [
+    ".venv/bin/python",
+    "-B",
+    "robot/body/assembly/neck_collar.py",
+    "build"
+   ],
+   "inputs": [
+    "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json",
+    "artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.step"
+   ],
+   "outputs": [
+    "artifacts/robot/body/assembly/neck-collar/records.json",
+    "artifacts/robot/body/assembly/neck-collar/parts"
+   ],
+   "manifest_out": null,
+   "in_place_edits": [],
+   "notes": "head_neck_collar screwed to the neck yaw-to-pitch link (T-a2mt33): inward tabs, two 3.6/2.2 steel sleeves, head recesses, two M2x8 screws, two dia 1.6 pilots in the link plate; mesh part (no native STEP, the ring is cut by a head-envelope mesh); roll_flip_checks manifest swaps it in after neck_parts."
+  },
+  {
    "id": "roll-flip-cad",
    "command": [
     ".venv/bin/python",
