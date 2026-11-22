@@ -34,10 +34,13 @@ def run(ctx):
             not_checked[n] = "part has no native STEP in this manifest (mesh only)"
             continue
         dirs[n] = FC.layer_direction(ctx, n, variant)
+        FC.progress_start(n, "fem_setup")
         mesh = FC.get_mesh(ctx, n, s)
         hs = holes(ctx, n)
         rows, masks = {}, {}
-        for k, spec in {**{f"support_{a}": b for a, b in s["supports"].items()}, "load": s["load"]}.items():
+        released = {f"load_member_{i}_free_about_{x['free_rotation_about_joint']}": {k: v for k, v in x.items() if k != "free_rotation_about_joint"}
+                    for i, x in enumerate(s["load"] if isinstance(s["load"], list) else [s["load"]]) if isinstance(x, dict) and x.get("free_rotation_about_joint")}
+        for k, spec in {**{f"support_{a}": b for a, b in s["supports"].items()}, "load": s["load"], **released}.items():
             w, info, mask = FC.patch(ctx, mesh, spec)
             masks[k] = (w > 0, mask)
             tri_c = mesh["points"][mesh["tri"]].mean(axis=1)[mask]

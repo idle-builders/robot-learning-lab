@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import time
 
-import numpy as np
-
 from checks import arm_loads as AL
 from checks import fem_core as FC
 from checks.registry import register
@@ -37,31 +35,34 @@ def run(ctx):
             continue
         ld = FC.layer_direction(ctx, n, variant)
         t0 = time.time()
+        FC.progress_start(n)
+        FC.say(f"setup {ctx_variant(variant)}: {len(mats)} material(s) x {len(lns)} layer normal(s) x {len(s['load_cases'])} load case(s), mesh h {float(s.get('mesh_h_mm', 2.2)):g}")
         slog = []
         mesh = FC.get_mesh(ctx, n, s)
         sup = {k: FC.patch(ctx, mesh, v) for k, v in s["supports"].items()}
         wl, linfo, _ = FC.patch(ctx, mesh, s["load"])
         org = FC.origin_of(ctx, s, mesh, wl)
-        release = None
-        for x in (s["load"] if isinstance(s["load"], list) else [s["load"]]):
-            if isinstance(x, dict) and x.get("free_rotation_about_joint"):
-                wr_, _, _ = FC.patch(ctx, mesh, {k: v for k, v in x.items() if k != "free_rotation_about_joint"})
-                jr = ctx.body.joints[x["free_rotation_about_joint"]]
-                release = dict(nodes=np.flatnonzero(wr_ > 0), axis=jr["axis_world_neutral"], point=jr["origin_world_mm"], joint=jr["name"])
+        release = FC.released_rotations(ctx, mesh, s["load"], f"{n} [{ctx_variant(variant)}]")
+        FC.say(f"patches: load {linfo['nodes']} nodes, " + ", ".join(f"support {k} {i['nodes']} nodes" for k, (_, i, _) in sup.items())
+               + "".join(f", released about {g['joint']} {len(g['nodes'])} nodes" for g in release or []))
         wr = {k: FC.wrench_of(ctx, c, org) for k, c in s["load_cases"].items() if "hand_envelope" not in c}
         env = {k: AL.envelope(ctx.body, c["hand_envelope"], org) for k, c in s["load_cases"].items() if "hand_envelope" in c}   # many wrenches per case
+        if env:
+            FC.say("hand envelopes: " + ", ".join(f"{k} {len(e[0])} wrenches" for k, e in env.items()))
         res = {}
         for ln in lns:
             res["xyz"[ln]] = {}
             for m in mats:
+                FC.say(f"solve {len(slog) + 1}/{len(lns) * len(mats)}: {m}, layer normal {'xyz'[ln]}")
                 res["xyz"[ln]][m] = FC.solve(mesh, [w for w, _, _ in sup.values()], wl, org, wr, m, ln, FC.slot_materials(s), rigid_load=FC.is_rigid(s["load"]), envelopes=env, release=release)
                 slog.append(dict(layer_normal="xyz"[ln], material=m, **FC.SOLVE_LOG[-1]))
                 lg = slog[-1]
                 lg["residual_above_10x_rtol"] = bool(lg.get("true_relative_residual_max", 0.0) > 10 * FC.CG_RTOL)
+                FC.say(f"solve {len(slog)}/{len(lns) * len(mats)} done: {m}, layer normal {'xyz'[ln]}")
         per[n] = dict(variant=variant, layer_direction=ld, nodes=int(len(mesh["points"])), tets=int(len(mesh["tet"])), origin_mm=org, setup_notes=FC.setup_notes(s),
-                      wrenches_N_Nmm={k: v.tolist() for k, v in wr.items()}, envelope_loads={k: e[2] for k, e in env.items()}, released_rotation=(None if release is None else dict(joint=release['joint'], nodes=int(len(release['nodes'])))),
+                      wrenches_N_Nmm={k: v.tolist() for k, v in wr.items()}, envelope_loads={k: e[2] for k, e in env.items()}, released_rotations=[dict(joint=g["joint"], load_members=g["members"], nodes=int(len(g["nodes"]))) for g in release or []],
                       patches=dict(load=linfo, **{f"support_{k}": i for k, (_, i, _) in sup.items()}),
-                      by_layer_normal=res, solver=slog, rigid_load=FC.is_rigid(s["load"]), reaction_plus_wrench_pct_max=max(x.get("reaction_plus_wrench_pct_max", 0.0) for x in slog), mesh_h_mm=float(s.get("mesh_h_mm", 2.2)), regions_elements=mesh.get("region_elements"), seconds=round(time.time() - t0, 1))
+                      by_layer_normal=res, solver=slog, rigid_load=FC.is_rigid(s["load"]), reaction_plus_wrench_pct_max=max(x.get("reaction_plus_wrench_pct_max", 0.0) for x in slog), mesh_h_mm=float(s.get("mesh_h_mm", 2.2)), regions_elements=mesh.get("region_elements"), bore_collars=mesh.get("bore_collars"), seconds=round(time.time() - t0, 1))
         for ln, bm in res.items():
             for m, rows in bm.items():
                 for c, r in rows.items():
