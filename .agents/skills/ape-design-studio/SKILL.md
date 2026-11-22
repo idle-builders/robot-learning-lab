@@ -59,10 +59,10 @@ The reference body is `classic`. Soft ivory covers are allowed on every joint.
 
 ## Hardware starts at the BOM
 
-For any part, screw, print or purchase question start from the generated BOM and assembly order, not from a manifest or an old study folder: [robot/body/bom/README.md](../../../robot/body/bom/README.md) (`BOM.md` and `ASSEMBLY.md` in `.cache/work/bom/` after `.venv/bin/python -B robot/body/bom/build.py`). When your work changes the selected body (a part added, removed, renamed or moved, a screw changed, a new builder step):
-- keep `robot/body/bom/lines.json` current (a line, supplier and part number only from a repo source or `unknown`, notes) and `robot/body/checks/data/assembly_order.json` (`assembly_seed.py seed` places new parts and screws; set a direction or reorder by hand when you know better, and leave a draft `seeded`);
-- add a new builder to `robot/body/bom/chain.json` before its last three steps;
-- rerun the assembly check, `build.py` and the bom check (the last three chain steps; commands in the BOM README) and report the counts that moved.
+For any part, screw, print or purchase question start from the generated BOM and assembly order, not from a manifest or an old study folder: [robot/body/bom/README.md](../../../robot/body/bom/README.md) (`BOM.md`, `ASSEMBLY.md`, `findings.json` in `.cache/work/bom/` after `.venv/bin/python -B robot/body/bom/build.py`). The BOM tool knows no part: your builder's definition, `<builder>.bom.yaml` next to its script, says what it generates from what, which parts it owns and what each is (line, make / buy, spec, supplier or `unknown`), its assembly steps and its open defects. When your work adds, changes, renames or removes a part, screw or builder step:
+- edit only your builder's `.bom.yaml` (a new builder gets a new one next to it); never edit files under `robot/body/bom/` for a design change;
+- rerun `build.py`, the assembly check and the bom check (commands in the BOM README) and work down the findings that name your file; report the counts that moved;
+- draft steps with `robot/body/checks/assembly_seed.py propose` and hardware specs with `robot/body/bom/propose_hardware.py`; you decide what goes in.
 
 ## Publish a part's design study
 

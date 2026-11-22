@@ -16,7 +16,7 @@ Start with [ape-experiments](ape-experiments/SKILL.md) for learning experiments,
 - [ape-joint-bank](ape-joint-bank/SKILL.md): retrieve, stage and maintain structured actuator and joint options for CAD and motion design.
 - [ape-inspector](ape-inspector/SKILL.md): publish and inspect reviewed results and retained runs in the single local dashboard.
 
-**Hardware rule for every track.** Hardware (parts, screws, prints, purchases, assembly) starts from the generated robot BOM and assembly order: [robot/body/bom/README.md](../../robot/body/bom/README.md). Any change to the selected body keeps `robot/body/bom/lines.json` and `robot/body/checks/data/assembly_order.json` current and reruns the BOM steps (the last three steps of `robot/body/bom/chain.json`).
+**Hardware rule for every track.** Hardware (parts, screws, prints, purchases, assembly) starts from the generated robot BOM and assembly order: [robot/body/bom/README.md](../../robot/body/bom/README.md). Each builder's agents own its definition, `<builder>.bom.yaml` next to the script (generators, parts, assembly steps, defects); a design change edits that file only, then reruns the BOM steps; the bom check names the file of every gap.
 
 These are agent instructions. The robot's policies are named in `control/*/registry.json`; their checkpoints are in the bucket.
 
