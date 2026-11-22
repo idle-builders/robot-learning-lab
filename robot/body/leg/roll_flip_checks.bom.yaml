@@ -15,6 +15,7 @@ generators:
   - -B
   - robot/body/leg/roll_flip_checks.py
   - manifest
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
   - artifacts/robot/body/leg/roll-flip/cad-manifest.json
@@ -40,6 +41,7 @@ generators:
   - -B
   - robot/body/leg/roll_flip_checks.py
   - manifest
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   composes: roll-flip                # applies every definition's `compose` entry into roll-flip; their `needs` run first
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json

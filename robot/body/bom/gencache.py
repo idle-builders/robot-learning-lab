@@ -178,12 +178,14 @@ def entries(gid: str):
             yield e
 
 
-def why_invalid(e, root: Path):
-    """None when every input entry e recorded is unchanged in the checkout at root, else the first input that changed."""
+def why_invalid(e, root: Path, overlay=None):
+    """None when every input entry e recorded is unchanged in the checkout at root, else the first input that changed.
+    overlay {rel: sha}: files as earlier restores in the same walk would leave them (make.py status)."""
     if any(v == "unknown" for v in e["reads"].values()):
         return "a file it read was also written by it, outside its declared outputs (pre-run content unknown)"
+    ov = overlay or {}
     for r, h in e["reads"].items():
-        if file_state(root, r) != h:
+        if (ov[r] if r in ov else file_state(root, r)) != h:
             return f"changed: {r}"
     for r, h in e.get("dirs", {}).items():
         if dir_state(root, r) != h:
@@ -194,14 +196,14 @@ def why_invalid(e, root: Path):
     return None
 
 
-def lookup(gid: str, root: Path, command):
+def lookup(gid: str, root: Path, command, overlay=None):
     """(entry, None) for the newest valid entry of generator gid with this command; else (None, why the newest is not)."""
     why = "never run through make"
     for e in entries(gid):
         if e["command"] != command:
             why = why if why != "never run through make" else "command changed"
             continue
-        w = why_invalid(e, root)
+        w = why_invalid(e, root, overlay)
         if w is None:
             return e, None
         if why in ("never run through make", "command changed"):

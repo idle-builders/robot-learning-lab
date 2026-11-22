@@ -14,6 +14,7 @@ generators:
   - -B
   - robot/body/leg/thigh_shell.py
   - build
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   - artifacts/robot/body/ape-proportions/assembly-parts.json
@@ -36,6 +37,7 @@ generators:
   - -B
   - robot/body/leg/thigh_shell.py
   - shin-cover
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   - robot/body/leg/build_upper_hip_connectors.bom.yaml

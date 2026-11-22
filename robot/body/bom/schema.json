@@ -407,6 +407,13 @@
      "type": "string",
      "pattern": "^[a-z0-9][a-z0-9-]*$",
      "description": "The composition stage this generator applies (robot/body/bom/compose.py apply(stage, manifest)): every definition's `compose` entry into this stage is applied by it, and the generators those entries `need` run before it."
+    },
+    "report_files": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Report files it reads only to merge its own section back into (e.g. a shared report.json): written by it, but not inputs of its result, so a section another generator rewrites (timings) does not make it rerun (robot/body/bom/make.py)."
     }
    }
   },

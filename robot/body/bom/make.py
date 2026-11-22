@@ -135,8 +135,9 @@ def run_one(g, log_dir: Path):
         notes.append(f"{len(undeclared)} outputs outside the declared outputs, e.g. {', '.join(undeclared[:3])}")
     deleted = sorted(r for r in set(before) - set(after) if any(covers(x, r) for x in roots))
     reads = {}
+    reports = set(g.get("report_files", []))
     for r in sorted(R):
-        if r.startswith(IGNORE_READS):
+        if r.startswith(IGNORE_READS) or r in reports:
             continue
         if r in pre_sha:
             reads[r] = pre_sha[r]                          # its content before the run (it may have rewritten it)
@@ -198,13 +199,16 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
     log_dir = ROOT / ".cache/work/make-logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     summary, upstream_missed, t_all = [], False, time.time()
+    overlay = {}                    # status: files as the restores before this generator would leave them
     for pos, (g, managed) in enumerate(plan):
         gid = g["id"]
         if only and gid not in only:
             continue
         t0 = time.time()
-        e, why = GC.lookup(gid, ROOT, g["command"])
+        e, why = GC.lookup(gid, ROOT, g["command"], overlay if status_only else None)
         if e is not None:
+            if status_only:
+                overlay.update(e["outputs"]); overlay.update({r: "missing" for r in e.get("deleted", [])})
             if status_only and not quiet:
                 print(f"  reuse  {gid:34s} made {e['at'][:16]} in {Path(e['checkout']).name}" + (" (after an upstream rerun: may change)" if upstream_missed else ""))
             else:
