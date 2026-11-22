@@ -283,6 +283,9 @@ def _shift_in_place(name, vec):
     import numpy as np
     import trimesh
     from build123d import Compound, Location, export_step, import_step
+    if (ROOT / ".git").is_dir():                       # the main checkout: other sessions read these files right now
+        raise RuntimeError("this scenario rewrites artifact files in place: run it in a worktree "
+                           "(python3 infra/tools/worktree.py add NAME), not in the main checkout")
     sys.path.insert(0, str(ROOT))
     from infra.storage.blob_store import ensure        # the file the tool reads (a moved path resolves to its new name)
     p = part(json.loads(selected_manifest().read_text()), name)
@@ -328,6 +331,29 @@ def s_stale(sid):
     back = run_tool(f"{sid}-restored", ["--parts", THIGH, "--checks", LIGHT + ",fit_class"], cache=True)
     return dict(per_mutated_part=out, stale_results_total=sum(len(v["stale"]) for v in out.values()),
                 after_restore_cached=sorted(k for k, v in (back["report"] or {}).get("checks", {}).items() if v.get("cached")))
+
+
+@scenario("render-mesh-edit", "truth", "the six-side drawing after the thigh connector's mesh is rebuilt in place 15 mm aside "
+          "(manifest unchanged): pixels that change, and whether a stored render is served")
+def s_render(sid):
+    import numpy as np
+    from PIL import Image
+    args = ["--parts", THIGH, "--checks", "render"]
+    a = run_tool(sid + "-before", args)
+    pa = np.asarray(Image.open(REPORTS / f"{sid}-before" / "case-all-sides.png").convert("L"), float)
+    import random
+    dx = round(15.0 + random.random(), 4)                     # a shift no earlier run made: no stored result can match it
+    keep = _shift_in_place(THIGH, [dx, 0.0, 0.0])
+    try:
+        c = run_tool(sid + "-cached", args, cache=True)          # must not serve the render stored before the edit
+        b = run_tool(sid + "-after", args)
+        pb = np.asarray(Image.open(REPORTS / f"{sid}-after" / "case-all-sides.png").convert("L"), float)
+    finally:
+        for f, x in keep.items():
+            f.write_bytes(x)
+    return dict(shift_mm=dx, pixels_changed=int((np.abs(pa - pb) > 8).sum()) if pa.shape == pb.shape else "size differs", of=int(pa.size),
+                served_from_cache_after_edit=bool(((c["report"] or {}).get("checks", {}).get("render") or {}).get("cached")),
+                rc=[a["rc"], c["rc"], b["rc"]])
 
 
 @scenario("memguard-burst", "speed", "six light runs started at once (six parts): memguard without a job count, admitted by memory")

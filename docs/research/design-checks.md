@@ -726,6 +726,11 @@ results. Measured on the selected body:
 The light checks share one child, so each records what that child read up to its end: a neighbour's edit also reruns
 `geometry` and `mass` of the scoped part (seconds; never stale). Heavy checks and each FEM part run in a child of their own,
 so their inputs are their own. 5.2 s is the floor: start-up, plan and the input hashes.
+Found on the way, fixed: the owner six-side drawing (`render`) and leg_motion's closed solids cached their meshes under the
+`mesh_sha256` recorded in the manifest, so a mesh rebuilt in place was drawn where it had been: a 15 mm shift of
+`R_thigh_roll_flip` changed 0 of 2.5 M pixels; keyed by the file's own sha256 (`hip-shell/kit.py mesh_tag`) the same shift
+changes 62-64 thousand, and a stored render is not served after the edit (`render-mesh-edit`). The scenarios that rewrite
+artifact files in place (`cache-stale-hunt`, `render-mesh-edit`) refuse to run in the main checkout.
 
 ## Elephant foot and clearance per fit class (2026-11-19)
 
