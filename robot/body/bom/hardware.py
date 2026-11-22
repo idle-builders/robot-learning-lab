@@ -49,8 +49,10 @@ def thread_of(name):
     return "M" + n[2:] if n.startswith("PA") else n
 
 
-def family_of(name):
-    n = (nominal(name).get("thread") or "").upper()
+def family_of(name, plan=None):
+    """Screw family: the screw plan's thread_label when the part carries one (PA2 -> PA), else the name's thread."""
+    label = (plan or {}).get("thread_label")
+    n = (label or nominal(name).get("thread") or "").upper()
     return "PA" if "PA" in n else "M"
 
 
@@ -150,10 +152,12 @@ def spec_of(p, mesh=None):
     m = measure(mesh, k) if mesh is not None and k in GENERATED else None
     s = dict(kind=k, thread=thr, source_of_spec=[])
     if k == "screw":
-        fam = family_of(name)
+        fam = family_of(name, p.get("screw_plan"))
         if not thr and m:
             thr = min(THREADS, key=lambda t: abs(THREADS[t] - m["shank_dia"])); s["source_of_spec"].append("thread from shank diameter")
         L = nom.get("nominal_length_mm")
+        if (p.get("screw_plan") or {}).get("length_mm"):
+            L = float(p["screw_plan"]["length_mm"]); s["source_of_spec"].append("length from screw_plan")   # names are stale (T-tt3v4q)
         csk = bool(re.search(r"(_CS\d|csk|countersunk)", name, re.I))
         plan = p.get("screw_plan") or {}
         head = plan.get("head_standard")
