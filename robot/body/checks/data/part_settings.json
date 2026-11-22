@@ -8360,5 +8360,65 @@
     "expected_hardware": {
       "sleeves": 4
     }
+  },
+  "R_fore_front_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate fitted arm hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "R_fore_back_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate fitted arm hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "L_fore_front_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate fitted arm hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "L_fore_back_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate fitted arm hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "R_shin_front_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "L_shin_front_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PETG / polycarbonate hard-shell cover', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "R_upper_arm_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PA12 / PETG', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "L_upper_arm_hard_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PA12 / PETG', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "R_upper_arm_lower_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PA12 / PETG', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
+  },
+  "L_upper_arm_lower_cover": {
+    "process": {
+      "material": "Bambu PETG-CF",
+      "seeded": "material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF from the manifest material text 'PA12 / PETG', as the thigh and shin back shells were seeded. Print direction left open for the shell's designer."
+    }
   }
 }
