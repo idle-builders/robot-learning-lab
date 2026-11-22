@@ -39,7 +39,7 @@ generators:
   - artifacts/robot/body/assembly/whole-body-verification-report.json
   manifest_out: artifacts/robot/body/assembly/assembly-parts.json
   resources:
-    limit_gb: 10
+    limit_gb: 12
     timeout_s: 2400
   notes: Also reads every native_step / mesh named by the section manifests (old artifacts/cove50-strength/... paths resolve through infra/storage/path-moves.json).
     Compiles robot/electronics/power/cad/zbuffer_renderer.cpp for its renders. Every data output (assembly-parts.json, parts/, bom.json, verification
