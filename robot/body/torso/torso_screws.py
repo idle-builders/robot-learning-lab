@@ -383,6 +383,10 @@ def swap_parts(parts):
     doc = json.loads((OUT / "records.json").read_text())
     recs, added = doc["records"], doc.get("added", {})
     new = {q["name"]: q for q in doc.get("screws", [])}           # stage 4 board screws replace the legacy ones of the same name
+    drop_legacy = bool(new)
+    if not drop_legacy:
+        print(f"WARNING torso screws: {(OUT / 'records.json').relative_to(ROOT)} has no generated stage 4 board screws (written "
+              "before T-htfaaz); the legacy IMU_M2x6 / ADC_M2x6 rows stay; rerun `.venv/bin/python -B robot/body/torso/torso_screws.py build`")
     res = []
     for p in parts:
         if p["name"].startswith(STALE) or p["name"] in added:     # added: re-applied below (idempotent)
@@ -390,7 +394,7 @@ def swap_parts(parts):
         if p["name"] in new:
             res.append(new.pop(p["name"]))
             continue
-        if p["name"].startswith(LEGACY_BOARD_SCREWS):
+        if drop_legacy and p["name"].startswith(LEGACY_BOARD_SCREWS):
             continue
         if p["name"] in recs:
             q = dict(p); q.update(recs[p["name"]]); q.pop("native_step_offset_mm", None); q.pop("placement_offset_mm", None)
