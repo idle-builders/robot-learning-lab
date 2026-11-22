@@ -125,6 +125,8 @@ def apply(man: dict) -> list[str]:
                                       bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
                                       mass_kg=round(abs(float(m.volume)) * dens * 1e-6, 6),
                                       neck_parts="built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq)")
+            if ename == name:            # the recorded volume follows the rebuilt part (it kept the volume of an earlier build)
+                _entry(man, ename)["volume_mm3"] = round(abs(float(m.volume)), 2)
             if conn == "head_sensor_compute_carrier" and ename.endswith("_steel_sleeves"):
                 carrier_sleeve_entry(_entry(man, ename), m)
         built.append(conn)

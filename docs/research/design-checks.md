@@ -1007,13 +1007,34 @@ recess / open points are not supported.
 
 ## Head carrier camera and mic screws into catalogue heat-set inserts (2026-11-22, T-5bqc3m)
 
-Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned 304 sleeves of OD 3.5 with a 1 mm wall,
-clearances of 0.3-0.5 mm, walls of two print lines). The 8 camera screws are driven from the camera front through the board (no washer: a 0.3 mm washer does not exist as stock hardware; the ISO 4762 head bears on the board's mount pad) and a
-printed 5 mm column (replaces the supplier F-F standoff, clearance bore 2.4) into an M2 x 3 mm brass heat-set insert that is pushed from
-the plate's rear face (before ROCK4D goes on) up to the column bore's ledge and stands 0.2 mm proud of the rear face (the ledge sits 2.8 mm from it; ROCK4D is 1.7 mm behind); ISO 4762 M2x8 (engagement
-2.06-2.13 mm = 1 d, tip 0.37-0.44 mm short of the insert's end). The 2 mic screws leave the carrier: the mic
-wing is gone, two printed bosses on the head skin's inner side (R 3.0, trimmed to the skin wall's mid plane, outer surface untouched)
-carry the inserts, the board rests on the boss ends without a shim, ISO 7380-style M2x5 (lower) / M2x4 (upper) from the board side (driven before ROCK4D goes on). The board sits 0.2 mm deeper (-x) on the bosses than the supplier model: the upper boss's skin leaves 1.06 mm behind a 3 mm insert (outer surface fixed), 1.26 mm with the shift; M2x4 keeps the tip inside the insert, so no relief hole behind it (the M2x5 tip reaches 0.37 mm past the insert and needs one). Cost: screw heads 0.26 / 0.35 mm from ROCK4D (was 0.46 / 0.55), engagement of M2x4 1.87 mm by the 0.5 mm-point convention.
-Insert sizes are catalogue-class (OD 3.2-3.6, L 3-4 mm; Ruthex / CNC Kitchen / Voron class); no supplier data in the repo: the thread is modelled
-at the ISO 724 minor diameter 1.567 mm, 1 d engagement for a steel screw in a brass thread, insert OD 3.5 = hole size (assumption).
-Sites come from the standoff / shim bores (cached in robot/body/neck-head/head_carrier_measured.json, since the parts are dropped from the manifest).
+Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned sleeves, clearances of a few
+tenths, walls of two print lines). Post sites are measured live on the supplier spacer / washer / shim bores of the shell-pass manifest
+(robot/body/neck-head/head_holes.py). Inserts: brass knurled M2 x 3 mm (CNC Kitchen / Ruthex class, knurl OD 3.6, recommended hole
+3.2 mm; assumption, no supplier data in the repo), modelled as a tube of the 3.2 mm hole with the ISO 724 minor diameter as bore;
+reference engagement 1 d (2.0 mm) for a steel screw in brass (standard-parts.json lists 1.5 d = 3.0 mm, the insert's length).
+
+Camera (8): the supplier F-F standoffs become printed columns (r 3.2, 4.97 mm, clearance bore 2.4) on the plate; the insert is pushed
+from the plate's rear face up to the column ledge on the bench; the ribs behind keep a square window of 8.8 mm round each axis for an
+8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). ISO 4762 M2x8 from the camera front through
+board and column: engagement 2.5 mm, 0.5 mm of insert left before the point; the insert's rear end 0.17-0.24 mm inside the plate.
+
+Mic (1, owner: one screw and a printed retention): the review measured the earlier skin-boss insert 99.4 mm from the far inner wall of
+the closed dome (an insert iron is 170-190 mm), so it moved back onto a printed wing of the carrier, where every step is a bench step.
+Both options with the same measurements (mm; scratch script, board at its supplier position, ISO 7380-1 head k 1.3 in both):
+
+| | (a) skin boss, PA2 thread-forming into a 1.6 pilot | (b) carrier wing, M2 into a heat-set insert (chosen) |
+|---|---|---|
+| screw | PA2x7 (PA2x6: 3.84 of 4.0) | M2x6 ISO 7380-1 |
+| engagement / reference | 4.84 / 4.0 (2 d in plastic) | 2.5 / 2.0 (1 d), 3.0 at 1.5 d |
+| tip | pilot bottom 52.44, 1.88 of skin wall behind it | 0.5 mm of insert before the point, insert flush with the boss end |
+| walls | boss r 3.3 - pilot 0.8 = 2.5 radial | floor 1.34 under the insert, boss r 3.3: 1.7 from the hole, 1.5 from the knurl |
+| head to ROCK4D | 0.54 | 0.54 |
+| clearance to the skin | boss is the skin | wing 0.59, boss end 0.77 |
+| insert setting | none | carrier alone on the bench, iron from the boss end, nothing in its way |
+| driving | skin off the robot, key inside the dome: 96.2 mm from head to the far inner wall | carrier on the neck before ROCK4D goes on: from the open side |
+| cable | plugged into ROCK4D with the skin held over the head, about 100 mm slack goes in with it | fitted with the head open, skin goes on last |
+
+(b) is the choice: all steps on the bench with ordinary tools, a brass thread, the skin untouched; (a) needs work blind inside the dome
+and a cable that rides with the skin. The board sits at its supplier position (back face 46.77, the wing face 0.03 behind it, so the
+STEP and the mesh agree); a pan head (k 1.6) would leave 0.1-0.2 mm to ROCK4D, the button head leaves 0.54. A printed pin (2.2 x 1.3)
+on the wing face goes into the board's second mounting hole (2.5) and keeps it from turning; a 2.5 mm relief clears the bottom port.
