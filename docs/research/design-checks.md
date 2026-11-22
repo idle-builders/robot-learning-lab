@@ -419,6 +419,24 @@ arms (T-f5gcm8), legs (T-xp29jk), torso screw driver paths (T-8zj89w). The BOM s
 per-subassembly sequence (`ASSEMBLY.md`, `assembly.json`), and the chain's last three steps are the assembly check, the
 BOM and the bom check.
 
+Body definitions (2026-11-22, owner-approved, T-ghvncz). The BOM, the build sequence and the body rebuild no longer come
+from hand-kept files in `robot/body/bom/` (chain.json, lines.json, defects.json, assembly_order.json and inventory.py are
+deleted): each builder has an annotated `<builder>.bom.yaml` next to its script (schema `robot/body/bom/schema.json`) with
+its generators, the parts it owns (line, kind, spec, supplier or `unknown`), its assembly steps (ordered by `after`) and its
+defects; the BOM tool only resolves them and reports findings that name the file to fix. Migrated: 23 definitions, 693 / 693
+parts claimed, 26 generators (8 section builders `rebuild: false`), 311 steps (+6 for parts added the same day, written into
+the owners' files from `assembly_seed.py propose`). The derived rebuild order reproduces the chain's folders (9 produced,
+8 read-only, 2 writable copies) and exposed 5 records `roll_flip_checks.py manifest` reads that chain.json never declared.
+Replay with definition edits only, `robot/body/bom/` unchanged: shoulder-shells definition absent -> 16 parts unclaimed,
+18 without a step, manifest without generator; the file alone restores the baseline; two parts renamed -> 2 unclaimed, 2 stale
+globs, 2 stale steps; editing torso_screws.bom.yaml alone restores it. Phase 2: the checks overlay each part's settings from
+its definition (part_settings.json as fallback, source per value in every report, the definition named on every worst case);
+neck/head, torso and arm entries moved (39 parts, 63 blocks, effective settings identical before / after), heat sources
+declared per part (34). Measured on the shells body: bom 3.8 s / 0.6 GiB (196 lines, 0 quantity differences, 46 findings:
+22 printed parts without a print setup, 17 connectors without an FEM setup, 5 hardware lines without a spec, 2 settings for
+absent parts); assembly 86.8 s / 3.9 GiB over 317 steps, 0 parts / screws / hardware without a step, 248 steps supported by
+the measurement, 69 not (Idle T-f7p9ke, T-dj4tpn, T-f5gcm8, T-xp29jk, T-8zj89w).
+
 ## Connectivity (2026-11-20, T-c4sy9d)
 
 `connectivity` (owner: no part unconnected, every part linked to the core) builds the manifest's graph. Nodes: every
