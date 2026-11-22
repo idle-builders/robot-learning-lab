@@ -682,5 +682,16 @@
     }
    }
   }
+ },
+ "controller_limit_corners": {
+  "_doc": "Owner decision D-15 (robot/body/hip-shell/DECISIONS.md, A-12): a contact at a pose where every joint of one group, on one side (R_/L_), stands at (or past) an end of its manifest range_deg at once is a controller self-collision limit, not a design target. clearance and collision_sweep still measure such poses but report their contacts apart (controller_limit_contacts), never as design overlaps. groups: lists of joint kinds (joint name without the R_/L_ prefix); end_tol_deg: how close to a range end counts as at the end (a pose past the end counts too).",
+  "groups": [
+   [
+    "hip_yaw",
+    "hip_pitch",
+    "hip_roll"
+   ]
+  ],
+  "end_tol_deg": 0.5
  }
 }
