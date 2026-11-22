@@ -28,6 +28,32 @@ with `inspection_reference: true` and `display_group: "ape_body_shell"`, give it
 ownership, and exclude it from installed mechanism counts, purchase cost and mass. A reference-only
 CAD BOM line may map those named meshes without implying that they are shoulder purchases.
 
+## The selected body: generated, never hand-built
+
+The record of the selected complete body (`cove50-complete-fdm-body`, the study selected for Whole robot) is generated
+by `robot/body/bom/publish_body.py` from the same source as the BOM (owner 2026-11-22, T-zmmdkm): the body definitions
+(`robot/**/<builder>.bom.yaml`), the selected manifest (`body_manifest` in `robot/design.json`), the BOM and assembly
+order of `robot/body/bom/build.py`, and the newest complete check report per check and part on the same manifest sha256.
+The study text (title, sections, summary, observation, measurements, limitations, owner statements, evidence and render
+links) is declared in a `study` block of a definition (`robot/body/complete_body.bom.yaml` for the selected body); the
+publisher knows no part and no study. The body rebuild (`robot/body/bom/rebuild_chain.py`) ends with the record written
+to a file; publish from the main checkout:
+
+```sh
+.venv/bin/python -B robot/body/bom/publish_body.py --publish          # selected body; packages the display GLB when the manifest changed
+.venv/bin/python -B robot/body/bom/publish_body.py --study shoulder-shells-parametric --publish
+```
+
+What the study page shows from it: under **Selected body: subassemblies and parts** (above the costs BOM), the
+subassemblies in assembly order with every step (parts / screws, carried items, direction, declared status, assembly-check
+measurement, definition file), and a part card per part: BOM line (make / buy, quantity, spec, supplier, tool, mass),
+STEP and mesh with how each resolves, generator with its regenerate command, assembly step and direction, print setup
+with the source of each value, newest check worst cases, BOM findings, and the definition file to fix. The CAD panel's
+**Bill of materials** table uses the same data; clicking a CAD part opens its card and names its BOM line and step in the
+CAD label, and a part name in the table or the part view selects it in the CAD view. The remote export follows the same
+record (the part view's file names are text, not uploaded). After a redesign edit the definitions (parts, steps, study
+text) and rerun; never hand-edit a publisher. Sources must be committed (their last commit is the version).
+
 ## Register a study and publish a version
 
 Generate the maintained authoring template, fill in real values, commit the study sources, then publish:

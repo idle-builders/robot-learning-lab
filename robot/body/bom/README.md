@@ -15,13 +15,32 @@ naming the definition file to fix. Nothing is filled in for you.
 .venv/bin/python -B robot/body/bom/build.py            # seconds; --publish also updates the design dashboard BOM
 python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/checks/run.py --checks assembly --label assembly
 python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py --checks bom --label bom
+.venv/bin/python -B robot/body/bom/publish_body.py --publish   # main checkout: the selected body's dashboard record (below)
 ```
+
+## The dashboard record (publish_body.py)
+
+The design dashboard's view of the selected body is generated from the same source, so it cannot drift: `publish_body.py`
+(no part or study knowledge, like build.py) builds the record of a study from its `study` block (in any definition; the
+selected body's is [robot/body/complete_body.bom.yaml](../complete_body.bom.yaml), the study selected for Whole robot in
+robot/design.json), the manifest, every definition, the BOM and assembly order of `build.build()`, and the newest complete
+check report per check and part on the same manifest sha256. The record's `body_view` section feeds the study page (the
+subassemblies in assembly order with their steps; per part its BOM line, STEP / mesh and how they resolve, generator and
+regenerate command, assembly step and direction, print setup, check worst cases, BOM findings and the definition file to
+fix), the CAD panel's BOM table and the part card shown when a CAD part is clicked; `design.bom` is the same BOM for robot
+BOM & costs. Without `--publish` it writes `.cache/work/bom/<study_id>-record.json` (the rebuild copy does only this; it
+refuses `--publish` outside the main checkout). `--publish` packages the display GLB
+(`artifacts/robot/body/selected/assembly.glb`, one named node per manifest part) under memguard when the manifest changed,
+then runs `results_hub.py publish`; the record's sources (definitions, generator scripts, these tools, robot/design.json)
+must be committed: their last commit is the version. `--study ID` publishes another declared study (e.g.
+`shoulder-shells-parametric`, scoped to its own definition's parts); `--definitions F... --manifest M` builds from copies
+(replay tests). Study text changes go into the study block, never into a publisher.
 
 Outputs (derived, `.cache/work/bom/`): `BOM.md` (the builder's page, findings first), `ASSEMBLY.md` (build sequence per
 subassembly, with the assembly check's measurement per step), `findings.json`, `bom.json`, `assembly.json`, `bom.csv`,
 `dashboard-bom.json`. The body rebuild (`rebuild_chain.py setup && run && compare`, isolated under
 `.cache/work/body-rebuild/`) runs the declared generators in the order their inputs and outputs give, then the same three
-commands.
+commands and the dashboard record (to a file).
 
 ## The definition file
 
@@ -115,6 +134,7 @@ per step whether the measurement supports it.
 | `files.py` | how a manifest file resolves (disk, regenerable, blob index, path moves, bucket records) |
 | (moved) | standard hardware STEP / STL: `robot/body/standard-hardware/generate.py` (declared as a generator in its `generate.bom.yaml`); spec drafting aid `propose_specs.py` next to it |
 | `rebuild_chain.py` | isolated rebuild of the selected body from the declared generators, then the BOM steps |
+| `publish_body.py` | the design-dashboard record of a declared study (default the selected body) from the definitions, the manifest and the rebuild outputs |
 
 ## State
 
