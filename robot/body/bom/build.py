@@ -275,6 +275,15 @@ def build(manifest_path, hardware_json=None, assembly_report_path=None, definiti
         if e["kind"] == "printed" and parts[n].get("role") in ("printed_structural_connector", "printed_structural_carrier") \
                 and "fem" not in e and "fem" not in settings.get(n, {}):
             D.find("connector_without_fem", e["file"], tag, f"{n}: printed connector / carrier without an FEM setup (fem block)", part=n)
+    mats = json.loads((DATA / "materials.json").read_text())
+    for l in lines.values():        # manifest mass vs volume x the declared material's density (printed parts)
+        for f in l["parts"]:
+            mat = (f.get("print") or {}).get("material")
+            rho = (mats.get(mat) or {}).get("density_g_cm3") if mat else None
+            v, mkg = f.get("volume_mm3"), f.get("mass_kg")
+            if rho and v and mkg and abs(1000 * mkg - v * rho / 1000) > 0.05 * v * rho / 1000:
+                D.find("mass_differs_from_material", f["definition"], f"line {l['id']}",
+                       f"{f['part']}: manifest {1000 * mkg:.2f} g, volume x {mat} density {v * rho / 1000:.2f} g", part=f["part"])
     for n in settings:
         if not n.startswith("_") and n not in parts and not settings[n].get("_kept"):
             D.find("setting_for_absent_part", "robot/body/checks/data/part_settings.json", n, f"{n}: settings for a part the manifest does not hold")

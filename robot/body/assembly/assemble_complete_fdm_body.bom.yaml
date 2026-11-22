@@ -68,8 +68,8 @@ parts:
   supplier: unknown
   part_number: M2 x 12 ISO 4762
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - Power_supervisor_H3_front_washer
@@ -132,8 +132,8 @@ parts:
   supplier: unknown
   part_number: M2 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - compute_rear_nut_2
@@ -149,8 +149,8 @@ parts:
   supplier: unknown
   part_number: M2 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match: Main_H1_2mm_front_spacer
   kind: printed
@@ -295,8 +295,8 @@ parts:
   supplier: unknown
   part_number: PA2 x 10 ISO 7045
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - lower__L_yaw_servo_case_reference
@@ -343,8 +343,8 @@ parts:
   supplier: unknown
   part_number: M3 x 16 ISO 10642
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - neck_anchor_front_washer_1_v21
@@ -398,8 +398,8 @@ parts:
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - R_Shin_carrier_shell_shin_front_1_nut
@@ -415,8 +415,8 @@ parts:
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Knee
 - match: Power_supervisor_source_board
   kind: purchased
@@ -618,8 +618,8 @@ parts:
   supplier: unknown
   part_number: M3 x 16 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match:
   - fan_black_formed_lead
@@ -671,8 +671,8 @@ parts:
   supplier: unknown
   part_number: M2.5 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match: fan_tach_insulating_cap
   kind: other
@@ -711,8 +711,8 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 10642
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match:
   - B0196_M2_FF5_spacer_0_v23
@@ -766,8 +766,8 @@ parts:
   supplier: unknown
   part_number: M2 x 4 ISO 4762
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match:
   - compute_FF4_spacer_0
@@ -811,8 +811,8 @@ parts:
   supplier: unknown
   part_number: M2 x 4 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Neck / head
 - match:
   - mic_side_shim_0
@@ -849,8 +849,8 @@ parts:
   supplier: unknown
   part_number: PA2 x 7 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Shoulder
 - match:
   - upper__L_yaw_case_washer1
@@ -932,8 +932,8 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Elbow
 - match:
   - upper__L_roll_central_rocker_M3x6
@@ -957,8 +957,8 @@ parts:
   supplier: unknown
   part_number: M3 x 6 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Shoulder
 - match:
   - upper__L_yaw_horn_washer4
@@ -1027,8 +1027,8 @@ parts:
   supplier: unknown
   part_number: PA2 x 9.2 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Shoulder
 - match:
   - R_Shin_carrier_shell_shin_front_1_M3x8
@@ -1052,8 +1052,8 @@ parts:
   supplier: unknown
   part_number: M3 x 8 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Knee
 - match:
   - R_wrist_M3x8_1
@@ -1073,8 +1073,8 @@ parts:
   supplier: unknown
   part_number: M3 x 8 ISO 7380-1
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Elbow
 - match: R_palm_lower
   kind: printed
@@ -1271,8 +1271,8 @@ parts:
   supplier: unknown
   part_number: M2 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   process:
     printed: false
     _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
@@ -1287,8 +1287,8 @@ parts:
   supplier: unknown
   part_number: M2 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   process:
     printed: false
     _note: 'bought M2/M3 nut: the manifest gives it role body_shell'
@@ -2463,3 +2463,22 @@ defects:
     (small); fan lead guide small; the head skin is an organic shell: rebuild as a loft / offset of the head profile against the ape look reference
     (medium). The neck collar is done (robot/body/assembly/neck_collar.py, parametric B-rep).'
   effort: small for 4 parts, medium for 1
+- id: palm-step-no-solid
+  kind: other
+  parts:
+  - R_palm_lower
+  - L_palm_lower
+  field: native_step
+  why: 'native STEP holds 326 faces but no solid: every solid check falls back to the mesh; no print direction either (found by the whole-body
+    check triage (T-zfejzf), 2026-11-22)'
+  fix: re-export the palm STEP as a closed solid and declare its process (up) on the entry
+- id: pitch-case-step-offset
+  kind: other
+  parts:
+  - upper__R_pitch_C047_case
+  - upper__L_pitch_C047_case
+  field: native_step
+  why: 'the STEP (upper-body-20261023 shell-fit-r4/stage-frames8) is the mesh shape 12.0 mm off in x (R: 32.83..69.12 vs manifest 44.825..81.125;
+    L mirrored); checks reject it and screen the open mesh, 41252 vs 32983 mm3 (+25.1 %): overlaps against these cases are over-stated (found
+    by the whole-body check triage (T-zfejzf), 2026-11-22)'
+  fix: native_step_offset_mm [12, 0, 0] (R) / [-12, 0, 0] (L) in the builder that writes these rows, or a re-exported STEP

@@ -359,8 +359,8 @@ parts:
   supplier: unknown
   part_number: M2 x 8 ISO 4762
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - stage1_iface_threaded_sleeve_stage4_0_M2p5
@@ -410,8 +410,8 @@ parts:
   supplier: unknown
   part_number: M2.5 x 10 ISO 4762
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 - match:
   - ADC_M2x6_0
@@ -440,8 +440,8 @@ parts:
   part_number: PA2 x 6 ISO 4762
   material: ISO 4762 PA2x6 into body_IMU_4517:pcb.0 (printed pilot, dia 1.6); head dia 3.8 x 2.0, shank dia 2, 0.5 mm point (envelope)
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with the named head
-    form. Supplier: no repo source (unknown).'
+    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
+    the named head form. Supplier: no repo source (unknown).'
   section: Torso
 assembly:
   subassemblies:
@@ -611,3 +611,11 @@ assembly:
     - torso:stage4-rail-x-11-z316
     status: seeded
     derived: 1 screw(s) whose joined parts are all placed after combined__stage4_rear_imu_adc_carrier; driver path vs placed parts
+defects:
+- id: chassis-sleeves-stale-volume
+  kind: other
+  parts: combined__stage1_center_torso_spine_chassis_steel_sleeves
+  field: volume_mm3
+  why: 'recorded volume_mm3 643.45 is stale: the STEP (torso-screws/parts) holds 31 solids, 603.6 mm3, the mesh 598.6 mm3; no native_solid_count,
+    so the checks report -7 % (found by the whole-body check triage (T-zfejzf), 2026-11-22)'
+  fix: torso_screws.py writes volume_mm3 (and native_solid_count) from the STEP it writes
