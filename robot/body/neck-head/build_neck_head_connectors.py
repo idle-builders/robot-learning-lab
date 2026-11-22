@@ -83,8 +83,8 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
                 # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
                 keep_out.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
             if role_key == "camera":
-                # the M2 head sits on the sleeve's rear end: ribs keep a 0.75 mm ring around it clear for head and driver
-                keep_out.append(cyl_along(pt + h * n, n, 1.75 + 0.75, 5.0))
+                # the M2 head sits on the sleeve's rear end: ribs keep a 0.4 mm ring around it clear for head and driver
+                keep_out.append(cyl_along(pt + h * n, n, 1.75 + 0.4, 5.0))
             if stage_key == "stage1_neck_root_cradle" and role_key == "support":
                 cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
@@ -457,8 +457,8 @@ def build_stage4(family: str) -> Solid:
     pts_mic_side = [
         (y_front, 455.2),
         (4.50, 455.2),
-        (4.50, 472.0),
-        (-1.50, 472.0),
+        (4.50, MIC_TAPER['z1']),
+        (-1.50, MIC_TAPER['z1']),
         (-7.80, 462.4),
         (y_front, 462.4),
     ]

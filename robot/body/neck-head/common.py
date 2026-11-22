@@ -543,7 +543,7 @@ def cyl_along(pt, direction, r: float, length: float):
 # outside the opening, so a 2.5 mm sleeve takes M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
 # reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6).
 # Head-skin taper cut of the microphone wing's top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it
-MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 471.8}
+MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 
 
 def stage_interface_specs() -> dict:

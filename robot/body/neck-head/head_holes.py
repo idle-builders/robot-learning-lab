@@ -27,6 +27,9 @@ if "neck_head_defined_holes" not in sys.modules:
     sys.modules["neck_head_defined_holes"] = DH
     _spec.loader.exec_module(DH)
 
+# @lore Posts are measured on the spacer / nut / shim meshes, not on the (coarse, non-watertight) ROCK4D / camera board meshes: the
+# supplier boards' mount holes carry triangle wedges that move a probe's hole centre by 1.6-2.1 mm although the bore itself is
+# concentric with the spacer to 0.03 mm (T-5bqc3m).
 POSTS = json.loads((HERE / "head_carrier_posts.json").read_text())["groups"]
 _CACHE: dict = {}
 
