@@ -85,7 +85,8 @@ def resolve(name: str | None) -> tuple[Path, str]:
 
 
 def dirty(path: Path) -> list[str]:
-    return [l for l in git("status", "--porcelain", cwd=path).splitlines() if l.strip()]
+    out = subprocess.run(["git", "status", "--porcelain"], cwd=path, capture_output=True, text=True).stdout
+    return [l for l in out.splitlines() if l.strip()]      # not stripped: the status columns are fixed-width (XY path)
 
 
 def changed_files(branch: str) -> list[str]:
@@ -183,7 +184,11 @@ def remove(path: Path, branch: str, force=False):
 
 
 def gc():
-    return run([".venv/bin/python", "-B", "robot/body/bom/make.py", "gc"], MAIN)
+    """The generator cache gc (one store for every checkout), with main's make.py, or this copy's before it is in main."""
+    make = MAIN / "robot/body/bom/make.py"
+    if not make.exists():
+        make = HERE.parents[2] / "robot/body/bom/make.py"
+    return run([str(MAIN / ".venv/bin/python"), "-B", str(make), "gc"], MAIN)
 
 
 def land(name, keep):
