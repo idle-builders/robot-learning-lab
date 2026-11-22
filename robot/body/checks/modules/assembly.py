@@ -138,7 +138,7 @@ def _screw_info(ctx, T, k, node_names, WB):
             continue
         Tn = T[ctx.body.parts[n]["owning_link"]]
         try:
-            inside = ctx.solid(n)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])
+            inside = SL.screen(ctx, n)[0].contains((pw - Tn[:3, 3]) @ Tn[:3, :3])   # a selection: coarse solid (T-c4sy9d)
         except Exception:  # noqa: BLE001
             continue
         if inside.sum() >= 2:

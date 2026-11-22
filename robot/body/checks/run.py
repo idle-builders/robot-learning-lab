@@ -70,7 +70,10 @@ def _ref_volume_uncached(ctx, n):
     p = ctx.body.parts[n]
     rec = p.get("volume_mm3")
     from checks import core
-    if n in ctx.scope and p.get("native_step") and not p.get("placement_offset_mm") and (p.get("native_solid_count", 1) > 1 or not rec):
+    if p.get("native_step") and not core.BL.src(p["native_step"]).exists():
+        p = {**p, "native_step": None}
+    big_bought = p.get("role") not in core.STEP_ROLES and p.get("native_step") and core._mb(p["native_step"]) > core.FINE_STEP_MAX_MB
+    if n in ctx.scope and p.get("native_step") and not p.get("placement_offset_mm") and (p.get("native_solid_count", 1) > 1 or not rec) and not big_bought:
         # scoped parts only: a neighbour's fused multi-solid STEP (battery cells, supplier boards) costs minutes to
         # tessellate just for this comparison; neighbours use their own closed mesh below
         # several STEP solids overlap (a servo: 6 solids, summed 41257 mm3, fused 32983): the recorded / summed volume
