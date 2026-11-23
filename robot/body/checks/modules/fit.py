@@ -21,9 +21,9 @@ def _shape(ctx, n, cache):
         if not (p.get("native_step") or p.get("native_step_unmodified")):
             cache[n] = None
         else:
-            turned = str(p.get("roll_flip", "")).startswith("turned")
-            try:
-                sh = R.brep(n, ctx.parts, turned=turned, keep_case_solids=bool((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3")))
+            turned = str(p.get("roll_flip", "")).startswith("turned")     # the manifest's roll-flip turn of the case
+            try:   # exact_fit.min_solid_mm3 (part settings / body definition): only STEP solids of at least this volume
+                sh = R.brep(n, ctx.parts, turned=turned, min_solid_mm3=float((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3") or 0.0))
                 if getattr(sh, "_wrapped", None) is None or not sh.solids():
                     raise ValueError("STEP gave an empty shape")
                 cache[n] = sh

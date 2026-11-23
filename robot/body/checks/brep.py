@@ -1,8 +1,6 @@
 """B-rep helpers of the exact checks: multi-solid common volume and minimum distance of OCC shapes, shape transforms
-by link transforms, memoised optimal bounding boxes. Moved from the lower-leg study's fit_check.py without changing the maths."""
+(by the body's link_T), memoised optimal bounding boxes. Moved from the lower-leg study's fit_check.py without changing the maths."""
 from __future__ import annotations
-
-import math
 
 import numpy as np
 from build123d import Compound
@@ -12,30 +10,6 @@ from OCP.BRepExtrema import BRepExtrema_DistShapeShape
 from OCP.BRepGProp import BRepGProp
 from OCP.GProp import GProp_GProps
 from OCP.gp import gp_Trsf
-
-
-def rotation_matrix(j: dict, angle_deg: float) -> np.ndarray:
-    axis = np.array(j["axis_world_neutral"], dtype=float)
-    axis /= np.linalg.norm(axis)
-    a = math.radians(angle_deg)
-    K = np.array([[0, -axis[2], axis[1]], [axis[2], 0, -axis[0]], [-axis[1], axis[0], 0]])
-    R = np.eye(3) + math.sin(a) * K + (1.0 - math.cos(a)) * (K @ K)
-    T = np.eye(4)
-    T[:3, :3] = R
-    o = np.array(j["origin_world_mm"], dtype=float)
-    T[:3, 3] = o - R @ o
-    return T
-
-
-def link_transforms(joints: list[dict], commands: dict[str, float]) -> dict[str, np.ndarray]:
-    pending = list(joints)
-    result = {"pelvis": np.eye(4)}
-    while pending:
-        for j in pending[:]:
-            if j["parent"] in result:
-                result[j["child"]] = result[j["parent"]] @ rotation_matrix(j, commands.get(j["name"], 0.0))
-                pending.remove(j)
-    return result
 
 
 _MOVED: dict[int, list] = {}   # hash(moved TopoDS_Shape) -> [(moved, source shape, T)] for aabb_bound
