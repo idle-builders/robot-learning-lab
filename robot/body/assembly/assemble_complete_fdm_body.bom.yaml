@@ -1397,7 +1397,7 @@ assembly:
     status: designer
     derived: 'T-sns4zt: the pitch servo goes on with its front horn already on its output (as the servo comes, or fitted on the bench), slid
       on from the +x side until the horn face meets the yaw-to-pitch link''s arm (x -21); the link has no material on the +x side at the case''s
-      height. Before, the horn went onto the bare link first (neck_head:p004, gone) and its 4 M2x5 (s005) were driven before the servo they
+      height. Before, the horn went onto the bare link first and its 4 M2x5 (s005) were driven before the servo they
       fasten into was there (touches_not_yet_assembled: the pitch case); now s005 comes after the servo. The yaw horn screws (s003, driven
       from above through the link floor) go in before this step: the pitch case closes their driver path 11 mm above the heads.'
   - id: neck_head_bench:p003
@@ -1426,6 +1426,9 @@ assembly:
   - id: neck_head_bench:p005
     subassembly: neck_head_bench
     part: ROCK4D_official
+    with:
+    - compute_FF4_spacer_2
+    - compute_FF4_spacer_3
     direction:
     - 0.0
     - -1.0
@@ -1433,8 +1436,11 @@ assembly:
     after:
     - neck_head_bench:s004
     status: designer
-    derived: 'T-sns4zt: the board is laid onto the carrier''s columns from behind (travels -y, component side toward +y), on the bench with
-      nothing behind it yet: path free (the old +y insertion came through the carrier plate, 5283 mm3). The M2.5 x 12 go in next (s006);
+    derived: 'T-sns4zt: first the 2 round spacers (compute_FF4_spacer_2/3, they sit between the carrier''s rear face and the board): push
+      the 2 M2.5 x 12 with their front washers in from the carrier front, carrier face-down, and thread a spacer onto each shank as a guide
+      pin. Then the board is laid onto the carrier''s columns and the 2 spacers from behind (travels -y, component side toward +y), on the
+      bench with nothing behind it yet: path free (the old +y insertion came through the carrier plate, 5283 mm3), then ROCK4D''s camera
+      flat cables plugged while its connectors are open (before the heatsink, guard and fan unit cover them). The M2.5 x 12 are tightened next (s006);
       the heatsink, header, standoffs, guard and the fan bridge stack on it from behind.'
   - id: neck_head_bench:p007
     subassembly: neck_head_bench
@@ -1548,7 +1554,8 @@ assembly:
     - neck_head_fan_bench:p004
     status: designer
     derived: 'T-sns4zt: from the plate front (hex key 2) through the guide, the plate and the fan''s corner hole into the nut on the fan''s
-      back, on the bench: on the head the board sits 13 mm in front of the head (ROCK4D blocked it, 11.3 mm3).'
+      back, on the bench: on the head the board sits 13 mm in front of the head (ROCK4D blocked it, 11.3 mm3). Hold the yellow (tach) lead
+      aside for the hex key: it crosses the driver axis 2.95 mm from the head (1.2 mm3 in the check).'
   - id: neck_head:p031
     subassembly: neck_head
     part: B0410_supplier_native_v23

@@ -1690,8 +1690,6 @@ assembly:
     with:
     - compute_M2p5_washer_2
     - compute_M2p5_washer_3
-    - compute_FF4_spacer_2
-    - compute_FF4_spacer_3
     - compute_rear_nut_2
     - compute_rear_nut_3
     - compute_rear_washer_2
@@ -1700,8 +1698,9 @@ assembly:
     after:
     - neck_head_bench:p005
     status: designer
-    derived: 'T-sns4zt: the 2 M2.5 x 12 from the carrier front (hex key 2) through the carrier and the F-F spacers into ROCK4D''s rear nuts,
-      on the bench right after the board; the B0410 camera (on the neck, later) covers their heads.'
+    derived: 'T-sns4zt: the 2 M2.5 x 12 (pushed in with their front washers and the round spacers at neck_head_bench:p005) tightened from
+      the carrier front (hex key 2) through the carrier, the spacers and the board into ROCK4D''s rear nuts and washers, on the bench right
+      after the board; the B0410 camera (on the neck, later) covers their heads.'
   - id: neck_head:s033
     subassembly: neck_head
     screw:
