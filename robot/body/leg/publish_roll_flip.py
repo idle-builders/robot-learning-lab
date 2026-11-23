@@ -288,8 +288,9 @@ def thigh_shell_evidence(rep, report_ref):
               if "mounts" in rep["shin_back_cover_trim"] else []),
         ] if "shin_back_cover_trim" in rep else []),
         conditions={"method": c["method"], "roll_range_deg": st["roll_range_deg"], "gap_mm": st["gap_mm"]},
-        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM. Open for an owner decision: press support under the "
-                    "shin cover sleeves 68.9 %, one H-cage boss wall 0.915 mm at a teardrop. Look not yet accepted by the owner.",
+        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM. Sleeve exits on flat lands: press support 84-88 % "
+                    "(about 90 % is the ceiling, 10 % of the spacer ring lies past the print bed); 1.0 mm to the ankle "
+                    "coupler at its closest (climb step). Look not yet accepted by the owner.",
         source_refs=[report_ref])
 
 
