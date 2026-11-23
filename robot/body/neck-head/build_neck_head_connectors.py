@@ -17,6 +17,7 @@ from build123d import (
     Circle,
     Cylinder,
     Face,
+    Plane,
     Polygon,
     Pos,
     Rectangle,
@@ -425,6 +426,8 @@ def build_stage2(family: str) -> Solid:
 # corner there is rounded 0.8, not 1.6: a 1.6 corner left 0.55 mm at the front lip); its top at 423.0 keeps 2.0 mm over the upper hole
 # (z 419): the carrier is all behind y -12.9 there and the bridge behind the tongue stays at 421.2 under the carrier plate (z >= 422).
 TONGUE_X_MIN, TONGUE_TOP, TONGUE_CORNER_R = -5.0, 423.0, 0.8
+PLATE_Z_BOTTOM = 388.5     # the U-profile's (rear plate's) bottom face
+X_BRIDGE = 8.8             # the U-profile's +x face (right bridge)
 
 
 def _fillet_vertex(face, xy, r: float):
@@ -432,6 +435,26 @@ def _fillet_vertex(face, xy, r: float):
     from build123d import fillet
     v = [v for v in face.vertices() if (v.X - xy[0]) ** 2 + (v.Y - xy[1]) ** 2 < 0.04]
     return fillet(v, r).faces()[0] if v else face
+
+
+def _plate_bottom_relief(x_min: float, x_max: float, y_back: float, z_bot: float = PLATE_Z_BOTTOM):
+    """Cutter for the cradle rear plate's bottom (pitch_case_joint.json bottom_relief, T-acpw7j): a chamfer along the bottom rear edge
+    (edge_chamfer_y_mm into the bottom face, edge_chamfer_z_mm up the rear face, over the plate's whole length) and a flat cut of each
+    bottom rear corner (corner_cuts: the -x end at x_min, the +x end at x_max; the plane with that outward normal lies depth_mm below
+    the sharp corner (x, y_back, z_bot) along it), where the neck collar passes over neck pitch."""
+    rl = pitch_case_joint()["bottom_relief"]
+    cy, cz = float(rl["edge_chamfer_y_mm"]), float(rl["edge_chamfer_z_mm"])
+    pts = [(y_back - cy, z_bot), (y_back, z_bot + cz), (y_back + 2.0, z_bot + cz), (y_back + 2.0, z_bot - 2.0), (y_back - cy, z_bot - 2.0)]
+    cutter = extrude_xy_to_x(Polygon(*pts, align=None), x_min - 1.0, x_max + 1.0)
+    near = {"minus_x": Pos(x_min + 1.5, y_back - 1.0, z_bot + 0.5) * Box(5.0, 4.0, 3.0),     # x_min - 1 .. + 4, y_back - 3 .. + 1
+            "plus_x": Pos(x_max - 2.5, y_back - 1.5, z_bot + 0.5) * Box(7.0, 5.0, 3.0)}      # x_max - 6 .. + 1, y_back - 4 .. + 1
+    for c in rl["corner_cuts"]:
+        n = np.asarray(c["normal"], float)
+        n /= np.linalg.norm(n)
+        p0 = np.array([x_min if c["end"] == "minus_x" else x_max, y_back, z_bot]) - float(c["depth_mm"]) * n
+        half = Plane(origin=tuple(float(v) for v in p0 + 5.0 * n), z_dir=tuple(float(v) for v in n)) * Box(10.0, 10.0, 10.0)
+        cutter = cutter + (half & near[c["end"]])
+    return Solid(cutter.wrapped)
 
 
 def build_stage3(family: str) -> Solid:
@@ -457,8 +480,8 @@ def build_stage3(family: str) -> Solid:
     y_front = y_rear - float(g3["sleeve_len"])                        # tongue front face: the inserts are flush with both faces
     pts_u = [
         (x_min, y_case + t_plate),
-        (8.8, y_case + t_plate),
-        (8.8, y_rear),
+        (X_BRIDGE, y_case + t_plate),
+        (X_BRIDGE, y_rear),
         (3.25, y_rear),
         (3.25, y_case),
         (x_min, y_case),
@@ -468,7 +491,7 @@ def build_stage3(family: str) -> Solid:
     f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4,
                          skip_xy=[(8.8, y_rear), (3.25, y_rear), (3.25, y_case), (x_min, y_case), (x_min, y_case + t_plate)])
     f_u = _fillet_vertex(_fillet_vertex(f_u, (x_min, y_case), r_end), (x_min, y_case + t_plate), r_end)
-    s_u = extrude_xy_to_z(f_u, 388.5, 421.2)
+    s_u = extrude_xy_to_z(f_u, PLATE_Z_BOTTOM, 421.2)
     pts_t = [(TONGUE_X_MIN, y_front), (8.8, y_front), (8.8, y_rear), (TONGUE_X_MIN, y_rear)]
     f_t = fillet_2d_face(Polygon(*pts_t, align=None), r_default=1.6, skip_xy=[(8.8, y_rear), (TONGUE_X_MIN, y_rear), (TONGUE_X_MIN, y_front)])
     f_t = _fillet_vertex(f_t, (TONGUE_X_MIN, y_front), TONGUE_CORNER_R)
@@ -509,7 +532,11 @@ def build_stage3(family: str) -> Solid:
         s_body = Solid((s_body - c_oval - c_tap).wrapped)
 
     cut_sol = _cut_stage_bores(s_body, "stage3_neck_pitch_to_head_cradle")
-    return bevel_3d_edges(cut_sol, r_outer=0.38, r_inner=0.72, skip_fn=_skip_near_stage_bores("stage3_neck_pitch_to_head_cradle"))
+    s_bev = bevel_3d_edges(cut_sol, r_outer=0.38, r_inner=0.72, skip_fn=_skip_near_stage_bores("stage3_neck_pitch_to_head_cradle"))
+    # the plate's bottom rear edge and both bottom rear corners give way to the neck collar over neck pitch (T-acpw7j, pitch_case_joint.json
+    # bottom_relief), cut after the bevel: cut before it, the chamfer's run-out on the corner rounds broke the bevel's tangent chain
+    # round the plate bottom and every 0.38 round on it was dropped; the cut's own edges stay as cut (obtuse)
+    return Solid((s_bev - _plate_bottom_relief(x_min, X_BRIDGE, y_case + t_plate)).wrapped)
 
 
 # ==============================================================================
