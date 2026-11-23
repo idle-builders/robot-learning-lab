@@ -124,8 +124,7 @@ def select(body, manifest, parts=(), section=None, link=(), role=(), changed_sin
     if role:
         names = [n for n in names if body.parts[n].get("role") in role]; desc["role"] = list(role)
     # hardware (fasteners, proxies, nominal hardware) and sleeves are never scoped: sleeves are checked through their parent part
-    names = [n for n in names if not BL.is_fastener(n, body.parts[n]) and body.parts[n].get("role") not in
-             ("compression_limit_sleeves", "nominal_hardware", "fastener_proxy", "standard_fastener_reference")]
+    names = [n for n in names if not BL.is_fastener(n, body.parts[n])]     # sleeve sets included: checked through their part
     if changed_since:                  # last: only the other selectors' survivors (and their neighbours) are hashed
         if changed_since == "last-run":
             why, missing = changed_since_last_run(body, manifest, names, neighbours_of)

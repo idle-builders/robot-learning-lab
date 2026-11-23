@@ -27,10 +27,17 @@ def rel(p):
     return str(p.relative_to(ROOT)) if p.is_absolute() and p.is_relative_to(ROOT) else str(p)
 
 
-def discover(root=ROOT):
+def discover(root=None):
+    """Every <builder>.bom.yaml under robot/ (or, with LAB_DEFINITIONS_ROOT=<dir>, every one under <dir>: an alternate set of
+    definitions for the same tools, e.g. a body whose parts are renamed, or a copy with one setting changed)."""
+    alt = os.environ.get("LAB_DEFINITIONS_ROOT")
+    if root is None and alt:
+        root, tops = Path(alt).resolve(), [""]
+    else:
+        root, tops = (root or ROOT), SEARCH
     out = []
-    for top in SEARCH:
-        for d, dirs, files in os.walk(root / top):
+    for top in tops:
+        for d, dirs, files in os.walk(root / top if top else root):
             dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
             out += [Path(d) / f for f in sorted(files) if f.endswith(".bom.yaml")]
     return out
@@ -278,5 +285,16 @@ class Definitions:
         return out
 
 
+_LOADED: dict = {}
+
+
 def load(paths=None):
-    return Definitions(paths)
+    """The definitions, parsed once per process for the same files (path, size, mtime): a check run asked for them four
+    times or more per process at about 1.5 s each (2026-11-22). Each caller gets its own copy."""
+    import copy
+    files = [Path(p) for p in (paths if paths is not None else discover())]
+    key = tuple((str(p), p.stat().st_size, p.stat().st_mtime_ns) for p in files if p.exists()) + ((SCHEMA_FILE.stat().st_mtime_ns,) if SCHEMA_FILE.exists() else ())
+    if key not in _LOADED:
+        _LOADED.clear()
+        _LOADED[key] = Definitions(files)
+    return copy.deepcopy(_LOADED[key])

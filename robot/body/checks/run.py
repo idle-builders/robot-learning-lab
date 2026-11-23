@@ -235,6 +235,11 @@ def run_checks_here(ctx, checks, names, out_file, cache=None):
 SETUP_TIMERS = ("solids (scope)", "solids (others)", "neighbours")     # every child builds its own solids and neighbour list
 
 
+def recordable(man):
+    """A manifest whose reads the result cache records: inside the repository and not under .cache (eval copies)."""
+    return man.is_relative_to(ROOT) and not man.is_relative_to(ROOT / ".cache")
+
+
 def man_rel(man):
     """The manifest as the report names it: repository-relative, or absolute when it lies outside the repository (a baseline
     copy in a session scratchpad; refused before 2026-11-22). Its part files are repository-relative either way."""
@@ -412,7 +417,7 @@ def make_plan(a, man, split):
     plan["manifest_freshness"] = manifest_freshness(man)
     plan["cached"], plan["fem_cached"], plan["cache_misses"] = {}, {}, {}
     from checks import resultcache as RC
-    if RC.enabled() and not a.no_cache and man.is_relative_to(ROOT):   # outside the repository its reads are not recorded
+    if RC.enabled() and not a.no_cache and recordable(man):   # outside the repository its reads are not recorded
         mrel, opts = man_rel(man), RC.options_of(a)
         for n in run:
             if n == "fem":
@@ -505,7 +510,7 @@ def main(argv=None):
         ctx, checks, _ = child_ctx(a, man, split)
         ctx.scope = split(a._scope)
         run_checks_here(ctx, checks, split(a.checks), a._out,
-                        cache=dict(manifest=man_rel(man), options=RC.options_of(a), label=label_of(a, split)) if man.is_relative_to(ROOT) else None)
+                        cache=dict(manifest=man_rel(man), options=RC.options_of(a), label=label_of(a, split)) if recordable(man) else None)
         return
     me = [sys.executable, "-B", str(Path(__file__).resolve())]
     label = label_of(a, split)
