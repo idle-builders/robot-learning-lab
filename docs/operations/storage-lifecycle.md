@@ -126,8 +126,11 @@ Done 2026-11-23 on a fresh measurement (same numbers): `artifacts/` went from 11
 code, current dashboard or hold is present at its measured size. One slip to avoid next time:
 a file directly in a study folder (`artifacts/X/file`) was keyed by the folder itself, which
 removed seven study folders whole. Their kept files (33,644) were copied back from a worktree's
-copy-on-write clone of `artifacts/` and checked. The `.artifact-store` objects that only deleted
-symlinks reached are not collected yet. The generator cache's own GC
+copy-on-write clone of `artifacts/` and checked. Afterwards the store kept every object that a symlink in the checkout or a digest in
+`.artifact-store/{dependencies,manifests,runs}` or `data/` names (17,873 of 20,000) and removed
+the other 2,127 (6.6 MB, 11 MB on disk) under the store's writer lock; no symlink dangles. The
+catalogs were backed up the same day (`catalog_backup.py backup`, read back and hash-checked).
+The generator cache's own GC
 covers only its cache store; this covers `artifacts/` outside it and the private bucket.
 
 How "what reads it" was measured, per file under `artifacts/` (paths resolved through
@@ -188,7 +191,7 @@ Private bucket (`<archive-bucket>`, listed 2026-11-23 with `infra/storage/archiv
 
 No derived output is left in the bucket; at most **23.4 MB remotely** could go. The bucket
 holds no `catalogs/` prefix, although `data/catalog-backup.json` (2026-11-13) points there:
-the results and blob catalogs have no remote copy. That is a source-of-truth gap, not a
+the results and blob catalogs had no remote copy (closed by the backup below). That was a source-of-truth gap, not a
 delete, and `catalog_backup.py backup` closes it.
 
 Defects found on the way (not deletes): the selected body still reads study folders outside
