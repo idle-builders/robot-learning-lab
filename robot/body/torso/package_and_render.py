@@ -17,6 +17,8 @@ import struct
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions; torso-local joint names map to the body joints)
 from build123d import Compound, export_step, import_step
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from infra.storage.blob_store import ensure, require  # noqa: E402  inputs restore by path or the build fails
@@ -656,7 +658,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
             "child": "left_shoulder_pitch",
             "origin_world_mm": common.LEFT_SHOULDER_PITCH_AXIS_ORIGIN.tolist(),
             "axis_world_neutral": [-1.0, 0.0, 0.0],
-            "range_deg": [-115, 75],
+            "range_deg": BOM_CONFIG.joint_range("L_shoulder_pitch"),
         },
         {
             "name": "right_shoulder_pitch",
@@ -664,7 +666,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
             "child": "right_shoulder_pitch",
             "origin_world_mm": common.RIGHT_SHOULDER_PITCH_AXIS_ORIGIN.tolist(),
             "axis_world_neutral": [1.0, 0.0, 0.0],
-            "range_deg": [-115, 75],
+            "range_deg": BOM_CONFIG.joint_range("R_shoulder_pitch"),
         },
         {
             "name": "left_hip_yaw",
@@ -672,7 +674,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
             "child": "left_hip_yaw",
             "origin_world_mm": common.LEFT_HIP_YAW_AXIS_ORIGIN.tolist(),
             "axis_world_neutral": [0.0, 0.0, 1.0],
-            "range_deg": [-35, 35],
+            "range_deg": BOM_CONFIG.joint_range("L_hip_yaw"),
         },
         {
             "name": "right_hip_yaw",
@@ -680,7 +682,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
             "child": "right_hip_yaw",
             "origin_world_mm": common.RIGHT_HIP_YAW_AXIS_ORIGIN.tolist(),
             "axis_world_neutral": [0.0, 0.0, 1.0],
-            "range_deg": [-35, 35],
+            "range_deg": BOM_CONFIG.joint_range("R_hip_yaw"),
         },
         {
             "name": "neck_yaw",
@@ -688,7 +690,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
             "child": "neck_yaw",
             "origin_world_mm": common.NECK_YAW_AXIS_ORIGIN.tolist(),
             "axis_world_neutral": [0.0, 0.0, 1.0],
-            "range_deg": [-60, 60],
+            "range_deg": BOM_CONFIG.joint_range("neck_yaw"),
         },
     ]
 

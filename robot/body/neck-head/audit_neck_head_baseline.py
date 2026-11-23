@@ -5,7 +5,10 @@ their exact screw-hole coordinates, and the active `neck_yaw` x `neck_pitch` fle
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 import numpy as np
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
 from build123d import import_step
 from OCP.BRepAdaptor import BRepAdaptor_Surface
 from OCP.GeomAbs import GeomAbs_Cylinder, GeomAbs_Plane
@@ -130,13 +133,13 @@ def main():
             "neck_yaw": {
                 "origin_mm": P_NECK_YAW.tolist(),
                 "axis": AXIS_NECK_YAW.tolist(),
-                "range_deg": [-60.0, 60.0],
+                "range_deg": BOM_CONFIG.joint_range("neck_yaw"),
                 "audit_grid_deg": [-60.0, -30.0, 0.0, 30.0, 60.0],
             },
             "neck_pitch": {
                 "origin_mm": P_NECK_PITCH.tolist(),
                 "axis": AXIS_NECK_PITCH.tolist(),
-                "range_deg": [-30.0, 35.0],
+                "range_deg": BOM_CONFIG.joint_range("neck_pitch"),
                 "audit_grid_deg": [-30.0, -15.0, 0.0, 17.5, 35.0],
             },
         },

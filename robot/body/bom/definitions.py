@@ -64,6 +64,8 @@ class Definitions:
         self.generators, self.entries, self.steps, self.subassemblies = [], [], [], {}
         self.contributions = []          # `compose` entries: edits of a manifest another generator composes (compose.py)
         self.studies = {}                # study_id -> dict(study block, file, definition): dashboard metadata (publish_body.py)
+        self.joints = {}                 # joint name -> dict(range_deg, doc, decision, file, definition): declared joint ranges
+        self.config = {}                 # definition id -> {NAME: dict(value, unit, doc, decision, file)}: configured values
         for rank, p in enumerate(paths if paths is not None else discover()):
             f = rel(p)
             if strip and f.startswith(strip):
@@ -95,6 +97,18 @@ class Definitions:
                 self.subassemblies[sa["name"]] = dict(sa, file=f)
             for i, st in enumerate(asm.get("steps", [])):
                 self.steps.append(dict(st, file=f, index=i, rank=rank))
+            for i, jd in enumerate(doc.get("joints", [])):
+                lo, hi = jd["range_deg"]
+                for jn in names_of(jd["match"]):
+                    if jn in self.joints:
+                        self.find("joint_declared_twice", f, f"joints[{i}] {jn}", f"also declared in {self.joints[jn]['file']}", joint=jn)
+                        continue
+                    if not lo < hi:
+                        self.find("joint_range_empty", f, f"joints[{i}] {jn}", f"range_deg {jd['range_deg']}: lower must be below upper", joint=jn)
+                    self.joints[jn] = dict(range_deg=[float(lo), float(hi)], doc=jd.get("doc"), decision=jd.get("decision"),
+                                           file=f, definition=doc["definition"], entry=f"joints[{i}]")
+            if doc.get("config"):
+                self.config[doc["definition"]] = {k: dict(v, file=f) for k, v in doc["config"].items()}
             if doc.get("study"):
                 sid = doc["study"]["study_id"]
                 if sid in self.studies:
@@ -119,6 +133,34 @@ class Definitions:
 
     def find(self, kind, file, entry, what, **kw):
         self.findings.append(dict(kind=kind, file=file, entry=entry, what=what, **kw))
+
+    # ------------------------------------------------------------------ joints and configured values
+    def joint_findings(self, manifest):
+        """Findings of the declared joint ranges against a manifest dict: manifest joints (and controls) without a
+        declaration, declarations the manifest does not have, manifest ranges that differ from the declaration (a
+        manifest built before the declaration changed: rebuild it). Driven joints (driven_by / coupled_to) need none."""
+        out = []
+        mj = {j["name"]: j for j in manifest.get("joints", [])}
+        mc = {c["name"]: c for c in manifest.get("controls", []) if isinstance(c, dict) and c.get("name")}
+        driven = {n for n, j in mj.items() if j.get("driven_by") or j.get("coupled_to")}
+        for n in sorted(set(mj) | set(mc)):
+            d = self.joints.get(n)
+            if d is None:
+                if n not in driven:
+                    out.append(dict(kind="joint_range_undeclared", file=None, entry=None, joint=n,
+                                    what=f"{n}: no definition declares its range (joints: in the owning <builder>.bom.yaml); manifest has {(mj.get(n) or mc.get(n)).get('range_deg')}"))
+                continue
+            for where, rec in (("joints", mj.get(n)), ("controls", mc.get(n))):
+                r = (rec or {}).get("range_deg")
+                if rec is not None and (r is None or [round(float(x), 6) for x in r] != d["range_deg"]):
+                    out.append(dict(kind="joint_range_differs", file=d["file"], entry=f"{d['entry']} {n}", joint=n,
+                                    declared=d["range_deg"], manifest=r,
+                                    what=f"manifest {where}[{n}].range_deg {r} differs from the declared {d['range_deg']}: rebuild the manifest"))
+        for n, d in sorted(self.joints.items()):
+            if n not in mj and n not in mc:
+                out.append(dict(kind="joint_not_in_manifest", file=d["file"], entry=f"{d['entry']} {n}", joint=n,
+                                what=f"{n} is declared but the manifest has no such joint or control"))
+        return out
 
     # ------------------------------------------------------------------ parts
     def claims(self, names):

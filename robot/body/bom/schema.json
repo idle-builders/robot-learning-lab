@@ -25,6 +25,85 @@
   "doc": {
    "type": "string"
   },
+  "joints": {
+   "type": "array",
+   "description": "The joints this definition owns and their ranges: the single source of every joint range of the body (owner 2026-11-23). Builders write manifest joints[].range_deg / controls[].range_deg from it, the checks sweep it and the design dashboard moves the CAD over it (robot/body/bom/bom_config.py). Each joint is declared in exactly one definition; the BOM tool reports a joint declared twice, an empty range, a manifest joint without a declaration and a manifest range that differs. Guide: robot/body/bom/README.md 'Configured values'.",
+   "items": {
+    "type": "object",
+    "required": [
+     "match",
+     "range_deg"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "match": {
+      "description": "Joint name or list of joint names (exact, no globs): e.g. [R_knee, L_knee] when both sides share the range.",
+      "oneOf": [
+       {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_]+$"
+       },
+       {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "pattern": "^[A-Za-z0-9_]+$"
+        },
+        "minItems": 1
+       }
+      ]
+     },
+     "range_deg": {
+      "type": "array",
+      "items": {
+       "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[lower, upper] joint angle, degrees, manifest sign convention; lower < upper."
+     },
+     "doc": {
+      "type": "string",
+      "description": "Why this range: what limits it, which pose library or study it serves."
+     },
+     "decision": {
+      "type": "string",
+      "description": "Owner decision or Idle task that set it (e.g. D-15, T-jbe85r)."
+     }
+    }
+   }
+  },
+  "config": {
+   "type": "object",
+   "description": "This builder's configured values (dimensions, clearances, counts, thresholds, choices): the single source for the builder that uses them, the checks and the dashboard (robot/body/bom/bom_config.py value(definition, NAME)). One key per value; the script reads it instead of a constant.",
+   "propertyNames": {
+    "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+   },
+   "additionalProperties": {
+    "type": "object",
+    "required": [
+     "value"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "value": {
+      "description": "The value: number, string, boolean, list or mapping."
+     },
+     "unit": {
+      "type": "string",
+      "description": "Unit of the value (mm, deg, g, N, -)."
+     },
+     "doc": {
+      "type": "string",
+      "description": "What the value sets and why it has this value."
+     },
+     "decision": {
+      "type": "string",
+      "description": "Owner decision or Idle task that set it."
+     }
+    }
+   }
+  },
   "generators": {
    "type": "array",
    "items": {

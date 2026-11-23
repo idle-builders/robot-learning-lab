@@ -2189,3 +2189,15 @@ defects:
   why: the manifest gives these bought M2 hex nuts role body_shell; checks that read the role treat them as covers (the definition declares them
     hardware, spec nut, printed false)
   fix: the builder writes role nominal_hardware (or fastener) for them; until then the checks use the declared kind (design-check tooling session)
+# Joint ranges of the geared hands this builder adds: the single source of these ranges (owner 2026-11-23); see
+# robot/body/bom/bom_config.py. The finger joints are driven by the opening control (driven_by in the manifest).
+joints:
+- match: [R_finger_opening, L_finger_opening]
+  range_deg: [0.0, 45.0]
+  doc: Hand opening control.
+- match: [R_right_finger_opening, L_right_finger_opening]
+  range_deg: [0.0, 45.0]
+  doc: Right finger, driven +1 by the opening control.
+- match: [R_left_finger_opening, L_left_finger_opening]
+  range_deg: [-45.0, 0.0]
+  doc: Left finger, driven -1 by the opening control.

@@ -127,9 +127,41 @@ def file_state(root: Path, rel: str) -> str:
 GLOB_SKIP = {"__pycache__", ".git", "node_modules"}     # as definitions.SKIP_DIRS
 
 
+_VALUES_CACHE: dict = {}
+
+
+def values_state(root: Path, rel: str) -> str:
+    """State of a "values:joints" / "values:config:<definition>" key (gensite, robot/body/bom/bom_config.py): sha256 of the
+    declared joint ranges / the definition's config block, read from the definitions under root."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(f"_defs_{len(_VALUES_CACHE)}", root / "robot/body/bom/definitions.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    files = mod.discover(root)
+    key = tuple((str(f), f.stat().st_mtime_ns, f.stat().st_size) for f in files)
+    if key not in _VALUES_CACHE:
+        _VALUES_CACHE[key] = mod.Definitions(files)
+    D = _VALUES_CACHE[key]
+    what = rel[len("values:"):]
+    if what == "joints":
+        v = {n: d["range_deg"] for n, d in sorted(D.joints.items())}
+    elif what.startswith("config:"):
+        v = {k: x.get("value") for k, x in sorted(D.config.get(what[len("config:"):], {}).items())}
+    elif what.startswith("part:"):                      # the claiming entry's declared values (bom_config.part_entry)
+        import fnmatch
+        n = what[len("part:"):]
+        e = next((e for e in D.entries if any(fnmatch.fnmatchcase(n, p) for p in mod.names_of(e["match"]))), None)
+        v = {k: x for k, x in (e or {}).items() if k not in ("file", "index")} if e else None
+    else:
+        return "unknown-values-key"
+    return hashlib.sha256(json.dumps(v, sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+
 def dir_state(root: Path, rel: str) -> str:
     """A folder's listing (names), or for a "glob:TOP/**/*SUFFIX" key (gensite: the body definitions' search) the sorted
     repository paths below TOP whose name ends in SUFFIX: only the files the search can return, not every folder it walks."""
+    if rel.startswith("values:"):
+        return values_state(root, rel)
     if rel.startswith("glob:"):
         top, _, pat = rel[5:].partition("/**/*")
         hits = []

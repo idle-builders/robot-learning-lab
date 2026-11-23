@@ -16,6 +16,9 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 ART = ROOT / "artifacts/robot/body/leg/roll-flip"
@@ -187,7 +190,8 @@ def record():
                 "report_path": rel(ART / "report.json"),
                 "hide_shell_toggle": True,
                 "show_shells": True,
-                "motion_note": "Joint sliders are inspection commands over the manifest ranges, not qualified travel.",
+                "motion_note": "Joint sliders are inspection commands over the joint ranges declared in the body definitions (joints:), not qualified travel.",
+                "joint_ranges": BOM_CONFIG.joint_ranges(),
             },
             "source_refs": [report_ref, {"label": "Decisions register (hip shell)", "path": "robot/body/hip-shell/DECISIONS.md"}],
             "evidence": evidence,

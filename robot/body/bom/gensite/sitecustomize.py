@@ -34,6 +34,21 @@ if _LOG:
     _SKIP = (".cache/", ".venv/", ".git/", ".bookkeeping/", ".tools/", "robot/body/bom/gensite/")
     _R, _W, _D = set(), set(), set()
     _QUIET = [0]                     # > 0 inside a wrapped search that records its own key (no folder listings then)
+    _VALUES = [0]                    # > 0 while robot/body/bom/bom_config.py reads the definitions for declared values
+
+    def gencache_values(key, fn):
+        """Run fn() (robot/body/bom/bom_config.py reading the body definitions) without recording the *.bom.yaml files it
+        opens, and record `key` instead ("values:joints", "values:config:<definition>"): the generator's input is the
+        declared values it asked for, which gencache.dir_state recomputes, not every definition's bytes (otherwise any
+        edit of any definition reran every builder that reads one value)."""
+        _VALUES[0] += 1
+        _QUIET[0] += 1
+        try:
+            return fn()
+        finally:
+            _VALUES[0] -= 1
+            _QUIET[0] -= 1
+            _D.add(key)
 
     def _rel(p):
         try:
@@ -59,6 +74,8 @@ if _LOG:
     def _audit(event, args):
         try:
             if event == "open":
+                if _VALUES[0] and os.fsdecode(args[0]).endswith(".bom.yaml"):
+                    return                                 # read by robot/body/bom/bom_config.py: recorded as its values: key
                 mode = args[1] if len(args) > 1 else None
                 flags = args[2] if len(args) > 2 else 0
                 w = (isinstance(mode, str) and any(c in mode for c in "wax+")) or \
