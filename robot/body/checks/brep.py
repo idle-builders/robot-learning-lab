@@ -69,6 +69,58 @@ def aabb_gap(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.linalg.norm(np.maximum(0.0, np.maximum(a[0] - b[1], b[0] - a[1]))))
 
 
+class CallTimeout(Exception):
+    """An exact OCC call did not finish within its time; its forked process was stopped."""
+
+
+def bounded(fn, timeout_s):
+    """fn() in a forked copy of this process, stopped after timeout_s (CallTimeout). One OCC boolean or distance cannot be
+    interrupted from Python (OCP exposes no progress indicator to subclass), so a per-pair budget only holds when the
+    call runs where it can be killed (T-6rr3sa: one collar x neck pitch common ran 1476 s past a 120 s budget). Costs
+    about 10 ms per call (measured 2026-11-23: 47 -> 57 ms on a sphere pair, same volume). Without fork: fn() directly."""
+    import os
+    import pickle
+    import select
+    import signal
+    if not hasattr(os, "fork") or timeout_s is None:
+        return fn()
+    if timeout_s <= 0:
+        raise CallTimeout("no time left")
+    r, w = os.pipe()
+    pid = os.fork()
+    if pid == 0:                                        # child: compute, send, leave without cleanup handlers
+        try:
+            os.close(r)
+            try:
+                out = pickle.dumps((True, fn()))
+            except BaseException as e:  # noqa: BLE001
+                out = pickle.dumps((False, repr(e)))
+            os.write(w, out)
+        finally:
+            os._exit(0)
+    os.close(w)
+    try:
+        ready, _, _ = select.select([r], [], [], timeout_s)
+        if not ready:
+            os.kill(pid, signal.SIGKILL)
+            raise CallTimeout(f"stopped after {timeout_s:.0f} s")
+        data = b""
+        while True:
+            chunk = os.read(r, 1 << 16)
+            if not chunk:
+                break
+            data += chunk
+    finally:
+        os.close(r)
+        os.waitpid(pid, 0)
+    if not data:
+        raise RuntimeError("the forked exact call died without a result")
+    ok, v = pickle.loads(data)
+    if not ok:
+        raise RuntimeError(v)
+    return v
+
+
 def common_volume_mm3(s1, s2) -> float:
     if aabb_gap(aabb_bound(s1), aabb_bound(s2)) > 0.05:   # bound boxes contain the exact ones: same answer, no OCC box
         return 0.0
