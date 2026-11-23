@@ -124,7 +124,19 @@ def file_state(root: Path, rel: str) -> str:
         return "missing"
 
 
+GLOB_SKIP = {"__pycache__", ".git", "node_modules"}     # as definitions.SKIP_DIRS
+
+
 def dir_state(root: Path, rel: str) -> str:
+    """A folder's listing (names), or for a "glob:TOP/**/*SUFFIX" key (gensite: the body definitions' search) the sorted
+    repository paths below TOP whose name ends in SUFFIX: only the files the search can return, not every folder it walks."""
+    if rel.startswith("glob:"):
+        top, _, pat = rel[5:].partition("/**/*")
+        hits = []
+        for d, dirs, files in os.walk(root / top):
+            dirs[:] = sorted(x for x in dirs if x not in GLOB_SKIP)
+            hits += [os.path.relpath(os.path.join(d, f), root) for f in sorted(files) if f.endswith(pat)]
+        return hashlib.sha256("\n".join(sorted(hits)).encode()).hexdigest()[:16]
     p = root / rel
     try:
         names = sorted(os.listdir(p))

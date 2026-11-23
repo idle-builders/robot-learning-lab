@@ -7,7 +7,11 @@ run (the generator and its Python subprocesses) writes $GENCACHE_LOG/<pid>.json 
   STEPControl_Reader / STEPCAFControl_Reader.ReadFile and BRepTools.Read_s, gmsh.open / gmsh.merge;
 - modules: the source file of every module under the repository loaded at exit (a module loaded from __pycache__ never opens
   its .py, so the source is recorded from sys.modules);
-- dirs: folders listed (os.listdir / os.scandir / glob), whose contents can change a result;
+- dirs: folders listed (os.listdir / os.scandir / glob), whose contents can change a result; the body definitions' search
+  (robot/body/bom/definitions.py discover, an os.walk over all of robot/) is recorded as one key instead,
+  "glob:robot/**/*.bom.yaml", the set of definition files: its folder listings made every untracked or ignored leftover
+  folder under robot/ an input, so a fresh worktree reused nothing a main checkout with such folders had made (measured
+  2026-11-23: roll-flip-cad and the 8 generators after it reran, about 10 min, in a worktree of the commit main had built);
 - writes: files opened for writing or renamed into place (used to name undeclared outputs).
 STEP files written through OpenCascade (STEPControl_Writer / STEPCAFControl_Writer.Write, which build123d export_step uses)
 get a fixed header time (2000-01-01T00:00:00) right after the write, before the builder hashes them: OpenCascade stamps the
@@ -29,6 +33,7 @@ if _LOG:
     _ROOT = _ROOT.rstrip(os.sep) + os.sep
     _SKIP = (".cache/", ".venv/", ".git/", ".bookkeeping/", ".tools/", "robot/body/bom/gensite/")
     _R, _W, _D = set(), set(), set()
+    _QUIET = [0]                     # > 0 inside a wrapped search that records its own key (no folder listings then)
 
     def _rel(p):
         try:
@@ -59,6 +64,8 @@ if _LOG:
                 w = (isinstance(mode, str) and any(c in mode for c in "wax+")) or \
                     (mode is None and isinstance(flags, int) and flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT))
                 note(args[0], _W if w else _R)
+            elif event in ("os.listdir", "os.scandir", "glob.glob") and _QUIET[0]:
+                pass
             elif event in ("os.listdir", "os.scandir"):
                 if args and args[0] not in (None, "."):
                     note(args[0], _D)
@@ -140,8 +147,32 @@ if _LOG:
         except TypeError:
             pass
 
+    def _wrap_discover(mod):
+        f = getattr(mod, "discover", None)
+        if f is None or getattr(f, "_gencache", False) or not os.fsdecode(getattr(mod, "__file__", "")).endswith(
+                os.path.join("robot", "body", "bom", "definitions.py")):
+            return
+
+        def discover(*a, **k):
+            root = a[0] if a else k.get("root", getattr(mod, "ROOT", None))
+            if root is None or os.path.abspath(os.fsdecode(root)).rstrip(os.sep) + os.sep != _ROOT:
+                return f(*a, **k)                          # another tree: plain recording
+            _QUIET[0] += 1
+            try:
+                out = f(*a, **k)
+            finally:
+                _QUIET[0] -= 1
+            for top in getattr(mod, "SEARCH", ["robot"]):
+                _D.add(f"glob:{top}/**/*.bom.yaml")        # gencache.dir_state recomputes it: the definition files' paths
+            return out
+        discover._gencache = True
+        discover.__doc__, discover.__name__, discover.__wrapped__ = f.__doc__, f.__name__, f
+        mod.discover = discover
+
     def _patch(name, mod):
-        if name == "OCP.STEPControl":
+        if name.rsplit(".", 1)[-1] == "definitions":
+            _wrap_discover(mod)
+        elif name == "OCP.STEPControl":
             _wrap_reader(mod, "STEPControl_Reader")
             _wrap_writer(mod, "STEPControl_Writer")
         elif name == "OCP.STEPCAFControl":
@@ -183,7 +214,7 @@ if _LOG:
 
     class _Finder(importlib.abc.MetaPathFinder):
         def find_spec(self, name, path, target=None):
-            if name not in _TARGETS:
+            if name not in _TARGETS and name.rsplit(".", 1)[-1] != "definitions":
                 return None
             for f in sys.meta_path:
                 if f is self or not hasattr(f, "find_spec"):

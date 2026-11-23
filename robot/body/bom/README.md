@@ -30,8 +30,11 @@ Same in main and in every worktree (`infra/tools/worktree.py`). A generator's ou
 branch or commit made them, when every file its run read still has the same content here; else it runs under memguard and
 its outputs go into the shared cache ([gencache.py](gencache.py): reads recorded while it runs by
 [gensite/sitecustomize.py](gensite/sitecustomize.py), including STEPs read inside OpenCascade; STEP / npz / STL compared by
-content, not header bytes). `make.py gc` deletes entries no live checkout holds after 3 days, and their blobs. Findings
-printed per run: a file read that a later generator writes, outputs outside the declared ones.
+content, not header bytes). Folder listings count as inputs, except the definitions' search over `robot/`, which counts
+as the set of `*.bom.yaml` paths (untracked leftover folders in one checkout no longer stop reuse in another).
+`make.py --rerun ID[,ID]` runs those generators even when an entry could be reused (after a change to what make records),
+the ones after them reused when the outputs match. `make.py gc` deletes entries no live checkout holds after 3 days, and
+their blobs. Findings printed per run: a file read that a later generator writes, outputs outside the declared ones.
 
 ## Composed manifests (compose.py)
 
