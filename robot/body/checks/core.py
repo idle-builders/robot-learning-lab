@@ -163,7 +163,10 @@ STEP_ROLES = {r: max([float(SCREENING["class_min_solid_mm3"].get(c, 0.0)) for c 
               if _takes_step(_ROLES["kind"].get(r), r)}
 
 
-SOLID_VERSION = "v3"   # 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
+SOLID_VERSION = "v4"   # 2026-11-23: a rejection is keyed by what the screening solid is made from (STEP sha, tolerance, offset, the
+                       # roll-flip turn, the manifest box, the min solid), not the part's name: a renamed body read the rejection a
+                       # wrongly turned case had left under its opaque id, and a moved part kept its old one. v3 entries are ignored.
+                       # v3 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
                        # had been remembered as an unusable STEP); v2 entries are ignored.
                        # v2 (2026-11-19): the part's own closed mesh before any voxel fill; STEP retried with all solids and
                        # coarser on a fresh import. Older not-usable entries were written by v1 and are ignored.
@@ -202,13 +205,16 @@ def screen_solid(body, n, changed):
     fine = n in changed and not (step and not stepped and _mb(step) > FINE_STEP_MAX_MB)
     tol = 0.03 if fine else 0.1                     # unchanged parts: coarser screening mesh, faster sweep
     step_why = None                                 # why the STEP is not the screening solid: named in the solid's `how`
-    if step and not p.get("placement_offset_mm") and (fine or stepped):
-        fail_key = f"{SOLID_VERSION}:{n}:{sha(BL.src(step))[:16]}:{tol}"
+    b = np.array(p["bounds_mm"], float)
+    turn = R.turn_T_at(0.5 * (b[0][0] + b[1][0])) if str(p.get("roll_flip", "")).startswith("turned") else None  # the roll-flip case:
+    if step and not p.get("placement_offset_mm") and (fine or stepped):                           # turned about the roll axis, on its side
+        made_of = json.dumps(dict(offset=p.get("native_step_offset_mm"), turn=None if turn is None else np.round(turn, 6).tolist(),
+                                  box=np.round(b, 3).tolist(), min_solid=min_solid_mm3(n, p)))
+        fail_key = f"{SOLID_VERSION}:{sha(BL.src(step))[:16]}:{tol}:{hashlib.sha256(made_of.encode()).hexdigest()[:16]}"
         failed = _failed()
         if fail_key in failed and n not in changed:
             step, step_why = None, failed[fail_key]
     if step and not p.get("placement_offset_mm") and (fine or stepped):
-        b = np.array(p["bounds_mm"], float)
         why = None
         # a servo STEP may hold its housing as several small solids (ST3025: 11 pieces, one over 4000 mm3): when the
         # housing filter leaves a solid that does not span the manifest bounds, take every solid
@@ -219,8 +225,8 @@ def screen_solid(body, n, changed):
             except Exception as exc:  # noqa: BLE001
                 why = f"{type(exc).__name__}: {exc}"
                 break
-            if str(p.get("roll_flip", "")).startswith("turned"):   # the roll-flip case: turned about the roll axis, on its side
-                m = m.copy(); m.apply_transform(R.turn_T_at(0.5 * (b[0][0] + b[1][0])))
+            if turn is not None:
+                m = m.copy(); m.apply_transform(turn)
             if m is None or len(m.faces) == 0:
                 why = "empty tessellation"
                 break
