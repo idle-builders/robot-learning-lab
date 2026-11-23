@@ -21,7 +21,8 @@
   },
   "neck_pitch_to_head_cradle": {
    "sides": [""],
-   "clamped": ["combined__neck_pitch_to_head_cradle", "combined__neck_pitch_to_head_cradle_steel_sleeves"],
+   "clamped": ["combined__neck_pitch_to_head_cradle", "combined__neck_pitch_to_head_cradle_steel_sleeves",
+               "upper__neck_head_M2_washer_0", "upper__neck_head_M2_washer_1", "upper__neck_head_M2_washer_2", "upper__neck_head_M2_washer_3"],
    "groups": {
     "pitch_case_rear": {"standard_part": "upper__neck_pitch_case_XM335", "holes": ["XM335.case-x.1", "XM335.case-x.2", "XM335.case-x.3", "XM335.case-x.4"],
                         "owning_link": "head", "name": "upper__neck_head_M2x5_{i}", "head": "ISO 7380-1"}

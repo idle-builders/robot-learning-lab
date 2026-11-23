@@ -1214,8 +1214,10 @@ PILOT_D, PILOT_DEPTH, BOSS_GAP = 1.7, 5.0, 0.0          # pilot hole in the fram
                                                        # on the frame wall (was 0.2 short: an open clamp gap under the head)
 PA2_ENG = 4.25                    # engagement in the frame wall the head seat is set for (screws check reference 4.0, it reads ~0.18 less)
 BOSS_BACK = 6.0                   # the side-mount boss runs this far toward +y past the screws (into the curving wing)
-BOSS_END_Y = 18.0                 # above this y the boss end is bevelled 45 deg back to the wing (the frame wall face ends at y 17.5)
-CB_CHAMFER_SINK = 0.3             # the counterbore's 45 deg entry chamfer starts this far under the deepest rim point
+BOSS_END_Y = 18.0                 # above this y the boss end is bevelled back to the wing (the frame wall face ends at y 17.5)
+BOSS_END_BEVEL_DEG = 67.5         # bevel turn (the bevel face runs 90 - this from the end face's +y direction)
+CB_CHAMFER_SINK = 0.9             # the counterbore's entry chamfer starts this far under the deepest rim point (+y side)
+CB_CHAMFER_LEN = 4.0              # length along the axis of the oblique chamfer cone (outward, past the skin)
 SLV_D, SLV_BORE_D = 3.6, 2.2      # 304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)
 PA2_L, PA2_HD, PA2_HH, PA2_D, PA2_PT = 8.0, 3.5, 1.3, 2.0, 0.6
 FRAME = "R_shin_combined"
@@ -1225,15 +1227,6 @@ def _cyl_x(x0, x1, y, z, d):
     import manifold3d as M
     a, b = min(x0, x1), max(x0, x1)
     return M.Manifold.cylinder(b - a, d / 2, d / 2, 64).rotate([0.0, 90.0, 0.0]).translate([a, y, z])
-
-
-def _cone_x(x0, dirn, y, z, r0, length):
-    """Frustum along x from x0 (radius r0) toward dirn (+-1), widening at 45 deg over `length`."""
-    import manifold3d as M
-    c = M.Manifold.cylinder(length, r0, r0 + length, 64).rotate([0.0, 90.0, 0.0])      # along +x from 0
-    if dirn < 0:
-        c = c.mirror([1.0, 0.0, 0.0])
-    return c.translate([x0, y, z])
 
 
 def _hits_x(m, y, z, x0):
@@ -1310,9 +1303,11 @@ def cover_mounts(cov, c, q, body):
         for s_ in ss:
             boss = boss - s_["hf"]
         # the end face met the wing's inner skin (curving back at ~45 deg) in a 45 deg V that read as a 0.02 mm gap and a
-        # 0.01-0.04 mm wall: above BOSS_END_Y the end is bevelled at 45 deg back toward the skin, square to the wing
+        # 0.01-0.04 mm wall: above BOSS_END_Y the end is bevelled back toward the skin. A 45 deg bevel met the skin square
+        # (an 85 deg V, read as a 0.26-0.61 mm gap on the checks' decimated mesh); the bevel 22.5 deg off the end face meets
+        # it at about 110 deg
         zb = [min(s_["z"] for s_ in ss) - BOSS_D, max(s_["z"] for s_ in ss) + BOSS_D]
-        bev = M.Manifold.cube([30.0, 30.0, zb[1] - zb[0]]).translate([-15.0, 0.0, zb[0]]).rotate([0.0, 0.0, -45.0 * d])
+        bev = M.Manifold.cube([30.0, 30.0, zb[1] - zb[0]]).translate([-15.0, 0.0, zb[0]]).rotate([0.0, 0.0, -BOSS_END_BEVEL_DEG * d])
         boss = boss - bev.translate([end, BOSS_END_Y, 0.0])
         # seated on the frame's side wall as it is (its face is not one plane at x `end`: a 0.13 mm3 overlap)
         boss = boss - kit.mf(fr)
@@ -1330,13 +1325,16 @@ def cover_mounts(cov, c, q, body):
             m = m - _cyl_x(xs - d * 4.0, end + d * 1.0, y, z, HOLE_D)
             m = m - _cyl_x(seat - d * 0.01, end + d * 1.0, y, z, SLV_D)
             m = m - _cyl_x(xs - d * 4.0, seat, y, z, CB_D)
-            # 45 deg entry chamfer from just under the deepest rim point: the counterbore's rim on the slanted wing skin was
-            # a 45-60 deg knife edge; with the cone the rim meets the skin at 90 deg or more
+            # entry chamfer from under the deepest rim point (+y, where the wing curves back at up to 45-55 deg): the
+            # counterbore's rim on the slanted skin was a 45-60 deg knife edge. An oblique cone (hull of the counterbore
+            # circle and a circle CB_CHAMFER_LEN further out, offset toward +y by half that length): 45 deg on the +y side,
+            # about 22 deg at +-z and none toward -y, where the rim is 3.7 mm from the wing's front edge (a full cone broke
+            # into it in 0.1-0.4 mm slivers). It replaces a 45 deg cone cut off at the plane y = y_site (a step there, and
+            # at +-z a cone that reached into the boss's top / bottom corner at the wing's inner skin: 0.5 mm walls)
             xc = max(o_head[len(o_head) // 2:], key=lambda v: d * v) + d * CB_CHAMFER_SINK
-            # only on the +y half, where the wing curves up to 45 deg (toward -y the rim is 3.7 mm from the wing's front
-            # edge: a full cone broke into it in 0.1-0.4 mm slivers)
-            half = M.Manifold.cube([40.0, 20.0, 40.0]).translate([min(xc, xc - d * 20.0), y, z - 20.0])
-            m = m - (_cone_x(xc, -d, y, z, CB_D / 2, 6.0) ^ half)
+            e = CB_CHAMFER_LEN / 2
+            m = m - M.Manifold.batch_hull([_cyl_x(xc, xc + d * 0.01, y, z, CB_D),
+                                           _cyl_x(xc - d * CB_CHAMFER_LEN, xc - d * (CB_CHAMFER_LEN - 0.01), y + e, z, CB_D + 2 * e)])
             sleeves.append(_cyl_x(seat, end, y, z, SLV_D) - _cyl_x(seat - d, end + d, y, z, SLV_BORE_D))
             tip = head_top + d * (PA2_HH + PA2_L)
             ring_wall = []                                     # solid frame wall around the pilot (no other hole there)
@@ -1512,6 +1510,53 @@ def deburr(m, width=DEBURR_W, max_wedge=75.0, cap=3.0):
     return kit.tm(kit.mf(m) - M.Manifold.batch_boolean(hulls, M.OpType.Add)), len(hulls)
 
 
+BED_LAND = 0.08                   # mm: the wings' front edges (print bed, up +y) are cut flat this far above their lowest point
+                                  # (their tips wave +-0.05; deeper, the land meets the nose's outer flank in a 0.1-0.5 mm wall)
+WING_CAP_X = ((21.0, 27.0), (77.5, 83.5))   # x windows about the two wings' free inner edges (right leg; the back is at y > 24)
+WING_CAP_DROP = 0.05              # the corner bump is capped this far under the highest top of the rest of the edge
+WING_CORNER = 2.5                 # mm above the lower edge: the corner bump (the rest of the free edge is beyond)
+
+
+def print_trims(m):
+    """Planar trims in the print frame (up +y, the part's process.up) of a closed mesh; returns it and a report.
+    Bed land: the voxel-cleaned front edges of the wings wave by +-0.05 mm, so the first layer met them in patches
+    (2-9 islands down to 0.11 mm2, depending on the tessellation): one flat land BED_LAND above the lowest point instead.
+    Wing caps: below the knee notch the wings stand free of the back (z 52.5 .. ~59) and their inner edges are tops in the
+    print frame, wavy by 0.3-0.5 mm, highest in a bump at the lower corner (its top layers were slivers 0.3-0.8 mm wide):
+    the bump is capped flat at the rest of the edge's highest top. Capping the whole edge at its lowest top instead cut
+    into the edge's rounded nose (walls 0.18-0.5 mm at the cap's sides)."""
+    import manifold3d as M
+    import trimesh
+    y0 = float(m.bounds[0][1]) + BED_LAND
+    lo, hi = m.bounds[0] - 5.0, m.bounds[1] + 5.0
+    cut = [kit.mf(trimesh.creation.box(bounds=[[lo[0], lo[1], lo[2]], [hi[0], y0, hi[2]]]))]
+    rep = dict(bed_land_y=round(y0, 3), wing_caps=[])
+    V = m.vertices
+    for x0, x1 in WING_CAP_X:
+        zs = np.arange(COVER_Z_LOW + 0.05, COVER_Z_LOW + 12.0, 0.05)
+        sel = (V[:, 0] > x0) & (V[:, 0] < x1)
+        Vx = V[sel]
+        tops = np.array([Vx[np.abs(Vx[:, 2] - z) < 0.1, 1].max(initial=-np.inf) for z in zs])
+        tops[~np.isfinite(tops)] = np.nan
+        base = np.nanmin(tops[:20])
+        k = np.flatnonzero(tops > base + 1.5)                           # the edge rises into the back
+        if not len(k):
+            continue
+        join = zs[k[0]]
+        free = tops[zs < join - 0.4]
+        rest = tops[(zs >= COVER_Z_LOW + WING_CORNER) & (zs < join - 0.4)]
+        if not np.isfinite(rest).any():
+            continue
+        cap = float(np.nanmax(rest)) - WING_CAP_DROP                    # the corner bump comes down to the rest of the edge
+        top = float(np.nanmax(free)) + 0.3                               # the band the cap clears (the back is above 24)
+        z1 = float(zs[:k[0]][tops[:k[0]] <= top].max(initial=join - 0.4))   # beyond it every top in the band is the rising edge
+        cut.append(kit.mf(trimesh.creation.box(bounds=[[x0, cap, lo[2]], [x1, top, z1]])))
+        rep["wing_caps"].append(dict(x=[x0, x1], cap_y=round(cap, 3), band_top_y=round(top, 3), to_z=round(z1, 2),
+                                     free_top_y=[round(float(np.nanmin(free)), 3), round(float(np.nanmax(free)), 3)]))
+    out = kit.tm(kit.mf(m) - M.Manifold.batch_boolean(cut, M.OpType.Add))
+    return trimesh_clean(out), rep
+
+
 def mount_screws(sites):
     """PA2x8 proxies (PA2 family envelope as the knee screws), axis along x, right leg and its mirror."""
     import trimesh
@@ -1582,6 +1627,8 @@ def shin_cover():
     vol_mounted = float(mm.volume)
     mm, n_deburr = deburr(mm, DEBURR_W, max_wedge=60.0)
     mm = trimesh_clean(mm)
+    vol_deburred = float(mm.volume)
+    mm, trims = print_trims(mm)
     frame_rows, frame_rep = frame_pilots(man, sites)
     screw_rows = mount_screws(sites) + cover_sleeve_rows(sleeve_solids)
     out = {}
@@ -1615,7 +1662,8 @@ def shin_cover():
                knee_range_deg=list(KNEE_RANGE), in_the_way_before_mm3=round(before, 1),
                volume_before_mm3=round(cov.volume(), 1), volume_after_mm3=round(float(mm.volume), 1),
                voxel_clean=dict(pitch_mm=VOX_H, radius_mm=VOX_R, faces=VOX_FACES, volume_change_mm3=round(vol_clean - vol_trim, 2)),
-               deburr=dict(edges_trimmed=n_deburr, width_mm=DEBURR_W, volume_removed_mm3=round(vol_mounted - float(mm.volume), 2)),
+               deburr=dict(edges_trimmed=n_deburr, width_mm=DEBURR_W, volume_removed_mm3=round(vol_mounted - vol_deburred, 2)),
+               print_trims=dict(trims, volume_removed_mm3=round(vol_deburred - float(mm.volume), 2)),
                lower_edge_z=COVER_Z_LOW,
                top_edge_z_at_y={f"{y}": round(c + q * y, 1) for y in (8.3, 15, 20, 25, 29.4)},
                old_mount_screw_centre_above_cut_mm=old_mounts, removed_parts=gone,

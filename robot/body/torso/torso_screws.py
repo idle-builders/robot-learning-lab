@@ -29,7 +29,10 @@ between the boards and Stage 1 moves with them: the old bores are filled, the po
 solids dropped (the unscripted Stage 1 STEP is edited here; the chain script of T-dgz6qv should take this over). The 8 board
 screws end in printed pilots in bosses on the plate's rear face (PA2, lengths from screw_plan.py, sites from the boards' STEP).
 
-  recreate:  .venv/bin/python -B robot/body/torso/torso_screws.py build   (parts + records.json in OUT)
+Neck anchor (Idle T-jxshhv): Stage 1 gets a pad on its rear face under the neck root cradle's spine plate with 2 brass M3 x 4 heat-set
+inserts (robot/body/neck-head/neck_anchor.json); the inserts join the stage-1 sleeve part, the 2 old anchor sleeves (in air) leave it.
+
+  recreate:  .venv/bin/python -B robot/body/torso/torso_screws.py build  (parts + records.json in OUT)
              .venv/bin/python -B robot/body/torso/torso_screws.py apply   (patch the roll-flip variant manifest)
 """
 from __future__ import annotations
@@ -75,7 +78,7 @@ def build():
     recs[SLEEVES4] = MR.save(SLEEVES4, sleeves4.wrapped, "purchased")
     recs[SLEEVES4]["mass_kg"] = round(recs[SLEEVES4]["volume_mm3"] * 7.93e-6, 6)
     recs[SLEEVES4]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
-    recs[PART1] = MR.save(PART1, stage1_moved_rails(common).wrapped, "printed")
+    recs[PART1] = MR.save(PART1, stage1_neck_anchor(stage1_moved_rails(common)).wrapped, "printed")
     new_parts, joints = build_interface_joints(MR, common, recs[PART4])
     recs.update({k: v for k, v in new_parts.items() if k == STAGE1_SLEEVES})
     added = {k: v for k, v in new_parts.items() if k != STAGE1_SLEEVES}
@@ -265,11 +268,23 @@ def build_interface_joints(MR, common, rec4=None):
     if len(sols) - len(keep) != len(placed) - len(moved) + len(legacy):     # the moved sites have no solid in the STEP yet
         raise SystemExit(f"stage-1 sleeve STEP {src}: {len(sols) - len(keep)} solids dropped at {len(placed)} threaded positions "
                          f"({len(moved)} of them moved rail sites) + {len(legacy)} old rail sites")
-    out = {STAGE1_SLEEVES: MR.save(STAGE1_SLEEVES, Compound(children=keep).wrapped, "purchased")}
-    out[STAGE1_SLEEVES]["sleeve_source"] = (f"{src} minus the {len(placed)} threaded interface positions (T-bv7bwe) and the {len(legacy)} "
-                                            "old stage 4 rail sites (T-htfaaz)")
-    out[STAGE1_SLEEVES]["mass_kg"] = round(out[STAGE1_SLEEVES]["volume_mm3"] * 7.93e-6, 6)
-    out[STAGE1_SLEEVES]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    # neck anchor (T-jxshhv): the 2 old M3 sleeves at the cradle's former anchor sites stood in air (no chassis there) and go; the 2 brass M3
+    # heat-set inserts of the chassis pad join the sleeve part (the checks find a part's pressed-in hardware by the _steel_sleeves suffix)
+    na = neck_anchor()
+    old_anchor = [np.array(c, float) for c in na["legacy_chassis_sleeves_xyz_mm"]]
+    n_keep = len(keep)
+    keep = [s for s in keep if min(np.linalg.norm(centre(s) - c) for c in old_anchor) > 0.2]
+    if n_keep - len(keep) != len(old_anchor):
+        raise SystemExit(f"stage-1 sleeve STEP {src}: {n_keep - len(keep)} solids at the {len(old_anchor)} old neck anchor sleeve sites")
+    inserts = neck_anchor_inserts(na)
+    steel_vol = sum(s.volume for s in keep)
+    out = {STAGE1_SLEEVES: MR.save(STAGE1_SLEEVES, Compound(children=keep + inserts).wrapped, "purchased")}
+    out[STAGE1_SLEEVES]["sleeve_source"] = (f"{src} minus the {len(placed)} threaded interface positions (T-bv7bwe), the {len(legacy)} "
+                                            f"old stage 4 rail sites (T-htfaaz) and the {len(old_anchor)} old neck anchor sleeves, plus the "
+                                            f"{len(inserts)} brass M3 heat-set inserts of the neck anchor pad (T-jxshhv)")
+    out[STAGE1_SLEEVES]["mass_kg"] = round(steel_vol * 7.93e-6 + sum(s.volume for s in inserts) * 8.5e-6, 6)
+    out[STAGE1_SLEEVES]["mass_basis"] = ("native STEP volume per solid: sleeves x 7.93 g/cm3 (304 SS), neck anchor inserts x 8.5 g/cm3 (brass, "
+                                         "modelled as the 4.0 mm hole with the M3 minor diameter as bore)")
     for j, p in zip(pairs, plans):
         if p["status"] != "placed":
             continue
@@ -328,6 +343,84 @@ def stage1_moved_rails(common):
     print(f"stage 1 moved rail bores: {out.cut(body).volume:.2f} mm3 added (old bores filled), {body.cut(out).volume:.2f} mm3 removed "
           f"(new bores: at most {sum(h.volume for h in holes):.2f} mm3)", flush=True)
     return out
+
+
+# ------------------------------------------------------------------------------------------- neck anchor (T-jxshhv)
+# The neck root cradle's spine plate is screwed to a pad on the chassis's rear face: 2 ISO 7380-1 M3 from the cradle side into 2 brass M3 x 4
+# heat-set inserts pressed into the pad from its rear face (the cradle's seat), flush. Sites, pad box and insert: robot/body/neck-head/
+# neck_anchor.json (one source with the cradle builder and the screws neck_parts.py generates). Before: the cradle plate hung 2 mm above the
+# chassis's top (z 341.6) and 3.8-6.8 mm behind its rear face, its M3x16 CSK screws ended in nuts in air, the chassis held 2 sleeves in air.
+NECK_ANCHOR = ROOT / "robot/body/neck-head/neck_anchor.json"
+
+
+def neck_anchor() -> dict:
+    return json.loads(NECK_ANCHOR.read_text())
+
+
+def _y_cyl(x, y0, y1, z, r):
+    """A cylinder of radius r along y from y0 to y1 at (x, z)."""
+    from build123d import Align, Cylinder, Plane
+    return Plane(origin=(float(x), float(min(y0, y1)), float(z)), z_dir=(0.0, 1.0, 0.0)) * Cylinder(
+        float(r), float(abs(y1 - y0)), align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+
+def _prism(tri, along: str, a0: float, a1: float):
+    """A triangular prism: triangle `tri` in the (x, z) plane (along "y") or (y, z) plane (along "x"), extruded from a0 to a1. The corners
+    are put in counter-clockwise order in the sketch plane first, so the prism goes from a0 to a1 whatever order `tri` lists them in
+    (review rv-jxshhv: a clockwise triangle extruded from a0 away from a1)."""
+    from build123d import Polygon, Plane, extrude
+    if along == "y":
+        pl = Plane(origin=(0.0, float(a0), 0.0), x_dir=(1.0, 0.0, 0.0), z_dir=(0.0, 1.0, 0.0))     # local (u, v) = (x, -z)
+        pts = [(u, -v) for u, v in tri]
+    else:
+        pl = Plane(origin=(float(a0), 0.0, 0.0), x_dir=(0.0, 1.0, 0.0), z_dir=(1.0, 0.0, 0.0))     # local (u, v) = (y, z)
+        pts = list(tri)
+    area2 = sum(u0 * v1 - u1 * v0 for (u0, v0), (u1, v1) in zip(pts, pts[1:] + pts[:1]))
+    if area2 < 0:
+        pts = pts[::-1]
+    return extrude(pl * Polygon(*pts, align=None), amount=float(a1 - a0))
+
+
+def stage1_neck_anchor(body):
+    """Stage 1 with the neck anchor pad fused on (box of neck_anchor.json pad, edges but the bottom ones rounded edge_r_mm; it reaches from
+    the chassis's rear face to the cradle's plate face, from the cell pocket cap (z 341.0, 0.52 mm over the cell's top insulator) to 4 mm
+    above the chassis top) and, per site, the insert hole (the insert's 4.0 mm hole, its length deep from the pad's rear face) and a tip
+    bore beyond it. Prints the volume added and removed."""
+    from build123d import Box, Pos, fillet
+    na = neck_anchor()
+    (x0, x1), (z0, z1), y0, y1 = na["pad"]["x_mm"], na["pad"]["z_mm"], float(na["pad"]["y_from_mm"]), float(na["face_y_mm"])
+    pad = Pos((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2) * Box(x1 - x0, y1 - y0, z1 - z0)
+    # rounded except along the bottom face, which merges flat into the cap of the cell pocket below (a rounded bottom edge left a 0.06 mm
+    # wedge groove against the cap)
+    pad = fillet([e for e in pad.edges() if e.center().Z > z0 + 1e-3], float(na["pad"]["edge_r_mm"]))
+    # 45 deg fillets (chamfer wedges, legs c) in the re-entrant corners where the pad's sides meet the cap tops at z_cap and its rear
+    # face meets the cell pocket cap: the first build had the chassis FEM peak (196 MPa, combined stall) in the sharp corner at x -13.6,
+    # y 25, z 341.5
+    c, z_cap = float(na["pad"]["root_chamfer_mm"]), float(na["pad"]["side_cap_z_mm"])
+    wedges = [_prism([(x1, z_cap), (x1 + c, z_cap), (x1, z_cap + c)], "y", y0, y1),
+              _prism([(x0, z_cap), (x0 - c, z_cap), (x0, z_cap + c)], "y", y0, y1),
+              _prism([(y1, z0), (y1 + c, z0), (y1, z0 + c)], "x", x0, x1)]
+    for w in wedges:
+        pad = pad.fuse(w)
+    ins = na["insert"]
+    holes = []
+    for x, z in na["sites_xz_mm"]:
+        y_ins = y1 - float(ins["length"])
+        holes.append(_y_cyl(x, y_ins, y1 + 0.5, z, float(ins["ro"])))
+        holes.append(_y_cyl(x, y_ins - float(na["tip_bore_depth_mm"]), y_ins + 0.05, z, float(na["tip_bore_dia_mm"]) / 2))
+    out = max(body.fuse(pad).cut(*holes).solids(), key=lambda q: q.volume)
+    print(f"stage 1 neck anchor pad: {out.cut(body).volume:.2f} mm3 added, {body.cut(out).volume:.2f} mm3 removed", flush=True)
+    return out
+
+
+def neck_anchor_inserts(na: dict) -> list:
+    """The 2 brass M3 x 4 heat-set inserts as solids: a tube of the insert's hole diameter (ro) with the M3 minor diameter as bore,
+    from the pad's rear face (flush) inward."""
+    ins = na["insert"]
+    minor = json.loads((ROOT / "robot/body/neck-head/head_carrier_posts.json").read_text())["threads"][ins["thread"]]["minor_dia"]
+    y1 = float(na["face_y_mm"])
+    y0 = y1 - float(ins["length"])
+    return [_y_cyl(x, y0, y1, z, float(ins["ro"])).cut(_y_cyl(x, y0 - 0.05, y1 + 0.05, z, minor / 2)) for x, z in na["sites_xz_mm"]]
 
 
 def stage4_board_screws(recs: dict) -> list[dict]:

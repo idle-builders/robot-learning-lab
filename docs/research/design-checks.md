@@ -615,6 +615,23 @@ driver 0 mm3, connectivity by screw, fem_setup patches (bore 108 mm2, ridge 34 m
 (472 s of exact work, no overlap seen; distance 0.32 mm in clearance); link own findings unchanged by this work (press support 69-76 % on its 8 other sleeves, 171 mm2 overhang beyond 70 deg, skin overlap 2.05 mm3 at yaw -60 pitch -30, two 0.29 mm edges at z 378).
 Renders: .cache/work/collar-renders/collar-single-screw-before-after.png, collar-ridge-groove-section-z396.6.png.
 
+Neck collar round 3 (T-6rr3sa, 23 Nov; `neck_collar.py build` / `sweep`; replaces the edge, bed, thin-feature, wall, FEM and BOM numbers of round 2). Round 2's free sharp edges (84), bed corners (5) and thin features (7 under one line) came from the
+measured head cut: its knots are noisy (second difference up to 0.8 mm), so no fillet rolled along the rim. Now the head cut and the notch floor are smooth periodic curves that only ever lie below the measurement (the rim comes down 0.3 - 0.7 mm at
+theta 168-176), the ring section (bed edges, 0.8 mm wider vertical foot, flange cone) is a revolved profile rounded by construction, the ring ends are cut radially with plan arcs (PLAN_R 1.7, mouth corners 1.3 / 1.5, ends 0.7 mm off the axis) and
+every cut edge is rounded at 0.25 - 0.07 mm (OCC rolls a corner cluster at a time, not all at once; the tab is rounded on its own, the plan cuts come last). Load sites: the FEM load is the rim surface within 2 mm of the head skin; round 2 had
+two sites (theta 8, x +28, and theta 172, x -30), the smoothed rim leaves only the theta-8 site (load patch 9.3 mm2, centroid (27.4, 6.8, 406.2)), which then takes the whole 5 / 10 N through the whole ring: the same part scored PAHT-CF 5 N / 10 N
+1.13 / 1.69 on that patch (round 2 on its two sites 2.11 / 3.25; my rebuild of round 2 2.16 / 3.26). The peak stress is at the back arch, in the 0.9 mm band under the neck pitch notch floor (theta 100-125, z 395.1), not at the load: the notch
+floor cannot rise (the pitch cradle and servo case sweep to 0.5 mm under it), so the band is reinforced where it has room. Steps, PAHT-CF 5 N / 10 N on that patch (one change each): clean smoothed build 1.13 / 1.69; foot 0.6 mm lower (bed z 394.2 ->
+393.6, band 1.5 mm) 1.78 / 2.58; inner wall 1.4 mm further in all round (r 26.4 -> 25.0) with the foot 0.6 lower 2.48 / 3.69, but `sweep` cannot clear it (the cradle and case reach into the wall at theta 106-132, up to 1 mm3 of overlap at pitch 20 - 30);
+the inward growth therefore stays out of theta 106-132 (cradle, case) and 140-215 (link plate: 11.5 mm3 of overlap at standing without it) and the foot is 1.2 mm lower in total (bed z 393.0, band 2.1 mm): 2.57 / 3.30 (PETG-CF 5 N 1.72, side 2.21; 20 N 0.64 / 0.43 as before
+a hard press, not a target). The peak is now at (-8.4, 27.4, 395.2) (round 2: (-16.0, 24.3, 394.8)). The outside changes only by the foot hanging 1.2 mm lower (bed z 394.2 -> 393.0) and the soft rim. A load-patch override diagnostic of round 2
+(theta-8 site only) was skipped: `fem` takes no patch override without editing the setup or tool code. Before (round 2, rebuilt) -> after, head_neck_collar: free sharp edges 84 -> 1 (the 0.31 mm concave edge where the apex round meets the channel floor, (-29.1, 9.0, 402.26)),
+bed corners 5 -> 1 (one island, 565 mm2 contact), thin features under one / two lines 7 / 8 -> 0 / 6, walls under one / two lines 0 / 7.0 mm2 -> 0 / 0.5 mm2, overhang 0 -> 0, press 98.3 -> 98.6 %, engagement 4.25 -> 4.25, collision_sweep 0 -> 0 mm3 (clearance 0.37 mm case,
+0.78 mm cradle, 0.045 mm skin, 0.054 mm link; closest approach 0.63 mm case, 1.08 mm cradle; back shell gap 2.07 mm), slicer support 0 g (2.02 -> 2.56 g, 8.4 -> 10.5 min), BOM findings naming the collar 0 -> 0 (323 -> 323 in all). Still non-zero: one 0.31 mm concave edge; the
+6 thin features under two lines are single-layer rim tips (28.6, 6.5, 406.7), (-30.3, 4.4, 405.9), (-28.7, 9.0, 406.3) and the 0.8 mm tips of the notch floor ledge; the bed has one 92 deg outline corner at the tab. `fit` for the collar x neck pitch pair not run (tooling).
+Round 4 (candidate A7: `PLAN_R_MOUTH_LOW` 1.5 -> 1.8, `PLAN_R_INNER` 2.6 for the inner ring-end bed corners, `_round_floor_bore` 0.1 mm on the teardrop opening of the channel floor, head side only): free sharp edges 1 -> 0 (the 0.31 mm edge where the apex round meets the floor is rounded; 4 mating edges stay, the tab-face press disc is untouched) and bed corners 1 -> 0 (one island, 547 mm2 contact). The other readings moved by tessellation noise, not by the geometry: clearances 0.37 / 0.78 / 0.045 / 0.054 -> 0.322 / 0.787 / 0.034 / 0.017 mm (case / cradle / skin / link; all above 0, collision 0 mm3; a 0.1 mm change far from the link moved the link clearance by 0.025 mm) and walls under two lines 0.5 -> 1.0 mm2 (counted in 0.25 mm2 samples, 0 under one line); thin features 0 / 6, overhang 0, press 98.6 %, support 0 g, FEM PAHT-CF 5 N / 10 N 2.56 / 3.35, engagement 4.25.
+Render: .cache/work/collar-renders/collar-round3-before-after.png.
+
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
 2.6 mm, no thread). Past the stage-1 end there is no room for a nut: at the front pairs (cradle x +-17, z 271.5; stage 3
@@ -1067,3 +1084,51 @@ R_thigh_roll_flip: free depth 31.5-31.8 mm for all 8 sleeves; wall share 23-24 %
 old coverage read as no surface; sleeve 1 wall share 24.2 % against 25.0 % from an OCC slab boolean, axis free depth 31.8 mm
 against 32.0 mm from OCC pin booleans (0.5 mm steps). Limits: spacer width is not a variable (a narrow block is assumed);
 recess / open points are not supported.
+
+## Head carrier camera and mic screws into catalogue heat-set inserts (2026-11-22, T-5bqc3m)
+
+Owner 2026-11-22: only catalogue hardware, printable and hand-assemblable (no 0.3 mm shims, no turned sleeves, clearances of a few
+tenths, walls of two print lines). Post sites are measured live on the supplier spacer / washer / shim bores of the shell-pass manifest
+(robot/body/neck-head/head_holes.py). Inserts: brass knurled M2 x 3 mm (CNC Kitchen / Ruthex class, knurl OD 3.6, recommended hole
+3.2 mm; assumption, no supplier data in the repo), modelled as a tube of the 3.2 mm hole with the ISO 724 minor diameter as bore;
+reference engagement 1 d (2.0 mm) for a steel screw in brass (standard-parts.json lists 1.5 d = 3.0 mm, the insert's length).
+
+Camera (8): the supplier F-F standoffs become printed columns (r 3.0, 4.97 mm, clearance bore 2.4) on the plate: a 1.4 mm rim round the
+3.2 mm hole (r 3.2 overlapped components on the back of both camera boards, 3.06-3.14 mm from four post axes, fit 0.035 mm3); the insert is pushed
+from the plate's rear face up to the column ledge on the bench; the ribs behind keep a square window of 8.8 mm round each axis for an
+8 mm iron tip (rib ends cut square: a round window had left 0.01 mm wedges at its edge). The insert's rear end is flush with the plate's
+rear face: placed for 2.5 mm engagement it sat 0.17-0.24 mm inside the plate, and the 8 mm tip met 4.7-8.1 mm3 of plate before seating it.
+ISO 4762 M2x8 from the camera front through board and column: engagement 2.33 (B0410) / 2.26 (B0196) mm against the 1 d reference
+2.0, point 0.67 / 0.74 mm short of the insert's end.
+
+Mic (1, owner: one screw and a printed retention): the review measured the earlier skin-boss insert 99.4 mm from the far inner wall of
+the closed dome (an insert iron is 170-190 mm), so it moved back onto a printed wing of the carrier, where every step is a bench step.
+Both options with the same measurements (mm; scratch script, board at its supplier position, ISO 7380-1 head k 1.3 in both):
+
+| | (a) skin boss, PA2 thread-forming into a 1.6 pilot | (b) carrier wing, M2 into a heat-set insert (chosen) |
+|---|---|---|
+| screw | PA2x7 (PA2x6: 3.84 of 4.0) | M2x6 ISO 7380-1 |
+| engagement / reference | 4.84 / 4.0 (2 d in plastic) | 2.5 / 2.0 (1 d), 3.0 at 1.5 d |
+| tip | pilot bottom 52.44, 1.88 of skin wall behind it | 0.5 mm of insert before the point, insert flush with the boss end |
+| walls | boss r 3.3 - pilot 0.8 = 2.5 radial | floor 1.34 under the insert, boss r 3.3: 1.7 from the hole, 1.5 from the knurl |
+| head to ROCK4D | 0.54 | 0.54 |
+| clearance to the skin | boss is the skin | wing 0.59, boss end 0.77 |
+| insert setting | none | carrier alone on the bench, iron from the boss end, nothing in its way |
+| driving | skin off the robot, key inside the dome: 96.2 mm from head to the far inner wall | carrier on the neck before ROCK4D goes on: from the open side |
+| cable | plugged into ROCK4D with the skin held over the head, about 100 mm slack goes in with it | fitted with the head open, skin goes on last |
+
+(b) is the choice: all steps on the bench with ordinary tools, a brass thread, the skin untouched; (a) needs work blind inside the dome
+and a cable that rides with the skin. The board sits at its supplier position (back face 46.77, the wing face 0.03 behind it, so the
+STEP and the mesh agree); a pan head (k 1.6) would leave 0.1-0.2 mm to ROCK4D, the button head leaves 0.54. A printed pin (2.2 x 1.3)
+on the wing face goes into the board's second mounting hole (2.5) and keeps it from turning; a 2.5 mm relief clears the bottom port.
+
+Checks on the rebuilt selected body (run.py, 2026-11-22): press tool tip obstruction 0.0 mm3 at the 8 camera inserts (0.002 at one) and
+the mic insert (was 3.9-32.3 at the camera inserts); boss wall round the insert holes 1.40 mm at 7 camera posts (1.80 in the column
+bore) and 1.69 / 2.10 at the mic boss, but 1.14 mm at B0410 post 1 (x -36, z 471) against the 6.11 mm bore of the compute collar next to
+it (axes 5.78 mm apart, both supplier positions; open with the compute collars, defect head-carrier-steel-rings); thinnest wall 0.007 mm
+at the rib1 bottom where the two neck-root bore circles meet (0.005 on main), none under two lines at the camera posts or on the mic wing
+(area under two lines 121 mm2, was 141.5); fit (fit poses) 0 overlaps, ROCK4D 0.43 mm from the carrier and 0.755 from the mic board,
+camera boards 0.03 from the columns; screws: engagement 2.5 (camera) / 2.75 (mic) by mount_check, heads bear on the board pads (gap 0.0 /
+-0.009); driver access: camera 0 mm3, mic 29.7 % of the standing path behind ROCK4D (0.38 mm), 0 mm3 at its assembly step (before
+ROCK4D); FEM (stored setup) p99 strength ratio Bambu PAHT-CF 4.40 adverse neck stall, 3.97 fall 6 g. FEM gives the brass inserts the
+"Steel 304 sleeve" collar material (no brass entry in data/materials.json; one material per sleeve part).

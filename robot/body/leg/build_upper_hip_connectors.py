@@ -852,6 +852,15 @@ RF5_HUB_FLAT_FILLET = 1.5            # inside corner of the front hub flat at th
 # frame, 2026-11-20 envelope sampled at 0.5 deg pitch, 2.5 deg yaw: its lower edge z 222.9 / 219.1 / 217.4 / 216.8 /
 # 215.5 / 214.3 / 213.3 / 212.3 at y 21 / 21.5 / 22.5 / 23.5 / 25.5 / 27.5 / 28.5 / 30): two flat chamfers 0.8 mm under it
 RF5_REAR_CHAMFER_YZ = [(31.5, 210.49), (22.0, 216.75), (19.5, 224.5)]
+RF5_REAR_RELIEF_DEG = 35.0           # its slope (deg from horizontal, falling toward the arm's inner face)
+RF5_REAR_RELIEF_W = 0.8              # the rear chamfer crossed the rear arm's gusset top at x 62.6..63 (the plate's inner face)
+                                     # and met the arm's inner face y RF_ARM_R[0] in a 57 deg knife edge (walls 0.03-0.75 mm
+                                     # by sampling): over x < RF_PLATE_X[0] a counter-chamfer falls from the chamfer this far
+                                     # behind the inner face down to it (a 112 deg ridge, 125 deg at the inner face), cut before
+                                     # the 3D bevel. Screened 2026-11-22 (w 0.6..1.5, 30..55 deg): at 45 deg the bevelled corner
+                                     # with the gusset was a 0.27 mm2 B-spline patch OCC left untriangulated at 0.5 mm; w 0.9..1.5
+                                     # left a 0.07-0.15 mm slit where the floor meets the gusset's fillet into the plate face;
+                                     # w <= 0.65 a sub-0.25 mm2 planar face; cut after the bevel, a 0.04 mm2 sliver past x 63
 RF5_PRINT_UP = (-1.0, 0.0, 0.0)       # Stage 5 print direction (part_settings process.up -x)
 RF5_ARM_CORNER_CHAMFER = 3.0        # lower outboard corner of each arm (x RF_PLATE_X[1], z RF_AZ + 2): 45 deg chamfer leg
 RF5_ARM_GUSSET = 2.5                 # 45 deg gusset leg between each arm's top and the plate's inner face (0 = none); part of the
@@ -1501,6 +1510,7 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
         (rear_chamfer := extrude_xy_to_x(fillet_2d_face(Polygon(*RF5_REAR_CHAMFER_YZ, (RF5_REAR_CHAMFER_YZ[-1][0], 240.0), (RF5_REAR_CHAMFER_YZ[0][0], 240.0),
                                                align=None).faces()[0], 3.0, skip_xy=[RF5_REAR_CHAMFER_YZ[0], RF5_REAR_CHAMFER_YZ[-1],
                                                (RF5_REAR_CHAMFER_YZ[-1][0], 240.0), (RF5_REAR_CHAMFER_YZ[0][0], 240.0)]), 59.0, 72.0)),
+        (rear_relief := rf5_rear_relief(eri, x0)),
     ]
     sleeves = []
     for h in pitch:  # 4 ST3025 wheel M3: sleeve from the wheel face to the counterbore floor, head in the counterbore
@@ -1526,9 +1536,21 @@ def build_stage5_pitch_to_roll_roll_flip(side: str) -> tuple[Solid, list[Solid]]
     hub_flat = rf5_hub_flat(efo - 1.0, yfi + 1.0)
     # re-cut the holes through the added steps; not the rear chamfer (a re-cut after the bevel left its 58 deg corner with the
     # wing's top edge sharp)
-    recut = [c for c in cutters if c is not rear_chamfer]
+    recut = [c for c in cutters if c is not rear_chamfer and c is not rear_relief]
     res = rf_unify(largest_solid(cut_all(fuse_all([res, *steps_add]), steps_cut + recut + [hub_flat, rf5_stub_slot(yri)])))
     return res, sleeves
+
+
+def rf5_rear_relief(y_face: float, x_plate: float) -> Solid:
+    """Counter-chamfer (RF5_REAR_RELIEF_DEG; YZ prism over x 59 .. the plate's inner face) from the rear chamfer
+    RF5_REAR_RELIEF_W behind the rear arm's inner face y_face down to that face: no knife edge where the chamfer crosses the
+    arm's gusset top."""
+    (ya, za), (yb, zb) = RF5_REAR_CHAMFER_YZ[0], RF5_REAR_CHAMFER_YZ[1]
+    yr = y_face + RF5_REAR_RELIEF_W
+    zr = za + (yr - ya) * (zb - za) / (yb - ya)                       # on the chamfer
+    dz = 3.0 * math.tan(math.radians(RF5_REAR_RELIEF_DEG))
+    face = Polygon((yr, zr), (yr - 3.0, zr - dz), (yr - 3.0, 240.0), (yr, 240.0), align=None).faces()[0]
+    return extrude_xy_to_x(face, 59.0, x_plate)
 
 
 def rf5_stub_slot(y_face: float) -> Solid:
@@ -1690,7 +1712,7 @@ def build_roll_flip(stage5_only: bool = False):
                           "arm_clamp_disc_r_mm": RF5_CLAMP_R, "arm_head_seat_disc_r_mm": RF5_SEAT_R,
                           "hub_pocket": {"r_mm": RF5_HUB_RECESS_R, "to_x_mm": RF5_HUB_TOP_X + RF5_HUB_CLEAR[1]},
                           "mating_faces_mm": {"horn_y": RF5_HORN_FACE_Y, "idler_y": RF5_IDLER_FACE_Y, "pitch_wheel_x": RF5_WHEEL_FACE_X},
-                          "running_fit_per_side_mm": RF5_RUN_FIT, "rear_chamfer_yz_mm": RF5_REAR_CHAMFER_YZ,
+                          "running_fit_per_side_mm": RF5_RUN_FIT, "rear_chamfer_yz_mm": RF5_REAR_CHAMFER_YZ, "rear_relief_w_mm": RF5_REAR_RELIEF_W, "rear_relief_deg": RF5_REAR_RELIEF_DEG,
                           "counterbore_r_mm": RF5_CBORE_R, "sleeve_od_id_mm": [2 * RF5_SLEEVE_R, 2 * RF5_SLEEVE_BORE_R],
                           "note": "right leg (left = mirror x); head = head seat point, stack = L - point - reference engagement "
                                   "(screw_plan.choose_length window), so each screw engages exactly its hole's reference"},

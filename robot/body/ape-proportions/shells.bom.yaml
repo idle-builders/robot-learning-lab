@@ -38,6 +38,7 @@ parts:
   name: R_foot_boot_shell
   make_buy: make
   quantity: 1
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is R_foot_boot_heel_shell. Held by R_foot_boot_toe_PA2x8 (T-jh7fcm).
   section: Ankle / foot
 - match: L_foot_boot_shell
   kind: printed
@@ -45,35 +46,170 @@ parts:
   name: L_foot_boot_shell
   make_buy: make
   quantity: 1
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is L_foot_boot_heel_shell. Held by L_foot_boot_toe_PA2x8 (T-jh7fcm).
+  section: Ankle / foot
+- match: R_foot_boot_heel_shell
+  kind: printed
+  line: print:R_foot_boot_heel_shell
+  name: R_foot_boot_heel_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws. Held by R_foot_boot_heel_PA2x8 (T-jh7fcm).'
+- match: L_foot_boot_heel_shell
+  kind: printed
+  line: print:L_foot_boot_heel_shell
+  name: L_foot_boot_heel_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws. Held by L_foot_boot_heel_PA2x8 (T-jh7fcm).'
+- match:
+  - R_foot_boot_toe_M2_washer
+  - R_foot_boot_heel_M2_washer
+  - L_foot_boot_toe_M2_washer
+  - L_foot_boot_heel_M2_washer
+  kind: hardware
+  line: hw:M2-washer-2.2-5-x-0.3
+  name: M2 washer 2.2/5 x 0.3
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: washer
+    thread: M2
+    standard: ISO 7089
+    inner_dia_mm: 2.2
+    outer_dia_mm: 5.0
+    thickness_mm: 0.3
+    label: M2 washer 2.2/5 x 0.3
+  supplier: unknown
+  part_number: unknown
+  material: 'ISO 7089 M2 washer under each boot retention screw''s head, in the dia 5.4 counterbore of the boot half, on its printed tab
+    (shells.py BOOT_WASHER, T-jh7fcm)'
+  notes: 'Same line as the torso''s M2 washers (robot/body/assembly/assemble_complete_fdm_body.bom.yaml). Why a washer (T-jh7fcm, measured):
+    a bare dk 3.5 head on the 2.4 mm clearance hole bears on a 0.55 mm ring (5.1 mm2, under one 0.62 mm line); on the washer the tab carries
+    a 2.4 .. 5.0 ring (15.1 mm2, 2.96 x, 1.3 mm wide). The joint does not need its 0.3 mm thickness to close: without it the tip still ends
+    0.7 mm short of the pilot bottom at tab -0.2. Replaces the custom 304 sleeves 3.6 x 2.2 x 3.5 (owner 2026-11-22: catalogue hardware
+    only). Supplier: no repo source (unknown).'
+  generator: shell-pass
+  section: Ankle / foot
+- match:
+  - R_foot_boot_toe_PA2x8
+  - R_foot_boot_heel_PA2x8
+  - L_foot_boot_toe_PA2x8
+  - L_foot_boot_heel_PA2x8
+  kind: hardware
+  line: hw:PA2-x-8-ISO-7380-1
+  name: PA2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 8 ISO 7380-1
+  material: 'PA2x8 self-tapping, on an ISO 7089 M2 washer through the plain dia 2.4 hole of a boot half''s tab into a dia 1.7 x 6 pilot in
+    the foot monocoque''s boss (PA2 family envelope: head dia 3.5 x 1.3, shank dia 2, 0.6 mm point)'
+  notes: 'Boot retention (T-jh7fcm): one per boot half along its slide direction, the toe part''s at the toe tip (+y), the heel cap''s at the
+    heel (-y); same screw as the shin back cover (one BOM line). Stack (shells.py boot_stack): tab 2.9 + washer 0.3, engagement 4.3 (4.1 at
+    tab +0.2, reference 4.0), tip 4.8 in a 6.0 pilot (5.3 at tab -0.2 without the washer). Supplier: no repo source (unknown).'
+  generator: shell-pass
   section: Ankle / foot
 assembly:
   steps:
-  - id: right_leg:p049
+  - id: right_leg:p060
     subassembly: right_leg
     part: R_foot_boot_shell
     direction:
     - 0.0
-    - 0.0
     - 1.0
+    - 0.0
     after:
-    - right_leg:p048
+    - right_leg:p059
     status: seeded
-    derived: 'graph order, fastened distance 63 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case,
-      R_foot_monocoque_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0
-      -> 38.5 mm out, seat released True -> True, max overlap 8439.9 -> 12986.6 mm3; moved before R_sensor_pocket_pad_v19 (it touched R_sensor_pocket_pad_v19
-      38.5 mm out, 12986.622 mm3); moved before R_mid_medial_sensor (it touched R_mid_medial_sensor 35.5 mm out, 10560.735 mm3)'
-  - id: left_leg:p049
+    notes: 'T-6c2e93: toe part of the boot (split at y = 15.5 mm), the last thing on the foot: slides on from the toe along +y over the
+      finished foot, after the monocoque case screws (s040, s041) and the foot-roll horn screws (s038) are driven. Was p049 along +z, which
+      no direction allowed (the closed boot sat 10.8 cm3 inside the monocoque sole plate and the roll servo case at standing).'
+  - id: right_leg:p061
+    subassembly: right_leg
+    part: R_foot_boot_heel_shell
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - right_leg:p060
+    status: seeded
+    notes: 'T-6c2e93: heel cap of the boot, slides on from behind along -y and butts against the toe part at the 0.4 mm seam (0.2 until review rv-jh7fcm: each half is located by its own screw tab, so the seam takes the FDM length error of the monocoque and both halves).'
+  - id: left_leg:p060
     subassembly: left_leg
     part: L_foot_boot_shell
     direction:
     - 0.0
-    - 0.0
     - 1.0
+    - 0.0
     after:
-    - left_leg:p048
+    - left_leg:p059
     status: seeded
-    derived: 'mirror of right_leg p42 (R_ <-> L_, x negated): graph order, fastened distance 63 from the base; direction: no screw to placed parts:
-      toward the centroid of placed neighbours (R_B13_C047_foot_roll_case, R_foot_monocoque_combined), snapped to the nearest axis; direction
-      searched (six axes vs the seeded [-0.0, 0.0, -1.0]): path contact 60.0 -> 38.5 mm out, seat released True -> True, max overlap 8945.1 ->
-      13392.6 mm3; moved before L_sensor_pocket_pad_v19 (it touched L_sensor_pocket_pad_v19 38.5 mm out, 13392.561 mm3); moved before L_mid_medial_sensor
-      (it touched L_mid_medial_sensor 35.5 mm out, 10728.712 mm3)'
+    notes: 'T-6c2e93: mirror of right_leg:p060 (toe part of the boot, slides on from the toe along +y, last on the foot).'
+  - id: left_leg:p061
+    subassembly: left_leg
+    part: L_foot_boot_heel_shell
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - left_leg:p060
+    status: seeded
+    notes: 'T-6c2e93: mirror of right_leg:p061 (heel cap, slides on from behind along -y).'
+  - id: right_leg:s062
+    subassembly: right_leg
+    screw: R_foot_boot_toe_PA2x8
+    with:
+    - R_foot_boot_toe_M2_washer
+    direction: screw axis
+    after:
+    - right_leg:p060
+    status: designer
+    notes: 'T-jh7fcm: the toe part''s retention screw, driven from the front along +y on its ISO 7089 washer (put on the shank first) through
+      the tab''s clearance hole into the monocoque''s toe boss (hex key, head and washer in the counterbore at the toe tip).'
+  - id: right_leg:s063
+    subassembly: right_leg
+    screw: R_foot_boot_heel_PA2x8
+    with:
+    - R_foot_boot_heel_M2_washer
+    direction: screw axis
+    after:
+    - right_leg:p061
+    status: designer
+    notes: 'T-jh7fcm: the heel cap''s retention screw, driven from behind along -y on its ISO 7089 washer (put on the shank first) through the
+      tab''s clearance hole into the monocoque''s heel boss.'
+  - id: left_leg:s062
+    subassembly: left_leg
+    screw: L_foot_boot_toe_PA2x8
+    with:
+    - L_foot_boot_toe_M2_washer
+    direction: screw axis
+    after:
+    - left_leg:p060
+    status: designer
+    notes: 'T-jh7fcm: the toe part''s retention screw, driven from the front along +y on its ISO 7089 washer (put on the shank first) through
+      the tab''s clearance hole into the monocoque''s toe boss (hex key, head and washer in the counterbore at the toe tip).'
+  - id: left_leg:s063
+    subassembly: left_leg
+    screw: L_foot_boot_heel_PA2x8
+    with:
+    - L_foot_boot_heel_M2_washer
+    direction: screw axis
+    after:
+    - left_leg:p061
+    status: designer
+    notes: 'T-jh7fcm: the heel cap''s retention screw, driven from behind along -y on its ISO 7089 washer (put on the shank first) through the
+      tab''s clearance hole into the monocoque''s heel boss.'

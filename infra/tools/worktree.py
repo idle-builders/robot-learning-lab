@@ -120,6 +120,9 @@ def add(name, rev):
     excl = Path(git("rev-parse", "--git-common-dir", cwd=MAIN))
     excl = (excl if excl.is_absolute() else MAIN / excl) / "info" / "exclude"
     have = excl.read_text().splitlines() if excl.exists() else []
+    if any(h in LINKS for h in have):                       # a bare line (an older copy of this script) also ignores robot/body/checks/data
+        have = [h for h in have if h not in LINKS]
+        excl.write_text("\n".join(have) + "\n")
     with excl.open("a") as fh:                              # the links are not ignored by the directory patterns of .gitignore
         for n in LINKS:
             if n not in have:

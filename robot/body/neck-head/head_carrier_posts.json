@@ -1,31 +1,278 @@
 {
- "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). The post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer (and of the terminal nut) on its mesh. group: screw family of the post; toward_plate: side of the spacer along its bore axis (oriented to +Y, the robot's back) on which the carrier plate lies; spacers / terminals / screws: manifest part names in post order (the legacy screw names stay so the assembly order and the part settings keep resolving; the screw and its length are regenerated); head: standard, thread, head dimensions and the length series the BOM already buys (ISO 10642 has no M2.5 entry in robot/body/checks/data/hardware.json, so dk / k are ISO 10642 values written here: assumption until compared with the supplier's list); sleeve: pressed-in 304 SS sleeve around the post (bore from robot/actuators/interfaces/standard-parts.json sleeve.bore_for, outer radius by the wall left at the head); terminal: where the thread bites (spacer thread half the spacer length deep from its plate end, M2 machine thread in an aluminium standoff; or the nut, depth = its thickness).",
+ "_doc": "Which supplier parts each head-carrier screw post is made of (Idle T-5bqc3m). Post positions are never typed: robot/body/neck-head/head_holes.py measures the bore of the named spacer / shim / terminal nut on its mesh in the shell-pass manifest (defined_holes.SHELL_PASS), where the supplier parts sit as supplied. group: screw family of the post; spacers / terminals / screws: manifest part names in post order (screw names get the chosen length, M2_ -> M2x<L>_); washers (camera): the supplier washers whose board-side face is the board's front face (the head seat); legacy_screws: manifest parts the generated screws replace; drop: supplier parts the printed features replace; head: standard and thread of the screw (dk / k / lengths from robot/body/checks/data/hardware.json screw_standards; a standard that table does not carry gives dk / k / lengths here, with its source). Only catalogue hardware in standard sizes (owner 2026-11-22): ISO screws, ISO washers, ISO 4032 nuts, catalogue heat-set inserts; no steel rings. compute (T-5bqc3m K2): ISO 4762 M2.5 hex socket head on an ISO 7092 small washer (washer) on the carrier front, through a plain hole_dia clearance hole (ISO 273 medium), the spacer / ROCK4D / fan bridge into the supplier nut (terminal); the length is the smallest ISO 4762 length whose thread ends at least engagement_margin_mm past the nut's far face. Where no standard length reaches with the washer on the plate front (the fan-bridge posts: 25.5 mm from the front face to the nut's far face, ISO 4762 M2.5 stops at 25), the supplier spacer is replaced by a printed column (column: its radius, gap_mm short of the board, a base of base_ro round the counterbore) and the washer sits in a counterbore (washer d2 + 2 x counterbore_clear_mm) whose floor puts the longest standard length engagement_margin_mm past the far face (engagement_margin_mm 0.9, T-9wjdqc: the counterbore 0.6 mm deeper than at 0.3 so a nut at its worst-case position still has margin; plastic under the washer at the column posts 3.07 mm, column.floor_min_mm 2.5; the plain posts keep their length). neck_root (K2; T-9wjdqc): the 2 M3 screws joining the carrier to the neck pitch-to-head cradle tongue: ISO 7380-1 M3 button head on the carrier's rear face (6.0 mm pitch: an ISO 10642 M3 countersink (dk 6.72) or an ISO 7089 / 7092 washer (OD 7.0 / 6.0) does not fit between the two), plain hole_dia hole (ISO 273 medium) through the carrier, into a catalogue brass M3 heat-set insert (insert) in the cradle tongue. sites_xz_mm: the 2 axes (x, z), shared by carrier and cradle; x -0.85 puts the carrier hole 1.65 mm from both edges of the carrier's tongue (x -4.2..2.5) and the whole head (dk 5.7) on it. The tongue is as thick as the insert is long (tongue_rear_y_mm .. tongue_rear_y_mm - insert.length): the insert is pressed with the cradle alone on the bench from the tongue's front face (nothing in front of it, the iron's path is free), flush with that face, its rear end flush with the tongue's rear face, so the screw's tension pulls it against the carrier's front face (the preload bears on the carrier, not on the knurl; a load separating the parts pushes the insert in its press direction). The screw is the smallest standard length that reaches the 1 d reference with its full thread ending inside the insert (screw_plan.choose_length; the 0.5 mm point stands up to 0.5 mm past the tongue's front face, nothing is there). No compression limiter under the head (owner 2026-11-22, catalogue hardware only): the head clamps the 1.5 mm printed carrier tongue directly, snugged by hand. The joint is closed on the bench before the pair goes onto the pitch case (heads on the carrier's rear face reachable, hex key 2); the cradle's own M2 screws are driven from behind the case afterwards. head_clear_mm: radial clearance of the head; the dorsal rib it sits in is cut in a square window of half-width rib_window_half_mm round the axis (across the rib's whole width, x -3.5..2.1: a round cut left a 0.35 mm strip of rib beside the head). legacy: names the generator removes from a manifest (the earlier countersunk screws and the ISO 4032 nuts the inserts replace). Insert: catalogue-class brass knurled heat-set insert M3 x 4.0 mm, recommended hole 4.0 mm (ASSUMPTION: no supplier data in the repo; M3 inserts of this length with a 4.0 mm hole are in the common makers' published tables, not checked against a data sheet here; knurl OD about 4.6-5.0 mm), modelled as a tube of the hole diameter (insert.ro) with the M3 minor diameter as bore. camera (owner 2026-11-22: only catalogue hardware, printable and hand-assemblable): the 8 supplier F-F standoffs are replaced by a printed column (column.ro 3.0 at the plate: 1.4 mm rim round the 3.2 mm insert hole; column.height 4.97 = the standoff's 5 mm less 0.03 mm so the board face never overlaps the column in the fit check; the screw clamp closes it) on the carrier plate with a clearance bore (column.bore_dia). Where components on the board's back stand next to the post the column is narrower (T-5bqc3m K1): head_holes.column_profile measures the board's mesh round each post and gives each height band the radius that keeps column.component_clear_mm to the nearest component, never less than column.rim_mm round the bore (column.insert_rim_mm round the insert), widening toward the plate in 45 deg steps (printable with the plate on the bed), steps under column.min_step_mm merged into the wider band. A catalogue M2 x 3 brass heat-set insert is pushed from the plate's rear face (before ROCK4D goes on) up to the bore's ledge; the insert's rear end is flush with the plate's rear face (the heated tip ends on that face), its front end on the column bore's ledge; the ISO 4762 M2 screw is driven from the camera front through board and column into it, the smallest standard length that reaches the 1 d reference with its point inside the insert. The ribs behind the plate keep a square window of half-width press_clear_mm round each insert axis free for the heated tip (rib ends cut square, no slivers; 4.9 = the 8 mm tip's 4.0 + the 0.6 mm root fillet of the cut rib end + 0.3, and the window side of the insert at (7, 444.17) then meets the side of the vertical rib flush: at 4.4 the fillet stood 0.04 mm3 in the tip's way at insert 7, at 4.8 the cut left a 0.1 mm step against that rib). mic (owner 2026-11-22: one screw, a printed retention instead of the upper screw; T-5bqc3m review: every step by hand on the bench): the board sits on a printed wing of the carrier (wing.face_gap_mm behind its back face, wing.t_mm thick, top wing.top_z_mm, thinned to wing.taper_t_mm above wing.taper_z_mm where the head skin closes in); one catalogue M2 x 3 brass heat-set insert in a boss on the wing's skin side (boss.ro; its underside and the insert hole's top are 45 deg teardrops along boss.teardrop_down, the print direction's down, so the horizontal boss prints without support), pushed from the boss's free end (+x, carrier alone on the bench) up to a printed floor; the floor is as thick as the screw needs: the insert's front end goes where the standard screw length reaches engagement_target_mm (the smallest length that leaves a floor of at least floor_min_mm), the insert's rear end is the boss end. The ISO 14580 M2 hexalobular cheese head (T6, k 1.3: clear of ROCK4D; ISO 7380-1 starts at M3, an ISO 7045 pan head k 1.6 would leave 0.1 mm) is driven from the board side through the PCB and the floor's clearance bore (bore_dia) before ROCK4D goes on, so mic and cable are fitted before the skin. A printed locating pin (pin.dia, pin.length into the PCB) on the wing face goes into the board's second mounting hole (the bore of drop[1], 2.43 mm measured) and keeps it from turning about the screw; port: the acoustic port relief through the wing (robot/model/build/contracts.py microphone_port). Insert: catalogue-class brass knurled heat-set insert M2 x 3.0 mm, knurl OD 3.6 mm, recommended hole 3.2 mm (CNC Kitchen / Ruthex M2 x 3 class; ASSUMPTION: no supplier data in the repo, hole size from the manufacturers' published tables, not checked against a data sheet here); modelled as a tube of the hole diameter (sleeve.ro) with the thread's minor diameter as bore (no overlap check against the melted-in plastic). threads: ISO 724 M2 / M3 major / minor diameter (same values as torso_screws.THREADS). ASSUMPTIONS: thread modelled at the minor diameter; 1 d engagement for a steel screw in a brass thread (robot/actuators/interfaces/standard-parts.json lists 1.5 d for brass: 3.0 mm, the insert's length).",
  "groups": {
   "compute": {
    "toward_plate": "-axis",
-   "spacers": ["compute_FF4_spacer_0", "compute_FF4_spacer_1", "compute_FF4_spacer_2", "compute_FF4_spacer_3"],
-   "terminals": ["fan_bridge_nut_0", "fan_bridge_nut_1", "compute_rear_nut_2", "compute_rear_nut_3"],
-   "screws": ["compute_M2p5_CS30_0", "compute_M2p5_CS30_1", "compute_M2p5_CS10_2", "compute_M2p5_CS10_3"],
-   "head": {"standard": "ISO 10642", "thread": "M2.5", "dk": 5.0, "k": 1.25, "countersunk": true, "lengths": [10, 30]},
-   "sleeve": {"ro": 3.05, "ri": 1.4, "countersink_dia": 5.0},
-   "head_side": "front"
+   "spacers": [
+    "compute_FF4_spacer_0",
+    "compute_FF4_spacer_1",
+    "compute_FF4_spacer_2",
+    "compute_FF4_spacer_3"
+   ],
+   "terminals": [
+    "fan_bridge_nut_0",
+    "fan_bridge_nut_1",
+    "compute_rear_nut_2",
+    "compute_rear_nut_3"
+   ],
+   "screws": [
+    "compute_M2p5_0",
+    "compute_M2p5_1",
+    "compute_M2p5_2",
+    "compute_M2p5_3"
+   ],
+   "head": {
+    "standard": "ISO 4762",
+    "thread": "M2.5"
+   },
+   "head_side": "front",
+   "legacy_screws": [
+    "compute_M2p5_CS30_0",
+    "compute_M2p5_CS30_1",
+    "compute_M2p5_CS10_2",
+    "compute_M2p5_CS10_3"
+   ],
+   "washer": {
+    "standard": "ISO 7092",
+    "thread": "M2.5",
+    "d1": 2.7,
+    "d2": 5.0,
+    "h": 0.5,
+    "names": [
+     "compute_M2p5_washer_0",
+     "compute_M2p5_washer_1",
+     "compute_M2p5_washer_2",
+     "compute_M2p5_washer_3"
+    ],
+    "source": "ISO 7092 (small series, 200 HV) M2.5: d1 2.7, d2 5.0, h 0.5 (transcribed from the standard's table, not re-checked against the text; robot/body/checks/data/hardware.json carries no washer standard)"
+   },
+   "hole_dia": 2.9,
+   "engagement_margin_mm": 0.9,
+   "column": {
+    "ro": 3.0,
+    "gap_mm": 0.03,
+    "base_ro": 4.0,
+    "base_above_floor_mm": 0.5,
+    "counterbore_clear_mm": 0.2,
+    "floor_min_mm": 2.5
+   }
   },
   "camera": {
    "toward_plate": "+axis",
-   "spacers": ["B0410_M2_FF5_spacer_0_v23", "B0410_M2_FF5_spacer_1_v23", "B0410_M2_FF5_spacer_2_v23", "B0410_M2_FF5_spacer_3_v23",
-               "B0196_M2_FF5_spacer_0_v23", "B0196_M2_FF5_spacer_1_v23", "B0196_M2_FF5_spacer_2_v23", "B0196_M2_FF5_spacer_3_v23"],
-   "screws": ["B0410_plate_M2x4_0", "B0410_plate_M2x4_1", "B0410_plate_M2x4_2", "B0410_plate_M2x4_3",
-              "B0196_plate_M2x4_0", "B0196_plate_M2x4_1", "B0196_plate_M2x4_2", "B0196_plate_M2x4_3"],
-   "head": {"standard": "ISO 7380-1", "thread": "M2", "lengths": [4, 5, 6]},
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "rear"
+   "spacers": [
+    "B0410_M2_FF5_spacer_0_v23",
+    "B0410_M2_FF5_spacer_1_v23",
+    "B0410_M2_FF5_spacer_2_v23",
+    "B0410_M2_FF5_spacer_3_v23",
+    "B0196_M2_FF5_spacer_0_v23",
+    "B0196_M2_FF5_spacer_1_v23",
+    "B0196_M2_FF5_spacer_2_v23",
+    "B0196_M2_FF5_spacer_3_v23"
+   ],
+   "screws": [
+    "B0410_camera_M2_0",
+    "B0410_camera_M2_1",
+    "B0410_camera_M2_2",
+    "B0410_camera_M2_3",
+    "B0196_camera_M2_0",
+    "B0196_camera_M2_1",
+    "B0196_camera_M2_2",
+    "B0196_camera_M2_3"
+   ],
+   "head": {
+    "standard": "ISO 4762",
+    "thread": "M2"
+   },
+   "sleeve": {
+    "kind": "heat-set insert",
+    "ro": 1.6,
+    "catalogue_od": 3.6,
+    "thread": "M2",
+    "length": 3.0,
+    "engagement_x_d": 1.0
+   },
+   "head_side": "rear",
+   "washers": [
+    "B0410_camera_washer_0",
+    "B0410_camera_washer_1",
+    "B0410_camera_washer_2",
+    "B0410_camera_washer_3",
+    "B0196_camera_washer_0",
+    "B0196_camera_washer_1",
+    "B0196_camera_washer_2",
+    "B0196_camera_washer_3"
+   ],
+   "legacy_screws": [
+    "B0410_plate_M2x4_0",
+    "B0410_plate_M2x4_1",
+    "B0410_plate_M2x4_2",
+    "B0410_plate_M2x4_3",
+    "B0410_camera_M2x4_0",
+    "B0410_camera_M2x4_1",
+    "B0410_camera_M2x4_2",
+    "B0410_camera_M2x4_3",
+    "B0196_plate_M2x4_0",
+    "B0196_plate_M2x4_1",
+    "B0196_plate_M2x4_2",
+    "B0196_plate_M2x4_3",
+    "B0196_camera_M2x4_0",
+    "B0196_camera_M2x4_1",
+    "B0196_camera_M2x4_2",
+    "B0196_camera_M2x4_3"
+   ],
+   "column": {
+    "ro": 3.0,
+    "bore_dia": 2.4,
+    "height": 4.97,
+    "component_clear_mm": 0.4,
+    "rim_mm": 1.4,
+    "insert_rim_mm": 1.24,
+    "reach_margin_mm": 0.25,
+    "min_step_mm": 0.1
+   },
+   "press_clear_mm": 4.9,
+   "boards": [
+    "B0410_supplier_native_v23",
+    "B0410_supplier_native_v23",
+    "B0410_supplier_native_v23",
+    "B0410_supplier_native_v23",
+    "B0196_supplier_native_v23",
+    "B0196_supplier_native_v23",
+    "B0196_supplier_native_v23",
+    "B0196_supplier_native_v23"
+   ]
   },
   "mic": {
    "toward_plate": "+axis",
-   "spacers": ["mic_side_shim_0", "mic_side_shim_1"],
-   "screws": ["mic_side_M2x4_lowhead_0", "mic_side_M2x4_lowhead_1"],
-   "sleeve": {"ro": 1.75, "ri": 1.1},
-   "head_side": "front"
+   "spacers": [
+    "mic_side_shim_0"
+   ],
+   "screws": [
+    "mic_side_M2_0"
+   ],
+   "head_side": "front",
+   "head": {
+    "standard": "ISO 14580",
+    "thread": "M2",
+    "dk": 3.8,
+    "k": 1.3,
+    "lengths": [
+     3,
+     4,
+     5,
+     6,
+     8,
+     10,
+     12,
+     16,
+     20
+    ],
+    "source": "ISO 14580:2011 hexalobular socket cheese head M2 (T6): dk max 3.8, k max 1.3, lengths 3-20 (transcribed from the standard's table, not re-checked against the text); not in robot/body/checks/data/hardware.json"
+   },
+   "sleeve": {
+    "kind": "heat-set insert",
+    "ro": 1.6,
+    "catalogue_od": 3.6,
+    "thread": "M2",
+    "length": 3.0,
+    "engagement_x_d": 1.0,
+    "engagement_target_mm": 2.5
+   },
+   "clamped": [
+    "microphone_6049_v23"
+   ],
+   "legacy_screws": [
+    "mic_side_M2x4_lowhead_0",
+    "mic_side_M2x4_lowhead_1"
+   ],
+   "drop": [
+    "mic_side_shim_0",
+    "mic_side_shim_1"
+   ],
+   "wing": {
+    "face_gap_mm": 0.03,
+    "t_mm": 2.0,
+    "top_z_mm": 471.6,
+    "taper_z_mm": 467.2,
+    "taper_t_mm": 1.4,
+    "floor_min_mm": 1.3,
+    "bore_dia": 2.4,
+    "bottom_z_mm": 454.0
+   },
+   "boss": {
+    "ro": 3.3,
+    "teardrop_down": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "teardrop_note": "down in the carrier's print direction (process up -y in build_neck_head_connectors.bom.yaml, seeded)"
+   },
+   "pin": {
+    "dia": 2.1,
+    "length": 1.3
+   },
+   "port": {
+    "y": 0.0,
+    "z": 464.0,
+    "dia": 2.5,
+    "source": "robot/model/build/contracts.py microphone_port (board bottom port, +x)"
+   }
+  },
+  "neck_root": {
+   "toward_plate": "+axis",
+   "screws": [
+    "head_root_M3_0",
+    "head_root_M3_1"
+   ],
+   "legacy_screws": [
+    "neck_M3x6_countersunk_0",
+    "neck_M3x6_countersunk_1"
+   ],
+   "head": {
+    "standard": "ISO 7380-1",
+    "thread": "M3"
+   },
+   "hole_dia": 3.4,
+   "head_clear_mm": 0.3,
+   "cradle": "stage3_neck_pitch_to_head_cradle",
+   "head_side": "rear",
+   "rib_window_half_mm": 3.6,
+   "legacy": [
+    "head_root_M3_nut_0",
+    "head_root_M3_nut_1"
+   ],
+   "sites_xz_mm": [
+    [
+     -0.85,
+     413.0
+    ],
+    [
+     -0.85,
+     419.0
+    ]
+   ],
+   "tongue_rear_y_mm": -12.92,
+   "insert": {
+    "kind": "heat-set insert",
+    "ro": 2.0,
+    "catalogue_od": 4.6,
+    "thread": "M3",
+    "length": 4.0,
+    "engagement_x_d": 1.0,
+    "pressed_from": "front"
+   }
+  }
+ },
+ "threads": {
+  "_doc": "ISO 724 M2: major 2.0, minor 1.567; M3: major 3.0, minor 2.459 (the heat-set inserts' modelled bore); M2 same as torso_screws.THREADS (T-bv7bwe).",
+  "M2": {
+   "major": 2.0,
+   "minor_dia": 1.567
+  },
+  "M3": {
+   "major": 3.0,
+   "minor_dia": 2.459
   }
  }
 }

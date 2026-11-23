@@ -1652,21 +1652,6 @@ parts:
   quantity: 1
   section: Ankle / foot
 - match:
-  - L_heel_lateral_actuator_v17
-  - L_mid_medial_actuator_v17
-  - L_toe_lateral_actuator_v17
-  - R_heel_lateral_actuator_v17
-  - R_mid_medial_actuator_v17
-  - R_toe_lateral_actuator_v17
-  kind: made
-  line: foot-fsr-actuator
-  name: FSR actuator puck (cut stock)
-  make_buy: make
-  quantity: 6
-  material: Polymax1001526 silicone60ShA
-  notes: Cut from stock; STEP missing for 5 of 6 (artifacts/cove50-sensor-integration/v17).
-  section: Ankle / foot
-- match:
   - L_sole_pad_bond_v19
   - R_sole_pad_bond_v19
   kind: other
@@ -2161,10 +2146,11 @@ assembly:
     - 1.0
     - 0.0
     after:
-    - right_leg:s041
+    - right_leg:p039
     status: seeded
     derived: 'graph order, fastened distance 54 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case),
       snapped to the nearest axis'
+    notes: 'T-6c2e93: right after the foot-roll case, so the monocoque (p043) and then its case screws (s040, s041) follow'
   - id: right_leg:p044
     subassembly: right_leg
     part: R_heel_lateral_backing
@@ -2173,10 +2159,11 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - right_leg:p043
+    - right_leg:s041
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (R_foot_monocoque_combined), snapped to the nearest axis'
+    notes: 'T-6c2e93: after the monocoque case screws (s040, s041), which moved after the monocoque'
   - id: right_leg:p045
     subassembly: right_leg
     part: R_heel_lateral_bond
@@ -2233,10 +2220,11 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - right_leg:p049
+    - right_leg:p048
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (R_foot_monocoque_combined, R_mid_medial_backing), snapped to the nearest axis'
+    notes: 'T-6c2e93: the boot shell (was p049) moved to the end of the leg as two halves (p060, p061)'
   - id: right_leg:p051
     subassembly: right_leg
     part: R_sole_pad_bond_v19
@@ -2424,10 +2412,11 @@ assembly:
     - 1.0
     - 0.0
     after:
-    - left_leg:s041
+    - left_leg:p039
     status: seeded
     derived: 'mirror of right_leg p40 (R_ <-> L_, x negated): graph order, fastened distance 54 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis'
+    notes: 'T-6c2e93: right after the foot-roll case, so the monocoque (p043) and then its case screws (s040, s041) follow'
   - id: left_leg:p044
     subassembly: left_leg
     part: L_heel_lateral_backing
@@ -2436,10 +2425,11 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - left_leg:p043
+    - left_leg:s041
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (L_foot_monocoque_combined), snapped to the nearest axis'
+    notes: 'T-6c2e93: after the monocoque case screws (s040, s041), which moved after the monocoque'
   - id: left_leg:p045
     subassembly: left_leg
     part: L_heel_lateral_bond
@@ -2496,10 +2486,11 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - left_leg:p049
+    - left_leg:p048
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (L_foot_monocoque_combined, L_mid_medial_backing), snapped to the nearest axis'
+    notes: 'T-6c2e93: the boot shell (was p049) moved to the end of the leg as two halves (p060, p061)'
   - id: left_leg:p051
     subassembly: left_leg
     part: L_sole_pad_bond_v19
@@ -2686,22 +2677,6 @@ defects:
   producer: studies/cove50-sensor-integration/foot-contact/build.py (history only, commit 4b79b740d) placing the supplier STEP
   reference: artifacts/cove50-sensor-integration/v4/parts/<part>.step (placed copy of the purchased FSR 402 Short Tail STEP)
   task: needs task (T-54avce covers backings / bonds / pucks, not the purchased sensor copies)
-- id: foot-fsr-pucks-step
-  kind: dangling
-  parts:
-  - R_toe_lateral_actuator_v17
-  - R_heel_lateral_actuator_v17
-  - R_mid_medial_actuator_v17
-  - L_heel_lateral_actuator_v17
-  - L_mid_medial_actuator_v17
-  field: native_step
-  why: Not on disk (.stl present), not indexed; bytes recorded in data/sensor-purchasable-v17-archive-receipt-20261024.json and small-indexed-selection.json.gz
-    (pack ...9f454dbc9402), sha256 match.
-  fix: Restore the blob index; or let the FSR-stack script write the pucks (they are plain cylinders).
-  producer: robot/electronics/sensing/studies/purchasable/build.py (in the tree; a 10 x 0.5 mm cylinder per site) but it imports ../integrated-attachments/build.py,
-    which is not in the tree, so it does not run as is
-  reference: artifacts/cove50-sensor-integration/v17/parts/<part>.step (L_toe_lateral_actuator_v17.step is on disk)
-  task: T-d98ff3 (R heel), T-54avce (all pucks)
 - id: arm-shell-m3-nuts-step
   kind: dangling
   parts:

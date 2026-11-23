@@ -19,6 +19,7 @@ generators:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json
   - artifacts/cove50-strength/complete-fdm-body-20261106/parts/combined__stage1_center_torso_spine_chassis_steel_sleeves.step
   - artifacts/cove50-strength/fdm-body-motor-refit/parts/combined__stage1_center_torso_spine_chassis.step
+  - robot/body/neck-head/neck_anchor.json
   outputs:
   - artifacts/robot/body/torso/torso-screws/records.json
   - artifacts/robot/body/torso/torso-screws/parts
@@ -26,7 +27,9 @@ generators:
     records through the torso link. Since 2026-11-22 (T-bv7bwe) it also writes the threaded stage-1 interface sleeves, their screws and the stage-1
     clearance sleeve part without those positions (from the shell-pass manifest's stage-1 sleeve STEP). Since T-htfaaz it also rebuilds the stage
     4 IMU/ADC carrier + its 6 rail sleeves (outer face on the boards, rail sites from common.stage4_rail_sites), the 8 PA2 board screws, and Stage
-    1 with the bores of the two moved stage 4 rail sites (stage-1 body and its sleeve STEP read from the shell-pass manifest).
+    1 with the bores of the two moved stage 4 rail sites (stage-1 body and its sleeve STEP read from the shell-pass manifest). Since T-jxshhv
+    Stage 1 also carries the neck anchor pad (2 brass M3 heat-set inserts in the stage-1 sleeve part, the 2 old anchor sleeves dropped;
+    robot/body/neck-head/neck_anchor.json).
   after:
   - shell-pass
 parts:
@@ -202,7 +205,7 @@ parts:
     part_number: unknown
   - line: sleeve:4.7x3.2x3.6
     name: 304 steel compression sleeve 4.7 x 3.2 x 3.6 mm (outer x inner x length)
-    quantity: 3
+    quantity: 1
     make_buy: buy
     spec:
       kind: sleeve
@@ -212,6 +215,25 @@ parts:
       length_mm: 3.6
     supplier: unknown
     part_number: unknown
+  - line: insert:M3x4-brass-heat-set
+    name: Brass knurled heat-set insert M3 x 4 mm (hole 4.0)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: insert
+      standard: brass knurled heat-set insert for plastics
+      thread: M3
+      length_mm: 4.0
+      outer_dia_mm: 4.6
+      label: M3 x 4 brass heat-set insert, hole 4.0
+    supplier: unknown
+    part_number: unknown
+    notes: 'The 2 neck anchor inserts in the chassis pad (T-jxshhv, robot/body/neck-head/neck_anchor.json; the same part as the head root
+      joint''s inserts). Pressed into the bare chassis from the pad''s rear face, flush with it; a 3.4 mm tip bore runs 2.0 mm on behind each.
+      ASSUMPTION as for the head root inserts: no supplier data in the repo; 4.0 mm hole from the common makers'' tables, knurl OD 4.6 entered;
+      the STEP models each insert as a tube of the 4.0 mm hole with the M3 minor diameter as bore.'
+  notes: 'The 2 M3 sleeves 4.7 x 3.2 x 3.6 at the old neck anchor sites (x -29 / -21, y 27.5, z 347.5) stood in air behind the chassis and are
+    dropped by torso_screws.py (T-jxshhv); the 2 neck anchor heat-set inserts are in this part.'
   section: Torso
 - match: combined__stage3_front_power_electronics_carrier
   kind: printed
@@ -452,7 +474,9 @@ assembly:
       exclude_roles:
       - body_shell
     doc: 'Torso core: the stage-1 chassis with the hip yaw, shoulder pitch and neck yaw servos, battery cells with insulators and fins, power
-      and compute electronics and their carriers (everything on the torso link but the body shells).'
+      and compute electronics and their carriers (everything on the torso link but the body shells). Before anything goes on, the 2 brass
+      M3 x 4 heat-set inserts of the neck anchor are pressed into the chassis pad from its rear face (+y, the cradle''s seat; nothing behind
+      it on the bare chassis), flush; trim any melt ridge on that face (T-jxshhv).'
     base:
     - combined__stage1_center_torso_spine_chassis
     - combined__stage1_center_torso_spine_chassis_steel_sleeves

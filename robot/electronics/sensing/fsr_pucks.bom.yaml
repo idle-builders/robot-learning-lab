@@ -1,0 +1,43 @@
+# Cove-50 body definition for robot/electronics/sensing/fsr_pucks.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The foot FSR actuator pucks: one 10 x 0.5 mm silicone disc per FSR site, written as native STEPs from the coupon's sites.
+# Moved here from robot/body/ape-proportions/build.bom.yaml (Idle T-d98ff3), where the STEPs of 5 of the 6 pucks were missing.
+schema: cove50-body-definition/1
+definition: fsr-pucks
+owner: foot sensing (Idle T-d98ff3)
+generators:
+- id: fsr-pucks
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/electronics/sensing/fsr_pucks.py
+  inputs:
+  - robot/electronics/sensing/foot-contact-coupon.json
+  outputs:
+  - artifacts/cove50-sensor-integration/v17/parts/R_toe_lateral_actuator_v17.step
+  - artifacts/cove50-sensor-integration/v17/parts/R_heel_lateral_actuator_v17.step
+  - artifacts/cove50-sensor-integration/v17/parts/R_mid_medial_actuator_v17.step
+  - artifacts/cove50-sensor-integration/v17/parts/L_toe_lateral_actuator_v17.step
+  - artifacts/cove50-sensor-integration/v17/parts/L_heel_lateral_actuator_v17.step
+  - artifacts/cove50-sensor-integration/v17/parts/L_mid_medial_actuator_v17.step
+  resources:
+    limit_gb: 2
+    timeout_s: 120
+  notes: 'Seconds. Writes the STEPs byte-identical to the v17 sensor study export (robot/electronics/sensing/studies/purchasable/build.py,
+    not runnable as a whole), so they hash to the native_step_sha256 every body manifest recorded; the .stl beside them are not written
+    here (the body uses the moved meshes of robot/body/ape-proportions).'
+parts:
+- match:
+  - L_heel_lateral_actuator_v17
+  - L_mid_medial_actuator_v17
+  - L_toe_lateral_actuator_v17
+  - R_heel_lateral_actuator_v17
+  - R_mid_medial_actuator_v17
+  - R_toe_lateral_actuator_v17
+  kind: made
+  line: foot-fsr-actuator
+  name: FSR actuator puck (cut stock)
+  make_buy: make
+  quantity: 6
+  material: Polymax1001526 silicone60ShA
+  notes: Cut from 0.5 mm stock, 10 mm discs; STEPs written by robot/electronics/sensing/fsr_pucks.py.
+  section: Ankle / foot

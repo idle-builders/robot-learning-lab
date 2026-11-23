@@ -61,7 +61,8 @@ def record():
         d = fem[part]["by_layer_normal"][normal]["PAHT_CF_dry"][case]
         return round(d["p99_vm_MPa"], 1), round(d["p99_strength_ratio"], 2)
 
-    s4n = {c: p99("stage4_roll_flip", c, "x") for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
+    n4 = next(iter(fem["stage4_roll_flip"]["by_layer_normal"]))   # the H-cage print direction the FEM ran along
+    s4n = {c: p99("stage4_roll_flip", c, n4) for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     s4o = {c: p99("stage4_selected", c, "x") for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     # print orientation of the new Stage 5: the layer normal with the best worst-case of strength and layer ratios
     def governing(part, case="heavy_6kg_1p5g"):
@@ -108,15 +109,17 @@ def record():
                  m("Knee motor top to hanging roll case", rep["fit_brep"].get("knee_case_top_to_roll_case_bottom_gap_mm"), "mm", "standing"),
              ],
              conditions={"manifest": rel(MANIFEST), "poses": "hip-shell leg_motion library (151) + GRID (72); fit_brep 74 poses"},
-             limitations="Kinematic sweep only: no loads, no compliance. The exact fit ran on the H-cage before its last "
-                         "change (ear-boss key pockets opened upward, material removed only).",
+             limitations="Kinematic sweep only: no loads, no compliance. Joint-range sweeps (stress test, not a requirement) "
+                         "find two two-joint corners where a thigh shell touches a neighbour: back shell vs the torso back "
+                         "shell at hip pitch +45 / roll +25, front shell vs pelvis cell 08 at yaw -30 / pitch -58 "
+                         "(cells clear the realistic poses only, owner decision T-jbe85r).",
              source_refs=[report_ref]),
         dict(id="fem", title="Static FEM, new vs today", kind="simulation",
-             observation="The H-cage thigh connector holds the knee motor from both sides and carries the loads at far "
-                         "lower stress than today's U (roll stall: strength ratio about 21 instead of about 2). The strengthened "
-                         "pitch-to-roll plate (thicker arms, taller wings, held from the pitch output side only: there is "
-                         "no pitch idler) is a little stronger than today's in the heavy landing case and stronger under "
-                         "roll-motor stall.",
+             observation=f"The H-cage thigh connector holds the knee motor from both sides and carries the loads at far "
+                         f"lower stress than today's U (roll stall p99 {s4n['roll_stall'][0]} MPa against {s4o['roll_stall'][0]}). "
+                         f"The strengthened pitch-to-roll plate (thicker arms, taller wings, held from the pitch output side "
+                         f"only: there is no pitch idler) is stronger than today's in the heavy landing case (strength ratio "
+                         f"{s5n['heavy_6kg_1p5g'][1]} against {s5o['heavy_6kg_1p5g'][1]}) and under roll-motor stall.",
              measurements=[
                  m("Stage 4 p99 von Mises, recovery 4 kg 1.5 g", s4n["recovery_4kg_1p5g"][0], "MPa", f"today {s4o['recovery_4kg_1p5g'][0]}"),
                  m("Stage 4 p99 von Mises, roll stall", s4n["roll_stall"][0], "MPa", f"today {s4o['roll_stall'][0]}"),
@@ -126,7 +129,7 @@ def record():
                  m("Stage 5 p99 von Mises, roll stall", s5n["roll_stall"][0], "MPa", f"today {s5o['roll_stall'][0]}"),
              ],
              conditions={"material": "PAHT-CF dry, orthotropic, bonded 304 SS sleeves", "mesh": fem["method"],
-                         "print_layer_normal": f"Stage 4 x (as today); Stage 5 new {n5} (best worst-case of strength and "
+                         "print_layer_normal": f"Stage 4 new {n4}, today x; Stage 5 new {n5} (best worst-case of strength and "
                                                "layer ratios), today z",
                          "patches": fem["patches"]},
              limitations="Linear static, p99 von Mises of the tetra field; no fatigue, bolt preload or contact. Today's "
@@ -248,9 +251,9 @@ def thigh_shell_evidence(rep, report_ref):
     return dict(
         id="thigh-shell", title="Blue thigh shell", kind="analysis",
         observation="Two halves per leg on the thigh link replace today's two thigh covers. Round superellipse sections "
-                    "(exponent 2.3, like the grey shin covers) from the knee to mid-thigh, closing in around the roll motor "
-                    "case toward the top (exponent 3.5); one smooth convex front with no crease. The top "
-                    "edge is a smooth curve around the shell (a few Fourier harmonics) as close as the moving parts allow: it "
+                    "from the knee to mid-thigh, closing in around the roll motor case toward the top; the outer skin is one "
+                    "smooth spline surface from 25 values, one convex front with no crease. The top "
+                    "edge is a smooth, capped curve around the shell (low peaks, gentle slopes) as close as the moving parts allow: it "
                     "wraps the roll motor and connector and dips where the yellow arms swing. Below the Stage 4 bracket the "
                     "back slopes in and flattens to hug the knee motor's back face; the knee edge is one tilted plane, just "
                     "above the knee hub at the front and as low at the back as the lower leg's frame plate allows over 110 deg "
@@ -259,7 +262,7 @@ def thigh_shell_evidence(rep, report_ref):
                     "screws, two per side, through bosses on its side wings into pilot holes in the shin frame's thick side "
                     "walls behind the ankle motor. The core torso shells are left out of the check: they are cut at z 271 and redesigned next.",
         measurements=[
-            m("Front half", parts["R_thigh_shell_front"]["mass_g"], "g", "PAHT-CF, per leg"),
+            m("Front half", parts["R_thigh_shell_front"]["mass_g"], "g", "Bambu ABS, per leg"),
             m("Back half", parts["R_thigh_shell_back"]["mass_g"], "g", "per leg"),
             m("Wall", st["wall_mm"], "mm"),
             m("Inner wall offset from covered parts, median", off["R_thigh_shell_front"]["median_mm"], "mm", "front half"),
@@ -285,8 +288,8 @@ def thigh_shell_evidence(rep, report_ref):
               if "mounts" in rep["shin_back_cover_trim"] else []),
         ] if "shin_back_cover_trim" in rep else []),
         conditions={"method": c["method"], "roll_range_deg": st["roll_range_deg"], "gap_mm": st["gap_mm"]},
-        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM; mounting bosses at the Stage 4 posts only. "
-                    "Look not yet accepted by the owner.",
+        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM. Open for an owner decision: press support under the "
+                    "shin cover sleeves 68.9 %, one H-cage boss wall 0.915 mm at a teardrop. Look not yet accepted by the owner.",
         source_refs=[report_ref])
 
 

@@ -9,17 +9,27 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
 
   yaw horn   4 x ST3215.horn+y.n (aluminium, tapped through the 2.5 mm flange, reference engagement 2.5 mm): the head seat
              sits at opening - (L - point - reference engagement) of the standard length L (screw_plan.choose_length), the
-             sleeve runs the full printed thickness down to the seat (a 1 mm collar under the deck carries it). Driving: the
+             sleeve runs the full printed thickness down to the seat. Under the deck one 1 mm layer carries the four sleeves: an
+             R 9.0 disc united with an R 4.9 collar per screw (separate collars, 9.9 mm apart on the diagonals, left 0.1 mm
+             slots) and a tab from the two window-side collars to the window wall (90 deg corners, 54 before), minus the hub
+             bore cut from the seat up (the hub pocket floor moves from 262.0 to the seat 261.75: a collar cut only from 262.0
+             left a 0.25 mm lip with a 0.4 mm gap under it). The -x collar stands 1.35 mm past the deck disc: it rises 1.0 mm
+             above the deck bottom (a 2.0 mm wall; a 1.0 mm fin at the top of the -x-up print before, 8 mm2; trimmed to the disc
+             instead, that sleeve's press support fell 88.1 -> 76.7 %). Where the window-side collars cross the walls' -x
+             corner the layer takes the deck's own outline (0.22 mm crescent and 0.04 mm2 overhang before). Driving: the
              sleeve of the front screws z.1 / z.2 (y -6 / 10, Z 247) ends 0.09 mm short of the yaw axes (59,-5) / (59,9), whose hole
-             positions are fixed, so no straight tool passes (obstruction 62 mm3 part + 4.5 mm3 sleeve at r 1.45). The key is tilted
+             positions are fixed, so no straight tool passes (obstruction 52 mm3 part + 4.5 mm3 sleeve, r 1.45 key cylinder probe of review rv2-24r9hj). The key is tilted
              12-25 deg toward the free +x side (ISO 2936 ball-end hex key, 2.5 mm AF): nothing of the part or the sleeves is in that cone.
              The window edges (y -7.85 / 11.85) stood 0.1 mm off the heads (R 2.75): a R 3.25 pocket in the wall gives 0.5 mm.
   lattice    the front lattice's flat top (refit z 250.0012) is raised to 250.056, the crown of the outer front pads: one plane,
              1.25 mm of print over the sleeves; the head pockets of those two screws are open to the top (no skin, no 0.05 mm breakout).
   trim       the refit's plate ends left 0.0-0.65 mm tongues and a 0.4 mm ramp above the lattice top at x 57.2 (51 deg tips), a 0.4 mm proud rim
              (x 58.91-59.3) round the front pockets and crescents at the bottom bar's old hole. Ramp and tongues are filled to a 1.6 mm step (x 57.2-58.8, up to
-             z 251.5, the fill carries the load the thin ramp did: FEM heavy 1.24 vs 1.20 when it is only cut) and cut above it, the rim is cut flush, the
-             crescents are cut at the old hole's centre plane. Left under one line: the 0.25 mm lip under the hub pocket floor (pre-existing).
+             z 251.5, the fill carries the load the thin ramp did: FEM heavy (Bambu PAHT-CF) 1.25, 1.19 with the fill top at 250.55) and cut above it,
+             the rim is cut flush, the crescents are cut at the old hole's centre plane (-y) / the refit's own inner face y 12.152 (+y).
+             The 0.002-0.03 mm2 faces at the fill top (y -7.85 / -1.6 / 5.6 / 11.85) were split pieces of the window walls' and the
+             middle plate's side planes, whose front rounds out past x 58.8 there: the part is unified after the cuts. Filling or padding the
+             front to the seat plane 58.91 instead left 0.0002 mm edges or 0.006 mm walls along the padded fillets.
   ear        a 0.6 mm chamfer along the ear's outer vertical edge (55.8, 19.0) gives 0.5 mm to the spine chassis tab at standing (0.30 before).
   front      ST3025.case+z holes (aluminium M2, depth 4.5, reference engagement 3.0) listed in connector_screws.json: pad from the case's
              main face (exact contact), M2 sleeve through the plate, seat plane at the standard length's window.  The refit's old C047 holes (y -8.25 / 12.25) stay as they are: filling them left slivers.
@@ -50,21 +60,23 @@ PART, SLEEVES = "hip_yaw_to_pitch_combined", "hip_yaw_to_pitch_combined_steel_sl
 R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
 R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
 COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
+COLLAR_DISC_R = 9.0                      # joins the four collars into one layer (diagonal pairs stand 9.9 apart: 0.1 mm slots); 0.85 mm inside the window walls (9.85 off the hub axis), so it meets each collar clear of a wall
 DECK_BOTTOM = 262.75
 FRONT_PAD_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
 LATTICE_TOP, FRONT_TOP = 250.0, 250.056   # the refit's flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves
 YAW_NOTCH_R, YAW_NOTCH_Z = 3.25, (258.25, 261.75)   # window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar's underside
+WINDOW_WALL_Y = (-7.85, 11.85)           # the refit's key-window walls (inner faces), 9.85 off the hub axis on each side; the window-side yaw screws stand 2.85 inside them
+REFIT_WALL_X = 55.8                      # the refit's -x face of those walls (and of the deck's corners beside them)
+COLLAR_BOSS_H = 1.0                      # the -x collar stands 1.35 mm past the deck disc: raised this much above the deck bottom, it is a 2.0 mm wall there (1.0 mm lip before)
 HUB_R, DECK_R = 3.45, 10.55              # deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis
 HUB = (59.0, 2.0)
-HUB_Z0 = 262.0
-HUB_TOOL = C.cylinder((59.0, 2.0, HUB_Z0), (59.0, 2.0, 264.0), HUB_R)
 YAW_TOP = 274.75
-FILL_TOP = 251.5   # the tongues' root: a 1.65 mm thick step up from the lattice top (x 57.2-58.8), the ramp of the refit's wall ends 0.4 mm thick at 251.5 is part of it
+FILL_TOP = 251.5   # the tongues' root: a 1.6 mm thick step (x 57.2-58.8) up from the lattice top, the ramp of the refit's wall ends 0.4 mm thick at 251.5 is part of it
 # the refit's bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick
-# stay; a box per yaw axis takes them off in clean planes (y ranges keep 0.45 mm off the refit's own y steps at -7.45 / 11.85, so no new micro-edges)
+# stay; a box per yaw axis takes them off in clean planes: -y to the old hole's centre plane (-8.25), +y to the refit's own inner face beside
+# the hole (y 12.1519, x 55.8-57.55; a cut at 11.6 left a 0.55 mm web, one at the centre 12.25 a 0.1 mm step against that face)
 RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
-FOOT_CUTS = (((55.0, -8.25, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 11.6, 230.0)))
-
+FOOT_CUTS = (((55.0, -8.25, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 12.1519, 230.0)))
 
 EAR_CORNER, EAR_CHAMFER = (55.8, 19.0), 0.6   # the ear's outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room
 
@@ -93,6 +105,9 @@ def build_right():
     pt = st["point_mm"]
     groups = SP.connectors()["hip_yaw_to_pitch_combined"]["groups"]      # which defined holes: connector_screws.json
     yaw = SP.hole_positions(iface, "R_yaw_upper_horn_reference", groups["A14_yaw"]["holes"])
+    axes = [tuple(round(float(v), 2) for v in h["opening"][:2]) for h in yaw]   # the refit bore sits on the 0.01 grid
+    window = [((x, y), WINDOW_WALL_Y[int(y > HUB[1])]) for x, y in axes if abs(y - HUB[1]) > 1.0]   # the two screws beside the key windows, with their wall
+    outer_yaw = [(x, y) for x, y in axes if x < HUB[0] - 1.0]                                       # the -x screw: its collar overhangs the deck disc
     front = SP.hole_positions(iface, "R_hip_pitch_ST3025_case", groups["A14_front"]["holes"])
     by = {p["name"]: p for p in man["parts"]}
     P = MR.load_step(by["R_" + PART]["native_step"])
@@ -107,10 +122,13 @@ def build_right():
     stack = window_stack(L, pt, ref)
     seat = round(h0["opening"][2] - stack, 2)
     print(f"yaw: M3x{L:g}, ref engagement {ref}, hole depth {depth}, stack {stack:.2f}, head seat z {seat:.2f}", flush=True)
-    add, cut, new_sleeves = [], [], []
+    add, cut, new_sleeves, collars = [], [], [], []
+    hub_bore = C.cylinder((HUB[0], HUB[1], seat), (HUB[0], HUB[1], YAW_TOP + 1.0), HUB_R)   # from the seat: the pocket floor (refit 262.0) moves down to the collar layer's underside
     for h in yaw:
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
-        add.append(C.cut(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R), HUB_TOOL))   # not into the central pocket: its floor (262.0) and wall stay as the refit has them
+        if (x, y) in outer_yaw:   # the collar's -x side stands past the deck disc (R 10.55): a 1.0 mm lip there unless it rises above the deck bottom
+            collars.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, DECK_BOTTOM + COLLAR_BOSS_H), COLLAR_R))
+        collars.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R))
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
         cut.append(C.cylinder((x, y, seat - 1.0), (x, y, z0 + 1.0), R_SLEEVE_YAW[0]))
         new_sleeves.append(C.cut(C.cylinder((x, y, seat), (x, y, z0), R_SLEEVE_YAW[0]),
@@ -139,28 +157,48 @@ def build_right():
                                  C.cylinder((x_face - 0.5, y, z), (seat_f + 0.5, y, z), R_SLEEVE_FRONT[1])))
 
     # deck walls: the refit's hub pocket (R 4.2) and disc (R 10.0) leave 0.55 / 0.75 mm round the yaw bores; this disc makes both 1.30
-    add.append(C.cut(C.cylinder((HUB[0], HUB[1], DECK_BOTTOM), (HUB[0], HUB[1], YAW_TOP), DECK_R), C.cylinder((HUB[0], HUB[1], DECK_BOTTOM - 1.0), (HUB[0], HUB[1], YAW_TOP + 1.0), HUB_R)))
+    add.append(C.cut(C.cylinder((HUB[0], HUB[1], DECK_BOTTOM), (HUB[0], HUB[1], YAW_TOP), DECK_R), hub_bore))
+    # one collar layer under the deck (seat .. DECK_BOTTOM): a disc fills the 0.1 mm slots between the diagonal collars
+    # the collars at the window walls met them at 54 deg on the +x side: a tab from the collar's +x tangent to the wall makes it 90
+    tabs = [C.box((x, min(y, w), seat), (x + COLLAR_R, max(y, w), DECK_BOTTOM)) for (x, y), w in window]
+    add.append(C.cut(C.fuse(C.cylinder((HUB[0], HUB[1], seat), (HUB[0], HUB[1], DECK_BOTTOM), COLLAR_DISC_R), *collars, *tabs), hub_bore))
     P = C.cut_many(P, [C.box(lo, hi) for lo, hi in FOOT_CUTS])
     for h in front:
         _, y, z = h["opening"]
-        if abs(y - HUB[1]) > 4.0 and RIB_LEN > 0:
+        if abs(y - HUB[1]) > 4.0:
             sg = 1.0 if y > HUB[1] else -1.0
             P = C.fuse(P, C.box((RIB_X[0], min(y, y + sg * RIB_LEN), RIB_Z[0]), (RIB_X[1], max(y, y + sg * RIB_LEN), RIB_Z[1])))
     P, v_top = C.pad(P, "z", LATTICE_TOP, FRONT_TOP, ((56.6, -9.6, 0.0), (59.4, 12.0, 0.0)))   # region z is replaced by the slab; solids are counted below
     print(f"lattice top raised to {FRONT_TOP}: {v_top:.2f} mm3, solids {C.n_solids(P)}", flush=True)
     P = C.fuse(P, *add, *fpads)
+    # the window-side collars' -x side, where the circle crosses the wall corner: a 0.22 mm crescent stood past the deck's outline
+    # (deck disc + the refit's R 3.19 corner round) and the deck overhung the collar between the circle and the wall face (0.04 mm2).
+    # The collar layer there takes the deck's own outline: the deck section just above DECK_BOTTOM (vertical faces) moved down one layer.
+    t = DECK_BOTTOM - seat
+    for (x, y), w in window:
+        s = 1.0 if w > HUB[1] else -1.0          # outward, into the wall
+        y_in, y_out = w - s * 0.35, w + s * 1.9   # the crescent runs from the deck-circle cusp (0.12 inside the wall plane) to 0.86 into the wall
+        lo, hi = (x - COLLAR_R - 0.1, min(y_in, y_out)), (REFIT_WALL_X + 0.1, max(y_in, y_out))
+        deck = C.translate(C.common(P, C.box((*lo, DECK_BOTTOM), (*hi, DECK_BOTTOM + t))), (0.0, 0.0, -t))
+        P = C.cut(P, C.cut(C.box((*lo, seat), (*hi, DECK_BOTTOM)), deck))                       # the crescent outside the deck outline
+        y_f0, y_f1 = w + s * 0.55, y_out                                                         # collar circle outside the deck there: nothing to add
+        P = C.fuse(P, C.common(deck, C.box((REFIT_WALL_X - 0.5, min(y_f0, y_f1), seat), (hi[0], max(y_f0, y_f1), DECK_BOTTOM))))   # under the deck's corner round
     # @lore no driver channel through the front bosses: the screw planner reads the stack on rays at r 1.9-2.7 around the sleeve, so a trimmed pad picks M2x5 with the head 1.3 mm inside the sleeve; and the sleeve end sits 0.09 mm off the yaw axis, so a channel never makes a straight path. A tilted ball-end key does.
-    notch = [C.cylinder((x, y, YAW_NOTCH_Z[0]), (x, y, YAW_NOTCH_Z[1]), YAW_NOTCH_R) for x, y in ((59.0, -5.0), (59.0, 9.0))]
-    # @lore thin ramp/tongues of the refit wall (0.0-0.65 mm, 51 deg tips): cutting them alone costs FEM heavy 1.24 -> 1.20 (they carry load in the model), so fill to a 1.6 mm step and cut above; the 0.4 mm rim round the front pockets is cut flush
+    notch = [C.cylinder((x, y, YAW_NOTCH_Z[0]), (x, y, YAW_NOTCH_Z[1]), YAW_NOTCH_R) for (x, y), _ in window]
+    # @lore thin ramp/tongues of the refit wall (0.0-0.65 mm, 51 deg tips): cutting them alone lowers FEM heavy (PAHT-CF 1.25 with the fill, 1.19 with the fill top at 250.55; they carry load in the model), so fill to a 1.6 mm step and cut above; the 0.4 mm rim round the front pockets is cut flush
     nz0, nz1 = YAW_NOTCH_Z
     y_lo, y_hi = HUB[1] - 3.6, HUB[1] + 3.6                  # the plate between the outer bosses, y -1.6 .. 5.6
-    fill = [C.box((57.2, -7.85, FRONT_TOP - 0.1), (58.8, y_lo, FILL_TOP)), C.box((57.2, y_hi, FRONT_TOP - 0.1), (58.8, 11.85, FILL_TOP))]
+    wy0, wy1 = WINDOW_WALL_Y
+    fill = [C.box((57.2, wy0, FRONT_TOP - 0.1), (58.8, y_lo, FILL_TOP)), C.box((57.2, y_hi, FRONT_TOP - 0.1), (58.8, wy1, FILL_TOP)),
+            C.box((58.6, y_lo, nz1 - 0.2), (61.4, y_hi, nz1)),   # the plate's old top rounds (x 58.8-61.2) left a 0.03 mm step 0.15 under the seat: square to the seat
+            C.box((RIB_X[0], 11.5, 230.0), (57.2, wy1, RIB_Z[0]))]   # the refit's 0.40 x 0.35 mm slot under the +y rib (sub-line gap 9.5 -> 0.8 mm2, its 0.11 mm2 ceiling face)
+    # @lore filling the +y rib slot reads FEM heavy PAHT-CF 1.24 instead of 1.25 only because the load patch took the slot's R 0.4 round for a case hole face (528 -> 477 mm2); the hot spot (58.8, -1.5, 251.6) is 10 mm away and its peak drops 353 -> 281 MPa (rv3-24r9hj-slotfill)
     P = C.fuse(P, *fill)
-    trim = [C.box((56.6, -7.85, FILL_TOP), (61.0, y_lo, nz0)), C.box((56.6, y_hi, FILL_TOP), (61.0, 11.85, nz0)),   # tongues above the fill, below the key windows
-            C.box((56.6, -3.0, nz0), (61.0, y_lo, nz1)), C.box((56.6, y_hi, nz0), (61.0, 7.0, nz1)),                   # tips of the plate ends beside them
+    trim = [C.box((56.6, wy0, FILL_TOP), (61.0, y_lo, nz0)), C.box((56.6, y_hi, FILL_TOP), (61.0, wy1, nz0)),   # tongues above the fill, below the key windows
+            C.box((56.6, wy0, nz0), (61.0, y_lo, nz1)), C.box((56.6, y_hi, nz0), (61.0, wy1, nz1)),             # tips of the plate ends beside the notches, to the wall (a 0.19 mm column stood in the wall's corner round)
             C.box((seat_f, -10.5, 224.0), (59.6, 12.5, FRONT_TOP))]
-    P = C.cut_many(P, cut + fcuts + notch + trim + [ear_chamfer_tool()])
-    P = C.largest_solid(P)
+    P = C.cut_many(P, cut + fcuts + notch + trim + [ear_chamfer_tool(), hub_bore])   # the hub bore from the seat: the refit's pocket floor (262.0) goes, no 0.25 mm step against the collar layer
+    P = C.largest_solid(C.unify(P))   # one face per plane / cylinder: the cuts left coplanar faces split (0.002-0.03 mm2 pieces, 0.007-0.25 mm edges)
     S = MR.compound(new_sleeves)
     out["part"], out["sleeves"] = P, S
     out["plan"] = dict(yaw_length=L, yaw_stack=stack, yaw_seat_z=seat, front_length=Lf, front_stack=stack_f, front_seat_x=seat_f)

@@ -130,25 +130,6 @@ parts:
   notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
   section: Torso
 - match:
-  - B0410_camera_washer_0
-  - B0410_camera_washer_1
-  - B0410_camera_washer_2
-  - B0410_camera_washer_3
-  - B0196_camera_washer_0
-  - B0196_camera_washer_1
-  - B0196_camera_washer_2
-  - B0196_camera_washer_3
-  kind: hardware
-  line: hw:M2-washer-2.2-5-x-0.3
-  name: M2 washer 2.2/5 x 0.3
-  make_buy: buy
-  quantity: 8
-  spec: *id001
-  supplier: unknown
-  part_number: unknown
-  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
-  section: Neck / head
-- match:
   - Power_supervisor_H3_M2_nut
   - Power_supervisor_H4_M2_nut
   - Main_precharge_H1_M2_nut
@@ -175,13 +156,18 @@ parts:
   - fan_bridge_nut_0
   - fan_bridge_nut_1
   kind: hardware
-  line: hw:M2-hex-nut-ISO-4032
-  name: M2 hex nut ISO 4032
+  line: hw:M2.5-hex-nut-ISO-4032
+  name: M2.5 hex nut ISO 4032
   make_buy: buy
   quantity: 4
-  spec: *id002
+  spec:
+    kind: nut
+    thread: M2.5
+    standard: ISO 4032
+    across_flats_mm: 5.0
+    label: M2.5 hex nut ISO 4032
   supplier: unknown
-  part_number: M2 hex nut ISO 4032
+  part_number: M2.5 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
     the named head form. Supplier: no repo source (unknown).'
@@ -358,37 +344,16 @@ parts:
   notes: supplier from robot/electronics/sensing/selection.json (Adafruit ADS7128 ADC/GPIO module, supplier_url adafruit.com).
   section: Torso
 - match:
-  - neck_anchor_M3x16_CSK_1_v21
-  - neck_anchor_M3x16_CSK_3_v21
-  kind: hardware
-  line: hw:M3-x-16-ISO-10642
-  name: M3 x 16 ISO 10642
-  make_buy: buy
-  quantity: 2
-  spec:
-    kind: screw
-    thread: M3
-    family: M
-    length_mm: 16.0
-    standard: ISO 10642
-    head_dia_mm: 6.72
-    head_height_mm: 1.86
-    label: M3 x 16 ISO 10642
-  supplier: unknown
-  part_number: M3 x 16 ISO 10642
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Torso
-- match:
-  - neck_anchor_front_washer_1_v21
-  - neck_anchor_front_washer_3_v21
+  - fan_guide_front_washer
+  - fan_washer_-21_430
+  - fan_washer_-21_462
+  - fan_washer_11_462
   kind: hardware
   line: hw:M3-washer-3.2-6-x-0.5
   name: M3 washer 3.2/6 x 0.5
   make_buy: buy
-  quantity: 2
-  spec: &id005
+  quantity: 4
+  spec:
     kind: washer
     thread: M3
     standard: custom (measured)
@@ -399,42 +364,7 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
-  section: Torso
-- match:
-  - fan_guide_front_washer
-  - fan_washer_-21_430
-  - fan_washer_-21_462
-  - fan_washer_11_462
-  kind: hardware
-  line: hw:M3-washer-3.2-6-x-0.5
-  name: M3 washer 3.2/6 x 0.5
-  make_buy: buy
-  quantity: 4
-  spec: *id005
-  supplier: unknown
-  part_number: unknown
-  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
   section: Neck / head
-- match:
-  - neck_anchor_M3nut_1_v21
-  - neck_anchor_M3nut_3_v21
-  kind: hardware
-  line: hw:M3-hex-nut-ISO-4032
-  name: M3 hex nut ISO 4032
-  make_buy: buy
-  quantity: 2
-  spec: &id006
-    kind: nut
-    thread: M3
-    standard: ISO 4032
-    across_flats_mm: 5.5
-    label: M3 hex nut ISO 4032
-  supplier: unknown
-  part_number: M3 hex nut ISO 4032
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Torso
 - match:
   - R_Shin_carrier_shell_shin_front_1_nut
   - L_Shin_carrier_shell_shin_front_1_nut
@@ -445,7 +375,12 @@ parts:
   name: M3 hex nut ISO 4032
   make_buy: buy
   quantity: 4
-  spec: *id006
+  spec:
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
@@ -726,140 +661,28 @@ parts:
   quantity: 1
   section: Neck / head
 - match:
-  - neck_M3x6_countersunk_0
-  - neck_M3x6_countersunk_1
-  kind: hardware
-  line: hw:M3-x-6-ISO-10642
-  name: M3 x 6 ISO 10642
-  make_buy: buy
-  quantity: 2
-  spec:
-    kind: screw
-    thread: M3
-    family: M
-    length_mm: 6.0
-    standard: ISO 10642
-    head_dia_mm: 6.72
-    head_height_mm: 1.86
-    label: M3 x 6 ISO 10642
-  supplier: unknown
-  part_number: M3 x 6 ISO 10642
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Neck / head
-- match:
-  - B0196_M2_FF5_spacer_0_v23
-  - B0196_M2_FF5_spacer_1_v23
-  - B0196_M2_FF5_spacer_2_v23
-  - B0196_M2_FF5_spacer_3_v23
-  - B0410_M2_FF5_spacer_0_v23
-  - B0410_M2_FF5_spacer_1_v23
-  - B0410_M2_FF5_spacer_2_v23
-  - B0410_M2_FF5_spacer_3_v23
-  kind: hardware
-  line: hw:M2-F-F-standoff-5.8-1.6-x-5.0
-  name: M2 F-F standoff 5.8/1.6 x 5.0
-  make_buy: buy
-  quantity: 8
-  spec:
-    kind: spacer
-    thread: M2
-    outer_dia_mm: 5.8
-    inner_dia_mm: 1.6
-    length_mm: 5.0
-    standard: hex standoff F-F
-    label: M2 F-F standoff 5.8/1.6 x 5.0
-  supplier: unknown
-  part_number: unknown
-  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
-  section: Neck / head
-- match:
-  - B0196_camera_M2x4_0
-  - B0196_camera_M2x4_1
-  - B0196_camera_M2x4_2
-  - B0196_camera_M2x4_3
-  - B0410_camera_M2x4_0
-  - B0410_camera_M2x4_1
-  - B0410_camera_M2x4_2
-  - B0410_camera_M2x4_3
-  kind: hardware
-  line: hw:M2-x-4-ISO-4762
-  name: M2 x 4 ISO 4762
-  make_buy: buy
-  quantity: 8
-  spec:
-    kind: screw
-    thread: M2
-    family: M
-    length_mm: 4.0
-    standard: ISO 4762
-    head_dia_mm: 3.8
-    head_height_mm: 2.0
-    label: M2 x 4 ISO 4762
-  supplier: unknown
-  part_number: M2 x 4 ISO 4762
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Neck / head
-- match:
-  - compute_FF4_spacer_0
-  - compute_FF4_spacer_1
   - compute_FF4_spacer_2
   - compute_FF4_spacer_3
   kind: hardware
-  line: hw:M2.5-F-F-standoff-6.0-2.7-x-4.0
-  name: M2.5 F-F standoff 6.0/2.7 x 4.0
+  line: hw:M2.5-round-spacer-6.0-2.7-x-4.0
+  name: Round spacer for M2.5, unthreaded, OD 6.0 / ID 2.7 x 4.0
   make_buy: buy
-  quantity: 4
+  quantity: 2
   spec:
     kind: spacer
     thread: M2.5
     outer_dia_mm: 6.0
     inner_dia_mm: 2.7
     length_mm: 4.0
-    standard: hex standoff F-F
-    label: M2.5 F-F standoff 6.0/2.7 x 4.0
+    standard: catalogue unthreaded round spacer
+    label: M2.5 round spacer 6.0/2.7 x 4.0, unthreaded
   supplier: unknown
   part_number: unknown
-  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
-  section: Neck / head
-- match:
-  - mic_side_M2x4_lowhead_0
-  - mic_side_M2x4_lowhead_1
-  kind: hardware
-  line: hw:M2-x-4-ISO-7380-1
-  name: M2 x 4 ISO 7380-1
-  make_buy: buy
-  quantity: 2
-  spec:
-    kind: screw
-    thread: M2
-    family: M
-    length_mm: 4.0
-    standard: ISO 7380-1
-    head_dia_mm: 3.5
-    head_height_mm: 1.3
-    label: M2 x 4 ISO 7380-1
-  supplier: unknown
-  part_number: M2 x 4 ISO 7380-1
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Neck / head
-- match:
-  - mic_side_shim_0
-  - mic_side_shim_1
-  kind: hardware
-  line: hardware:mic_side_shim
-  name: mic_side_shim
-  make_buy: buy
-  quantity: 2
-  supplier: unknown
-  part_number: unknown
-  notes: 'Insulating shim 0.2 mm nominal, material unspecified (robot/model/urdf/part-mass-ledger.json). supplier / part number: no source in
-    the repo (unknown).'
+  notes: 'Between the carrier''s rear face and ROCK4D at compute posts 2 / 3: the ISO 4762 M2.5x12 passes through its plain 2.7 mm bore into
+    compute_rear_nut (it was listed as an F-F standoff, which has a thread the screw does not use; T-9wjdqc). Size from the model (round, OD
+    6.0, bore 2.7, length 4.0, measured on the spacer mesh 2026-11-23); unthreaded round spacers for M2.5 of this size are a catalogue item
+    (nylon or aluminium), no supplier in the repo (unknown). Spacers 0 / 1 (the fan-bridge posts) are printed columns of the head carrier since
+    T-5bqc3m K2 (robot/body/neck-head/head_carrier_posts.json compute.column).'
   section: Neck / head
 - match:
   - upper__L_yaw_case_PA2x7_3
@@ -1438,30 +1261,6 @@ assembly:
     derived: '4 screw(s) that joins parts never placed (connection graph): placed after the nearest part upper__L_pitch_C047_case; driver path
       vs placed parts; moved after s014 (its part upper__L_pitch_C047_case blocked that screw''s driver path, 139.891 mm3); moved after s023 (its
       part upper__L_pitch_C047_case blocked that screw''s driver path, 140.315 mm3)'
-  - id: torso:s030
-    subassembly: torso
-    screw: neck_anchor_M3x16_CSK_1_v21
-    with:
-    - neck_anchor_M3nut_1_v21
-    - neck_anchor_front_washer_1_v21
-    direction: screw axis
-    after:
-    - torso:s029
-    status: seeded
-    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
-      vs placed parts'
-  - id: torso:s031
-    subassembly: torso
-    screw: neck_anchor_M3x16_CSK_3_v21
-    with:
-    - neck_anchor_M3nut_3_v21
-    - neck_anchor_front_washer_3_v21
-    direction: screw axis
-    after:
-    - torso:s030
-    status: seeded
-    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
-      vs placed parts'
   - id: torso:p032
     subassembly: torso
     part: foot_ADC_6494
@@ -1470,7 +1269,7 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - torso:s031
+    - torso:s029
     status: seeded
     derived: 'graph order, fastened distance 2 from what is present (via combined__stage4_rear_imu_adc_carrier); direction: mean screw direction
       of 4 screw(s) joining it to placed parts (ADC_M2x6), head to tip when the part carries the head, else reversed'
@@ -1584,259 +1383,167 @@ assembly:
     status: seeded
     derived: 'graph order, fastened distance 1 from what is present (via upper__neck_yaw_case_XM335); direction: toward the centroid of placed
       neighbours (upper__neck_yaw_case_XM335), snapped to the nearest axis'
-  - id: neck_head:p004
-    subassembly: neck_head
-    part: upper__neck_pitch_front_horn
-    direction:
-    - -1.0
-    - -0.0
-    - -0.0
-    after:
-    - neck_head:s003
-    status: seeded
-    derived: 'graph order, fastened distance 3 from what is present (via combined__neck_yaw_to_pitch_link); direction: mean screw direction of
-      4 screw(s) joining it to placed parts (upper__neck_pitch_horn_M2x5), head to tip when the part carries the head, else reversed'
   - id: neck_head:p006
     subassembly: neck_head
-    part: upper__neck_pitch_case_XM335
+    part:
+    - upper__neck_pitch_case_XM335
+    - upper__neck_pitch_front_horn
     direction:
     - -1.0
     - 0.0
     - 0.0
     after:
-    - neck_head:s005
-    status: seeded
-    derived: 'graph order, fastened distance 4 from what is present (via upper__neck_pitch_front_horn); direction: toward the centroid of placed
-      neighbours (upper__neck_pitch_front_horn), snapped to the nearest axis'
-  - id: neck_head:p009
-    subassembly: neck_head
-    part: fan_black_formed_lead
+    - neck_head:s003
+    status: designer
+    derived: 'T-sns4zt: the pitch servo goes on with its front horn already on its output (as the servo comes, or fitted on the bench), slid
+      on from the +x side until the horn face meets the yaw-to-pitch link''s arm (x -21); the link has no material on the +x side at the case''s
+      height. Before, the horn went onto the bare link first and its 4 M2x5 (s005) were driven before the servo they
+      fasten into was there (touches_not_yet_assembled: the pitch case); now s005 comes after the servo. The yaw horn screws (s003, driven
+      from above through the link floor) go in before this step: the pitch case closes their driver path 11 mm above the heads.'
+  - id: neck_head_bench:p003
+    subassembly: neck_head_bench
+    part: microphone_6049_v23
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
+    after:
+    - neck_head_bench:s002
+    status: designer
+    derived: 'T-5bqc3m / T-sns4zt: the mic board goes onto the carrier''s mic wing from the inside (+x), its second mounting hole over the printed
+      locating pin, first on the bench after the carrier is on the cradle, before ROCK4D (neck_head_bench:p005) closes that side and before the
+      fan bridge standoffs (it passed standoff_1 at 28-30 mm when they were in first, 5 mm3); its cable to ROCK4D is plugged once ROCK4D is on.'
+  - id: neck_head_bench:s004
+    subassembly: neck_head_bench
+    screw: mic_side_M2x*_0
+    direction: screw axis
+    after:
+    - neck_head_bench:p003
+    status: designer
+    derived: 'T-5bqc3m: one M2 from the board side through the PCB and the wing floor into the heat-set insert pressed into the wing boss on
+      the bench before neck_head_bench:p001; the driver along +x from inside the head, ROCK4D and the heatsink guard not yet on (the guard
+      closes the path later).'
+  - id: neck_head_bench:p005
+    subassembly: neck_head_bench
+    part: ROCK4D_official
+    with:
+    - compute_FF4_spacer_2
+    - compute_FF4_spacer_3
     direction:
     - 0.0
     - -1.0
     - 0.0
     after:
-    - neck_head:s008
-    status: seeded
-    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
-      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact
-      58.5 -> 5.5 mm out, seat released True -> True, max overlap 5.8 -> 5.1 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
-      5.5 mm out, 5.092 mm3); moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23 43.5 mm out, 5.402 mm3)'
-  - id: neck_head:p010
-    subassembly: neck_head
-    part: fan_red_formed_lead
-    direction:
-    - -1.0
-    - 0.0
-    - 0.0
-    after:
-    - neck_head:p009
-    status: seeded
-    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
-      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact
-      57.5 -> 8.5 mm out, seat released True -> True, max overlap 8.9 -> 2.2 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
-      8.5 mm out, 2.242 mm3); moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23 60.0 mm out, 3.919 mm3);
-      direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 2.5 -> 0.0 mm out, seat released True -> True, max overlap 2.2
-      -> 0.0 mm3'
-  - id: neck_head:p011
-    subassembly: neck_head
-    part: fan_yellow_formed_lead
-    direction:
-    - 0.0
-    - 0.0
-    - -1.0
-    after:
-    - neck_head:p010
-    status: seeded
-    derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
-      (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact
-      17.5 -> 4.5 mm out, seat released True -> True, max overlap 1.3 -> 1.0 mm3; moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16
-      4.5 mm out, 1.033 mm3); moved after s027 (its part fan_yellow_formed_lead blocked that screw''s driver path, 23.569 mm3); moved before original_profile_head_skin_v23
-      (it touched original_profile_head_skin_v23 60.0 mm out, 2.456 mm3)'
-  - id: neck_head:p012
-    subassembly: neck_head
+    - neck_head_bench:s004
+    status: designer
+    derived: 'T-sns4zt: first the 2 round spacers (compute_FF4_spacer_2/3, they sit between the carrier''s rear face and the board): push
+      the 2 M2.5 x 12 with their front washers in from the carrier front, carrier face-down, and thread a spacer onto each shank as a guide
+      pin. Then the board is laid onto the carrier''s columns and the 2 spacers from behind (travels -y, component side toward +y), on the
+      bench with nothing behind it yet: path free (the old +y insertion came through the carrier plate, 5283 mm3), then ROCK4D''s camera
+      flat cables plugged while its connectors are open (before the heatsink, guard and fan unit cover them). The M2.5 x 12 are tightened next (s006);
+      the heatsink, header, standoffs, guard and the fan bridge stack on it from behind.'
+  - id: neck_head_bench:p007
+    subassembly: neck_head_bench
     part: TIM_3M8810_cut
     direction:
     - 0.0
-    - 1.0
-    - 0.0
-    after:
-    - neck_head:p011
-    status: seeded
-    derived: 'graph order, fastened distance 27 from what is present (via Radian_INL25001_bare); direction: toward the centroid of placed neighbours
-      (Radian_INL25001_bare), snapped to the nearest axis; moved before B0196_supplier_native_v23 (it touched B0196_supplier_native_v23 16.5 mm
-      out, 69.087 mm3); moved after s037 (its part TIM_3M8810_cut blocked that screw''s driver path, 127.262 mm3); moved before original_profile_head_skin_v23
-      (it touched original_profile_head_skin_v23 36.5 mm out, 69.087 mm3)'
-  - id: neck_head:p013
-    subassembly: neck_head
-    part: Wuerth_61304021821_official
-    direction:
     - -1.0
     - 0.0
-    - 0.0
     after:
-    - neck_head:p012
-    status: seeded
-    derived: 'graph order, fastened distance 14 from what is present (via upper__neck_pitch_case_XM335); direction: toward the centroid of placed
-      neighbours (upper__neck_pitch_case_XM335), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path
-      contact 57.5 -> 0.0 mm out, seat released True -> True, max overlap 275.9 -> 0.0 mm3; moved before original_profile_head_skin_v23 (it touched
-      original_profile_head_skin_v23 60.0 mm out, 83.205 mm3); direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 50.5
-      -> 0.0 mm out, seat released True -> True, max overlap 0.1 -> 0.0 mm3'
-  - id: neck_head:p014
-    subassembly: neck_head
-    part: fan_tach_insulating_cap
-    direction:
-    - 1.0
-    - 0.0
-    - 0.0
-    after:
-    - neck_head:p013
-    status: seeded
-    derived: 'graph order, fastened distance 28 from what is present (via fan_yellow_formed_lead); direction: toward the centroid of placed neighbours
-      (fan_yellow_formed_lead), snapped to the nearest axis; moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23
-      22.5 mm out, 5.237 mm3)'
-  - id: neck_head:s016
-    subassembly: neck_head
-    screw:
-    - neck_M3x6_countersunk_0
-    - neck_M3x6_countersunk_1
-    direction: screw axis
-    after:
-    - neck_head:p015
-    status: seeded
-    derived: 2 screw(s) whose joined parts are all placed after combined__head_sensor_compute_carrier; driver path vs placed parts
-  - id: neck_head:p017
-    subassembly: neck_head
+    - neck_head_bench:s006
+    status: designer
+    derived: 'T-sns4zt: the thermal tape goes onto the SoC from behind once the board is screwed down, before the heatsink (before, it was
+      placed before the board it sticks to).'
+  - id: neck_head_bench:p008
+    subassembly: neck_head_bench
     part: Radian_INL25001_bare
     direction:
     - 0.0
-    - 1.0
+    - -1.0
     - 0.0
     after:
-    - neck_head:s016
-    status: seeded
-    derived: 'graph order, fastened distance 17 from what is present (via ROCK4D_official); direction: toward the centroid of placed neighbours
-      (ROCK4D_official), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 26.5 mm
-      out, seat released True -> True, max overlap 1836.8 -> 1217.7 mm3; moved before SameSky_4010_fan (it touched SameSky_4010_fan 26.5 mm out,
-      1217.722 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate 15.5 mm out, 277.327 mm3); direction searched (six axes vs the
-      seeded [0.0, -1.0, 0.0]): path contact 57.5 -> 50.5 mm out, seat released True -> True, max overlap 558.2 -> 967.8 mm3'
-  - id: neck_head:p019
-    subassembly: neck_head
+    - neck_head_bench:p007
+    status: designer
+    derived: 'T-sns4zt: the heatsink is pressed onto the thermal tape from behind (travels -y); before, it came +y through the carrier (922
+      mm3 from 25.8 mm).'
+  - id: neck_head_bench:p009
+    subassembly: neck_head_bench
+    part: Wuerth_61304021821_official
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - neck_head_bench:p008
+    status: designer
+    derived: 'T-sns4zt: the 40-way socket header is pushed onto the board''s GPIO pins from behind (travels -y); the fan leads (on the fan unit,
+      neck_head_bench:p013) are plugged into it once the unit is on.'
+  - id: neck_head_bench:p010
+    subassembly: neck_head_bench
     part: fan_bridge_standoff_0
     direction:
     - 0.0
-    - 0.0
-    - 1.0
-    after:
-    - neck_head:p018
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
-      (six axes vs the seeded [0.0, -1.0, -0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.1 -> 2.1 mm3'
-  - id: neck_head:p020
-    subassembly: neck_head
-    part: fan_bridge_standoff_1
-    direction:
-    - 1.0
-    - 0.0
-    - 0.0
-    after:
-    - neck_head:p019
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
-      (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.0 -> 1.8 mm3; direction
-      searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 26.5 -> 0.0 mm out, seat released True -> True, max overlap 99.7 -> 0.0
-      mm3'
-  - id: neck_head:p021
-    subassembly: neck_head
-    part: microphone_6049_v23
-    direction:
     - -1.0
     - 0.0
+    after:
+    - neck_head_bench:p009
+    status: designer
+    derived: 'T-sns4zt: lower fan-bridge standoff onto the board over its mounting hole from behind (the M2.5 x 25 of s014 runs through it
+      later).'
+  - id: neck_head_bench:p011
+    subassembly: neck_head_bench
+    part: fan_bridge_standoff_1
+    direction:
+    - 0.0
+    - -1.0
     - 0.0
     after:
-    - neck_head:p020
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 2 screw(s) joining it to placed parts (mic_side_M2x4_lowhead), head to tip when the part carries the head, else reversed; direction searched
-      (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 265.8 -> 0.0 mm3; direction
-      searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 45.5 -> 10.5 mm out, seat released True -> True, max overlap 93.9 -> 223.9
-      mm3'
-  - id: neck_head:s022
-    subassembly: neck_head
-    screw:
-    - mic_side_M2x4_lowhead_0
-    - mic_side_M2x4_lowhead_1
-    with:
-    - mic_side_shim_0
-    - mic_side_shim_1
-    direction: screw axis
-    after:
-    - neck_head:p021
-    status: seeded
-    derived: 2 screw(s) whose joined parts are all placed after microphone_6049_v23; driver path vs placed parts
-  - id: neck_head:p023
-    subassembly: neck_head
+    - neck_head_bench:p010
+    status: designer
+    derived: 'T-sns4zt: upper fan-bridge standoff, before the heatsink guard: the guard''s tab sits on it (with the guard on first the standoff
+      met it 14.8 mm out, 38 mm3).'
+  - id: neck_head_bench:p012
+    subassembly: neck_head_bench
     part: heatsink_nonpreloaded_guard
     direction:
     - 0.0
-    - 1.0
-    - 0.0
-    after:
-    - neck_head:s022
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; moved after s026
-      (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 136.949 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate
-      15.5 mm out, 70.32 mm3); moved after s016 (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 2.231 mm3); direction
-      searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 56.5 -> 50.5 mm out, seat released True -> True, max overlap 199.7 -> 229.1
-      mm3'
-  - id: neck_head:p024
-    subassembly: neck_head
-    part: SameSky_4010_fan
-    direction:
-    - -0.0
     - -1.0
     - 0.0
     after:
-    - neck_head:p023
-    status: seeded
-    derived: 'graph order, fastened distance 8 from what is present (via fan_bridge_plate); direction: mean screw direction of 2 screw(s) joining
-      it to placed parts (fan_plate_M3x16, fan_plate_M3x16_-21), head to tip when the part carries the head, else reversed; moved after s025 (its
-      part SameSky_4010_fan blocked that screw''s driver path, 12.031 mm3)'
-  - id: neck_head:p027
-    subassembly: neck_head
-    part: ROCK4D_official
+    - neck_head_bench:p011
+    status: designer
+    derived: 'T-sns4zt: the guard over the heatsink from behind, its tab between standoff_1 and the bridge plate; before, it came +y through the carrier
+      (198 mm3 from 21.5 mm).'
+  - id: neck_head_fan_bench:p001
+    subassembly: neck_head_fan_bench
+    part:
+    - SameSky_4010_fan
+    - fan_black_formed_lead
+    - fan_red_formed_lead
+    - fan_yellow_formed_lead
+    - fan_tach_insulating_cap
     direction:
     - 0.0
-    - 1.0
+    - -1.0
     - 0.0
-    after:
-    - neck_head:s026
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 4 screw(s) joining it to placed parts (compute_M2p5_CS10, compute_M2p5_CS30), head to tip when the part carries the head, else reversed;
-      direction searched (six axes vs the seeded [-0.0, -1.0, -0.0]): path contact 17.5 -> 0.0 mm out, seat released True -> True, max overlap
-      35.7 -> 0.0 mm3; moved after s028 (its part ROCK4D_official blocked that screw''s driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official
-      blocked that screw''s driver path, 11.298 mm3); moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16 60.0 mm out, 789.922 mm3);
-      direction searched (six axes vs the seeded [1.0, 0.0, 0.0]): path contact 60.0 -> 43.5 mm out, seat released True -> True, max overlap 2527.3
-      -> 5334.9 mm3'
-  - id: neck_head:p028
-    subassembly: neck_head
+    status: designer
+    derived: 'T-sns4zt: the fan with its own formed leads (they are its wires; the tach lead already capped) onto the back of the bridge plate
+      (travels -y). Before, the three leads and the cap were separate steps placed in the air before the fan and the board.'
+  - id: neck_head_fan_bench:p004
+    subassembly: neck_head_fan_bench
     part: fan_lead_guide_r16
     direction:
+    - 0.0
     - 1.0
     - 0.0
-    - 0.0
     after:
-    - neck_head:p027
-    status: seeded
-    derived: 'graph order, fastened distance 9 from what is present (via SameSky_4010_fan); direction: mean screw direction of 1 screw(s) joining
-      it to placed parts (fan_M3x16_guide), head to tip when the part carries the head, else reversed; direction searched (six axes vs the seeded
-      [0.0, 1.0, -0.0]): path contact 30.5 -> 0.0 mm out, seat released True -> True, max overlap 67.5 -> 0.7 mm3'
-  - id: neck_head:s029
-    subassembly: neck_head
+    - neck_head_fan_bench:s003
+    status: designer
+    derived: 'T-sns4zt: the leads are laid into the guide''s channel and the guide is put on the plate front (travels +y) under the head of
+      its M3 x 16 (s005). The guide wraps the leads, so every straight path of a rigid guide meets them (2.6 mm3 on +y, 3.1 on +x): wire laid
+      into a clip, not a blocked path.'
+  - id: neck_head_fan_bench:s005
+    subassembly: neck_head_fan_bench
     screw: fan_M3x16_guide
     with:
     - fan_guide_front_washer
@@ -1844,79 +1551,37 @@ assembly:
     - fan_washer_-21_430
     direction: screw axis
     after:
-    - neck_head:p028
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after fan_lead_guide_r16; driver path vs placed parts
+    - neck_head_fan_bench:p004
+    status: designer
+    derived: 'T-sns4zt: from the plate front (hex key 2) through the guide, the plate and the fan''s corner hole into the nut on the fan''s
+      back, on the bench: on the head the board sits 13 mm in front of the head (ROCK4D blocked it, 11.3 mm3). Hold the yellow (tach) lead
+      aside for the hex key: it crosses the driver axis 2.95 mm from the head (1.2 mm3 in the check).'
   - id: neck_head:p031
     subassembly: neck_head
     part: B0410_supplier_native_v23
     direction:
     - 0.0
     - 1.0
-    - -0.0
+    - 0.0
     after:
-    - neck_head:s030
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 8 screw(s) joining it to placed parts (B0410_camera_M2x4, B0410_plate_M2x4), head to tip when the part carries the head, else reversed;
-      moved after s018 (its part B0410_supplier_native_v23 blocked that screw''s driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23
-      blocked that screw''s driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw''s driver path,
-      0.496 mm3)'
-  - id: neck_head:s032
-    subassembly: neck_head
-    screw:
-    - B0410_camera_M2x4_0
-    - B0410_camera_M2x4_1
-    - B0410_camera_M2x4_2
-    - B0410_camera_M2x4_3
-    with:
-    - B0410_M2_FF5_spacer_0_v23
-    - B0410_M2_FF5_spacer_1_v23
-    - B0410_camera_washer_0
-    - B0410_camera_washer_1
-    - B0410_camera_washer_2
-    - B0410_camera_washer_3
-    direction: screw axis
-    after:
-    - neck_head:p031
-    status: seeded
-    derived: 4 screw(s) whose joined parts are all placed after B0410_supplier_native_v23; driver path vs placed parts; moved after s018 (its
-      part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23 blocked
-      that screw's driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw's driver path, 0.496 mm3)
+    - neck_head:s008
+    status: designer
+    derived: 'T-sns4zt: the camera onto its 4 printed columns on the carrier front (travels +y) once the head is on the neck, with nothing in
+      front of the face yet; its 4 M2x8 (s033) from the front. After the M2.5 x 12 of the board (neck_head_bench:s006), whose front heads it
+      covers.'
   - id: neck_head:p036
     subassembly: neck_head
     part: B0196_supplier_native_v23
     direction:
-    - -0.0
+    - 0.0
     - 1.0
     - 0.0
     after:
-    - neck_head:s035
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 8 screw(s) joining it to placed parts (B0196_camera_M2x4, B0196_plate_M2x4), head to tip when the part carries the head, else reversed;
-      moved after s024 (its part B0196_supplier_native_v23 blocked that screw''s driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23
-      blocked that screw''s driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw''s driver path,
-      15.104 mm3)'
-  - id: neck_head:s037
-    subassembly: neck_head
-    screw:
-    - B0196_camera_M2x4_0
-    - B0196_camera_M2x4_1
-    - B0196_camera_M2x4_2
-    - B0196_camera_M2x4_3
-    with:
-    - B0196_camera_washer_0
-    - B0196_camera_washer_1
-    - B0196_camera_washer_2
-    - B0196_camera_washer_3
-    direction: screw axis
-    after:
-    - neck_head:p036
-    status: seeded
-    derived: 4 screw(s) whose joined parts are all placed after B0196_supplier_native_v23; driver path vs placed parts; moved after s024 (its
-      part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23 blocked
-      that screw's driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw's driver path, 15.104 mm3)
+    - neck_head:s033
+    status: designer
+    derived: 'T-sns4zt: the second camera onto its 4 printed columns on the carrier front (travels +y), after the fan-bridge M2.5 x 25 (neck_head_bench:s015),
+      whose front head it covers. The 24.3 mm3 seat overlap with the carrier is the voxel fill of its open supplier mesh: the exact OCC common
+      volume of the STEPs is 0 (closest 0.03 mm).'
   - id: right_arm:p002
     subassembly: right_arm
     part: upper__R_pitch_C047_main_horn

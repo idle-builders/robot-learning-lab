@@ -122,44 +122,56 @@ parts:
   section: Neck / head
 assembly:
   steps:
-  - id: neck_head:p018
-    subassembly: neck_head
+  - id: neck_head_bench:p013
+    subassembly: neck_head_bench
     part:
     - fan_bridge_plate
     - fan_bridge_plate_steel_sleeves
+    - SameSky_4010_fan
+    - fan_black_formed_lead
+    - fan_red_formed_lead
+    - fan_yellow_formed_lead
+    - fan_tach_insulating_cap
+    - fan_lead_guide_r16
+    with:
+    - fan_plate_M3x16_*
+    - fan_M3x16_guide
+    - fan_nut_*
+    - fan_washer_*
+    - fan_guide_front_washer
     direction:
     - 0.0
     - -1.0
     - 0.0
     after:
-    - neck_head:p017
-    status: seeded
-    derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 2 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed'
-  - id: neck_head:s025
-    subassembly: neck_head
+    - neck_head_bench:p012
+    status: designer
+    derived: 'T-sns4zt: the fan unit (bridge plate with the fan, its leads and the lead guide screwed on, neck_head_fan_bench) onto the two
+      standoffs and the guard tab from behind (travels -y); the fan leads are then plugged into the socket header (neck_head_bench:p009). The
+      two M2.5 x 25 (s014, s015) go in next from the carrier front.'
+  - id: neck_head_fan_bench:s002
+    subassembly: neck_head_fan_bench
     screw: fan_plate_M3x16_-21_462
     with:
     - fan_nut_-21_462
     - fan_washer_-21_462
     direction: screw axis
     after:
-    - neck_head:p024
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after SameSky_4010_fan; driver path vs placed parts; moved after s025 (its part SameSky_4010_fan
-      blocked that screw's driver path, 12.031 mm3)
-  - id: neck_head:s026
-    subassembly: neck_head
+    - neck_head_fan_bench:p001
+    status: designer
+    derived: 'T-sns4zt: from the plate front (hex key 2, head on the plate''s front face) through the plate and the fan into the nut on the
+      fan''s back, on the bench: on the head the board and the carrier are in front of the head (the carrier blocked it 18.4 mm out, 10.6 mm3).'
+  - id: neck_head_fan_bench:s003
+    subassembly: neck_head_fan_bench
     screw: fan_plate_M3x16_11_462
     with:
     - fan_nut_11_462
     - fan_washer_11_462
     direction: screw axis
     after:
-    - neck_head:s025
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after SameSky_4010_fan; driver path vs placed parts; moved after s025 (its part SameSky_4010_fan
-      blocked that screw's driver path, 12.031 mm3)
+    - neck_head_fan_bench:s002
+    status: designer
+    derived: 'T-sns4zt: second fan screw, as s002.'
   - id: right_leg:p010
     subassembly: right_leg
     part:

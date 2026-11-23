@@ -48,6 +48,6 @@ for n,c in C.items():
     if s is None: continue
     for d in s.discrete: axs[2].fill(d[:,0],d[:,1],color=c,alpha=0.85,lw=0.4,ec='k')
 axs[2].set_xlim(14,34); axs[2].set_ylim(5,20); axs[2].set_aspect('equal'); axs[2].grid(alpha=0.3)
-axs[2].set_title('Zoom, medial screw: counterbore in the slanted skin, boss 0.2 mm short of the frame,\nPA2x8 into a dia 1.7 pilot in the frame side wall, ankle motor beyond',fontsize=10)
+axs[2].set_title('Zoom, medial screw: counterbore (oblique entry chamfer) in the slanted skin, boss seated on the frame wall,\nPA2x8 into a dia 1.7 pilot in the frame side wall, ankle motor beyond',fontsize=10)
 fig.suptitle('Shin back cover: new side mounts (right leg; left mirrors). Blue-grey: shin frame; light grey: back cover; gold: PA2x8 screws',fontsize=13)
 out=Path(__file__).resolve().parent/'drawing-sheets/roll-flip/shin-cover-mounts.png'; out.parent.mkdir(parents=True, exist_ok=True); fig.savefig(out,dpi=90,bbox_inches='tight'); print(out)

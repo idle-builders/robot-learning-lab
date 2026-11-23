@@ -54,7 +54,7 @@ parts:
     _doc: 'Body shell (T-6rr3sa, builder/opus-5.5 2026-11-22): the collar carries no head load (the head rests on the neck pitch cradle); it is held by its one
       screw through the 3.6 / 2.2 x 3.5 sleeve and its ridge (in a groove of the link boss) to the link and is loaded by what can touch it: the head skin pressing on its rim (the skin sits 0.9 mm
       off, a hand pushing the head down) and a sideways push on the same rim. Supports = the part''s own sleeve bore at the link and the ridge flanks (the ridge sits 0.25 mm off its groove: a rotation of about 4 deg closes it; the setup treats it as in contact), load = the rim surface
-      within 2 mm of the head skin, wrench at the load patch centroid. 0.7 mm steel collars around the sleeve bores. Loads are nominal assumptions
+      within 2 mm of the head skin (T-6rr3sa round 3: the smoothed rim leaves the one site at theta 8, x +28; round 2 also loaded theta 172, x -30), wrench at the load patch centroid. 0.7 mm steel collars around the sleeve bores. Loads are nominal assumptions
       (5 N finger press, 20 N hard press down, 10 N sideways; no stored shell setup exists to follow): they say whether the 0.8 - 2.4 mm shell walls survive a hand, not a design target.'
     mesh_h_mm: 1.2
     origin_mm: load_centroid

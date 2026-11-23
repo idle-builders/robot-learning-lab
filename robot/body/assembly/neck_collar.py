@@ -63,7 +63,8 @@ COLLAR, LINK = "head_neck_collar", "combined__neck_yaw_to_pitch_link"
 SLEEVES = "head_neck_collar_steel_sleeves"
 LINK_SRC = "artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.step"   # neck_parts output, never edited in place
 SCREW_YZ = [(9.0, 399.8)]                         # (y, z) of the screw axis (along x): the collar's mid height, so the dia 10 press counter disc stays on the tab face
-TAB_Y, TAB_Z = (2.8, 14.8), (394.2, 412.0)          # tab runs into the ring wall at y 14.8 and out through the head cut at the top (no tab edge meets the cut at a grazing angle)
+BED_Z = 393.0                                      # the ring's bed plane: 0.6 mm under the old flange (394.2); with the inner wall 1.4 mm further in it takes the notch floor band (z BED_Z .. 395.1) to 1.5 x 6.6 mm (FEM, was 0.9 x 5.2)
+TAB_Y, TAB_Z = (2.8, 14.8), (BED_Z, 412.0)          # tab runs into the ring wall at y 14.8 and out through the head cut at the top (no tab edge meets the cut at a grazing angle)
 RIDGE_Y, RIDGE_Z, RIDGE_H = (4.6, 16.5), (395.6, 397.6), 0.8   # locating ridge on the tab face (trapezoid, 45 deg flanks, base z 395.6..397.6, 0.8 high, merges into the wall at its +y end) in a groove of the link boss
 GROOVE_CLEAR = 0.25                                # groove = ridge + this much on every flank and at the tip (FDM slip fit)
 ROOF = True                                        # teardrop roof on the horizontal sleeve bore (print up +z)
@@ -128,13 +129,75 @@ def _ruled_cutter(theta, z_of_rho, rho0, rho1, periodic, height=40.0):
             a = np.radians(t)
             h.SetValue(i + 1, gp_Pnt(CENTRE[0] + rho * SCALE_XY[0] * np.cos(a), CENTRE[1] + rho * SCALE_XY[1] * np.sin(a),
                                      float(z_of_rho(i, rho))))
-        g = GeomAPI_Interpolate(h, periodic, 1e-6); g.Perform()
+        g = GeomAPI_Interpolate(h, periodic, 1e-6)
+        g.Perform()
         return BRepBuilderAPI_MakeEdge(g.Curve()).Edge()
     return BRepPrimAPI_MakePrism(BRepFill.Face_s(edge(rho0), edge(rho1)), gp_Vec(0, 0, height)).Shape()
 
 
-def collar_ring_cutters(base=False):
-    """base=True: the head cut without the sweep drop and no notch (what sweep() measures against)."""
+def _smooth_head_cut(env, drop):
+    """The measured head cut (z and slope per theta knot) as a smooth periodic function on a uniform 2 deg grid, never above the measurement.
+    The knots are measured by rays: their noise bends the rim (second difference up to 0.8 mm per knot, a radius of 0.3 mm) so no fillet rolls along it
+    (OCC fails at every radius). A gaussian of one knot (2 deg) removes the noise; the surface is then lowered by the largest amount it stands above the
+    measurement (over the wall's radii), itself smoothed, so the cut only ever removes more (<= 0.6 mm), never less."""
+    from scipy.ndimage import gaussian_filter1d, maximum_filter1d
+    th = np.arange(0.0, 360.0, 2.0)
+    zr = env[:, 1] - drop
+    ok = env[:, 0] < 360.0 - 1e-6
+    z0 = np.interp(th, env[ok, 0], zr[ok], period=360.0)
+    k0 = np.interp(th, env[ok, 0], env[ok, 2], period=360.0)
+    near = np.abs(((env[:, 0][None, :] - th[:, None] + 180.0) % 360.0) - 180.0) <= 1.0          # raw knots within one grid knot's reach
+    rhos = (24.0, 26.4, 28.0, 30.0, 33.5)
+    low = [np.array([(zr + env[:, 2] * (r - 28.0))[n].min() for n in near]) for r in rhos]       # the lowest measurement a grid knot stands for
+    z, k = gaussian_filter1d(z0, 1.0, mode="wrap"), gaussian_filter1d(k0, 1.0, mode="wrap")
+    lift = np.zeros(len(th))
+    for _ in range(6):
+        above = np.maximum(np.max([z - lift + k * (r - 28.0) - lo for r, lo in zip(rhos, low)], axis=0), 0.0)
+        if above.max() < 1e-3:
+            break
+        lift = lift + gaussian_filter1d(maximum_filter1d(above, 5, mode="wrap"), 1.0, mode="wrap") + 0.01
+    zc = z - lift
+    # @lore the gaussian and the lift lower the two rim peaks (theta 6-12 and 168-176, tents of two knots) by 0.3-1.2 mm, which moves the FEM load patch (rim within
+    # 2 mm of the head skin) off the places the skin comes closest; the peak's two knots and their neighbours stay at the measurement: a land two knots (1 mm) wide.
+    for lo, hi in ((0.0, 100.0), (150.0, 200.0)):
+        sel = np.where((th >= lo) & (th < hi))[0]
+        top = sel[np.argsort(z0[sel])[-2:]]
+        top = np.unique(np.concatenate([top - 1, top, top + 1]))
+        zc[top] = np.maximum(zc[top], z0[top])
+    return th, zc, k
+
+
+def _smooth_floor(z):
+    """The notch floor (z per 2 deg knot, 412 = no cut) as a smooth curve, never above the stored values: the stored floor has steps of 1.3 mm per knot
+    and knots 0.2 mm apart, whose sharp edges and slivers no fillet rolls along. Gaussian of 1.5 knots over the values capped at the head cut's height, lowered by
+    what it stands above the stored values (smoothed itself), and kept at or above NOTCH_MIN."""
+    from scipy.ndimage import gaussian_filter1d, maximum_filter1d
+    zc = np.minimum(np.asarray(z, float), 406.0)
+    f = gaussian_filter1d(zc, 1.5, mode="nearest")
+    lift = np.zeros(len(zc))
+    for _ in range(8):
+        above = np.maximum(f - lift - zc, 0.0)
+        if above.max() < 1e-3:
+            break
+        lift = lift + gaussian_filter1d(maximum_filter1d(above, 3), 1.0, mode="nearest") + 0.01
+    return np.maximum(f - lift, NOTCH_MIN)                             # the foot band under the floor is at least two lines (0.84 mm) thick (walls check); sweep() measures the head clearance against it
+
+
+PEAK_CAP_Z = 0.0                                # the front-right rim peak (theta 6-12) is cut flat here, in its own sector only
+PEAK_CAP_SECTOR = (-10.0, 40.0)                    # theta range of that cut
+
+
+def _peak_cap():
+    """Everything above z PEAK_CAP_Z within a sector of theta (the head cutter's addition). @lore the swept rim peak (406.8) is as high as the head skin allows and
+    round 2's was 406.56: cut flat at 12.4 over the bed (the slicer's top layer middle is 12.3: no sliver on top, the slice below is 0.9 mm wide, the rim slopes 0.33 up outwards)."""
+    import cad_ops as C
+    pts = [(CENTRE[0], CENTRE[1])] + [(CENTRE[0] + 40.0 * np.cos(np.radians(t)), CENTRE[1] + 40.0 * np.sin(np.radians(t)))
+                                      for t in np.linspace(*PEAK_CAP_SECTOR, 12)]
+    return _prism([(x, y, PEAK_CAP_Z) for x, y in pts], (0, 0, 30.0))
+
+
+def collar_ring_cutters(base=False, lower=0.0):
+    """base=True: the head cut without the sweep drop and no notch (what sweep() measures against). lower: the head cut moved down by this much (the tab's top)."""
     d = json.loads(ENVELOPE.read_text())
     if base:
         d = {k: v for k, v in d.items() if k not in ("sweep_drop_mm", "pitch_notch_swept")}
@@ -142,21 +205,91 @@ def collar_ring_cutters(base=False):
     nch = np.array(d.get("pitch_notch_swept", d["pitch_notch"])["rows"], float)
     k1 = d.get("pitch_notch_swept", d["pitch_notch"]).get("slope", d["pitch_notch"]["slope"])
     drop = np.asarray(d.get("sweep_drop_mm", [0.0] * len(env)), float)        # head skin swept over the neck pitch range: lowers the cut (sweep())
-    head = _ruled_cutter(env[:, 0], lambda i, r: env[i, 1] + env[i, 2] * (r - 28.0) - drop[i], 21.0, 34.0, True)    # rho 21: the cut reaches in over the tab too (the ring itself starts at 26.4)
-    notch = None if base else _ruled_cutter(nch[:, 0], lambda i, r: nch[i, 1] + k1 * (r - 27.5), 25.0, 33.0, False)
+    th, zs, sl = _smooth_head_cut(env, drop)
+    head = _ruled_cutter(th, lambda i, r: zs[i] - lower + sl[i] * (r - 28.0), 21.0, 34.0, True)    # rho 21: the cut reaches in over the tab too (the ring itself starts at 26.4)
+    import cad_ops as C
+    head = C.fuse(head, _peak_cap()) if PEAK_CAP_Z else head
+    nz = _smooth_floor(nch[:, 1]) if not base else None
+    notch = None if base else _ruled_cutter(nch[:, 0], lambda i, r: nz[i] + k1 * (r - 27.5), 25.0, 33.0, False)
     return head, notch
 
 
+NOTCH_MIN = 395.1                                  # lowest notch floor: 0.9 mm over the bed (the swept floor went down to 394.76: a 0.56 mm foot band, under two lines)
+FOOT_R = 31.6                                      # radius of the vertical foot (before the xy scale): 0.8 mm wider than the old 30.77 (the old flange cone, trimmed at z 395.6), so the 0.4 mm bed roundings keep the flat contact over 4 mm
+FOOT_H = 395.6 - BED_Z                             # height of the vertical foot (BED_Z .. 395.6)
+ROUND_R = 0.25                                     # edge break on the cut edges (head cut rim, notch, tab, bore, channel)
+TAB_LOWER = 0.1                                    # the tab's top lies this far under the head cut (the ring's rim is rounded before the tab is fused on)
+TAB_EDGE_R = 0.4                                   # edge break of the tab block
+TAB_BED_R = 0.7                                    # bed edge of the tab (not the ring's 0.4: two equal roundings meeting at the wall leave 0.01 mm edges)
+TAB_R = 1.0                                        # plan radius of the tab's two vertical edges at the plate face
+PLAN_SKEW = 0.0                                    # mm: the channel mouth arcs are tangent to the foot and flank this far inside them (they cross the real faces at about 10 deg: a tangent boolean there left slivers that no fillet rolled)
+END_OFF = 0.7                                     # mm, see _round_bed_plan
+PLAN_R_MOUTH = 1.3                                 # the channel mouth's upper corner: its arc ends where the floor corner's 0.4 mm round starts (1.7 left a 0.12 mm2 sliver of the flank)
+PLAN_R_MOUTH_LOW = 1.8                             # the channel mouth's lower corner (1.7 leaves edges no fillet rolls along, 1.5 and 2.1 build)
+PLAN_R = 1.7                                       # plan radius of the foot's end and channel-mouth corners (the bed outline keeps 1.3 mm after the 0.4 mm bed rounding; 1.6 and 1.8 leave edges OCC cannot roll)
+PLAN_R_INNER = 2.6                                # plan radius of the inner ring-end bed corners: they sit hidden behind the mouth corner, a larger round leaves no sharp bed corner
+BED_ROUND = 0.4                                    # rounding of the ring's two bed edges (elephant foot), in the section
+
+
+R_IN0 = 25.0                                       # inner wall radius at z 393 (before the xy scale): was 26.4; the wall grows inward 1.4 mm, the outside does not change
+
+
+KEEP_OUT = ((106.0, 132.0), (140.0, 215.0))   # elliptic angle ranges where the inner wall stays at 26.4: the neck pitch cradle and servo case sweep into the first, the link plate stands in the second
+
+
+def _r_in(z):
+    return R_IN0 + 0.4 * (z - 393.0) / 21.0           # inner wall: the old loft 26.4 (z 393) -> 26.8 (z 414)
+
+
+def _r_out(z):
+    return 29.0 - 0.5 * (z - 394.5) / 18.5          # outer cone: 29.0 (z 394.5) -> 28.5 (z 413)
+
+
+def _revolved(pts, rounds):
+    """Revolve the (r, z) polygon about z, round its corners in the profile (rounds: {vertex index: radius}) and scale / move it to the ring's ellipse
+    (the scale is the one of the old ruled ellipse lofts, so a cone stays the same cone). Rounded by construction: no sharp edge across the section."""
+    from build123d import Axis, Face, Polyline, Solid
+    from OCP.BRepBuilderAPI import BRepBuilderAPI_GTransform
+    from OCP.gp import gp_GTrsf, gp_Mat, gp_XYZ
+    f = Face(Polyline(*[(r, 0.0, z) for r, z in pts], close=True))
+    for i, rad in rounds.items():
+        r, z = pts[i]
+        f = f.fillet_2d(rad, [v for v in f.vertices() if abs(v.X - r) < 1e-6 and abs(v.Z - z) < 1e-6])
+    g = gp_GTrsf(); g.SetVectorialPart(gp_Mat(SCALE_XY[0], 0, 0, 0, SCALE_XY[1], 0, 0, 0, 1)); g.SetTranslationPart(gp_XYZ(CENTRE[0], CENTRE[1], 0.0))
+    return BRepBuilderAPI_GTransform(Solid.revolve(f, 360, Axis.Z).wrapped, g, True).Shape()
+
+
+def _profile(inner):
+    """Section of the ring (r, z): inner wall, bed, a vertical foot, the 45 deg flange cone, the outer cone. inner=False: the same outside with the axis for the inner wall (the tab is bounded by it)."""
+    zt = 414.0
+    s = (1.025 - 0.5 / 18.5)                        # flange cone (slope 1.025 r per z) meets the outer cone at u above the foot top
+    u = (FOOT_R - _r_out(BED_Z + FOOT_H)) / s
+    zj = BED_Z + FOOT_H + u; rj = FOOT_R - 1.025 * u
+    r0 = _r_in(BED_Z) if inner else 0.0
+    pts = [(r0, BED_Z), (FOOT_R, BED_Z), (FOOT_R, BED_Z + FOOT_H), (rj, zj), (_r_out(zt), zt), (_r_in(zt) if inner else 0.0, zt)]
+    rounds = {1: BED_ROUND, 2: 1.5, 3: 3.0}
+    if inner:
+        rounds[0] = BED_ROUND
+    return pts, rounds
+
+
 def _outer_solid():
-    """The ring's outside: the tapered cone and the flange (its top radius is the cone's at z 397.4: no ledge)."""
-    import cad_ops as C
-    return C.fuse(_loft(29.0, 28.5, 18.5, 394.5), _loft(32.2, 28.5 + 0.5 * (18.5 - 2.9) / 18.5, 3.2, 394.2))
+    """The ring's outside (full, no bore): foot, flange and tapered cone with the roundings in the section."""
+    pts, rounds = _profile(False)
+    return _revolved(pts, rounds)
 
 
 def collar_ring(base=False):
     """The pure parametric ring (before the head envelope and notch cuts) and the two cutters."""
     import cad_ops as C
-    ring = C.cut(_outer_solid(), _loft(26.4, 26.8, 21.0, 393.0))
+    pts, rounds = _profile(True)
+    ring = _revolved(pts, rounds)
+    if R_IN0 < 26.4:                                  # the inward growth stays out of the sectors the neck pitch parts reach into (sweep()) and the link plate stands in
+        cx, cy = CENTRE; sx, sy = SCALE_XY
+        for a0, a1 in KEEP_OUT:
+            arc = [(cx + 45.0 * sx * np.cos(np.radians(t)), cy + 45.0 * sy * np.sin(np.radians(t))) for t in np.linspace(a0, a1, 14)]
+            wedge = _prism([(cx, cy, 380.0)] + [(x, y, 380.0) for x, y in arc], (0, 0, 50.0))
+            ring = C.cut(ring, C.common(wedge, _loft(26.4, 26.8, 21.0, 393.0)))
     return ring, collar_ring_cutters(base)
 
 
@@ -182,9 +315,14 @@ def _ridge_profile(fx, grow=0.0):
 
 
 def _ridge(face_x):
-    """The locating ridge on the tab face: runs along y (the way the collar slides on), merges into the ring wall at its +y end."""
+    """The locating ridge on the tab face: runs along y (the way the collar slides on), merges into the ring wall at its +y end. Its start is a 45 deg ramp
+    (a planar bevel, no square end), so every edge of the ridge is a bevel edge of 45-60 deg."""
+    import cad_ops as C
     pts = [(x, RIDGE_Y[0], z) for x, z in _ridge_profile(face_x)]
-    return _prism(pts, (0, RIDGE_Y[1] - RIDGE_Y[0], 0))
+    r = _prism(pts, (0, RIDGE_Y[1] - RIDGE_Y[0], 0))
+    y0 = RIDGE_Y[0]; z0, z1 = RIDGE_Z[0] - 1.0, RIDGE_Z[1] + 1.0
+    ramp = _prism([(face_x - 0.5, y0 - 0.5, z0), (face_x + 1.5, y0 + 1.5, z0), (face_x + 1.5, y0 - 1.0, z0)], (0, 0, z1 - z0))   # xy triangle above the 45 deg line through (face_x, y0)
+    return C.cut(r, ramp)
 
 
 def _groove(fx):
@@ -193,17 +331,122 @@ def _groove(fx):
     return _prism(pts, (0, BOSS_Y[1] + 1.0 - BOSS_Y[0] + 0.5, 0))
 
 
-def _round_flank_top(col):
-    """The channel's low flank (a vertical plane, y CHANNEL_Y[0]) meets the head cut, which rises towards +y, in a 38 deg wedge: a knife edge under the line width.
-    A 0.5 mm fillet on that one edge blunts it (OCC cannot round the spline rims in general; this edge it can)."""
+def _end_angles(col):
+    """Elliptic angles (deg) of the ring's two ends at the foot: the most retracted point of each trimmed end face (the end faces cross the band obliquely,
+    the tip of one side reaches further): (left end, right end), from the B-rep vertices of the foot."""
+    from build123d import Solid
+    th = []
+    for v in Solid(col).vertices():
+        if v.Z < 395.7:
+            th.append(np.degrees(np.arctan2((v.Y - CENTRE[1]) / SCALE_XY[1], (v.X - CENTRE[0]) / SCALE_XY[0])) % 360.0)
+    th = np.array(th)
+    return float(th[(th > 190) & (th < 215)].min()), float(th[(th > 325) & (th < 350)].max())
+
+
+def _fillet_corner(curve_a, curve_b, r, hint):
+    """Centre, tangent points and arc midpoint of the circle of radius r tangent to an ellipse and a line (plan, mm). curve_a = ('ell', rho, material_inside),
+    curve_b = ('line', p0, direction, normal into the material); hint: a point near the corner (the line meets the ellipse twice)."""
+    from scipy.optimize import brentq
+    _, rho, inside = curve_a
+    _, p0, _d, nin = curve_b
+    a, b = rho * SCALE_XY[0], rho * SCALE_XY[1]
+    sg = -1.0 if inside else 1.0
+    P = lambda t: np.array([CENTRE[0] + a * np.cos(t), CENTRE[1] + b * np.sin(t)])
+    def nrm(t):
+        n = np.array([np.cos(t) / a, np.sin(t) / b]); return n / np.linalg.norm(n)
+    C = lambda t: P(t) + sg * r * nrm(t)
+    g = lambda t: float((C(t) - p0) @ nin) - r
+    ts = np.radians(np.arange(0.0, 360.0, 0.5)); gs = [g(t) for t in ts]
+    roots = []
+    for i in range(len(ts) - 1):
+        if gs[i] * gs[i + 1] < 0:
+            roots.append(brentq(g, ts[i], ts[i + 1], xtol=1e-12))
+    t = min(roots, key=lambda t: np.linalg.norm(P(t) - hint))
+    c = C(t); T1 = c - r * nin; T2 = P(t)
+    m = (T1 - c) + (T2 - c); M = c + r * m / np.linalg.norm(m)
+    return c, T1, T2, M, sg, nrm(t)
+
+
+def _round_bed_plan(col):
+    """The ring's bed outline rounded by construction: the ring ends cut radial (perpendicular to the band, at the more retracted tip of each trimmed end) and the
+    four end corners and the two channel mouth corners cut with plan fillets of PLAN_R, as prisms of the exact circle arcs (tangent to the foot's outer / inner
+    cylinders and to the end / flank planes) through the whole height. The vertical seams where an arc meets a cylinder or plane are smooth (G1)."""
+    import cad_ops as C
+    cx, cy = CENTRE; sx, sy = SCALE_XY
+    tl, tr = _end_angles(col)
+    far = 46.0
+    ends = []
+    for th, side in ((tl, -1.0), (tr, 1.0)):                          # the end plane is parallel to the radial direction, END_OFF mm inside the retracted tip (a meridian plane
+        d = np.array([sx * np.cos(np.radians(th)), sy * np.sin(np.radians(th))]); d /= np.linalg.norm(d)    # through the axis makes OCC's fillets of its edges fail)
+        nin = side * np.array([-d[1], d[0]])
+        ends.append((d, nin, np.array([cx, cy]) + nin * END_OFF))
+    (dl, nl, pl), (dr, nr, pr) = ends
+    arcs = [np.array([cx, cy]) + far * np.array([sx * np.cos(np.radians(t)), sy * np.sin(np.radians(t))]) for t in np.linspace(tl, tr, 9)[1:-1]]
+    pts = [pl, pl + dl * far] + arcs + [pr + dr * far, pr, np.array([cx, cy])]
+    col = C.cut(col, _prism([(x, y, 390.0) for x, y in pts], (0, 0, 30.0)))
+    ro, ri = FOOT_R, _r_in(BED_Z)
+    corners = []
+    for d, nin, p0 in ends:
+        corners.append((("ell", ro, True), ("line", p0, d, nin), p0 + d * (ro * 0.5 * (sx + sy) + 1.0)))
+        corners.append((("ell", ri, False), ("line", p0, d, nin), p0 + d * (ri * 0.5 * (sx + sy) - 1.0)))
+    for y, nin in ((CHANNEL_Y[0], (0.0, -1.0)), (CHANNEL_Y[1], (0.0, 1.0))):
+        corners.append((("ell", ro - PLAN_SKEW, True), ("line", np.array([-33.0, y]) + np.array(nin) * PLAN_SKEW, np.array([1.0, 0.0]), np.array(nin)), np.array([-32.5, y])))
+    for ca, cb, hint in corners:
+        c, T1, T2, M, sg, n2 = _fillet_corner(ca, cb, (PLAN_R_MOUTH if hint[1] > 10.0 else PLAN_R_MOUTH_LOW) if abs(hint[0] + 32.5) < 1e-6 else (PLAN_R if ca[2] else PLAN_R_INNER), hint)
+        nin = cb[3]
+        W1 = T1 - nin * 3.0
+        W2 = T2 - sg * n2 * 3.0                                       # away from the material
+        X = W1 + (W2 - T2)
+        from build123d import Edge, Face, Wire, Vector, ThreePointArc
+        z = 390.0
+        v = lambda q: Vector(float(q[0]), float(q[1]), z)
+        arc = Edge.make_three_point_arc(v(T1), v(M), v(T2))
+        w = Wire([arc, Edge.make_line(v(T2), v(W2)), Edge.make_line(v(W2), v(X)), Edge.make_line(v(X), v(W1)), Edge.make_line(v(W1), v(T1))])
+        from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
+        from OCP.gp import gp_Vec
+        cut = BRepPrimAPI_MakePrism(Face(w).wrapped, gp_Vec(0, 0, 30.0)).Shape()
+        col = C.cut(col, cut)
+    return col
+
+
+def _round_foot_corners(col, radii=(0.4,)):
+    """The channel floor's two vertical foot corners (0.65 - 1.0 mm high, between the bed roundings and the flange) with 0.4 mm in one operation, before the generic
+    rounding: without it the final rounding of the tab's edges fails."""
     from build123d import Solid
     s = Solid(col)
-    es = [e for e in s.edges() if abs(e.center().Y - CHANNEL_Y[0]) < 1e-3 and e.center().X < FLOOR_X - 0.2 and e.center().Z > 400.0 and e.geom_type.name == "BSPLINE"]
-    if not es:
-        return col
-    r = s.fillet(WEDGE_R, es)
-    assert r.is_valid and len(r.solids()) == 1, "flank fillet made an invalid solid"
-    return r.wrapped
+    es = []
+    for e in s.edges():
+        bb = e.bounding_box(); c = e.center()
+        dz = bb.max.Z - bb.min.Z; dxy = max(bb.max.X - bb.min.X, bb.max.Y - bb.min.Y)
+        seam = abs(c.Y - CENTRE[1]) < 0.05 and abs(c.X) > 20.0                       # the revolve's seam
+        if c.Z < 396.0 and dz > 0.3 and dxy < dz * 1.5 and not seam and abs(c.X - FLOOR_X) < 0.5:       # the channel floor's corners: the ring ends and the mouth corners are cut away by _round_bed_plan
+            es.append(e)
+    for r in radii:
+        try:
+            t = s.fillet(r, es)
+        except ValueError:
+            continue
+        if t.is_valid and len(t.solids()) == 1:
+            return t.wrapped
+    return col
+
+
+def _round_flank_top(col):
+    """Each flank of the channel meets the head cut, which rises towards it, in a wedge of 38-50 deg: a knife edge under the line width. A fillet on that one edge
+    blunts it (0.7 mm, the largest the edge takes; OCC cannot round the long spline rims in general, these edges it can)."""
+    from build123d import Solid
+    for y in CHANNEL_Y:
+        s = Solid(col)
+        es = [e for e in s.edges() if abs(e.center().Y - y) < 1e-3 and e.center().X < FLOOR_X - 0.2 and e.center().Z > 400.0 and e.geom_type.name == "BSPLINE"]
+        for r in (WEDGE_R, 0.5, 0.35):
+            try:
+                t = s.fillet(r, es)
+            except ValueError:
+                continue
+            if es and t.is_valid and len(t.solids()) == 1:
+                col = t.wrapped
+                break
+    return col
 
 
 def _break_bed_edges(col):
@@ -219,18 +462,20 @@ def _break_bed_edges(col):
     return r.wrapped
 
 
-def _trim_thin(col):
-    """Drop the footprint where the head cut leaves less than TRIM_Z - 394.2 over the flange (the zero-thickness sliver of the cut meeting the base)."""
+def _trim_thin(col, head):
+    """Drop the footprint where the head cut leaves less than TRIM_Z - 394.2 over the flange (the zero-thickness sliver of the cut meeting the base):
+    the plan region where the cut is above TRIM_Z over a plain wide annulus (not the ring's own section: its rounded foot stays), prism down and up."""
     import cad_ops as C
     from build123d import Solid
     from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
     from OCP.gp import gp_Vec
-    slab = C.common(col, C.box((-60, -60, TRIM_Z), (60, 60, TRIM_Z + 0.05)))
+    wide = C.cut(_loft(40.0, 40.0, 30.0, 385.0), _loft(15.0, 15.0, 30.0, 385.0))
+    slab = C.common(C.cut(wide, head), C.box((-60, -60, TRIM_Z), (60, 60, TRIM_Z + 0.05)))
     bottoms = [f for f in Solid(slab).faces() if abs(f.normal_at().Z + 1) < 1e-6 and abs(f.center().Z - TRIM_Z) < 1e-3]
     keep = None
     for f in bottoms:
         pr = BRepPrimAPI_MakePrism(f.wrapped, gp_Vec(0, 0, 30.0)).Shape()
-        dn = BRepPrimAPI_MakePrism(f.wrapped, gp_Vec(0, 0, -TRIM_Z + 390.0)).Shape()
+        dn = BRepPrimAPI_MakePrism(f.wrapped, gp_Vec(0, 0, -TRIM_Z + 380.0)).Shape()
         keep = C.fuse(pr, dn) if keep is None else C.fuse(keep, pr, dn)
     return C.common(col, keep)
 
@@ -278,7 +523,7 @@ def sweep(rounds=4):
     lo, hi = B.joints["neck_pitch"]["range_deg"]
     for rd in range(rounds):
         ring, (head, notch) = collar_ring(base=(rd == 0))
-        col = _trim_thin(C.cut(ring, head))
+        col = _trim_thin(C.cut(ring, head), head)
         if notch is not None:
             col = C.cut(col, notch)
         stl = ROOT / ".cache/work/neck_collar_sweep.stl"; stl.parent.mkdir(parents=True, exist_ok=True)
@@ -351,20 +596,195 @@ def sweep(rounds=4):
         ENVELOPE.write_text(json.dumps(d, indent=1) + "\n")
 
 
+def _sharp_edges(shape, over_deg=20.0):
+    """The shape's edges whose two faces meet at more than over_deg (the edges check's SHARP_DEG), as (edge, deviation deg)."""
+    import math
+    from build123d import Edge, Solid
+    from OCP.BRep import BRep_Tool
+    from OCP.BRepGProp import BRepGProp_Face
+    from OCP.GeomAPI import GeomAPI_ProjectPointOnSurf
+    from OCP.TopAbs import TopAbs_EDGE, TopAbs_FACE
+    from OCP.TopExp import TopExp
+    from OCP.TopoDS import TopoDS
+    from OCP.TopTools import TopTools_IndexedDataMapOfShapeListOfShape
+    from OCP.gp import gp_Pnt, gp_Vec
+
+    def normal(face, p):
+        pr = GeomAPI_ProjectPointOnSurf(p, BRep_Tool.Surface_s(face))
+        if pr.NbPoints() == 0:
+            return None
+        u, v = pr.LowerDistanceParameters(); q, n = gp_Pnt(), gp_Vec()
+        BRepGProp_Face(face).Normal(u, v, q, n)
+        a = np.array([n.X(), n.Y(), n.Z()]); L = np.linalg.norm(a)
+        return a / L if L > 1e-12 else None
+    sol = Solid(shape)
+    ef = TopTools_IndexedDataMapOfShapeListOfShape(); TopExp.MapShapesAndAncestors_s(sol.wrapped, TopAbs_EDGE, TopAbs_FACE, ef)
+    out = []
+    for i in range(1, ef.Extent() + 1):
+        lst = ef.FindFromIndex(i)
+        if lst.Extent() != 2:
+            continue
+        f1, f2 = TopoDS.Face_s(lst.First()), TopoDS.Face_s(lst.Last())
+        if f1.IsSame(f2):
+            continue
+        e = Edge(TopoDS.Edge_s(ef.FindKey(i))); m = e.position_at(0.5); p = gp_Pnt(m.X, m.Y, m.Z)
+        n1, n2 = normal(f1, p), normal(f2, p)
+        if n1 is None or n2 is None:
+            continue
+        d = math.degrees(math.acos(float(np.clip(n1 @ n2, -1, 1))))
+        if d > over_deg:
+            out.append((e, d))
+    return sol, out
+
+
+def _round_sharp(col, radius=ROUND_R, keep=lambda e: False):
+    """Fillet every edge the edges check calls sharp (dihedral over 20 deg; `keep` names edges to leave): the rims of the head cut, the notch and the channel, the
+    tab, bore and channel edges. The section of the ring and the tab block are already rounded by construction; this is the break on the cut edges, in one
+    operation at the largest radius from `radius` down (0.25, 0.2, 0.15 mm) that OCC rolls along all of them at once (it fails on one edge at a larger radius);"""
+    sol, es = _sharp_edges(col)
+    edges = [e for e, _ in es if not keep(e)]
+    if not edges:
+        return col
+    for r in (radius, radius * 0.8, radius * 0.6):
+        try:
+            res = sol.fillet(r, edges)
+        except ValueError:
+            continue
+        if res.is_valid and len(res.solids()) == 1:
+            return res.wrapped
+    return _round_sharp_by_cluster(col, keep, radius)
+
+
+def _round_sharp_by_cluster(col, keep, radius):
+    """The fallback of _round_sharp when OCC cannot roll all the edges at once: one corner cluster (edges within 4 mm of each other) at a time with the largest radius from
+    `radius` down to 0.4 x that OCC rolls, a single edge when the cluster fails; an edge no radius rolls is left sharp (the edges check reads it) and printed."""
+    left = set()
+    key = lambda e: tuple(round(v, 3) for v in (e.center().X, e.center().Y, e.center().Z))
+    while True:
+        sol, es = _sharp_edges(col)
+        es = [e for e, _ in es if not keep(e) and key(e) not in left]
+        if not es:
+            break
+        c0 = es[0].center()
+        cl = [e for e in es if ((e.center().X - c0.X) ** 2 + (e.center().Y - c0.Y) ** 2 + (e.center().Z - c0.Z) ** 2) ** 0.5 < 4.0]
+        for group in (cl, es[:1]):
+            for r in (radius, radius * 0.8, radius * 0.6, radius * 0.4):
+                try:
+                    t = sol.fillet(r, group)
+                except ValueError:
+                    continue
+                if t.is_valid and len(t.solids()) == 1:
+                    col = t.wrapped
+                    break
+            else:
+                continue
+            break
+        else:
+            left.add(key(es[0]))
+            print(f"edge left sharp at ({c0.X:.2f}, {c0.Y:.2f}, {c0.Z:.2f}): no radius rolls it", flush=True)
+    return col
+
+
+def _round_plan_cuts(col, keep, radii=(0.25, 0.2, 0.15, 0.1, 0.07, 0.05)):
+    """Round the edges the plan cuts of _round_bed_plan left (all below z 398), one corner cluster at a time with the largest radius from `radii` OCC rolls: one
+    operation over all of them fails at every radius, each cluster takes 0.1 - 0.25 mm. A cluster no radius rolls is left sharp (printed; the edges check reads it)."""
+    left = set()
+    key = lambda e: tuple(round(v, 3) for v in (e.center().X, e.center().Y, e.center().Z))
+    while True:
+        sol, es = _sharp_edges(col)
+        es = [e for e, _ in es if e.center().Z < 398.0 and not keep(e) and key(e) not in left]
+        if not es:
+            return col
+        c0 = es[0].center()
+        cl = [e for e in es if ((e.center().X - c0.X) ** 2 + (e.center().Y - c0.Y) ** 2) ** 0.5 < 4.0]
+        for r in radii:
+            try:
+                t = sol.fillet(r, cl)
+            except ValueError:
+                continue
+            if t.is_valid and len(t.solids()) == 1:
+                col = t.wrapped
+                break
+        else:
+            left.update(key(e) for e in cl)
+            print(f"plan edges left sharp: {len(cl)} at ({c0.X:.1f}, {c0.Y:.1f}): no radius rolls them", flush=True)
+
+
+def _left_alone(e, face_x):
+    """Edges the rounding leaves: (1) the sleeve bore's edges, on a mating face of the sleeve (within 0.3 mm of it: the edges check counts them apart; a
+    rounded bore edge at the tab face is a recess in the press counter disc: support 98.6 -> 94.7 %); (2) the teardrop roof's apex line (a rounded apex is
+    a flat ceiling: overhang beyond 70 deg); (3) the ridge's bevel edges (a planar bevel of 45-60 deg is not sharp for the edges check; the tip is 0.4 mm wide)."""
+    y, z = SCREW_YZ[0]
+    m = e.position_at(0.5)
+    near_sleeve = FLOOR_X - 0.05 <= m.X <= face_x + 0.05 and ((m.Y - y) ** 2 + (m.Z - z) ** 2) ** 0.5 <= SLEEVE_OD / 2 + 0.3
+    apex = e.geom_type.name == "LINE" and abs(m.Y - y) < 1e-3 and abs(m.Z - (z + SLEEVE_OD / 2 * 1.41421356)) < 1e-3
+    ridge = RIDGE_Z[0] - 0.2 < m.Z < RIDGE_Z[1] + 0.2 and m.X > -26.3 and RIDGE_Y[0] - 0.1 < m.Y < RIDGE_Y[1] + 0.1
+    return (near_sleeve and not os.environ.get("NOSLEEVE")) or apex or ridge
+
+
+def _round_apex(col, radii=(0.2, 0.25, 0.3)):
+    """The teardrop roof's apex line (3.5 mm, between the channel floor and the tab face, ends on the unrounded bore edges, so no fillet chain meets it) with the
+    smallest radius the edges check reads as not sharp: a 0.2 mm round is a 0.15 mm flat bridge at the roof (about 0.5 mm2 beyond 70 deg)."""
+    from build123d import Solid
+    sol = Solid(col)
+    y, z = SCREW_YZ[0]
+    es = [e for e in sol.edges() if e.geom_type.name == "LINE" and abs(e.center().Y - y) < 1e-3 and abs(e.center().Z - (z + SLEEVE_OD / 2 * 1.41421356)) < 1e-3]
+    assert len(es) == 1, f"roof apex: {len(es)} edges"
+    for r in radii:
+        try:
+            t = sol.fillet(r, es)
+        except ValueError:
+            continue
+        if t.is_valid and len(t.solids()) == 1:
+            return t.wrapped
+    raise AssertionError("roof apex rounding failed")
+
+
+def _round_floor_bore(col, radii=(0.1, 0.15, 0.07)):
+    """Round the teardrop opening in the channel floor, head side only (the edges of the planar face at x == FLOOR_X, normal -x, within 1.5 sleeve radii of the
+    screw axis; the tab-face press disc stays sharp): the apex round of _round_apex meets the floor in a 0.31 mm edge that the edges check reads as sharp."""
+    from build123d import Solid
+    sol = Solid(col)
+    y, z = SCREW_YZ[0]
+    fs = [f for f in sol.faces() if f.geom_type.name == "PLANE" and abs(f.center().X - FLOOR_X) < 1e-3 and f.normal_at().X < -0.99]
+    es = [e for f in fs for e in f.edges() if abs(e.center().X - FLOOR_X) < 1e-3 and ((e.center().Y - y) ** 2 + (e.center().Z - z) ** 2) ** 0.5 <= 1.5 * SLEEVE_OD / 2]
+    assert es, "floor bore: no edges"
+    for r in radii:
+        try:
+            t = sol.fillet(r, es)
+        except ValueError:
+            continue
+        if t.is_valid and len(t.solids()) == 1:
+            return t.wrapped
+    raise AssertionError("floor bore rounding failed")
+
+
+def _tab_box(face_x, x0):
+    """The tab's block (plate face back to x0): its two vertical edges at the plate face rounded in plan (bed outline corners), then its face-side bed edges."""
+    from build123d import Solid
+    import cad_ops as C
+    b = Solid(C.box((x0, TAB_Y[0], TAB_Z[0]), (face_x, TAB_Y[1], TAB_Z[1])))
+    es = [e for e in b.edges() if abs(e.center().X - face_x) < 1e-6 and abs(e.length - (TAB_Z[1] - TAB_Z[0])) < 1e-6]
+    b = b.fillet(TAB_R, es)
+    bot = [e for f in b.faces() if abs(f.normal_at().Z + 1) < 1e-6 and abs(f.center().Z - TAB_Z[0]) < 1e-6 for e in f.edges() if e.center().X > x0 + 0.1]
+    return b.fillet(BED_ROUND, bot).wrapped
+
+
 def collar_solid(face_x):
-    """The collar B-rep before the edges are broken; also returns the ring volume."""
+    """The collar B-rep before the final rounding; also returns the ring volume."""
     import cad_ops as C
     ring, (head, notch) = collar_ring()
-    x0 = -36.0                                      # past the ring outside: the tab is bounded by the ring's outer surface itself (no seam edges)
+    x0 = FLOOR_X + 0.35                             # the tab starts inside the wall behind the channel floor: nothing of it shows outside, no face coplanar with the floor; 0.35: its bed face meets the ring foot's flat bed (0.5 left a 0.1 mm crevice and a 10 deg bed corner)
     rib = _ridge(face_x)
-    tab = C.common(C.box((x0, TAB_Y[0], TAB_Z[0]), (face_x, TAB_Y[1], TAB_Z[1])), _trim_thin(_outer_solid()))     # never outside the ring's outer surface (the foot trimmed vertically like the ring's)
-    tab = C.cut(C.fuse(tab, rib), head)                     # the tab (and rib) from the plate face back into the ring wall, cut by the head envelope
-    col = C.fuse(_trim_thin(C.cut(ring, head)), tab)         # the trim keeps the ring in one piece (on the ring alone: the tab would split its faces)
-    col = C.cut(col, notch)                                  # the notch floor (z 394.8..) is the only link between the ring's two halves
-    ring = C.fuse(ring, tab)
-    v_ring = C.volume(ring)
+    channel = C.box((FLOOR_X - 8.0, CHANNEL_Y[0], 390.0), (FLOOR_X, CHANNEL_Y[1], 420.0))      # flat spot face channel: heads and the press tip
+    tab = C.common(_tab_box(face_x, x0), _outer_solid())     # never outside the ring's outer surface
+    tab = C.cut(tab, collar_ring_cutters(lower=TAB_LOWER)[0])  # cut TAB_LOWER under the head envelope: its top never meets the rounded rim of the ring
+    tab = C.fuse(_round_sharp(tab, TAB_EDGE_R), rib)          # round on its own (a block), then the ridge
+    body = C.cut(_trim_thin(C.cut(ring, head), head), notch, channel)       # the notch floor (z 394.8..) is the only link between the ring's two halves
+    body = _round_sharp(_round_flank_top(_round_foot_corners(body)))              # the rims of the head cut, notch and channel, before the tab is fused on (they roll further than with the tab)
+    col = C.fuse(body, tab)
+    v_ring = C.volume(C.fuse(ring, tab))
     tools = []
-    tools.append(C.box((FLOOR_X - 8.0, CHANNEL_Y[0], 390.0), (FLOOR_X, CHANNEL_Y[1], 420.0)))      # flat spot face channel: heads and the press tip
     for y, z in SCREW_YZ:
         tools.append(C.cylinder((FLOOR_X - 1.0, y, z), (face_x + 1.0, y, z), SLEEVE_OD / 2))             # sleeve bore
         if ROOF:                                                                                        # 45 deg roof tangent to the bore: no flat ceiling for the printer to bridge
@@ -378,7 +798,10 @@ def build_collar(face_x):
     import cad_ops as C
     import motor_refit as MR
     col, v_ring = collar_solid(face_x)
-    col = _break_bed_edges(_round_flank_top(col))
+    col = _round_sharp(col, keep=lambda e: _left_alone(e, face_x))
+    col = _round_apex(col)
+    col = _round_floor_bore(col)
+    col = _round_plan_cuts(_round_bed_plan(col), keep=lambda e: _left_alone(e, face_x))    # the plan cuts last (before the tab a cut leaves the tab's rim edges un-rollable)
     assert C.valid(col) and C.n_solids(col) == 1, "collar is not one valid solid"
     rec = MR.save(COLLAR, col, "printed")
     vol = _volume(col)                                          # GProp's default integration is 8 % off on the spline faces
