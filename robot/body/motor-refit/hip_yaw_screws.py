@@ -18,7 +18,7 @@ refit STEP with the same B-rep operations (cad_ops) and takes every hole positio
              instead, that sleeve's press support fell 88.1 -> 76.7 %). Where the window-side collars cross the walls' -x
              corner the layer takes the deck's own outline (0.22 mm crescent and 0.04 mm2 overhang before). Driving: the
              sleeve of the front screws z.1 / z.2 (y -6 / 10, Z 247) ends 0.09 mm short of the yaw axes (59,-5) / (59,9), whose hole
-             positions are fixed, so no straight tool passes (obstruction 52 mm3 part + 4.5 mm3 sleeve at r 1.45). The key is tilted
+             positions are fixed, so no straight tool passes (obstruction 52 mm3 part + 4.5 mm3 sleeve, r 1.45 key cylinder probe of review rv2-24r9hj). The key is tilted
              12-25 deg toward the free +x side (ISO 2936 ball-end hex key, 2.5 mm AF): nothing of the part or the sleeves is in that cone.
              The window edges (y -7.85 / 11.85) stood 0.1 mm off the heads (R 2.75): a R 3.25 pocket in the wall gives 0.5 mm.
   lattice    the front lattice's flat top (refit z 250.0012) is raised to 250.056, the crown of the outer front pads: one plane,
@@ -107,7 +107,7 @@ def build_right():
     yaw = SP.hole_positions(iface, "R_yaw_upper_horn_reference", groups["A14_yaw"]["holes"])
     axes = [tuple(round(float(v), 2) for v in h["opening"][:2]) for h in yaw]   # the refit bore sits on the 0.01 grid
     window = [((x, y), WINDOW_WALL_Y[int(y > HUB[1])]) for x, y in axes if abs(y - HUB[1]) > 1.0]   # the two screws beside the key windows, with their wall
-    outer = [(x, y) for x, y in axes if x < HUB[0] - 1.0]                                         # the -x screw: its collar overhangs the deck disc
+    outer_yaw = [(x, y) for x, y in axes if x < HUB[0] - 1.0]                                       # the -x screw: its collar overhangs the deck disc
     front = SP.hole_positions(iface, "R_hip_pitch_ST3025_case", groups["A14_front"]["holes"])
     by = {p["name"]: p for p in man["parts"]}
     P = MR.load_step(by["R_" + PART]["native_step"])
@@ -126,7 +126,7 @@ def build_right():
     hub_bore = C.cylinder((HUB[0], HUB[1], seat), (HUB[0], HUB[1], YAW_TOP + 1.0), HUB_R)   # from the seat: the pocket floor (refit 262.0) moves down to the collar layer's underside
     for h in yaw:
         x, y, z0 = (round(v, 2) for v in h["opening"])   # the refit bore sits on the 0.01 grid; 0.002 off it the fill leaves crescents and splits the wall
-        if (x, y) in outer:   # the collar's -x side stands past the deck disc (R 10.55): a 1.0 mm lip there unless it rises above the deck bottom
+        if (x, y) in outer_yaw:   # the collar's -x side stands past the deck disc (R 10.55): a 1.0 mm lip there unless it rises above the deck bottom
             collars.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, DECK_BOTTOM + COLLAR_BOSS_H), COLLAR_R))
         collars.append(C.cylinder((x, y, seat), (x, y, DECK_BOTTOM), COLLAR_R))
         add.append(C.cylinder((x, y, DECK_BOTTOM - 0.5), (x, y, z0), R_SLEEVE_YAW[0]))   # refills the refit's own bore: the new bore is then cut once, so its wall is one face
@@ -190,8 +190,9 @@ def build_right():
     y_lo, y_hi = HUB[1] - 3.6, HUB[1] + 3.6                  # the plate between the outer bosses, y -1.6 .. 5.6
     wy0, wy1 = WINDOW_WALL_Y
     fill = [C.box((57.2, wy0, FRONT_TOP - 0.1), (58.8, y_lo, FILL_TOP)), C.box((57.2, y_hi, FRONT_TOP - 0.1), (58.8, wy1, FILL_TOP)),
-            C.box((58.6, y_lo, nz1 - 0.2), (61.4, y_hi, nz1))]   # the plate's old top rounds (x 58.8-61.2) left a 0.03 mm step 0.15 under the seat: square to the seat
-    # @lore the refit's 0.35 mm slot under the +y rib (x 56.8-57.2, y 11.5-11.85, z 230-244) stays: filling it took its 0.11 mm2 ceiling and 10 mm2 of sub-line gap, but the FEM load patch (case-side hole faces) lost the slot's R 0.4 round, 528 -> 477 mm2, and heavy PAHT-CF read 1.24 instead of 1.25
+            C.box((58.6, y_lo, nz1 - 0.2), (61.4, y_hi, nz1)),   # the plate's old top rounds (x 58.8-61.2) left a 0.03 mm step 0.15 under the seat: square to the seat
+            C.box((RIB_X[0], 11.5, 230.0), (57.2, wy1, RIB_Z[0]))]   # the refit's 0.40 x 0.35 mm slot under the +y rib (sub-line gap 9.5 -> 0.8 mm2, its 0.11 mm2 ceiling face)
+    # @lore filling the +y rib slot reads FEM heavy PAHT-CF 1.24 instead of 1.25 only because the load patch took the slot's R 0.4 round for a case hole face (528 -> 477 mm2); the hot spot (58.8, -1.5, 251.6) is 10 mm away and its peak drops 353 -> 281 MPa (rv3-24r9hj-slotfill)
     P = C.fuse(P, *fill)
     trim = [C.box((56.6, wy0, FILL_TOP), (61.0, y_lo, nz0)), C.box((56.6, y_hi, FILL_TOP), (61.0, wy1, nz0)),   # tongues above the fill, below the key windows
             C.box((56.6, wy0, nz0), (61.0, y_lo, nz1)), C.box((56.6, y_hi, nz0), (61.0, wy1, nz1)),             # tips of the plate ends beside the notches, to the wall (a 0.19 mm column stood in the wall's corner round)
