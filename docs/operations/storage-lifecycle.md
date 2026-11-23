@@ -118,7 +118,16 @@ Without it, a new computer cannot reach anything offloaded after the previous ba
 Owner decision (2026-11-23): delete all of tier 1 and prune all of tier 2 locally, remove the
 156,815 dangling symlinks and the folders left empty; keep the hold tier until each folder is
 confirmed as derived; keep the whole bucket (the five perception clips are current state).
-Re-measure right before deleting and run `rebuild_chain.py --dry-run` afterwards. The generator cache's own GC
+Re-measure right before deleting and run `rebuild_chain.py --dry-run` afterwards.
+
+Done 2026-11-23 on a fresh measurement (same numbers): `artifacts/` went from 111,617 files and
+229,013 symlinks (7.9 GB on disk) to 25,323 files and 31,785 symlinks (4.1 GB). Afterwards
+`rebuild_chain.py --dry-run` reports 0 declared inputs missing, and every file kept as build,
+code, current dashboard or hold is present at its measured size. One slip to avoid next time:
+a file directly in a study folder (`artifacts/X/file`) was keyed by the folder itself, which
+removed seven study folders whole. Their kept files (33,644) were copied back from a worktree's
+copy-on-write clone of `artifacts/` and checked. The `.artifact-store` objects that only deleted
+symlinks reached are not collected yet. The generator cache's own GC
 covers only its cache store; this covers `artifacts/` outside it and the private bucket.
 
 How "what reads it" was measured, per file under `artifacts/` (paths resolved through
