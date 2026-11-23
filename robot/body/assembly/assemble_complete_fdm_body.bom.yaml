@@ -1646,7 +1646,7 @@ assembly:
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
       of 1 screw(s) joining it to placed parts (compute_M2p5x25), head to tip when the part carries the head, else reversed; moved after s026
       (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 136.949 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate
-      15.5 mm out, 70.32 mm3); moved after s016 (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 2.231 mm3); direction
+      15.5 mm out, 70.32 mm3); direction
       searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 56.5 -> 50.5 mm out, seat released True -> True, max overlap 199.7 -> 229.1
       mm3'
   - id: neck_head:p024

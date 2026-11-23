@@ -1487,7 +1487,8 @@ assembly:
   subassemblies:
   - name: neck_head_bench
     doc: 'Head root joint on the bench (T-9wjdqc), before anything goes on the neck: the 2 brass M3 x 4 heat-set inserts are pressed into the
-      neck pitch-to-head cradle''s tongue from its front face (cradle alone, the iron''s path free), the head carrier (its camera / mic inserts
+      neck pitch-to-head cradle''s tongue from its front face (cradle alone, the iron''s path free; back the tongue with a flat block of 8 mm
+      or less, a 10 mm block meets the bridge; trim the melt ridge on the rear face flush, it is the carrier''s seat), the head carrier (its camera / mic inserts
       set on the bench before) is lowered onto the cradle between the tongue and the bridge, and the 2 ISO 7380-1 M3x6 are driven from the
       carrier''s rear face (hex key 2). The pair then goes onto the pitch case as one part (neck_head:p007).'
     base:

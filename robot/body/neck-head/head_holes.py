@@ -408,7 +408,8 @@ def root_insert() -> dict:
 def root_plans(sites: list, plate_rear: float, tongue_rear: float) -> list[dict]:
     """The 2 neck-root screws (T-9wjdqc): ISO 7380-1 M3 head on the carrier's rear face (plate_rear), through the carrier into the brass M3
     heat-set insert that fills the cradle tongue from its rear face (tongue_rear) to its front face; the smallest standard length that reaches
-    the 1 d reference with its point inside the insert (screw_plan.choose_length)."""
+    the 1 d reference with its full thread ending inside the insert (screw_plan.choose_length; the 0.5 mm point may stand past the tongue's
+    front face, nothing is there)."""
     import screw_plan as SP
     st = _standards()
     spec = POSTS["neck_root"]
