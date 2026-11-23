@@ -50,6 +50,24 @@ class Relations:
             self.claims = {}
         self._src, self._owner, self._mirror, self._jm, self._kd = {}, {}, None, None, {}
 
+    @classmethod
+    def from_parts(cls, parts):
+        """What each part is, from the definitions and the role table only, for callers that hold parts but no Body
+        (robot/body/bom/build.py's print-setup context): kind / printed / hardware answers; the geometry relations
+        (sleeve owners, mirrors) need a Body and are not available here."""
+        self = cls.__new__(cls)
+        self.body = None
+        self.raw = {p["name"]: p for p in parts} if isinstance(parts, list) else dict(parts)
+        self.joints = {}
+        try:
+            sys.path.insert(0, str(ROOT / "robot/body/bom"))
+            import definitions as DEF
+            self.claims = DEF.load().claims(list(self.raw))
+        except Exception:  # noqa: BLE001
+            self.claims = {}
+        self._src, self._owner, self._mirror, self._jm, self._kd = {}, {}, None, None, {}
+        return self
+
     # ------------------------------------------------------------------------------------------ what a part is
     def role(self, n):
         return (self.raw.get(n) or {}).get("role")
