@@ -100,6 +100,8 @@ def rebuild(connector: str, man: dict) -> None:
               mass_kg=round(sum(s["mass_g"] for s in slv) / 1000.0, 6))
     if connector == "head_sensor_compute_carrier":
         carrier_sleeve_entry(es, allm)
+    elif connector == "neck_pitch_to_head_cradle":
+        cradle_sleeve_entry(es, allm)
     print(f"{connector}: {fam} volume {sol.volume:.1f} mm3, {len(slv)} sleeves of {slv[0]['length_mm']} .. {slv[-1]['length_mm']} mm")
 
 
@@ -129,6 +131,8 @@ def apply(man: dict) -> list[str]:
                 _entry(man, ename)["volume_mm3"] = round(abs(float(m.volume)), 2)
             if conn == "head_sensor_compute_carrier" and ename.endswith("_steel_sleeves"):
                 carrier_sleeve_entry(_entry(man, ename), m)
+            elif conn == "neck_pitch_to_head_cradle" and ename.endswith("_steel_sleeves"):
+                cradle_sleeve_entry(_entry(man, ename), m)
         built.append(conn)
         log.append(f"{name}: rebuilt neck connector + sleeves (neck_parts.py)")
     if built:
@@ -161,21 +165,21 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
 
 def head_screws(man: dict) -> list[dict]:
     """The head carrier's 4 compute, 8 camera, 1 mic and 2 neck-root screws generated from the supplier spacers / nuts / shims, the catalogue
-    inserts and the connector specs (head_holes.py, measured on the shell-pass manifest), with the ISO 7092 washers of the compute posts and the
-    ISO 4032 nuts of the neck root; the legacy screws they replace are dropped, and so are the camera standoffs and washers, the mic shims and the
+    inserts and the connector specs (head_holes.py, measured on the shell-pass manifest), with the ISO 7092 washers of the compute posts (the
+    neck-root screws end in the cradle tongue's heat-set inserts, T-9wjdqc; the ISO 4032 nuts before them are dropped); the legacy screws they replace are dropped, and so are the camera standoffs and washers, the mic shims and the
     compute spacers a printed column replaces (T-5bqc3m)."""
     import re
     import head_holes as HH
     st4 = C.stage_interface_specs()["stage4_head_sensor_compute_carrier"]
     s3 = C.stage_interface_specs()["stage3_neck_pitch_to_head_cradle"]["load"]
-    cradle_front = float(s3["centres"][0][1] + s3["normals"][0][1] * s3["sleeve_len"])      # the cradle tongue's front face (its sleeves' end)
+    tongue_rear = float(s3["centres"][0][1])        # the cradle tongue's rear face: the heat-set inserts' screw end (T-9wjdqc)
     rear = HH.plate_faces()[1]
     comp = HH.compute_posts()
-    root = HH.root_plans(st4["support"]["centres"], rear, cradle_front)
+    root = HH.root_plans(st4["support"]["centres"], rear, tongue_rear)
     plans = HH.screw_plans() + root
     drop = {n for g in HH.POSTS.values() if g is not HH.POSTS["compute"] for n in g.get("spacers", []) + g.get("washers", []) + g.get("drop", [])}
     drop |= {r["spacer"] for r in comp if r["kind"] == "column"}
-    extra = list(HH.POSTS["compute"]["washer"]["names"]) + list(HH.POSTS["neck_root"]["nuts"])
+    extra = list(HH.POSTS["compute"]["washer"]["names"]) + list(HH.POSTS["neck_root"].get("legacy", []))
     names = {p["name"] for p in plans} | {n for g in HH.POSTS.values() for n in g.get("legacy_screws", [])} | drop | set(extra)
     # an earlier generated length of the same post: B0410_camera_M2_0 is stored as B0410_camera_M2x<L>_0
     stale = []
@@ -192,10 +196,6 @@ def head_screws(man: dict) -> list[dict]:
         base = np.array(r["centre"], float); base[1] = r["floor"]
         _add_hardware(man, r["washer"], _ring(base, -ax, float(w["d1"]) / 2, float(w["d2"]) / 2, float(w["h"])), "washer",
                       f"{w['standard']} {w['thread']} small washer d1 {w['d1']} / d2 {w['d2']} x {w['h']} under {r['plan']['name']} (T-5bqc3m)")
-    for pl in root:             # the nut on the cradle's front face, flats facing the neighbouring nut
-        n = pl["nut"]
-        _add_hardware(man, n["name"], _hex(n["near"], n["axis"], n["s"], n["m"], n["flats_normal"]), "nut",
-                      f"ISO 4032 {pl['thread']} nut s {n['s']:g} x m {n['m']:g} on the neck cradle's front face for {pl['name']} (T-5bqc3m)")
     return plans
 
 
@@ -205,29 +205,6 @@ def _ring(base, axis, ri: float, ro: float, h: float):
     m = trimesh.creation.annulus(r_min=ri, r_max=ro, height=h, sections=64)
     m.apply_translation([0, 0, h / 2])
     return _to_axis(m, base, axis)
-
-
-def _hex(base, axis, s: float, m_h: float, flats_normal):
-    """Hex nut envelope (across flats s, height m) from `base` along `axis`; one pair of flats faces `flats_normal`."""
-    import trimesh
-    e = s / np.cos(np.pi / 6)
-    ang = np.arange(6) * np.pi / 3 + np.pi / 6                # flats normal to local +y / -y ... rotated below
-    poly = np.c_[np.cos(ang), np.sin(ang)] * e / 2            # vertices at 30, 90, ... deg: flats normal to local x
-    from shapely.geometry import Polygon as SPoly
-    from shapely.geometry import Point
-    ring = SPoly(poly).difference(Point(0, 0).buffer(float(_thread_d(s)) / 2, 32))
-    m = trimesh.creation.extrude_polygon(ring, m_h)
-    a = np.asarray(axis, float); a /= np.linalg.norm(a)
-    fn = np.asarray(flats_normal, float); fn = fn - np.dot(fn, a) * a; fn /= np.linalg.norm(fn)
-    T = np.eye(4); T[:3, :3] = np.c_[fn, np.cross(a, fn), a]; T[:3, 3] = np.asarray(base, float)
-    m.apply_transform(T)
-    if m.volume < 0:
-        m.invert()
-    return m
-
-
-def _thread_d(s: float) -> float:
-    return {4.0: 2.0, 5.0: 2.5, 5.5: 3.0, 7.0: 4.0}.get(round(s, 1), 0.55 * s)
 
 
 def _to_axis(m, base, axis):
@@ -274,6 +251,22 @@ def carrier_sleeve_entry(e: dict, mesh) -> None:
                       f"{2 * ins['ro']:g} mm hole, catalogue knurl OD {ins['catalogue_od']:g}){steel}",
              mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass)" + (", other x 7.85 g/cm3" if n_steel else ""),
              neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_brass} brass heat-set inserts, no steel sleeves (T-5bqc3m)")
+
+
+def cradle_sleeve_entry(e: dict, mesh) -> None:
+    """Material and mass of the cradle's sleeve part (T-9wjdqc): the 4 M2 304 steel sleeves of the pitch case screws and the 2 brass M3 heat-set
+    inserts of the carrier tongue (a component whose extents are the insert's length and hole diameter, 0.15 mm)."""
+    import head_holes as HH
+    ins = HH.root_insert()
+    mass, n_brass, n_steel = 0.0, 0, 0
+    for c in mesh.split(only_watertight=False):
+        brass = bool(np.allclose(np.sort(c.extents), np.sort([float(ins["length"]), 2 * float(ins["ro"]), 2 * float(ins["ro"])]), atol=0.15))
+        mass += abs(float(c.volume)) * (8.5e-6 if brass else STEEL_G_MM3 * 1e-3)
+        n_brass += brass; n_steel += not brass
+    e.update(material=f"{n_steel} x 304 stainless steel compression sleeves (7.85 g/cm3, pitch case M2 screws) + {n_brass} x brass {ins['thread']} x "
+                      f"{ins['length']:g} knurled heat-set inserts (8.5 g/cm3; modelled at the {2 * ins['ro']:g} mm hole, carrier tongue, T-9wjdqc)",
+             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass), sleeves x 7.85 g/cm3",
+             neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_steel} steel sleeves, {n_brass} brass heat-set inserts")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:

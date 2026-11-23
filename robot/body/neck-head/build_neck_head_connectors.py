@@ -399,31 +399,55 @@ def build_stage2(family: str) -> Solid:
 # ==============================================================================
 # STAGE 3: `stage3_neck_pitch_to_head_cradle` (on `head`)
 # ==============================================================================
+# @lore Stage 3 tongue (T-9wjdqc): the 2 brass M3 x 4 heat-set inserts fill the tongue from its rear face (the carrier's seat, y -12.92) to
+# its front face, so the tongue is exactly one insert long; its -x edge at -5.0 keeps 2.15 mm round the 4.0 mm holes at x -0.85 (the front
+# corner there is rounded 0.8, not 1.6: a 1.6 corner left 0.55 mm at the front lip); its top at 423.0 keeps 2.0 mm over the upper hole
+# (z 419): the carrier is all behind y -12.9 there and the bridge behind the tongue stays at 421.2 under the carrier plate (z >= 422).
+TONGUE_X_MIN, TONGUE_TOP, TONGUE_CORNER_R = -5.0, 423.0, 0.8
+
+
+def _fillet_vertex(face, xy, r: float):
+    """Round one vertex of a planar face (the corner at xy, within 0.2 mm) with radius r."""
+    from build123d import fillet
+    v = [v for v in face.vertices() if (v.X - xy[0]) ** 2 + (v.Y - xy[1]) ** 2 < 0.04]
+    return fillet(v, r).faces()[0] if v else face
+
+
 def build_stage3(family: str) -> Solid:
     """Build Stage 3 (`neck_pitch_to_head_cradle`): connects the 4 rear M2 tapped holes on
     `upper__neck_pitch_case_XM335` (`X in {-10.75, -5.25}, Y = 14.5..17.5, Z in {391.5, 401.0}`)
-    around the `+X` right side (`X in [3.2, 8.8]`) to the Stage 4 carrier tongue
-    (`2x M3` at `X = 0.0, Y in [-15.9, -12.9], Z in {413.0, 419.0}`).
+    around the `+X` right side (`X in [3.2, 8.8]`) to the Stage 4 carrier tongue: 2 brass M3 heat-set inserts in the cradle's front
+    tongue (head_carrier_posts.json neck_root: x -0.85, z 413 / 419; tongue y from -12.92 forward by the insert's length; T-9wjdqc).
     """
-    # 1. U-profile in XY plane extruded across Z in [388.5, 421.2], then sculpted in YZ and XZ
+    # 1. U-profile in XY plane (rear plate + right bridge) extruded across Z in [388.5, 421.2], the front tongue on it up to TONGUE_TOP,
+    # then sculpted in YZ and XZ
     y_case = _seat("neck_pitch_to_head_cradle", "pitch_case_rear")   # pitch case rear face (definition); sleeves are 2.5 mm long
+    g3 = stage_interface_specs()["stage3_neck_pitch_to_head_cradle"]["load"]
+    y_rear = float(g3["centres"][0][1])                               # tongue rear face (the carrier's seat)
+    y_front = y_rear - float(g3["sleeve_len"])                        # tongue front face: the inserts are flush with both faces
     pts_u = [
         (-13.8, y_case + 2.5),
         (8.8, y_case + 2.5),
-        (8.8, -15.9),
-        (-4.2, -15.9),
-        (-4.2, -12.92),
-        (3.25, -12.92),
+        (8.8, y_rear),
+        (3.25, y_rear),
         (3.25, y_case),
         (-13.8, y_case),
     ]
-    f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4, skip_xy=[(3.25, -12.92), (-4.2, -12.92)])
-    s_u_full = extrude_xy_to_z(f_u, 388.5, 421.2)
+    # the inner corner at the pitch case's rear edge stays sharp: its 2.4 mm fillet stood 7.63 mm3 inside the case (rv4-5bqc3m)
+    f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4, skip_xy=[(8.8, y_rear), (3.25, y_rear), (3.25, y_case)])
+    s_u = extrude_xy_to_z(f_u, 388.5, 421.2)
+    pts_t = [(TONGUE_X_MIN, y_front), (8.8, y_front), (8.8, y_rear), (TONGUE_X_MIN, y_rear)]
+    f_t = fillet_2d_face(Polygon(*pts_t, align=None), r_default=1.6, skip_xy=[(8.8, y_rear), (TONGUE_X_MIN, y_rear), (TONGUE_X_MIN, y_front)])
+    f_t = _fillet_vertex(f_t, (TONGUE_X_MIN, y_front), TONGUE_CORNER_R)
+    s_t = extrude_xy_to_z(f_t, 388.5, TONGUE_TOP)
+    s_u_full = Solid((s_u + s_t).wrapped)
 
     # Trim front carrier tongue (Y < -4.5) below Z = 408.8 so the front below Z = 408.8 stays completely open
     cut_front_low = Pos(-6.0, -11.5, 398.0) * Box(24.0, 14.0, 21.6)  # Y in [-18.5, -4.5], Z in [387.2, 408.8]
-    # Also taper rear plate (Y > 14.0, X < 2.5) above Z = 412.5 so it cleanly frames the 4 rear M2 holes (Z=391.5, 401.0)
-    cut_rear_high = Pos(-6.5, 16.0, 417.5) * Box(18.0, 5.0, 9.0)     # X in [-15.5, 2.5], Z in [413.0, 422.0]
+    # Also cut the rear plate (Y > 13.5, X < 2.5) above Z = 409.0, 6.25 mm over the upper M2 sleeves (Z 401.0 + 1.75): it frames the 4 rear
+    # M2 holes, and the bench driver of the head root screws (z 413 / 419, along +y through the U) passes over it (at 413.0 the plate stood
+    # in the lower screw's blade path 24.3 mm from the head, 8.6 mm3, nr-v1-asm; T-9wjdqc)
+    cut_rear_high = Pos(-6.5, 16.0, 416.5) * Box(18.0, 5.0, 15.0)    # X in [-15.5, 2.5], Z in [409.0, 424.0]
 
     s_body = Solid((s_u_full - cut_front_low - cut_rear_high).wrapped)
 
@@ -436,12 +460,16 @@ def build_stage3(family: str) -> Solid:
         s_body = Solid((s_body - c1 - c2).wrapped)
     else:
         # Family 2 (`topopt`): Organic SIMP diagonal oval pocket + lower front taper
-        w_oval = Pos(1.5, 405.5) * SlotOverall(15.5, 9.2, rotation=28)
+        # the oval's front end at y -3.18, 1.32 mm behind the front cut's face at y -4.5 (at y 1.5 it crossed that face and left
+        # 0.006 / 0.064 mm walls at z 407.35 / 400.69, rv4-5bqc3m)
+        w_oval = Pos(4.2, 405.5) * SlotOverall(15.5, 9.2, rotation=28)
         c_oval = extrude_xy_to_x(w_oval, 2.5, 9.5)
+        # the taper (same slope) runs on to the tongue's front face, flat at the tongue's underside (408.8)
         pts_taper = [
-            (-16.5, 388.0),
+            (-18.5, 388.0),
             (0.5, 388.0),
             (-16.5, 408.8),
+            (-18.5, 408.8),
         ]
         f_tap = Polygon(*pts_taper, align=None)
         c_tap = extrude_xy_to_x(f_tap, 2.5, 9.5)
@@ -528,7 +556,11 @@ def build_stage4(family: str) -> Solid:
     rib1 = extrude_xy_to_y(fillet_2d_face(Pos(-0.7, 442.0) * Rectangle(5.6, 52.0), r_default=1.5), y_rear, y_rear + 1.25)
     rib2 = extrude_xy_to_y(fillet_2d_face(Pos(-1.5, 425.0) * Rectangle(21.0, 3.6), r_default=1.2), y_rear, y_rear + 1.25)
     rib3 = extrude_xy_to_y(fillet_2d_face(Pos(-1.0, 442.5) * Rectangle(60.0, 4.4), r_default=1.2), y_rear, y_rear + 1.25)
-    rib4 = extrude_xy_to_y(fillet_2d_face(Pos(0.0, 471.5) * Rectangle(62.0, 4.2), r_default=1.2), y_rear, y_rear + 1.25)
+    # rib4's +x end stops at the press window of the camera insert at (35, 472.17) (x 35 - press_clear_mm = 30.1): ending at 31 it ran 0.9 mm
+    # into the window, and how the bevel met the window's cut face there changed with unrelated edits (a 0.005 mm one-layer sliver and
+    # 0.04 mm3 in the iron's path in nr-v1-a; T-9wjdqc)
+    x4 = 35.0 - float(HH.POSTS["camera"]["press_clear_mm"])
+    rib4 = extrude_xy_to_y(fillet_2d_face(Pos((x4 - 31.0) / 2, 471.5) * Rectangle(x4 + 31.0, 4.2), r_default=1.2), y_rear, y_rear + 1.25)
 
     # 3. Radial head-skin mounting lugs at X in [-45.5, -43.2] and [43.2, 45.5], Y in [-17.2, -11.4], Z in [447.2, 454.8]
     f_lug = fillet_2d_face(
