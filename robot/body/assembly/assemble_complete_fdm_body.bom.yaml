@@ -715,8 +715,8 @@ parts:
   - compute_FF4_spacer_2
   - compute_FF4_spacer_3
   kind: hardware
-  line: hw:M2.5-F-F-standoff-6.0-2.7-x-4.0
-  name: M2.5 F-F standoff 6.0/2.7 x 4.0
+  line: hw:M2.5-round-spacer-6.0-2.7-x-4.0
+  name: Round spacer for M2.5, unthreaded, OD 6.0 / ID 2.7 x 4.0
   make_buy: buy
   quantity: 2
   spec:
@@ -725,12 +725,15 @@ parts:
     outer_dia_mm: 6.0
     inner_dia_mm: 2.7
     length_mm: 4.0
-    standard: hex standoff F-F
-    label: M2.5 F-F standoff 6.0/2.7 x 4.0
+    standard: catalogue unthreaded round spacer
+    label: M2.5 round spacer 6.0/2.7 x 4.0, unthreaded
   supplier: unknown
   part_number: unknown
-  notes: 'Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown). Spacers 0 / 1 (the
-    fan-bridge posts) are printed columns of the head carrier since T-5bqc3m K2 (robot/body/neck-head/head_carrier_posts.json compute.column).'
+  notes: 'Between the carrier''s rear face and ROCK4D at compute posts 2 / 3: the ISO 4762 M2.5x12 passes through its plain 2.7 mm bore into
+    compute_rear_nut (it was listed as an F-F standoff, which has a thread the screw does not use; T-9wjdqc). Size from the model (round, OD
+    6.0, bore 2.7, length 4.0, measured on the spacer mesh 2026-11-23); unthreaded round spacers for M2.5 of this size are a catalogue item
+    (nylon or aluminium), no supplier in the repo (unknown). Spacers 0 / 1 (the fan-bridge posts) are printed columns of the head carrier since
+    T-5bqc3m K2 (robot/body/neck-head/head_carrier_posts.json compute.column).'
   section: Neck / head
 - match:
   - upper__L_yaw_case_PA2x7_3
@@ -1487,7 +1490,7 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - neck_head:s008
+    - neck_head:p006
     status: seeded
     derived: 'graph order, fastened distance 18 from what is present (via SameSky_4010_fan); direction: toward the centroid of placed neighbours
       (SameSky_4010_fan, fan_lead_guide_r16), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact
@@ -1566,21 +1569,6 @@ assembly:
     derived: 'graph order, fastened distance 28 from what is present (via fan_yellow_formed_lead); direction: toward the centroid of placed neighbours
       (fan_yellow_formed_lead), snapped to the nearest axis; moved before original_profile_head_skin_v23 (it touched original_profile_head_skin_v23
       22.5 mm out, 5.237 mm3)'
-  - id: neck_head:s016
-    subassembly: neck_head
-    screw:
-    - head_root_M3x8_0
-    - head_root_M3x8_1
-    with:
-    - head_root_M3_nut_0
-    - head_root_M3_nut_1
-    direction: screw axis
-    after:
-    - neck_head:p015
-    status: designer
-    derived: 'T-5bqc3m K2: 2 ISO 7380-1 M3x8 from the carrier''s rear face (hex key 2) through the carrier and the cradle tongue into the 2 ISO
-      4032 nuts held on the tongue''s front face (see build_neck_head_connectors.bom.yaml defects head-root-nut-holding); replaces the M3x6
-      countersunk models.'
   - id: neck_head:p017
     subassembly: neck_head
     part: Radian_INL25001_bare
@@ -1589,7 +1577,7 @@ assembly:
     - 1.0
     - 0.0
     after:
-    - neck_head:s016
+    - neck_head:s008
     status: seeded
     derived: 'graph order, fastened distance 17 from what is present (via ROCK4D_official); direction: toward the centroid of placed neighbours
       (ROCK4D_official), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, 1.0]): path contact 60.0 -> 26.5 mm
@@ -1607,7 +1595,7 @@ assembly:
     - neck_head:p018
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
+      of 1 screw(s) joining it to placed parts (compute_M2p5x25), head to tip when the part carries the head, else reversed; direction searched
       (six axes vs the seeded [0.0, -1.0, -0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.1 -> 2.1 mm3'
   - id: neck_head:p020
     subassembly: neck_head
@@ -1620,7 +1608,7 @@ assembly:
     - neck_head:p019
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; direction searched
+      of 1 screw(s) joining it to placed parts (compute_M2p5x25), head to tip when the part carries the head, else reversed; direction searched
       (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 16.5 -> 0.0 mm out, seat released True -> True, max overlap 45.0 -> 1.8 mm3; direction
       searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 26.5 -> 0.0 mm out, seat released True -> True, max overlap 99.7 -> 0.0
       mm3'
@@ -1644,7 +1632,7 @@ assembly:
     - neck_head:p021
     status: designer
     derived: 'T-5bqc3m: one ISO 14580 M2 cheese head (T6 hexalobular driver along +x, ROCK4D not yet on) from the board side through the PCB
-      and the wing floor into the heat-set insert pressed into the wing boss on the bench before neck_head:p015.'
+      and the wing floor into the heat-set insert pressed into the wing boss on the bench before neck_head_bench:p001.'
   - id: neck_head:p023
     subassembly: neck_head
     part: heatsink_nonpreloaded_guard
@@ -1656,7 +1644,7 @@ assembly:
     - neck_head:s022
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 1 screw(s) joining it to placed parts (compute_M2p5_CS30), head to tip when the part carries the head, else reversed; moved after s026
+      of 1 screw(s) joining it to placed parts (compute_M2p5x25), head to tip when the part carries the head, else reversed; moved after s026
       (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 136.949 mm3); moved before fan_bridge_plate (it touched fan_bridge_plate
       15.5 mm out, 70.32 mm3); moved after s016 (its part heatsink_nonpreloaded_guard blocked that screw''s driver path, 2.231 mm3); direction
       searched (six axes vs the seeded [0.0, -1.0, 0.0]): path contact 56.5 -> 50.5 mm out, seat released True -> True, max overlap 199.7 -> 229.1
@@ -1685,7 +1673,7 @@ assembly:
     - neck_head:s026
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 4 screw(s) joining it to placed parts (compute_M2p5_CS10, compute_M2p5_CS30), head to tip when the part carries the head, else reversed;
+      of 4 screw(s) joining it to placed parts (compute_M2p5x12, compute_M2p5x25), head to tip when the part carries the head, else reversed;
       direction searched (six axes vs the seeded [-0.0, -1.0, -0.0]): path contact 17.5 -> 0.0 mm out, seat released True -> True, max overlap
       35.7 -> 0.0 mm3; moved after s028 (its part ROCK4D_official blocked that screw''s driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official
       blocked that screw''s driver path, 11.298 mm3); moved before fan_lead_guide_r16 (it touched fan_lead_guide_r16 60.0 mm out, 789.922 mm3);

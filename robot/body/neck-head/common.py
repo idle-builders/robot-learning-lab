@@ -559,13 +559,13 @@ def stage_interface_specs() -> dict:
             `(0, -1, 372.5)`, `(0, 11, 372.5)`, `(-6, 5, 372.5)`, `(6, 5, 372.5)`, normal `+Z`, `h = 3.0 mm`)
           * Load: all 4x M2 holes on `upper__neck_pitch_front_horn` (`PCD 12.0 mm` at `(-21, 5, 414.0)`:
             `(-21, 5, 408)`, `(-21, 5, 420)`, `(-21, -1, 414)`, `(-21, 11, 414)`, normal `-X`, `h = 3.0 mm`)
-      - Stage 3 (`stage3_neck_pitch_to_head_cradle`, on `head` — 6 sleeves: 4x M2 pitch case + 2x M3 head carrier):
+      - Stage 3 (`stage3_neck_pitch_to_head_cradle`, on `head` — 4 sleeves + 2 inserts: 4x M2 pitch case sleeves + 2x M3 heat-set inserts):
           * Support: 4x M2 rear taps on `upper__neck_pitch_case_XM335`:
             `(-10.75, 14.5, 391.5)`, `(-10.75, 14.5, 401.0)`, `(-5.25, 14.5, 391.5)`, `(-5.25, 14.5, 401.0)` (normal `+Y`, `h = 3.0 mm`)
-          * Load: 2x M3 head carrier tongue interfaces:
-            `(0.0, -12.9, 413.0)`, `(0.0, -12.9, 419.0)` (normal `-Y`, `h = 3.0 mm`)
+          * Load: 2x brass M3 x 4 heat-set inserts in the tongue (head_carrier_posts.json neck_root: x -0.85, z 413 / 419, from the
+            tongue's rear face y -12.92 to its front face, normal `-Y`; T-9wjdqc)
       - Stage 4 (`stage4_head_sensor_compute_carrier`, on `head` — 9 brass M2 heat-set inserts: 8 cameras + 1 mic; T-5bqc3m):
-          * Support: 2x M3 neck carrier root interfaces (`(0.0, -12.9, 413.0)`, `(0.0, -12.9, 419.0)`, normal `+Y`): plain holes, no sleeve
+          * Support: 2x M3 neck carrier root holes (head_carrier_posts.json neck_root sites, normal `+Y`): plain holes, no sleeve
           * Load: 4x M2.5 ROCK4D compute posts (measured, head_holes.compute_posts), normal `+Y`: plain holes, no sleeve
             + 4x M2 B0410 camera posts (`(-36.0, -12.9, 441.0)`, `(-36.0, -12.9, 471.0)`, `(-6.0, -12.9, 441.0)`, `(-6.0, -12.9, 471.0)`, normal `+Y`, `h = 1.5 mm`)
             + 4x M2 B0196 camera posts (`(7.0, -12.9, 444.1662)`, `(7.0, -12.9, 472.1662)`, `(35.0, -12.9, 444.1662)`, `(35.0, -12.9, 472.1662)`, normal `+Y`, `h = 1.5 mm`)
@@ -601,21 +601,20 @@ def stage_interface_specs() -> dict:
     s3_sup_pts = _pts("neck_pitch_to_head_cradle", "pitch_case_rear")
     s3_sup_norms = _norms("neck_pitch_to_head_cradle", "pitch_case_rear")
 
-    s3_load_pts = [
-        np.array([0.0, -12.9, 413.0]),
-        np.array([0.0, -12.9, 419.0]),
-    ]
-    s3_load_norms = [np.array([0.0, -1.0, 0.0])] * 2
+    # neck root (T-9wjdqc): one pair of axes for the carrier holes and the cradle tongue's M3 heat-set inserts (head_carrier_posts.json
+    # neck_root); the inserts sit flush in the tongue from its rear face (the carrier's seat) to its front face
+    import head_holes as HH
+    nr = HH.POSTS["neck_root"]
+    ins3 = HH.root_insert()
+    y_tongue = float(nr["tongue_rear_y_mm"])
+    s3_load_pts = [np.array([float(x), y_tongue, float(z)]) for x, z in nr["sites_xz_mm"]]
+    s3_load_norms = [np.array([0.0, -1.0, 0.0])] * len(s3_load_pts)
 
     # Stage 4 (`head_sensor_compute_carrier`)
-    s4_sup_pts = [
-        np.array([0.0, -12.9, 413.0]),
-        np.array([0.0, -12.9, 419.0]),
-    ]
-    s4_sup_norms = [np.array([0.0, 1.0, 0.0])] * 2
+    s4_sup_pts = [np.array([float(x), -12.9, float(z)]) for x, z in nr["sites_xz_mm"]]
+    s4_sup_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_sup_pts)
 
     # compute, camera posts: bores of the supplier spacers / nuts (head_holes.py, T-5bqc3m)
-    import head_holes as HH
     hs = HH.sites()
     s4_load_pts = hs["compute"]
     s4_cam_pts = hs["camera"]
@@ -691,14 +690,15 @@ def stage_interface_specs() -> dict:
                 "sleeve_len": 2.5,
                 "patch_r": 2.2,
             },
-            "load": {
+            "load": {       # 2 brass M3 heat-set inserts (T-9wjdqc), pressed from the tongue's front face, flush with both faces
                 "name": "head_carrier_tongue",
                 "normal": np.array([0.0, -1.0, 0.0]),
                 "normals": s3_load_norms,
                 "centres": s3_load_pts,
-                "sleeve_ro": 2.15,
-                "sleeve_ri": 1.64,
-                "sleeve_len": 3.0,
+                "sleeve_ro": float(ins3["ro"]),
+                "sleeve_ri": float(ins3["ri"]),
+                "sleeve_len": float(ins3["length"]),
+                "threaded": True,
                 "patch_r": 2.6,
             },
             "aux_bores": [],
@@ -776,8 +776,9 @@ def stage_interface_specs() -> dict:
 
 
 def build_stage_sleeves(stage_key: str) -> list[dict]:
-    """Build the pressed-in parts of `stage_key`: 304 stainless steel compression sleeves (stages 1-3) and the brass M2 heat-set inserts
-    (stage 4 camera / mic posts, T-5bqc3m); groups marked no_sleeve (stage 4 neck root, compute posts) have none."""
+    """Build the pressed-in parts of `stage_key`: 304 stainless steel compression sleeves (stages 1-3) and the brass heat-set inserts
+    (stage 4 camera / mic posts M2, T-5bqc3m; stage 3 carrier tongue M3, T-9wjdqc); groups marked no_sleeve (stage 4 neck root, compute posts)
+    have none."""
     from build123d import Plane, Solid
 
     specs = stage_interface_specs()[stage_key]
@@ -801,7 +802,8 @@ def build_stage_sleeves(stage_key: str) -> list[dict]:
                 slv = Solid((slv - cone).wrapped)
             name = f"{STAGE_PART_BASENAMES[stage_key]}__{grp['name']}_sleeve_{idx + 1}"
             vol = float(slv.volume)
-            mass_g = vol * (MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3)
+            rho = 8.5 if grp.get("threaded") else MATERIALS["Steel_Sleeve"]["density_g_cm3"]     # brass heat-set insert / 304 sleeve
+            mass_g = vol * (rho * 1e-3)
             out.append({
                 "name": name,
                 "stage": stage_key,

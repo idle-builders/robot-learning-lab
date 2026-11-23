@@ -10,7 +10,7 @@ Everything is a measurement in mm; nothing here accepts or rejects.
   threaded_posts(manifest) camera / mic inserts (start, length) and their screw plans
   column_profile(manifest) camera columns: radius bands from the board's components round each post (T-5bqc3m K1)
   compute_posts(manifest) compute posts: plain washer seat or printed column + counterbore, screw length (T-5bqc3m K2)
-  root_plans(sites, ...)  neck-root M3 screws and nuts
+  root_plans(sites, ...)  neck-root M3 screws into the cradle tongue's heat-set inserts (T-9wjdqc)
   screw_plans(manifest)   per screw of the carrier: the plan dict screw_plan.screw_mesh draws
 """
 from __future__ import annotations
@@ -398,29 +398,37 @@ def compute_posts(manifest: Path | None = None) -> list[dict]:
     return out
 
 
-def root_plans(sites: list, plate_rear: float, cradle_front: float) -> list[dict]:
-    """The 2 neck-root screws: ISO 7380-1 M3 head on the carrier's rear face (plate_rear), through the carrier and the cradle tongue into an
-    ISO 4032 M3 nut on the cradle's front face (cradle_front), the smallest standard length whose thread ends engagement_margin_mm past the nut."""
+def root_insert() -> dict:
+    """The cradle tongue's M3 heat-set insert (head_carrier_posts.json neck_root.insert): ro (hole), ri (thread minor), length, thread."""
+    s = dict(POSTS["neck_root"]["insert"])
+    s["ri"] = thread(s["thread"])["minor_dia"] / 2.0
+    return s
+
+
+def root_plans(sites: list, plate_rear: float, tongue_rear: float) -> list[dict]:
+    """The 2 neck-root screws (T-9wjdqc): ISO 7380-1 M3 head on the carrier's rear face (plate_rear), through the carrier into the brass M3
+    heat-set insert that fills the cradle tongue from its rear face (tongue_rear) to its front face; the smallest standard length that reaches
+    the 1 d reference with its point inside the insert (screw_plan.choose_length)."""
     import screw_plan as SP
     st = _standards()
     spec = POSTS["neck_root"]
     h = spec["head"]
     std = head_std(h)
-    nut = st["nut_standards"][spec["nut"]["standard"]][spec["nut"]["thread"]]
-    pt, mgn, m = float(st["point_mm"]), float(spec["engagement_margin_mm"]), float(nut["m"])
+    ins = root_insert()
+    pt, depth = float(st["point_mm"]), float(ins["length"])
+    ref = float(ins["engagement_x_d"]) * float(thread(ins["thread"])["major"])
     out = []
     for i, c in enumerate(sites):
         ax = np.array([0.0, 1.0, 0.0])                     # head side (+y, the carrier's rear)
-        opening = np.array(c, float); opening[1] = cradle_front
-        stack = plate_rear - cradle_front
-        L = float(next(L for L in sorted(std["lengths"]) if L - pt - stack >= m + mgn - 1e-6))
-        pick = SP.choose_length(stack, m, float(nut["reference_engagement_mm"]), [L], pt)
-        pick.update(engagement_mm=round(min(L - pt - stack, m), 3), thread_past_far_face_mm=round(L - pt - stack - m, 3))
+        opening = np.array(c, float); opening[1] = tongue_rear
+        stack = plate_rear - tongue_rear
+        pick = SP.choose_length(stack, depth, ref, [float(L) for L in sorted(std["lengths"])], pt)
+        L = float(pick["length_mm"])
+        pick.update(engagement_mm=round(min(L - pt - stack, depth), 3), tip_past_insert_front_mm=round(L - stack - depth, 3))
         out.append(dict(name=named(spec["screws"][i], h["thread"], L), group="neck_root", thread=h["thread"], thread_label=h["thread"],
-                        head_standard=h["standard"], head_dia_mm=std["dk"], head_height_mm=std["k"], countersunk=False, terminal_material="steel",
-                        opening=opening, axis_out=ax, stack_mm=stack, hole_depth_mm=m, reference_engagement_mm=float(nut["reference_engagement_mm"]),
-                        point_mm=pt, hole_id=f"{spec['nuts'][i]}:thread", owning_link="head", spacer=None, head_gap_mm=0.0,
-                        nut=dict(name=spec["nuts"][i], s=float(nut["s"]), m=m, near=opening.copy(), axis=-ax, flats_normal=spec["nut"]["flats_normal"]),
+                        head_standard=h["standard"], head_dia_mm=std["dk"], head_height_mm=std["k"], countersunk=False, terminal_material="brass",
+                        opening=opening, axis_out=ax, stack_mm=stack, hole_depth_mm=depth, reference_engagement_mm=ref,
+                        point_mm=pt, hole_id=f"root_insert_{i}:thread", owning_link="head", spacer=None, head_gap_mm=0.0,
                         **pick))
     return out
 
