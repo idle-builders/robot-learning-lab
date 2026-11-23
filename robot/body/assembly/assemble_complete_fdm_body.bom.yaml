@@ -344,37 +344,16 @@ parts:
   notes: supplier from robot/electronics/sensing/selection.json (Adafruit ADS7128 ADC/GPIO module, supplier_url adafruit.com).
   section: Torso
 - match:
-  - neck_anchor_M3x16_CSK_1_v21
-  - neck_anchor_M3x16_CSK_3_v21
-  kind: hardware
-  line: hw:M3-x-16-ISO-10642
-  name: M3 x 16 ISO 10642
-  make_buy: buy
-  quantity: 2
-  spec:
-    kind: screw
-    thread: M3
-    family: M
-    length_mm: 16.0
-    standard: ISO 10642
-    head_dia_mm: 6.72
-    head_height_mm: 1.86
-    label: M3 x 16 ISO 10642
-  supplier: unknown
-  part_number: M3 x 16 ISO 10642
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Torso
-- match:
-  - neck_anchor_front_washer_1_v21
-  - neck_anchor_front_washer_3_v21
+  - fan_guide_front_washer
+  - fan_washer_-21_430
+  - fan_washer_-21_462
+  - fan_washer_11_462
   kind: hardware
   line: hw:M3-washer-3.2-6-x-0.5
   name: M3 washer 3.2/6 x 0.5
   make_buy: buy
-  quantity: 2
-  spec: &id005
+  quantity: 4
+  spec:
     kind: washer
     thread: M3
     standard: custom (measured)
@@ -385,42 +364,7 @@ parts:
   supplier: unknown
   part_number: unknown
   notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
-  section: Torso
-- match:
-  - fan_guide_front_washer
-  - fan_washer_-21_430
-  - fan_washer_-21_462
-  - fan_washer_11_462
-  kind: hardware
-  line: hw:M3-washer-3.2-6-x-0.5
-  name: M3 washer 3.2/6 x 0.5
-  make_buy: buy
-  quantity: 4
-  spec: *id005
-  supplier: unknown
-  part_number: unknown
-  notes: Washer size measured off ISO 7089 (hardware.py keeps it as measured); no standard designation, no repo source (unknown).
   section: Neck / head
-- match:
-  - neck_anchor_M3nut_1_v21
-  - neck_anchor_M3nut_3_v21
-  kind: hardware
-  line: hw:M3-hex-nut-ISO-4032
-  name: M3 hex nut ISO 4032
-  make_buy: buy
-  quantity: 2
-  spec: &id006
-    kind: nut
-    thread: M3
-    standard: ISO 4032
-    across_flats_mm: 5.5
-    label: M3 hex nut ISO 4032
-  supplier: unknown
-  part_number: M3 hex nut ISO 4032
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Torso
 - match:
   - R_Shin_carrier_shell_shin_front_1_nut
   - L_Shin_carrier_shell_shin_front_1_nut
@@ -431,7 +375,12 @@ parts:
   name: M3 hex nut ISO 4032
   make_buy: buy
   quantity: 4
-  spec: *id006
+  spec:
+    kind: nut
+    thread: M3
+    standard: ISO 4032
+    across_flats_mm: 5.5
+    label: M3 hex nut ISO 4032
   supplier: unknown
   part_number: M3 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
@@ -1312,30 +1261,6 @@ assembly:
     derived: '4 screw(s) that joins parts never placed (connection graph): placed after the nearest part upper__L_pitch_C047_case; driver path
       vs placed parts; moved after s014 (its part upper__L_pitch_C047_case blocked that screw''s driver path, 139.891 mm3); moved after s023 (its
       part upper__L_pitch_C047_case blocked that screw''s driver path, 140.315 mm3)'
-  - id: torso:s030
-    subassembly: torso
-    screw: neck_anchor_M3x16_CSK_1_v21
-    with:
-    - neck_anchor_M3nut_1_v21
-    - neck_anchor_front_washer_1_v21
-    direction: screw axis
-    after:
-    - torso:s029
-    status: seeded
-    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
-      vs placed parts'
-  - id: torso:s031
-    subassembly: torso
-    screw: neck_anchor_M3x16_CSK_3_v21
-    with:
-    - neck_anchor_M3nut_3_v21
-    - neck_anchor_front_washer_3_v21
-    direction: screw axis
-    after:
-    - torso:s030
-    status: seeded
-    derived: '1 screw(s) that joins parts never placed (connection graph): placed after the nearest part combined__neck_root_cradle; driver path
-      vs placed parts'
   - id: torso:p032
     subassembly: torso
     part: foot_ADC_6494
@@ -1344,7 +1269,7 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - torso:s031
+    - torso:s029
     status: seeded
     derived: 'graph order, fastened distance 2 from what is present (via combined__stage4_rear_imu_adc_carrier); direction: mean screw direction
       of 4 screw(s) joining it to placed parts (ADC_M2x6), head to tip when the part carries the head, else reversed'

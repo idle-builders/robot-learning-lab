@@ -4,7 +4,8 @@
                             connector_screws.json), write the native STEP + NPZ and update their manifest entries
   screws [CONNECTOR...]     generate the screws of the connectors from the defined holes they land in
                             (robot/body/fastening/screw_plan.py, connector_screws.json here) and put them into the
-                            manifest in place of the legacy neck screws and washers (names stay)
+                            manifest in place of the legacy neck screws and washers (names stay); the cradle also gets
+                            its 2 torso anchor screws into the chassis inserts (neck_anchor.json, T-jxshhv)
 
   python3 infra/tools/memguard.py --limit-gb 6 -- .venv/bin/python -B robot/body/neck-head/neck_parts.py connectors neck_yaw_to_pitch_link
 The manifest is robot/design.json body_manifest (an artifact: run this after the manifest is rebuilt). Every number is a
@@ -160,6 +161,51 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
             continue
         for pl in SP.plan_connector(body, iface, conn, "", spec=DH.connectors()[conn]):
             plans.append(_add_screw(man, pl))
+        if conn == "neck_root_cradle":
+            plans += anchor_screws(man)
+    return plans
+
+
+def anchor_plans() -> list[dict]:
+    """The 2 neck anchor screws (T-jxshhv, neck_anchor.json): ISO 7380-1 M3 head on the cradle spine plate's rear face, through its plain hole
+    into the brass M3 x 4 heat-set insert that fills the chassis pad from its rear face (the plate's seat) inward; the smallest standard length
+    that reaches the 1 d reference with its thread ending inside the insert (screw_plan.choose_length; the 0.5 mm point stands in the tip
+    bore behind the insert)."""
+    import head_holes as HH
+    import screw_plan as SP
+    na = C.neck_anchor()
+    st = SP.standards()
+    h = na["head"]
+    std = st["head_types"][h["standard"]][h["thread"]]
+    ins = na["insert"]
+    pt, depth = float(st["point_mm"]), float(ins["length"])
+    ref = float(ins["engagement_x_d"]) * float(HH.thread(ins["thread"])["major"])
+    face, rear = float(na["face_y_mm"]), float(na["plate_rear_y_mm"])
+    stack = rear - face
+    out = []
+    for i, (x, z) in enumerate(na["sites_xz_mm"]):
+        pick = SP.choose_length(stack, depth, ref, [float(L) for L in sorted(std["lengths"])], pt)
+        L = float(pick["length_mm"])
+        pick.update(engagement_mm=round(min(L - pt - stack, depth), 3), tip_past_insert_mm=round(L - stack - depth, 3))
+        out.append(dict(name=HH.named(na["screws"][i], h["thread"], L), group="neck_anchor", thread=h["thread"], thread_label=h["thread"],
+                        head_standard=h["standard"], head_dia_mm=std["dk"], head_height_mm=std["k"], countersunk=False, terminal_material="brass",
+                        opening=np.array([float(x), face, float(z)]), axis_out=np.array([0.0, 1.0, 0.0]), stack_mm=stack, hole_depth_mm=depth,
+                        reference_engagement_mm=ref, point_mm=pt, hole_id=f"neck_anchor_insert_{i}:thread", owning_link="torso", head_gap_mm=0.0,
+                        **pick))
+    return out
+
+
+def anchor_screws(man: dict) -> list[dict]:
+    """Put the 2 neck anchor screws into the manifest in place of the v21 M3x16 countersunk screws, their washers and nuts (T-jxshhv; the
+    brass inserts they end in belong to the chassis sleeve part, robot/body/torso/torso_screws.py); an earlier generated length is dropped."""
+    import re
+    na = C.neck_anchor()
+    plans = anchor_plans()
+    stale = [re.compile(re.escape(b).replace("_M3_", r"_M3(?:x[0-9p.]+)?_") + "$") for b in na["screws"]]
+    man["parts"] = [p for p in man["parts"] if p["name"] not in set(na["legacy_parts"]) and not any(r.match(p["name"]) for r in stale)]
+    for pl in plans:
+        pl["bom_group"] = f"{pl['group']}_{pl['thread_label']}x{pl['length_mm']:g}"
+        _add_screw(man, pl)
     return plans
 
 

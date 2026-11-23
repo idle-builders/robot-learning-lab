@@ -1,0 +1,19 @@
+{
+ "_doc": "Neck anchor joint (Idle T-jxshhv): the neck root cradle (combined__neck_root_cradle, neck-head build_neck_head_connectors.py stage 1) screwed to the torso spine chassis (combined__stage1_center_torso_spine_chassis, edited by robot/body/torso/torso_screws.py build). One source for both builders and for the screws neck_parts.py generates. Frame: manifest mm. The cradle's spine plate (front face face_y_mm, rear face plate_rear_y_mm) lies flat on the rear face of a pad on the chassis (pad box, rear face = face_y_mm); 2 ISO 7380-1 M3 button heads on the plate's rear face (+y, head_side), through plain clearance holes in the plate into 2 catalogue brass M3 x 4 heat-set inserts (the same part as the head root joint, head_carrier_posts.json neck_root.insert) pressed into the pad from its rear face, flush; a tip bore of tip_bore_dia_mm runs tip_bore_depth_mm past the insert (melt and screw point). Sites: one on each side of the cradle's riser column (x -26.6 .. -20.3), the head's rim head_clear_mm off it. No sleeves, no nuts (owner 2026-11-22: catalogue hardware only). legacy: the v21 parts these replace (dropped from the manifest by neck_parts.py; their chassis sleeves by torso_screws.py).",
+ "sites_xz_mm": [[-30.0, 347.5], [-17.0, 347.5]],
+ "face_y_mm": 25.0,
+ "plate_rear_y_mm": 28.5,
+ "screws": ["neck_anchor_M3_0", "neck_anchor_M3_1"],
+ "head": {"standard": "ISO 7380-1", "thread": "M3"},
+ "hole_dia": 3.4,
+ "head_clear_mm": 0.3,
+ "insert": {"kind": "heat-set insert", "ro": 2.0, "catalogue_od": 4.6, "thread": "M3", "length": 4.0, "engagement_x_d": 1.0,
+            "pressed_from": "the pad's rear face (+y), on the bare chassis before anything is fitted"},
+ "tip_bore_dia_mm": 3.4,
+ "tip_bore_depth_mm": 2.0,
+ "cradle_plate": {"x_mm": [-33.6, -13.4], "z_mm": [343.6, 351.0]},
+ "pad": {"x_mm": [-34.0, -13.0], "y_from_mm": 17.0, "z_mm": [341.0, 351.5], "edge_r_mm": 0.8, "root_chamfer_mm": 2.0, "side_cap_z_mm": 341.6},
+ "legacy_parts": ["neck_anchor_M3x16_CSK_1_v21", "neck_anchor_front_washer_1_v21", "neck_anchor_M3nut_1_v21",
+                  "neck_anchor_M3x16_CSK_3_v21", "neck_anchor_front_washer_3_v21", "neck_anchor_M3nut_3_v21"],
+ "legacy_chassis_sleeves_xyz_mm": [[-29.0, 27.5, 347.5], [-21.0, 27.5, 347.5]]
+}

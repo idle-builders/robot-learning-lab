@@ -546,12 +546,23 @@ def cyl_along(pt, direction, r: float, length: float):
 MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 
 
+def neck_anchor() -> dict:
+    """The neck anchor joint (cradle to torso chassis, T-jxshhv): robot/body/neck-head/neck_anchor.json."""
+    return json.loads((Path(__file__).resolve().parent / "neck_anchor.json").read_text())
+
+
+def head_std_m3_button() -> dict:
+    """ISO 7380-1 M3 head (dk, k, lengths) from the shared screw standards table (robot/body/checks/data/hardware.json)."""
+    st = json.loads((ROOT / "robot/body/checks/data/hardware.json").read_text())["screw_standards"]["head_types"]
+    return st[neck_anchor()["head"]["standard"]][neck_anchor()["head"]["thread"]]
+
+
 def stage_interface_specs() -> dict:
     """Return exact hole centers, per-hole outward normals, and the pressed-in sleeve / insert specifications
     for all 4 Neck & Head connector stages (stages 1-3: 304 SS compression sleeves; stage 4: brass heat-set inserts, plain holes elsewhere):
-      - Stage 1 (`stage1_neck_root_cradle`, on `torso` — 8 sleeves: 2x M3 + 6x M2):
-          * Support: 2x M3 torso anchor bolts (`(-29.0, 25.0, 347.5)` & `(-21.0, 25.0, 347.5)`, normal `+Y`, `h = 3.0 mm`)
-            + 2x M2 ribbon clamp cap seats (`(-37.0, 43.8, 375.0)` & `(-13.0, 43.8, 375.0)`, normal `+Y`, `h = 2.0 mm`)
+      - Stage 1 (`stage1_neck_root_cradle`, on `torso` — 4 M2 sleeves; the 2 M3 anchor holes are plain, T-jxshhv):
+          * Support: 2x M3 torso anchor screws (neck_anchor.json sites, x -30 / -17, z 347.5, on the plate's front face y 25, normal `+Y`):
+            plain clearance holes, no sleeve; ISO 7380-1 M3 into brass heat-set inserts in the chassis pad (T-jxshhv)
           * Load: 4x M2 `neck_yaw_case_XM335` rear & left-cheek seats:
             `(-6.5, 30.5, 356.75)`, `(-6.5, 30.5, 362.25)`, `(6.5, 30.5, 356.75)`, `(6.5, 30.5, 362.25)` (normal `+Y`, `h = 3.0 mm`)
       - Stage 2 (`stage2_neck_yaw_to_pitch_link`, on `neck_yaw` — 8 sleeves: 4x M2 yaw horn + 4x M2 pitch horn):
@@ -580,12 +591,11 @@ def stage_interface_specs() -> dict:
     def _norms(connector, group):
         return [np.asarray(x["axis_out"], float) for x in sites[connector] if x["group"] == group]
 
-    # Stage 1 (`neck_root_cradle`)
-    s1_sup_pts = [
-        np.array([-29.0, 25.0, 347.5]),
-        np.array([-21.0, 25.0, 347.5]),
-    ]
-    s1_sup_norms = [np.array([0.0, 1.0, 0.0])] * 2
+    # Stage 1 (`neck_root_cradle`): the 2 torso anchor screws (T-jxshhv, neck_anchor.json): sites on the spine plate's front face, which lies
+    # on the chassis pad; plain clearance holes, ISO 7380-1 heads on the plate's rear face, brass inserts in the chassis
+    na = neck_anchor()
+    s1_sup_pts = [np.array([float(x), float(na["face_y_mm"]), float(z)]) for x, z in na["sites_xz_mm"]]
+    s1_sup_norms = [np.array([0.0, 1.0, 0.0])] * len(s1_sup_pts)
 
     s1_load_pts = _pts("neck_root_cradle", "yaw_case_rear")
     s1_load_norms = _norms("neck_root_cradle", "yaw_case_rear")
@@ -630,14 +640,16 @@ def stage_interface_specs() -> dict:
 
     return {
         "stage1_neck_root_cradle": {
-            "support": {
+            "support": {    # plain clearance holes, no sleeve (T-jxshhv): ISO 7380-1 M3 into brass inserts in the chassis pad
                 "name": "torso_spine_anchor",
                 "normal": np.array([0.0, 1.0, 0.0]),
                 "normals": s1_sup_norms,
                 "centres": s1_sup_pts,
-                "sleeve_ro": 2.25,
-                "sleeve_ri": 1.65,
-                "sleeve_len": 3.0,
+                "no_sleeve": True,
+                "sleeve_ro": float(na["hole_dia"]) / 2.0,
+                "sleeve_ri": float(na["hole_dia"]) / 2.0,
+                "sleeve_len": float(na["plate_rear_y_mm"]) - float(na["face_y_mm"]),
+                "head_clear_r": head_std_m3_button()["dk"] / 2.0 + float(na["head_clear_mm"]),
                 "patch_r": 2.8,
             },
             "load": {
@@ -944,12 +956,8 @@ TORSO_HIGH_PARTS = {
     "upper__neck_root_M2x6_1",
     "upper__neck_root_M2x6_2",
     "upper__neck_root_M2x6_3",
-    "neck_anchor_M3x16_CSK_1_v21",
-    "neck_anchor_front_washer_1_v21",
-    "neck_anchor_M3nut_1_v21",
-    "neck_anchor_M3x16_CSK_3_v21",
-    "neck_anchor_front_washer_3_v21",
-    "neck_anchor_M3nut_3_v21",
+    "neck_anchor_M3x8_0",           # T-jxshhv (neck_anchor.json; the length follows screw_plan.choose_length)
+    "neck_anchor_M3x8_1",
     "IMU_ADC_carrier_v17",
     "Power_supervisor_PA12_open_tray",
     "Power_supervisor_source_board",
