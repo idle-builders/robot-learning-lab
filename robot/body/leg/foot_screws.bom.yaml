@@ -28,7 +28,7 @@ generators:
 parts:
 - match: R_foot_monocoque_combined
   kind: printed
-  notes: 'Two small bosses on the plate carry the boot halves'' retention screws (T-jh7fcm): toe tip (face y -63.75) and heel (face y 44.35, the plate''s rear edge), block 7.8 x 7 mm, dia 1.7 x 5 PA2 pilot from the face; foot_screws.py boot_bosses.'
+  notes: 'Two small bosses on the plate carry the boot halves'' retention screws (T-jh7fcm): toe tip (face y -63.25, axis z 9.7) and heel (face y 44.35, the plate''s rear edge, axis z 8), block 8.0 x 7.5 mm, dia 1.7 x 6 PA2 pilot from the face (sites from shells.py BOOT_*); foot_screws.py boot_bosses.'
   line: print:R_foot_monocoque_combined
   name: R_foot_monocoque_combined
   make_buy: make
@@ -420,7 +420,7 @@ parts:
   section: Ankle / foot
 - match: L_foot_monocoque_combined
   kind: printed
-  notes: 'Two small bosses on the plate carry the boot halves'' retention screws (T-jh7fcm): toe tip (face y -63.75) and heel (face y 44.35, the plate''s rear edge), x mirrored, block 7.8 x 7 mm, dia 1.7 x 5 PA2 pilot from the face; foot_screws.py boot_bosses.'
+  notes: 'Two small bosses on the plate carry the boot halves'' retention screws (T-jh7fcm): toe tip (face y -63.25, axis z 9.7) and heel (face y 44.35, the plate''s rear edge, axis z 8), x mirrored, block 8.0 x 7.5 mm, dia 1.7 x 6 PA2 pilot from the face (sites from shells.py BOOT_*); foot_screws.py boot_bosses.'
   line: print:L_foot_monocoque_combined
   name: L_foot_monocoque_combined
   make_buy: make

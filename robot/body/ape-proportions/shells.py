@@ -24,9 +24,10 @@ the toe part ({s}_foot_boot_shell, slides on from the toe along +y) and the heel
 from behind along -y). Both go on last, after the foot screws are driven; detached voxel crumbs are dropped.
 
 Boot retention (Idle T-jh7fcm): each half is held by one PA2x8 along its slide direction at its far end (toe tip, heel), its
-head in a counterbore under the skin, on a steel sleeve through an inward tab that seats on a monocoque boss (BOOT_* site
-constants below). The bosses join the boot's static keep-out here; foot_screws.py builds them on the monocoque from
-manifest.shell_pass.boot.screws. Sleeve and screw rows are added to the manifest ({half}_steel_sleeves, {s}_foot_boot_{toe|heel}_PA2x8).
+head on an ISO 7089 washer in a counterbore under the skin, through a plain clearance hole in an inward tab that seats on a
+monocoque boss (BOOT_* site constants below; catalogue hardware only, no sleeve). The bosses join the boot's static keep-out here;
+foot_screws.py builds them on the monocoque from manifest.shell_pass.boot.screws. Washer and screw rows are added to the manifest
+({s}_foot_boot_{toe|heel}_M2_washer, {s}_foot_boot_{toe|heel}_PA2x8).
 """
 from __future__ import annotations
 
@@ -55,37 +56,68 @@ BOOT_MIN_BODY_MM3 = 200.0     # bodies smaller than this left over by the voxel 
 SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of a face unsampled, so the fill closes
 # Boot retention (Idle T-jh7fcm): each half is held by ONE PA2x8 ISO 7380-1 (the shin back cover's screw, one BOM line) along its
 # slide direction, at its far end: the toe part at the toe tip (screw +y, driven from the front), the heel cap at the heel
-# (screw -y, driven from behind). The head sits in a dia BOOT_CB_D counterbore under the skin (nothing stands out), on a 304
-# sleeve 3.6 / 2.2 x 3.5 (line sleeve:3.6x2.2x3.5, as the neck collar; owner 2026-11-18: every clamped printed hole sleeved)
-# pressed through an inward tab that grows from the skin to the boss face (clamped faces meet at 0.00); the screw threads into a
-# dia 1.7 pilot in a small boss on the foot monocoque's plate (robot/body/leg/foot_screws.py builds it from
-# manifest.shell_pass.boot.screws). Engagement 8 - 3.5 - 0.6 point = 3.9 (reference 4.0). Sites: right foot, manifest frame,
-# left = mirror x. face_y = the boss face, set so the head stays under the skin of both boots (measured 2026-11-23 on the
-# selected body: toe outer skin y -71.1..-68.74 within r 2.2 of the axis, heel 49.7..51.1); the heel face is the plate's
-# rear edge (y 44.35), the toe face 3.7 mm behind the plate's front edge (-67.45). The toe screw sits at x 52, not on the toe's
-# frontmost point (x 54-55): there its boss stood in the driver path (blade dia 3) of the roll-case screw R_B13_rear_PA2x6_1
-# (axis x 58.7, 8.0 mm3 at 33.5 mm from the head, driver_access 2026-11-23); at x 52 the boss ends 1.3 mm short of that path.
+# (screw -y, driven from behind). Catalogue hardware only (owner 2026-11-22: no custom sleeves or rings): the head stands on an
+# ISO 7089 M2 washer 2.2 / 5 x 0.3 (the body's line hw:M2-washer-2.2-5-x-0.3) in a dia BOOT_CB_D counterbore under the skin, on
+# an inward printed tab with a plain BOOT_HOLE_D clearance hole (ISO 273 medium); the tab grows from the skin to the boss face
+# (clamped faces meet at 0.00) and fills the toe tip / heel up to the skin above it (no slot between tab and skin). The screw
+# threads into a dia 1.7 pilot in a small boss on the foot monocoque's plate (robot/body/leg/foot_screws.py builds it from
+# manifest.shell_pass.boot.screws). Joint chosen by measurement (2026-11-23): a bare dk 3.5 head on the 2.4 hole bears on a
+# 0.55 mm ring (5.1 mm2, under one 0.62 mm line); the washer puts 15.1 mm2 (2.96 x) on the tab, as on the neck cradle (T-acpw7j).
+# Stack (point 0.5 as robot/body/checks/data/hardware.json): tab BOOT_TAB_T 2.9 + washer 0.3 -> 4.8 of the 8 mm screw in the
+# boss, engagement 4.3 (4.1 at tab +0.2, reference 2 d = 4.0); the tip ends 4.8 in a 6.0 pilot, 5.3 at tab -0.2 without the
+# washer (the joint does not need the 0.3 mm washer to close: 0.7 mm tip margin left). Sites: right foot, manifest frame,
+# left = mirror x. Toe: axis z 9.7 so the tab's underside keeps 0.3 mm over the monocoque plate (top z 5.4 under the tab) with
+# 1.3 mm of tab under the dia 5.4 counterbore; face_y -63.25 puts the head top 4.5 mm out from the face, under the toe skin all
+# round the counterbore (the skin slopes back to y -68.1 at the counterbore's top rim). Heel: face_y = the plate's rear edge
+# (y 44.35). The toe screw sits at x 52, not on the toe's frontmost point (x 54-55): there its boss stood in the driver path
+# (blade dia 3) of the roll-case screw R_B13_rear_PA2x6_1 (axis x 58.7, driver_access 2026-11-23); at x 52 the boss ends 1.2 mm
+# short of that path.
 BOOT_SCREW = dict(label="PA2 x 8 ISO 7380-1", length=8.0, head_d=3.5, head_h=1.3, shank_d=2.0, point=0.6)
-BOOT_SLEEVE = (3.6, 2.2, 3.5)   # OD, ID, length (mm)
-BOOT_SITES = (dict(half="toe", x=52.0, z=9.0, dir=1.0, face_y=-63.75),
+BOOT_SCREW_POINT = 0.5          # tip length the engagement counts as not threaded (robot/body/checks/data/hardware.json point_mm)
+BOOT_WASHER = dict(label="M2 washer 2.2/5 x 0.3", standard="ISO 7089", d1=2.2, d2=5.0, h=0.3)
+BOOT_HOLE_D = 2.4               # plain clearance hole through the tab (ISO 273 medium for M2 / PA2)
+BOOT_TAB_T = 2.9                # printed tab under the washer, from the boss face to the washer seat
+BOOT_TAB_TOL = 0.2              # FDM tolerance on the tab thickness the stack is checked over
+BOOT_CB_D = 5.4                 # washer counterbore: d2 5.0 + 2 x 0.2 radial clearance (as the head carrier's washer counterbores)
+BOOT_SITES = (dict(half="toe", x=52.0, z=9.7, dir=1.0, face_y=-63.25),
               dict(half="heel", x=50.5, z=8.0, dir=-1.0, face_y=44.35))
-BOOT_TAB_HW, BOOT_TAB_HH = 3.9, 3.1   # tab and boss half width (x) / tab half height (z) about the axis: sleeve r 1.8 + 1.3 wall in z
-BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = 7.0, 2.6, 2.0   # boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
-BOOT_PILOT = (1.7, 5.0)         # pilot dia (85 % of the PA2 major) and depth from the boss face (tip 4.5 in, 0.5 mm margin)
-BOOT_CB_D = 4.4                 # head counterbore (head dia 3.5 + 0.9)
+BOOT_TAB_HW, BOOT_TAB_HH = 4.0, 4.0   # tab and boss half width (x) / tab depth below the axis (z): counterbore r 2.7 + 1.3 wall
+BOOT_TAB_TOP = None             # tab top above the axis; None = up to the skin above (fills the toe tip / heel over the tab)
+BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = 7.5, 2.6, 2.0   # boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
+BOOT_PILOT = (1.7, 6.0)         # pilot dia (85 % of the PA2 major) and depth from the boss face (1.5 mm of boss behind it)
 BOOT_SKIN_SINK = 0.4            # the tab starts this far under the outer skin (no outward change)
 
 
 def boot_site_geometry(st, sx=1.0):
     """Derived site numbers (manifest frame; sx = -1 mirrors to the left foot)."""
-    d = st["dir"]; L = BOOT_SLEEVE[2]
-    seat = st["face_y"] - d * L
-    head_top = seat - d * BOOT_SCREW["head_h"]
+    d = st["dir"]
+    seat = st["face_y"] - d * BOOT_TAB_T                       # the washer's tab side
+    head_seat = seat - d * BOOT_WASHER["h"]
+    head_top = head_seat - d * BOOT_SCREW["head_h"]
     yb = (st["face_y"], st["face_y"] + d * BOOT_BOSS_LEN)
     x = sx * st["x"]
     boss = ([x - BOOT_TAB_HW, min(yb), BOOT_BOSS_Z0], [x + BOOT_TAB_HW, max(yb), st["z"] + BOOT_BOSS_TOP])
-    return dict(x=x, z=st["z"], dir=d, face_y=st["face_y"], seat_y=seat, head_top_y=head_top, boss_lo=boss[0], boss_hi=boss[1],
-                tip_y=head_top + d * (BOOT_SCREW["head_h"] + BOOT_SCREW["length"]))
+    return dict(x=x, z=st["z"], dir=d, face_y=st["face_y"], seat_y=seat, head_seat_y=head_seat, head_top_y=head_top, boss_lo=boss[0],
+                boss_hi=boss[1], tip_y=head_seat + d * BOOT_SCREW["length"])
+
+
+def boot_stack():
+    """Clamp stack of the retention screw over the tab tolerance (mm): engagement (thread past the point) and tip depth in the
+    pilot, with and without the washer (the joint must not rely on the 0.3 mm washer to close)."""
+    L, pt, w, T, tol, D = BOOT_SCREW["length"], BOOT_SCREW_POINT, BOOT_WASHER["h"], BOOT_TAB_T, BOOT_TAB_TOL, BOOT_PILOT[1]
+    into = lambda t, ww: L - t - ww   # noqa: E731  screw length past the boss face
+    return dict(tab_mm=T, tab_tol_mm=tol, washer_mm=w, screw_in_boss_mm=round(into(T, w), 3),
+                engagement_mm=round(into(T, w) - pt, 3), engagement_min_mm=round(into(T + tol, w) - pt, 3),
+                engagement_without_washer_mm=round(into(T, 0.0) - pt, 3), reference_engagement_mm=round(2 * BOOT_SCREW["shank_d"], 2),
+                tip_depth_mm=round(into(T, w), 3), tip_depth_max_mm=round(into(T - tol, 0.0), 3), pilot_depth_mm=D,
+                tip_margin_min_mm=round(D - into(T - tol, 0.0), 3))
+
+
+def bearing_mm2():
+    """Plastic ring the clamp load bears on (mm2) and its width (mm): washer d2 (or the head) over the clearance hole."""
+    ro = min(BOOT_WASHER["d2"] if BOOT_WASHER else BOOT_SCREW["head_d"], BOOT_CB_D) / 2
+    ri = BOOT_HOLE_D / 2
+    return round(float(np.pi * (ro ** 2 - ri ** 2)), 2), round(ro - ri, 3)
 
 
 def _cyl_y(y0, y1, x, z, dia):
@@ -95,29 +127,42 @@ def _cyl_y(y0, y1, x, z, dia):
     return mf.Manifold.cylinder(b - a, dia / 2, dia / 2, 64).rotate([-90.0, 0.0, 0.0]).translate([x, a, z])
 
 
-def _skin_y(m, x, z, y_in, d):
-    """Outer skin y of mesh m on the line (x, z) || y: the farthest crossing out from y_in against d (the screw direction)."""
-    loc, _, _ = m.ray.intersects_location([[x, y_in, z]], [[0.0, -d, 0.0]])
+def _skin(m, p, axis, out):
+    """Outer skin coordinate of mesh m on the line through p along `axis`, going `out` (+1 / -1): the farthest crossing within 20 mm."""
+    v = np.zeros(3); v[axis] = out
+    loc, _, _ = m.ray.intersects_location([list(p)], [v])
     if not len(loc):
         return np.nan
-    t = d * (y_in - loc[:, 1])
+    t = out * (loc[:, axis] - p[axis])
     t = t[(t > 0) & (t < 20.0)]
-    return y_in - d * t.max() if len(t) else np.nan
+    return p[axis] + out * t.max() if len(t) else np.nan
 
 
-def _outside(m, gx, gz, y_in, d, sink):
-    """Closed solid outboard of m's outer skin (moved `sink` inward) over the grid gx x gz: cut from a tab, the tab starts just
-    under the skin, whatever its slope."""
-    Y = np.array([[_skin_y(m, a, b, y_in, d) for b in gz] for a in gx])
+def _skin_y(m, x, z, y_in, d):
+    """Outer skin y of mesh m on the line (x, z) || y: the farthest crossing out from y_in against d (the screw direction)."""
+    return _skin(m, (x, y_in, z), 1, -d)
+
+
+def _outside(m, axis, ga, gb, p_in, out, sink):
+    """Closed solid outboard of m's outer skin (moved `sink` inward) along `axis` (going `out` from p_in) over the grid ga x gb of
+    the other two axes: cut from a tab, the tab ends just under the skin, whatever its slope."""
+    ia, ib = [k for k in range(3) if k != axis]
+    def pt(a, b):
+        q = [0.0, 0.0, 0.0]; q[ia] = a; q[ib] = b; q[axis] = p_in
+        return q
+    Y = np.array([[_skin(m, pt(a, b), axis, out) for b in gb] for a in ga])
     if np.isnan(Y).all():
         raise ValueError("no skin found over the boot tab")
     if np.isnan(Y).any():
         from scipy.ndimage import distance_transform_edt
         Y = Y[tuple(distance_transform_edt(np.isnan(Y), return_distances=False, return_indices=True))]
-    Y = Y + d * sink
-    far = (Y.min() - 6.0) if d > 0 else (Y.max() + 6.0)
-    n, k = len(gx), len(gz)
-    V = [[gx[i], (Y[i, j] if s == 0 else far), gz[j]] for s in (0, 1) for i in range(n) for j in range(k)]
+    Y = Y - out * sink
+    far = (Y.max() + 6.0) if out > 0 else (Y.min() - 6.0)
+    n, k = len(ga), len(gb)
+    def vert(s, i, j):
+        q = [0.0, 0.0, 0.0]; q[ia] = ga[i]; q[ib] = gb[j]; q[axis] = Y[i, j] if s == 0 else far
+        return q
+    V = [vert(s, i, j) for s in (0, 1) for i in range(n) for j in range(k)]
     idx = lambda s, i, j: s * n * k + i * k + j  # noqa: E731
     F = []
     for s in (0, 1):
@@ -137,35 +182,43 @@ def _outside(m, gx, gz, y_in, d, sink):
 
 
 def boot_mount(half, st, sx):
-    """Inward tab, sleeve bore and head counterbore on one boot half (mesh); returns the half, its sleeve and the site record."""
+    """Inward tab, clearance hole and washer counterbore on one boot half (mesh); returns the half, its washer and the site record."""
     import manifold3d as mf
     g = boot_site_geometry(st, sx)
     x, z, d, fy = g["x"], g["z"], g["dir"], g["face_y"]
     far = fy - d * 14.0
-    tab = mf.Manifold.cube([2 * BOOT_TAB_HW, abs(fy - far), 2 * BOOT_TAB_HH]).translate([x - BOOT_TAB_HW, min(fy, far), z - BOOT_TAB_HH])
-    gx = np.linspace(x - BOOT_TAB_HW - 0.5, x + BOOT_TAB_HW + 0.5, 19); gz = np.linspace(z - BOOT_TAB_HH - 0.5, z + BOOT_TAB_HH + 0.5, 15)
-    tab = tab - _outside(half, gx, gz, fy, d, BOOT_SKIN_SINK)
-    od, idia, L = BOOT_SLEEVE
+    top = BOOT_TAB_TOP if BOOT_TAB_TOP is not None else 14.0
+    z0, z1 = z - BOOT_TAB_HH, z + top
+    tab = mf.Manifold.cube([2 * BOOT_TAB_HW, abs(fy - far), z1 - z0]).translate([x - BOOT_TAB_HW, min(fy, far), z0])
+    gx = np.linspace(x - BOOT_TAB_HW - 0.5, x + BOOT_TAB_HW + 0.5, 19)
+    gz = np.linspace(z0 - 0.5, z1 + 0.5, max(15, int(np.ceil((z1 - z0 + 1.0) / 0.5)) + 1))
+    tab = tab - _outside(half, 1, gx, gz, fy, -d, BOOT_SKIN_SINK)                 # the toe / heel skin out along the screw axis
+    if BOOT_TAB_TOP is None:                                                         # and the skin above the tab
+        gy = np.linspace(min(fy, far) - 0.5, max(fy, far) + 0.5, 31)
+        tab = tab - _outside(half, 2, gx, gy, z, 1.0, BOOT_SKIN_SINK)
     # head under the skin: the skin's innermost crossing within the counterbore radius vs the head top
     rim = [_skin_y(half, x + r * np.cos(a), z + r * np.sin(a), fy, d) for r in (0.0, BOOT_CB_D / 2) for a in np.linspace(0, 2 * np.pi, 16, endpoint=False)]
     rim = np.array([v for v in rim if np.isfinite(v)])
     head_under_skin = float(np.min(d * (g["head_top_y"] - rim)))   # >= 0: the head top lies inward of every skin point round it
     m = _mf(half) + tab
-    m = m - _cyl_y(g["seat_y"] - d * 0.01, fy + d * 1.0, x, z, od)   # no teardrop roof: a 45 deg roof left 0.55 mm of tab over the bore; the 3.6 / 4.4 bores bridge
+    m = m - _cyl_y(g["seat_y"] - d * 0.01, fy + d * 1.0, x, z, BOOT_HOLE_D)   # no teardrop roof: the 2.4 / 5.4 bores bridge
     m = m - _cyl_y(g["seat_y"], g["seat_y"] - d * 12.0, x, z, BOOT_CB_D)
     out = _tm(m)
     bodies = sorted(out.split(only_watertight=False), key=lambda q: -(q.volume if q.is_watertight else 0.0))
     out = trimesh.util.concatenate([bodies[0]] + [q for q in bodies[1:] if q.is_watertight and q.volume >= BOOT_MIN_BODY_MM3])
-    sleeve = _tm(_cyl_y(g["seat_y"], fy, x, z, od) - _cyl_y(g["seat_y"] - d, fy + d, x, z, idia))
-    # tab wall round the sleeve bore (z: top / bottom of the tab), and the tab's length from the skin to the boss face
-    rec = dict(g, side="R" if sx > 0 else "L", half=st["half"], tab_wall_z_mm=round(BOOT_TAB_HH - od / 2, 2), tab_wall_x_mm=round(BOOT_TAB_HW - od / 2, 2),
-               head_under_skin_min_mm=round(head_under_skin, 2), skin_crossings_round_head=[round(float(rim.min()), 2), round(float(rim.max()), 2)],
-               sleeve_mm=list(BOOT_SLEEVE), screw=BOOT_SCREW["label"], pilot_dia_mm=BOOT_PILOT[0], pilot_depth_mm=BOOT_PILOT[1],
-               thread_engagement_mm=round(BOOT_SCREW["length"] - L - BOOT_SCREW["point"], 2),
-               tab_volume_mm3=round(float(out.volume - half.volume), 1))
+    w = BOOT_WASHER
+    washer = _tm(_cyl_y(g["seat_y"], g["head_seat_y"], x, z, w["d2"]) - _cyl_y(g["seat_y"] + d, g["head_seat_y"] - d, x, z, w["d1"]))
+    area, ring = bearing_mm2()
+    below = z - BOOT_CB_D / 2 - (z - BOOT_TAB_HH)
+    rec = dict(g, side="R" if sx > 0 else "L", half=st["half"], tab_wall_below_counterbore_mm=round(below, 2),
+               tab_wall_x_counterbore_mm=round(BOOT_TAB_HW - BOOT_CB_D / 2, 2), tab_wall_round_hole_mm=round(BOOT_TAB_HH - BOOT_HOLE_D / 2, 2),
+               head_under_skin_min_mm=round(head_under_skin, 2), skin_crossings_round_counterbore=[round(float(rim.min()), 2), round(float(rim.max()), 2)],
+               screw=BOOT_SCREW["label"], washer=f"{w['standard']} {w['label']}", hole_dia_mm=BOOT_HOLE_D, counterbore_dia_mm=BOOT_CB_D,
+               bearing_area_mm2=area, bearing_ring_mm=ring, pilot_dia_mm=BOOT_PILOT[0], pilot_depth_mm=BOOT_PILOT[1], stack=boot_stack(),
+               thread_engagement_mm=boot_stack()["engagement_mm"], tab_volume_mm3=round(float(out.volume - half.volume), 1))
     rec = {k: ([round(float(u), 3) for u in v] if isinstance(v, (list, tuple)) and v and isinstance(v[0], (float, int, np.floating)) else
                (round(float(v), 3) if isinstance(v, (float, np.floating)) else v)) for k, v in rec.items()}
-    return out, sleeve, rec
+    return out, washer, rec
 
 
 def boot_screw_mesh(g):
@@ -354,20 +407,24 @@ def apply(new, h):
             assert bodies[0].is_watertight, f"{part['name']}: the main body of the boot half is not watertight"
             half = trimesh.util.concatenate(keep)
             st = next(q for q in BOOT_SITES if q["half"] == ("heel" if part is heel else "toe"))
-            half, sleeve, rec = boot_mount(half, st, sx)
+            half, washer, rec = boot_mount(half, st, sx)
             screws.append(rec)
-            sn = f"{part['name']}_steel_sleeves"
-            extra.append(dict(name=sn, owning_link=boot["owning_link"], role="compression_limit_sleeves", **h["save_mesh"](sn, sleeve),
-                              volume_mm3=round(float(sleeve.volume), 3), mass_kg=round(float(sleeve.volume) * 7.85e-6, 7),
-                              color=[215, 222, 230, 255], mass_basis="304 SS sleeve, mesh volume x 7.85 g/cm3",
-                              material=(f"304 stainless tube dia {BOOT_SLEEVE[0]:g} / {BOOT_SLEEVE[1]:g} x {BOOT_SLEEVE[2]:g}, pressed into the boot "
-                                        "tab from the head counterbore floor to the tab face; the PA2 head bears on it, its far end on the "
-                                        "monocoque boss (shells.py, T-jh7fcm)")))
+            wn = f"{s}_foot_boot_{st['half']}_M2_washer"
+            w = BOOT_WASHER
+            extra.append(dict(name=wn, physical_part_id=wn, owning_link=boot["owning_link"], role="standard_nominal", hardware_kind="washer",
+                              **h["save_mesh"](wn, washer), volume_mm3=round(float(washer.volume), 3),
+                              mass_kg=round(float(washer.volume) * 7.85e-6, 7), color=[128, 136, 146, 255], display_group="mechanism",
+                              display_groups=["mechanism"], overlay_id="actuators_and_hardware",
+                              parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"), inspection_reference=False,
+                              mass_basis="mesh volume x 7.85 g/cm3",
+                              material=(f"{w['standard']} M2 washer d1 {w['d1']:g} / d2 {w['d2']:g} x {w['h']:g} under the retention screw's head, "
+                                        f"in the dia {BOOT_CB_D:g} counterbore of the {st['half']} of the boot, on the printed tab (shells.py, T-jh7fcm)")))
             cn = f"{s}_foot_boot_{st['half']}_PA2x8"
             sm = boot_screw_mesh(rec)
             extra.append(dict(name=cn, physical_part_id=cn, bom_group=cn, owning_link=boot["owning_link"], role="fastener_proxy",
                               **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * 7.85e-6, 7),
-                              material=(f"PA2x8 self-tapping, ISO 7380-1 button head, through the {st['half']} of the boot (sleeve) into a "
+                              material=(f"PA2x8 self-tapping, ISO 7380-1 button head, on an ISO 7089 M2 washer through the {st['half']} of the boot's "
+                                        f"dia {BOOT_HOLE_D:g} clearance hole into a "
                                         f"dia {BOOT_PILOT[0]:g} pilot in the foot monocoque's boss (PA2 family envelope: head dia 3.5 x 1.3, "
                                         "shank dia 2, 0.6 mm point)"),
                               color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
