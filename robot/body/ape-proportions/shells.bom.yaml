@@ -38,6 +38,7 @@ parts:
   name: R_foot_boot_shell
   make_buy: make
   quantity: 1
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is R_foot_boot_heel_shell. Not held on yet (follow-up).
   section: Ankle / foot
 - match: L_foot_boot_shell
   kind: printed
@@ -45,6 +46,7 @@ parts:
   name: L_foot_boot_shell
   make_buy: make
   quantity: 1
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is L_foot_boot_heel_shell. Not held on yet (follow-up).
   section: Ankle / foot
 - match: R_foot_boot_heel_shell
   kind: printed

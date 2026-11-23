@@ -40,7 +40,8 @@ TORSO_SHELLS = ("center_front_shell", "center_back_shell")
 ANKLE = dict(pitch=np.arange(-35.0, 27.6, 2.5), roll=np.arange(-25.0, 25.1, 5.0))
 ANKLE_LINKS = ("shin", "ankle_pitch")
 SKIP = ("cut_material", "adhesive_allocation", "authored_harness")
-BOOT_STATIC_CLEARANCE = 1.0   # mm between the boot and the foot's own parts (a cover, not a fit: FDM tolerance plus margin)
+BOOT_STATIC_CLEARANCE = 1.0   # mm keep-out round the foot's own parts (a cover, not a fit); the 0.75 mm voxel grid and the smoothing
+                              # eat part of it: measured 2026-11-23 (review rv-6c2e93) min 0.13 mm heel cap to monocoque, 0.36 mm toe part
 BOOT_SPLIT_Y = 15.5           # mm, manifest frame: toe part (y < split) slides on along +y, heel cap along -y (T-6c2e93);
                               # measured 2026-11-23 on the selected body: both halves free along their paths for a split between
                               # y 14.8 and 16.3 (below it the heel cap meets the ankle coupler, above it the toe part the monocoque)
@@ -198,11 +199,12 @@ def apply(new, h):
             half = _tm(_mf(cut).trim_by_plane(normal, off))
             bodies = sorted(half.split(only_watertight=False), key=lambda q: -(q.volume if q.is_watertight else 0.0))
             keep = [q for q in bodies[:1]] + [q for q in bodies[1:] if q.is_watertight and q.volume >= BOOT_MIN_BODY_MM3]
-            dropped = sum(q.volume for q in bodies if not any(q is k for k in keep) and q.is_watertight)
+            dropped = sum(abs(q.volume) for q in bodies if not any(q is k for k in keep))
+            assert bodies[0].is_watertight, f"{part['name']}: the main body of the boot half is not watertight"
             half = trimesh.util.concatenate(keep)
             part.update(h["save_mesh"](part["name"], half))
-            part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts kept "
-                                 f"{BOOT_STATIC_CLEARANCE:g} mm clear, split at y = {BOOT_SPLIT_Y:g} mm ({BOOT_SPLIT_GAP:g} mm seam) into toe part and heel cap "
+            part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts cut out with a "
+                                 f"{BOOT_STATIC_CLEARANCE:g} mm keep-out (voxel; measured clearance down to about 0.13 mm), split at y = {BOOT_SPLIT_Y:g} mm ({BOOT_SPLIT_GAP:g} mm seam) into toe part and heel cap "
                                  "(shells.py, voxel sweep, T-6c2e93)")
             notes.append(f"{part['name']}: {half.volume:.0f} mm3 ({len(keep)} bodies, {dropped:.0f} mm3 of crumbs dropped)")
         if heel_name not in P:
