@@ -51,7 +51,11 @@ def is_printed(ctx, n, settings=None):
     s = (settings if settings is not None else ctx.settings(n)).get("process") or {}
     if "printed" in s:
         return bool(s["printed"])
-    return ctx.rel.is_printed(n)
+    rel = getattr(ctx, "rel", None)
+    if rel is None:                         # a context without a Body (robot/body/bom/build.py): definitions + role table
+        from checks.relations import Relations
+        rel = ctx.__dict__.get("_rel_parts") or ctx.__dict__.setdefault("_rel_parts", Relations.from_parts(ctx.parts))
+    return rel.is_printed(n)
 
 
 def relations(body):
