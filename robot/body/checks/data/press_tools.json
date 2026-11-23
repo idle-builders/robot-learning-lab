@@ -1,0 +1,14 @@
+{
+ "_doc": "The press tooling the press check (robot/body/checks/press_lib.py, modules/press.py) models around each pressed-in steel sleeve: the heated press tip and its tool body on the entry side, the old fixed anvil post and the spacer block on the counter side. Sizes of the owner's tools (Idle M-evmrv6), moved out of press_lib.py unchanged; change them here to score another tool.",
+ "tool_tip_dia_mm": 8.0,
+ "tool_tip_length_mm": 15.0,
+ "tool_body_dia_mm": 20.0,
+ "tool_total_length_mm": 60.0,
+ "anvil_face_dia_mm": 10.0,
+ "anvil_path_dia_mm": 20.0,
+ "anvil_path_length_mm": 40.0,
+ "counter_face_tolerance_mm": 0.2,
+ "counter_face_edge_skip_mm": 0.15,
+ "spacer_free_depth_cap_mm": 40.0,
+ "spacer_recess_search_mm": 10.0
+}

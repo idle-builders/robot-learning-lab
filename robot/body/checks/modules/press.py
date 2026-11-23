@@ -1,4 +1,5 @@
-"""press: sleeves of a scoped part: press tool / anvil path obstruction (mm3), counter-face coverage, flatness. Screen = mesh booleans, exact = press_lib.score_part. Raw function moved from leg/fast_check.py.
+"""press: sleeves of a scoped part (its sleeve sets: process.relations, the definition's joined_to {how: pressed}, else the sets whose
+sleeves touch the part; never a name): press tool / anvil path obstruction (mm3), counter-face coverage, flatness. Screen = mesh booleans, exact = press_lib.score_part. Raw function moved from leg/fast_check.py.
 A part without a native STEP (mesh-only shells and carriers) is screened on its own mesh when that mesh is closed, its sleeves from their
 STEP or, without one, from their mesh's revolution axes; a part it cannot measure is listed in not_measured with the reason and counted."""
 from __future__ import annotations
@@ -43,33 +44,47 @@ def _part_mesh(body, n):
     return None, "no native STEP and its mesh is not closed: counter faces and path volumes need a closed solid"
 
 
+def sleeve_sets(body, n):
+    """The sleeve sets pressed into part n (process.relations: the definition's joined_to {how: pressed}, else the sets whose sleeves'
+    surface touches the part)."""
+    from checks import process as P
+    return P.relations(body).sleeve_sets_of(n)
+
+
 def check_press(body, changed, exact=False, skipped=None):
-    """{part: result} for the scoped parts with steel sleeves; skipped (dict, optional) collects {part: why} of those not measured."""
+    """{part: result} for the scoped parts with steel sleeves; skipped (dict, optional) collects {part: why} of those not measured.
+    A part with several sleeve sets gets the rows of all of them, numbered on."""
     from checks import press_lib as PC
     import trimesh
     t0 = time.time()
     out = {}
     skipped = {} if skipped is None else skipped
     for n in changed:
-        sn = n + "_steel_sleeves"
-        if sn not in body.parts:
+        sets = sleeve_sets(body, n)
+        if not sets:
             continue
         p = body.parts[n]
         has_step = bool(p.get("native_step")) and BL.src(p["native_step"]).exists()
-        if exact and has_step and body.parts[sn].get("native_step"):
+        if exact and has_step and all(body.parts[sn].get("native_step") for sn in sets):
             from build123d import Compound, Location, import_step
-            ps = body.parts[sn]
-            sl = import_step(str(BL.src(ps["native_step"]))).moved(Location(tuple(float(v) for v in (ps.get("native_step_offset_mm") or (0, 0, 0)))))
             part = Compound(children=list(import_step(str(BL.src(p["native_step"]))).moved(
                 Location(tuple(float(v) for v in (p.get("native_step_offset_mm") or (0, 0, 0))))).solids()))
-            rows = PC.score_part(max(part.solids(), key=lambda x: x.volume), sl)
-            out[n] = dict(method="exact OCC (press_lib.score_part)", summary=PC.summary(rows), rows=rows)
+            rows = []
+            for sn in sets:
+                ps = body.parts[sn]
+                sl = import_step(str(BL.src(ps["native_step"]))).moved(Location(tuple(float(v) for v in (ps.get("native_step_offset_mm") or (0, 0, 0)))))
+                rows += [{**r, "index": len(rows) + r["index"]} for r in PC.score_part(max(part.solids(), key=lambda x: x.volume), sl)]
+            out[n] = dict(method="exact OCC (press_lib.score_part)", summary=PC.summary(rows), rows=rows, sleeve_sets=sets)
             continue
         mesh, src = _part_mesh(body, n)
         if mesh is None:
             skipped[n] = src
             continue
-        axes, ssrc = _sleeve_axes(body, sn)
+        axes, ssrc = [], set()
+        for sn in sets:
+            a, w = _sleeve_axes(body, sn)
+            axes += a; ssrc.add(w)
+        ssrc = " + ".join(sorted(ssrc))
         pm = kit.mf(mesh); rays = PC._rays(mesh)
 
         def cyl(p0, d, r, L):
@@ -102,13 +117,18 @@ def check_press(body, changed, exact=False, skipped=None):
                                              anvil_mm3=other["anvil_path_obstruction_mm3"], coverage_pct=other["counter_face"]["coverage_pct"],
                                              support_pct=other["counter_face"]["support_pct"], free_depth_mm=other["counter_face"]["free_depth_mm"])))
         out[n] = dict(method=f"mesh booleans (manifold3d, 96-gon cylinders) on the part's {src}, sleeve axes from the sleeves' {ssrc}"
-                      + (" (exact needs both STEPs)" if exact else ""), summary=PC.summary(rows), rows=rows)
+                      + (" (exact needs both STEPs)" if exact else ""), summary=PC.summary(rows), rows=rows, sleeve_sets=sets)
     tick("press", t0)
     return out
 
 
 def _applies(ctx):
-    return any(n + "_steel_sleeves" in ctx.parts for n in ctx.scope)
+    """A sleeve set on a scoped part's link whose box meets the part's (the cheap test; run() asks which part each set is pressed into)."""
+    P = ctx.parts
+    box = lambda n: np.array(P[n]["bounds_mm"], float)  # noqa: E731
+    sets = [s for s in P if ctx.rel.is_sleeve_set(s)]
+    return any(P[s]["owning_link"] == P[n]["owning_link"] and not (np.any(box(s)[0] > box(n)[1] + 1) or np.any(box(s)[1] < box(n)[0] - 1))
+               for n in ctx.scope if n in P for s in sets)
 
 
 @register("press", _applies)
@@ -119,7 +139,8 @@ def run(ctx):
     per_part, cases = {}, []
     bad = dict(sleeves_with_tool_obstruction=0, sleeves_with_anvil_obstruction=0, sleeves_with_counter_face_below_90pct=0, sleeves_with_support_below_90pct=0)
     for n, r in raw.items():
-        per_part[n] = dict(method=r["method"], summary=r["summary"], sleeves=r["rows"])
+        per_part[n] = dict(method=r["method"], summary=r["summary"], sleeves=r["rows"],
+                           sleeve_sets={sn: ctx.rel.source(sn, "sleeve_owner") for sn in r["sleeve_sets"]})
         s = r["summary"]
         bad["sleeves_with_tool_obstruction"] += s["with_tool_obstruction"]
         bad["sleeves_with_anvil_obstruction"] += s["with_anvil_obstruction"]
@@ -146,7 +167,7 @@ def run(ctx):
                old_post_model_sleeves_with_anvil_obstruction=bad["sleeves_with_anvil_obstruction"],
                old_post_model_sleeves_with_coverage_below_90pct=bad["sleeves_with_counter_face_below_90pct"],
                parts_measured_from_own_mesh=sum(1 for r in raw.values() if "own closed mesh" in r["method"]), parts_not_measured=len(skipped))
-    cases[:0] = [dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, unit="sleeves measured", value=0.0, what=f"not measured: {why}")
+    cases[:0] = [dict(part=n, mating_part=", ".join(ctx.rel.sleeve_sets_of(n)), pose=None, location_mm=None, unit="sleeves measured", value=0.0, what=f"not measured: {why}")
                  for n, why in skipped.items()]
     return dict(per_part=per_part, worst_cases=cases[:20], bad_events=bad, not_measured=skipped, evidence=[],
                 notes="; ".join(sorted({r["method"] for r in raw.values()})))

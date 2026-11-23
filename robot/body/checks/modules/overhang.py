@@ -110,9 +110,8 @@ def _neighbour_distance(ctx, n, pts_part):
     pw = pts_part @ Ta[:3, :3].T + Ta[:3, 3]
     lo, hi = pw.min(0) - 1.0, pw.max(0) + 1.0
     d = np.full(len(pw), np.inf); who = np.full(len(pw), None, dtype=object)
-    from checks import bodylib as BL
     for k, p in body.parts.items():
-        if k == n or (BL.is_fastener(k, p) and p.get("role") != "compression_limit_sleeves"):
+        if k == n or (ctx.rel.is_fastener(k) and not ctx.rel.is_sleeve_set(k)):
             continue
         Tk = body.link_T(p["owning_link"], q)
         b = np.array(p["bounds_mm"], float)
