@@ -446,6 +446,49 @@ def s_cache(sid):
                 pairs_vanishing=sorted(set(ga) - set(gb)), changed=changed, unchanged=same)
 
 
+@scenario("scratch-rebuild-cache", "truth", "a scratch manifest and STEP under .cache/work (an iteration outside the artifacts): the same "
+          "shape exported again (only the STEP header time differs) keeps the result and solid caches; a rebuild 2 mm down is measured, not served from the cache")
+def s_scratch(sid):
+    import re
+    import trimesh
+    from build123d import Compound, Location, export_step, import_step
+    d = ROOT / ".cache/work/eval-scratch" / sid           # outside cad-speed/: where a designer's scratch iteration lives
+    shutil.rmtree(d, ignore_errors=True)
+    d.mkdir(parents=True)
+    man = json.loads(selected_manifest().read_text())
+    step = translate_part(man, d, THIGH, [0.0, 0.0, 0.0])
+    f = d / "manifest.json"
+    f.write_text(json.dumps(man))
+    args = ["--parts", THIGH, "--checks", "gaps,mass"]
+    a = run_tool(sid + "-a", args, manifest=f, cache=True)
+    raw0 = step.read_bytes()
+    # a rebuild of the same shape: the export writes the time into FILE_NAME, nothing else changes
+    step.write_bytes(re.sub(rb"(FILE_NAME\('[^']*',')[^']*'", rb"\g<1>2001-01-01T00:00:00'", raw0, count=1))
+    header_changed = step.read_bytes() != raw0
+    b = run_tool(sid + "-b", args, manifest=f, cache=True)
+    b2 = run_tool(sid + "-b-nocache", args, manifest=f)
+    # a real rebuild 2 mm down, STEP, mesh and bounds
+    m = json.loads(f.read_text())
+    p = part(m, THIGH)
+    export_step(Compound(children=[s.moved(Location((0, 0, -2.0))) for s in import_step(str(step)).solids()]), str(step))
+    mm = trimesh.load(ROOT / p["mesh"], force="mesh"); mm.apply_translation([0, 0, -2.0]); mm.export(ROOT / p["mesh"])
+    p["bounds_mm"] = [[x, y, z - 2.0] for x, y, z in p["bounds_mm"]]
+    f.write_text(json.dumps(m))
+    c = run_tool(sid + "-c", args, manifest=f, cache=True)
+    c2 = run_tool(sid + "-c-nocache", args, manifest=f)
+    cached = lambda r: sorted(n for n, x in ((r["report"] or {}).get("checks") or {}).items() if x.get("cached"))   # noqa: E731
+    setup = lambda r: (r["report"] or {}).get("setup_seconds_summed_over_children") or {}                          # noqa: E731
+    shutil.rmtree(d, ignore_errors=True)
+    return dict(rc=[r["rc"] for r in (a, b, b2, c, c2)], header_changed=header_changed,
+                header_only_cached=cached(b), header_only_results_identical=results_of(a["report"]) == results_of(b["report"]),
+                header_only_nocache_setup_s=setup(b2), first_setup_s=setup(a), header_only_nocache_identical=results_of(a["report"]) == results_of(b2["report"]),
+                rebuild_cached=cached(c), rebuild_equals_nocache=results_of(c["report"]) == results_of(c2["report"]),
+                rebuild_differs_from_before=results_of(c["report"]) != results_of(a["report"]),
+                exec_s=dict(a=a["exec_s"], b=b["exec_s"], b2=b2["exec_s"], c=c["exec_s"], c2=c2["exec_s"]),
+                tails={k: log_tail(r) for k, r in dict(a=a, b=b, b2=b2, c=c, c2=c2).items() if r["rc"] != 0},
+                valid=all(r["rc"] == 0 for r in (a, b, b2, c, c2)) and bool(results_of(a["report"])))
+
+
 def _missing(field, which):
     def edit(man, d):
         p = part(man, which)

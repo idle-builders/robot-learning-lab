@@ -8,7 +8,7 @@ and terminates the tree if it exceeds the limit. Prints the peak on exit.
 Use it for local CPU work that loads many meshes or traces (CAD fit sweeps,
 FEM, trace scoring); a 2026-11-08 run had one python process grow to about
 169 GB and push the 32 GB laptop into an out-of-memory event.
---timeout-s also stops the tree after that many seconds of wall time (exit 124),
+--timeout-s also stops the tree after that many seconds of awake time (exit 124; sleep is not counted),
 so a hung gmsh / OCC call fails fast with a message instead of running for hours.
 
 Parallel budget (docs/operations/working-rules.md): before starting, memguard waits until the new job fits in memory:
@@ -193,11 +193,24 @@ def main() -> int:
             slot.unlink(missing_ok=True)
 
 
+def awake_clock() -> float:
+    """Seconds the machine has been awake, the same in every process: CLOCK_UPTIME_RAW on macOS (stops during sleep),
+    CLOCK_MONOTONIC on Linux. Not Python's monotonic clock: in Python 3.9 it starts at 0 in each process, so a deadline
+    handed to a child in another Python would be wrong (measured 2026-11-23: 3.9 read 0.006, 3.12 read 646751)."""
+    for c in ("CLOCK_UPTIME_RAW", "CLOCK_MONOTONIC"):
+        if hasattr(time, c):
+            return time.clock_gettime(getattr(time, c))
+    return time.time()
+
+
 def _run(args: list[str], limit_gb: float, timeout_s: float | None, slot: Path | None = None) -> int:
-    t0 = time.time()
+    # The timeout counts time the machine is awake: awake_clock() stops while the laptop sleeps, so a job is not killed on wake for the hours it was asleep (2026-11-23: a 3 min job stopped at "6437 s"
+    # after a hibernation; 11-22: a check run's 920 s and 238 s maintenance sleeps read as stalled steps).
+    t0, m0 = time.time(), awake_clock()
     env = dict(os.environ)
     if timeout_s is not None:       # the job may stop itself cleanly before this (robot/body/checks/run.py does, 20 s ahead)
-        env["MEMGUARD_DEADLINE"] = f"{t0 + timeout_s:.1f}"
+        env["MEMGUARD_DEADLINE"] = f"{t0 + timeout_s:.1f}"            # wall clock, for older readers
+        env["MEMGUARD_DEADLINE_AWAKE"] = f"{m0 + timeout_s:.3f}"       # awake time: compare with awake_clock() (same in every process)
     proc = subprocess.Popen(args, start_new_session=True, env=env)
     peak, told = 0, 0.0
     while proc.poll() is None:
@@ -210,10 +223,12 @@ def _run(args: list[str], limit_gb: float, timeout_s: float | None, slot: Path |
             except (OSError, ValueError):
                 pass
             told = time.time()
-        over_time = timeout_s is not None and time.time() - t0 > timeout_s
+        awake = awake_clock() - m0
+        over_time = timeout_s is not None and awake > timeout_s
         if kb > limit_gb * 1024 * 1024 or over_time:
-            why = (f"{time.time() - t0:.0f} s > {timeout_s:.0f} s timeout" if over_time
-                   else f"{kb / 1048576:.1f} GB > {limit_gb} GB limit")
+            slept = (time.time() - t0) - awake
+            why = (f"{awake:.0f} s awake > {timeout_s:.0f} s timeout" + (f" (and {slept:.0f} s asleep, not counted)" if slept > 30 else "")
+                   if over_time else f"{kb / 1048576:.1f} GB > {limit_gb} GB limit")
             print(f"memguard: {why}, stopping {' '.join(args[:4])}", file=sys.stderr)
             os.killpg(proc.pid, signal.SIGTERM)
             time.sleep(3)
@@ -223,7 +238,8 @@ def _run(args: list[str], limit_gb: float, timeout_s: float | None, slot: Path |
             print(f"memguard: peak {peak / 1048576:.2f} GB", file=sys.stderr)
             return 124 if over_time else 137
         time.sleep(1)
-    print(f"memguard: peak {peak / 1048576:.2f} GB", file=sys.stderr)
+    slept = (time.time() - t0) - (awake_clock() - m0)
+    print(f"memguard: peak {peak / 1048576:.2f} GB" + (f"; the machine slept {slept:.0f} s during the job (not counted in the timeout)" if slept > 30 else ""), file=sys.stderr)
     return proc.returncode
 
 

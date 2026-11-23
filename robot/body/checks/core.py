@@ -41,17 +41,31 @@ _SHA: dict = {}
 _SHA_NEW: dict = {}
 
 
-def sha(path: Path) -> str:
-    """sha256 of a file, remembered by (absolute path, size, mtime_ns) across runs."""
+def _content(path: Path, raw: bytes) -> bytes:
+    """What a cache is keyed by: a STEP without its HEADER section. Its FILE_NAME carries the export time, so two builds
+    of the same shape differ only there (measured 2026-11-23: build123d export_step twice, data sections identical), and
+    a raw sha256 would make every rebuild a cold cache."""
+    if path.suffix.lower() in (".step", ".stp") and raw[:13] == b"ISO-10303-21;":
+        i = raw.find(b"ENDSEC;")
+        if i > 0:
+            return raw[i:]
+    return raw
+
+
+def sha(path: Path, raw: bool = False) -> str:
+    """sha256 of a file's content, remembered by (absolute path, size, mtime_ns) across runs: the cache key of everything
+    made from it. A STEP is hashed without its header (export timestamp, see _content). raw=True is the sha256 of the
+    file's bytes, for comparing with a sha256 a generator recorded."""
     global _SHA
     resultcache.note(path)                  # an input of the running check (checks/resultcache.py)
     if not _SHA:
         _SHA = cachefs.read_json(_SHA_FILE, {}) or {}
     st = path.stat()
-    k = str(path)
+    k = ("raw:" if raw else "content:") + str(path)
     if k in _SHA and _SHA[k][0] == st.st_size and _SHA[k][1] == st.st_mtime_ns:
         return _SHA[k][2]
-    h = hashlib.sha256(path.read_bytes()).hexdigest()
+    b = path.read_bytes()
+    h = hashlib.sha256(b if raw else _content(path, b)).hexdigest()
     _SHA[k] = _SHA_NEW[k] = (st.st_size, st.st_mtime_ns, h)
     return h
 
