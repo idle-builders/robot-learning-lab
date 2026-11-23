@@ -78,6 +78,8 @@ def run(ctx):
         return w.min(0), w.max(0)
 
     per_screw, unmeasured = {}, []
+    limb = body.limb_of()                  # limbs from the joint tree (checks/relations.py), as clearance and the sweeps
+    other_limb = set()                     # (screw, part) on two different limbs: WBC self-collision limits, left out and listed
     for sn in names:
         p = parts[sn]
         try:
@@ -100,6 +102,9 @@ def run(ctx):
             for n in cand:
                 ln = parts[n]["owning_link"]
                 if ln == lk:
+                    continue
+                if limb.get(lk) and limb.get(ln) and limb[lk] != limb[ln]:
+                    other_limb.add((sn, n))
                     continue
                 lo, hi = wbox(corners[n], ln, qi)
                 if np.linalg.norm(np.maximum(0.0, np.maximum(slo - hi, lo - shi))) > search:
@@ -189,10 +194,10 @@ def run(ctx):
     return dict(per_part=per_part, worst_cases=cases[:30],
                 bad_events=dict(screws=len(per_screw), screws_overlapping_other_link=n_ov,
                                 screws_head_inside_own_plate=sum(r["stale_head_in_plate"] for r in per_screw.values()),
-                                screws_unmeasured=len(unmeasured)),
-                evidence=[], unmeasured=unmeasured,
+                                screws_unmeasured=len(unmeasured), other_limb_pairs_left_out=len(other_limb)),
+                evidence=[], unmeasured=unmeasured, other_limb_pairs=sorted(f"{a} x {b}" for a, b in other_limb),
                 notes=f"{len(poses)} poses ({ctx.poses_name}{' + joint ranges' if getattr(ctx, 'joints', None) else ''}); screw = scoped-link screws + screws touching "
-                      f"a scoped part; others = non-fastener parts on other links within {search:g} mm; overlap = manifold boolean of the screw mesh with the "
+                      f"a scoped part; others = non-fastener parts on other links within {search:g} mm, pairs on two different limbs left out (other_limb_pairs: WBC self-collision limits, as clearance and the sweeps); overlap = manifold boolean of the screw mesh with the "
                       f"screening solid, split head / shank / tip (last {TIP_MM:g} mm); distance capped at {search:g} mm; head inside own plate = head volume "
                       f"overlap with a same-link part at standing above {HEAD_IN_PLATE_MM3:g} mm3")
 
