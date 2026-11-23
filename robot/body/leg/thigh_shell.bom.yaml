@@ -51,7 +51,8 @@ generators:
   in_place_edits:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
-  notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws. Peaks at about 6.6 GB.
+  notes: Trims the lower leg's back hard cover along a plane through the knee axis (COVER_CUT_DEG, clear of the thigh
+    hardware over KNEE_RANGE) and re-mounts it with PA2x8 screws. Peaks at about 6.6 GB.
   resources:
     limit_gb: 8
     timeout_s: 2400
