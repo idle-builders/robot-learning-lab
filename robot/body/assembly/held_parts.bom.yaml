@@ -213,3 +213,11 @@ defects:
   fix: 'Spacers: one parametric extrusion each (small). Chest indicator relief: port the relief cut from the r33 builder into the torso shell
     script, or drop it if the r33 indicator is no longer fitted (small).'
   effort: small
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: held-parts
+  into: roll-flip
+  call: robot/body/assembly/held_parts.py:swap_parts
+  takes: parts
+  after: [hip-yaw-screws]
+  needs: [held-parts]
+  notes: fan bridge plate, chest indicator, R roll case, stale screws (T-3npyjq)

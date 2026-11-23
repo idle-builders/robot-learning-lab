@@ -500,3 +500,11 @@ assembly:
     status: seeded
     derived: 'mirror of right_leg p41 (R_ <-> L_, x negated): graph order, fastened distance 55 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis'
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: foot-screws
+  into: roll-flip
+  call: robot/body/leg/foot_screws.py:swap_parts
+  takes: parts
+  after: [torso-screws]
+  needs: [foot-screws]
+  notes: the edited foot monocoque + sleeves (T-rptay5)

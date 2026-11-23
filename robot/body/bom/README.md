@@ -18,6 +18,36 @@ python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python
 .venv/bin/python -B robot/body/bom/publish_body.py --publish   # main checkout: the selected body's dashboard record (below)
 ```
 
+## Bring a checkout's body up to date (make.py)
+
+```bash
+.venv/bin/python -B robot/body/bom/make.py status     # per generator: reused or runs, and why; runs nothing
+.venv/bin/python -B robot/body/bom/make.py            # restore or run every declared generator in order, here
+.venv/bin/python -B robot/body/bom/make.py --report   # ... then build.py, the bom check and the findings that changed
+```
+
+Same in main and in every worktree (`infra/tools/worktree.py`). A generator's outputs are reused, from whatever checkout,
+branch or commit made them, when every file its run read still has the same content here; else it runs under memguard and
+its outputs go into the shared cache ([gencache.py](gencache.py): reads recorded while it runs by
+[gensite/sitecustomize.py](gensite/sitecustomize.py), including STEPs read inside OpenCascade; STEP / npz / STL compared by
+content, not header bytes). `make.py gc` deletes entries no live checkout holds after 3 days, and their blobs. Findings
+printed per run: a file read that a later generator writes, outputs outside the declared ones.
+
+## Composed manifests (compose.py)
+
+A builder that edits a manifest another generator composes declares it in its own definition; the composing generator
+declares `composes: STAGE` and calls `compose.apply(STAGE, manifest)`:
+
+```yaml
+compose:
+- id: torso-screws
+  into: roll-flip                      # the stage (roll_flip_checks.py manifest composes roll-flip)
+  call: robot/body/torso/torso_screws.py:swap_parts
+  takes: parts                         # parts: f(parts) -> parts | manifest: f(manifest) -> log lines
+  after: [ankle-coupler-screws]        # compose ids applied before it
+  needs: [torso-screws]                # generators it reads: they run before the composing generator
+```
+
 ## The dashboard record (publish_body.py)
 
 The design dashboard's view of the selected body is generated from the same source, so it cannot drift: `publish_body.py`
@@ -140,6 +170,8 @@ per step whether the measurement supports it.
 | `files.py` | how a manifest file resolves (disk, regenerable, blob index, path moves, bucket records) |
 | (moved) | standard hardware STEP / STL: `robot/body/standard-hardware/generate.py` (declared as a generator in its `generate.bom.yaml`); spec drafting aid `propose_specs.py` next to it |
 | `rebuild_chain.py` | isolated rebuild of the selected body from the declared generators, then the BOM steps |
+| `make.py`, `gencache.py`, `gensite/` | bring a checkout's body up to date from the declared generators, reusing unchanged outputs from the shared cache; gc |
+| `compose.py` | apply the declared `compose` entries of a composed manifest |
 | `publish_body.py` | the design-dashboard record of a declared study (default the selected body) from the definitions, the manifest and the rebuild outputs |
 
 ## State

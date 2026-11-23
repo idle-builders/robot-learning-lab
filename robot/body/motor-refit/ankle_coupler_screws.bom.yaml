@@ -494,3 +494,10 @@ assembly:
     status: seeded
     derived: 'mirror of right_leg p34 (R_ <-> L_, x negated): graph order, fastened distance 51 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (R_ankle_pitch_ST3025_output), snapped to the nearest axis'
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: ankle-coupler-screws
+  into: roll-flip
+  call: robot/body/motor-refit/ankle_coupler_screws.py:swap_parts
+  takes: parts
+  needs: [ankle-coupler-screws]
+  notes: the edited ankle coupler + sleeves (T-9wpegg)

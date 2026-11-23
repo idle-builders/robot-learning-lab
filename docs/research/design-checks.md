@@ -437,6 +437,45 @@ declared per part (34). Measured on the shells body: bom 3.8 s / 0.6 GiB (196 li
 absent parts); assembly 86.8 s / 3.9 GiB over 317 steps, 0 parts / screws / hardware without a step, 248 steps supported by
 the measurement, 69 not (Idle T-f7p9ke, T-dj4tpn, T-f5gcm8, T-xp29jk, T-8zj89w).
 
+## Worktrees and the generator cache (2026-11-22)
+
+Why (from the code, git and 18 session transcripts of 2026-11-17..22): built parts did not come back with a merge
+(`artifacts/` is Git-ignored; the lead copied outputs into main by hand after each builder merge); the selected body was
+one file rewritten in place by whoever ran a chain step (thigh shells dropped by a rebuild that skipped two steps, a
+selection overwritten by unreviewed shell cuts, a rebuild during a review); 7 different selected-manifest sha256 over 11
+checkouts; main's working tree held other sessions' edits (nearly every commit staged single hunks, one fast-forward failed
+silently); the roll-flip manifest script imported each section's builder by name; new worktrees cloned `artifacts/` file by
+file (1083 s measured under load) and did not link `.artifact-store`, so 138,758 of the 229,054 links in `artifacts/`
+dangled there.
+
+What (owner decisions 2026-11-22): `robot/body/bom/make.py` + `gencache.py` reuse a generator's outputs from any checkout
+when every file its run read has the same content (reads recorded while it runs, including STEPs read inside OpenCascade;
+STEP / npz / STL by content); `compose` entries in the definitions replace the section imports; `infra/tools/worktree.py`
+add / list / land / remove / prune; gc keeps what a live checkout holds plus 3 days; nothing derived is uploaded.
+
+Measured (real runs on the selected body, 2026-11-22/23, laptop under other sessions' load):
+| | before | now |
+|---|---|---|
+| new worktree | 1083 s (`cp -c -R`, 111,566 files), `.artifact-store` missing | 14 s (one clonefile), linked |
+| selected body in a fresh worktree from main's artifacts | chain by hand (about 47 min) or copying | 3 s, 18 / 18 reused, manifest byte-identical to the checkout that built it |
+| one builder changed (comment in torso_screws.py) | full or hand-picked partial chain | 75 s: torso-screws and the two roll-flip manifest passes that import it ran, 15 reused |
+| make on an up-to-date checkout | | 0.8 s |
+| main moved 29 commits (hip connectors, held parts, foot, neck collar) | | 15 ran, 3 reused, 1194 s, settled in one pass |
+| populating the cache from nothing | | 18 generators, 2572 s, peaks 0.15-6.8 GB |
+| composition by `compose` entries vs the old imports | | manifest identical (707 parts) apart from the new `composed` record; log identical |
+
+What kept reuse from working, found by these runs and fixed: OpenCascade writes the time into every STEP header and the
+manifests record raw sha256, so each rerun with unchanged geometry changed 27 manifest rows (make fixes the header time);
+entries listed only outputs whose content changed (a restore would have left 290 of motor-refit's 291 files stale; cache
+version 2 lists every file written); `roll-flip/report.json` timings kept four steps rerunning (merged reports are declared
+`report_files`, outputs but not inputs); feedback reads (a builder reading its own previous output or a manifest a later step
+writes: assembly's GLB, roll-flip-cad and neck-collar) made a fresh checkout miss (not inputs when no earlier generator writes
+them); shin-cover peaked at 6.41 / 6.82 GB against the 6 GB default (declared 8 GB on main meanwhile). Still open, as
+findings make prints: generators that read files a later step writes (roll-flip-cad, foot-screws, the bootstrap pass and
+neck-collar read the roll-flip / shoulder-U manifests), and outputs outside the declared ones (assembly's GLB, manifest.json
+and nesting audit, roll-flip report, shoulder-clevis screw meshes); the chain still needs a second pass whenever one of those
+loops changes.
+
 ## Connectivity (2026-11-20, T-c4sy9d)
 
 `connectivity` (owner: no part unconnected, every part linked to the core) builds the manifest's graph. Nodes: every

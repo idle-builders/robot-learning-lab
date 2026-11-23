@@ -367,3 +367,11 @@ assembly:
       of 4 screw(s) joining it to placed parts (R_A14_yaw_M3x14_0, R_A14_yaw_M3x14_1, R_A14_yaw_M3x14_2, R_A14_yaw_M3x14_3), head to tip when
       the part carries the head, else reversed; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0 -> 0.0 mm out,
       seat released True -> True, max overlap 3900.9 -> 0.0 mm3'
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: hip-yaw-screws
+  into: roll-flip
+  call: robot/body/motor-refit/hip_yaw_screws.py:swap_parts
+  takes: parts
+  after: [foot-screws]
+  needs: [hip-yaw-screws]
+  notes: the edited hip yaw-to-pitch connector + sleeves (T-v3kzs4)
