@@ -1156,14 +1156,17 @@ def _thigh_shell():
 
 
 def rf_shell_xmax(y: float, z: float, r: float) -> float:
-    """Largest x (lateral, right leg) at (y, z) whose disc of radius r stays inside the committed shell's outer skin."""
+    """Largest x (lateral, right leg) at (y, z) whose disc of radius r stays inside the committed shell's outer skin.
+    The spline skin alone (lower=False): the lower section (thigh_shell LOW_*, 2026-11-23) flares the sides out to the
+    shin covers below the widest ring, so it lies outside the spline at the knee screws; the head seats and the lateral
+    cheek band stay where the approved spline put them (lateral seat x 74.41), the shell simply stands further off."""
     T = _thigh_shell()
     ang = np.linspace(0.0, 2.0 * math.pi, 48, endpoint=False)
     lo, hi = 50.0, 100.0
     for _ in range(36):
         x = 0.5 * (lo + hi)
         Q = np.c_[x + r * np.cos(ang), y + r * np.sin(ang), np.full(len(ang), z)]
-        lo, hi = (x, hi) if T.level(T.surface(Q[:, 2]), Q).max() <= 1.0 else (lo, x)
+        lo, hi = (x, hi) if T.level(T.surface(Q[:, 2], lower=False), Q).max() <= 1.0 else (lo, x)
     return lo
 
 
