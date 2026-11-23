@@ -1567,7 +1567,8 @@ assembly:
     status: designer
     derived: 'T-jxshhv: the 2 ISO 7380-1 M3x8 from the cradle spine plate''s rear face (+y, hex key 2) into the brass inserts of the chassis
       pad, right after the cradle is placed (torso:p010): the stage 4 IMU / ADC carrier (torso:p019, 7.3 mm behind the heads) and the ADC
-      board close the driver path later, so taking the neck off means the back shell, the ADC board and the carrier first. The inserts are
+      board close the driver path later, so taking the cradle off means the back shell, the ADC board and the carrier first (the neck
+      itself comes off the cradle at the 4 M2 screws of s035, free at standing). The inserts are
       pressed into the bare chassis before anything (subassembly torso base).'
   - id: torso:s035
     subassembly: torso

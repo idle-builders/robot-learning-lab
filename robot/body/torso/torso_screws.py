@@ -365,7 +365,9 @@ def _y_cyl(x, y0, y1, z, r):
 
 
 def _prism(tri, along: str, a0: float, a1: float):
-    """A triangular prism: triangle `tri` in the (x, z) plane (along "y") or (y, z) plane (along "x"), extruded from a0 to a1."""
+    """A triangular prism: triangle `tri` in the (x, z) plane (along "y") or (y, z) plane (along "x"), extruded from a0 to a1. The corners
+    are put in counter-clockwise order in the sketch plane first, so the prism goes from a0 to a1 whatever order `tri` lists them in
+    (review rv-jxshhv: a clockwise triangle extruded from a0 away from a1)."""
     from build123d import Polygon, Plane, extrude
     if along == "y":
         pl = Plane(origin=(0.0, float(a0), 0.0), x_dir=(1.0, 0.0, 0.0), z_dir=(0.0, 1.0, 0.0))     # local (u, v) = (x, -z)
@@ -373,6 +375,9 @@ def _prism(tri, along: str, a0: float, a1: float):
     else:
         pl = Plane(origin=(float(a0), 0.0, 0.0), x_dir=(0.0, 1.0, 0.0), z_dir=(1.0, 0.0, 0.0))     # local (u, v) = (y, z)
         pts = list(tri)
+    area2 = sum(u0 * v1 - u1 * v0 for (u0, v0), (u1, v1) in zip(pts, pts[1:] + pts[:1]))
+    if area2 < 0:
+        pts = pts[::-1]
     return extrude(pl * Polygon(*pts, align=None), amount=float(a1 - a0))
 
 
