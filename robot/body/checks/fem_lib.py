@@ -16,7 +16,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-DATA = HERE / "data"
+DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or HERE / "data")
 
 
 def load_elasticity():

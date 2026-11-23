@@ -22,7 +22,7 @@ from checks import resultcache
 kit = R.kit
 WORK = ROOT / ".cache/work/cad-speed"          # reports: this checkout's own
 CACHE = cachefs.work() / "cad-speed/cache"     # content-addressed caches: shared with the worktrees (checks/cachefs.py)
-DATA = HERE / "data"
+DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or HERE / "data")   # LAB_CHECKS_DATA: another set of check tables
 T = {}
 
 

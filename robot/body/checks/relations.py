@@ -20,7 +20,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-ROLES = json.loads((HERE / "data/roles.json").read_text())
+ROLES = json.loads((Path(__import__("os").environ.get("LAB_CHECKS_DATA") or HERE / "data") / "roles.json").read_text())
 GEO = ROLES["geometry"]
 
 

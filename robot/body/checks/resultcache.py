@@ -47,7 +47,7 @@ def enabled():
     """Off with CHECKS_RESULT_CACHE=0, and whenever the definitions or part settings come from an override folder / file
     (LAB_DEFINITIONS_ROOT, LAB_PART_SETTINGS): those usually sit in .cache, whose reads are not recorded."""
     return os.environ.get("CHECKS_RESULT_CACHE", "1") != "0" and not os.environ.get("LAB_DEFINITIONS_ROOT") \
-        and not os.environ.get("LAB_PART_SETTINGS")
+        and not os.environ.get("LAB_PART_SETTINGS") and not os.environ.get("LAB_CHECKS_DATA")
 
 
 def rel_or_none(p):
