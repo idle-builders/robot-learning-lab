@@ -143,29 +143,34 @@ def check_part(ctx, n, hw, prn):
     holes = brep_holes(BL.src(p["native_step"]), p.get("native_step_offset_mm"))
     m = ctx.solid(n)[0]
     off = (prn.get(e["printer"] or "", {}) or {}).get("hole_offset_mm")
-    # sleeves of this part
-    sl = ctx.parts.get(f"{n}_steel_sleeves")
-    tubes = []
+    # sleeves of this part: the sleeve sets pressed into it (ctx.rel: definition joined_to {how: pressed}, else the sets touching it)
+    sets = ctx.rel.sleeve_sets_of(n)
     import sys
     from checks.core import ROOT
     sys.path.insert(0, str(ROOT / "robot/body/fastening"))
-    from mount_check import kind, nominal, screw_geometry, tubes as _tubes
-    if sl:
-        tubes = _tubes(BL.load_mesh(sl["mesh"]))
-    # screws near the part
+    from mount_check import screw_geometry, screw_spec, tubes as _tubes
+    tubes = [t for sn in sets for t in _tubes(BL.load_mesh(ctx.parts[sn]["mesh"]))]
+    # screws near the part: hardware its definition calls a screw (spec.kind) or a builder placed as one (screw_plan); the thread from
+    # the screw's spec (mount_check.screw_spec: screw_plan, else the definition), never from its name; a screw without one is listed
     b = np.array(p["bounds_mm"], float)
-    screws = []
+    screws, no_thread, unknown = [], [], []
     for k, q in ctx.parts.items():
-        if kind(q) != "screw":
+        if not ctx.rel.is_fastener(k) or ctx.rel.is_sleeve_set(k):
             continue
         qb = np.array(q["bounds_mm"], float)
         if np.any(qb[0] > b[1] + 1) or np.any(qb[1] < b[0] - 1):
+            continue
+        if not (ctx.rel.hardware_kind(k) == "screw" or q.get("screw_plan")):
+            if ctx.rel.hardware_kind(k) is None:
+                unknown.append(k)          # hardware whose definition does not say what it is: not matched to the holes
             continue
         try:
             g = screw_geometry(BL.load_mesh(q["mesh"]))
         except Exception:  # noqa: BLE001
             continue
-        screws.append((k, nominal(k).get("thread"), g))
+        sp = screw_spec(q)
+        th = sp.get("thread") if sp.get("spec_source") in ("screw_plan", "definition") else None
+        screws.append((k, th, g))
     rows = []
     for h in holes:
         a = np.asarray(h["axis"], float)
@@ -196,6 +201,8 @@ def check_part(ctx, n, hw, prn):
             _, k, th = sbest
             maj = hw["threads"].get(th)
             r.update(screw=k, thread=th, screw_major_mm=maj)
+            if th is None and k not in no_thread:
+                no_thread.append(k)
             head_d = 2 * next((g["r_head_mm"] for kk, _, g in screws if kk == k), 0.0)
             if maj and r.get("role") is None and h["d_mm"] >= min(RECESS_OVER_MAJOR * maj, 0.9 * head_d or 1e9):
                 r.update(role="head recess (counterbore / spot face)" + (" (partial: breaks out of the surface)" if h["partial"] else ""),
@@ -226,7 +233,8 @@ def check_part(ctx, n, hw, prn):
                partial_sleeve_bores=sum(1 for r in rows if str(r.get("role", "")).startswith("sleeve bore (partial")),
                sleeves_without_bore=[np.round(c, 2).tolist() for c, ta, L, od, idd in tubes
                                      if not any(str(r.get("role", "")).startswith("sleeve bore") and _coaxial(r["centre_mm"], np.asarray(r["axis"]), c, ta) for r in rows)],
-               screw_holes=sum(1 for r in rows if "screw" in r), hole_list=rows)
+               screw_holes=sum(1 for r in rows if "screw" in r), screws_without_known_thread=no_thread,
+               hardware_of_unknown_kind_nearby=sorted(unknown), hole_list=rows)
     out["seconds"] = round(time.time() - t0, 1); tick("holes", t0)
     return out
 
@@ -238,7 +246,7 @@ def run(ctx):
     _, prn = P.tables()
     per, cases = {}, []
     ev = dict(parts=0, holes=0, horizontal_holes=0, horizontal_holes_with_hardware=0, sleeves_without_matching_hole=0, partial_sleeve_bores=0,
-              pilots_outside_reference_band=0, boss_walls_under_2_lines=0)
+              pilots_outside_reference_band=0, boss_walls_under_2_lines=0, screws_without_known_thread=0, hardware_of_unknown_kind_nearby=0)
     band = hw["pilot_pct_of_major"]
     skipped = not_measured(ctx)
     ev["parts_not_measured"] = len(skipped)
@@ -250,8 +258,17 @@ def run(ctx):
         ev["horizontal_holes"] += r["horizontal_holes"]; ev["horizontal_holes_with_hardware"] += r["horizontal_holes_with_hardware"]
         ev["sleeves_without_matching_hole"] += len(r["sleeves_without_bore"])
         ev["partial_sleeve_bores"] += r["partial_sleeve_bores"]
+        ev["screws_without_known_thread"] += len(r["screws_without_known_thread"])
+        ev["hardware_of_unknown_kind_nearby"] += len(r["hardware_of_unknown_kind_nearby"])
+        if r["hardware_of_unknown_kind_nearby"]:
+            cases.append(dict(part=n, mating_part=", ".join(r["hardware_of_unknown_kind_nearby"][:6]), pose=None, location_mm=None, value=float(len(r["hardware_of_unknown_kind_nearby"])),
+                              unit="hardware of unknown kind near the part", context=True,
+                              what="hardware within the part's box whose definition gives no spec.kind and no screw_plan: not matched to its holes (declare it in the definition)"))
+        for k in r["screws_without_known_thread"]:
+            cases.append(dict(part=n, mating_part=k, pose=None, location_mm=None, value=0.0, unit="screws with a known thread",
+                              what="screw through a hole of the part without a thread in its screw_plan or definition spec: pilot / clearance not judged"))
         for c in r["sleeves_without_bore"][:3]:
-            cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=c, value=0.0, unit="mm bore found for this sleeve",
+            cases.append(dict(part=n, mating_part=", ".join(ctx.rel.sleeve_sets_of(n)) or None, pose=None, location_mm=c, value=0.0, unit="mm bore found for this sleeve",
                               what="no B-rep bore of 180 deg or more around this sleeve"))
         for h in r["hole_list"]:
             if h.get("role") == "pilot" and not band[0] <= h["hole_pct_of_major"] <= band[1]:
@@ -261,14 +278,14 @@ def run(ctx):
         hw_holes = [h for h in r["hole_list"] if h.get("boss_wall_mm") is not None]
         if hw_holes:
             w = min(hw_holes, key=lambda h: h["boss_wall_mm"])
-            cases.append(dict(part=n, mating_part=w.get("screw") or f"{n}_steel_sleeves", pose=None, location_mm=w["boss_wall_location_mm"],
+            cases.append(dict(part=n, mating_part=w.get("screw") or ", ".join(ctx.rel.sleeve_sets_of(n)) or None, pose=None, location_mm=w["boss_wall_location_mm"],
                               value=w["boss_wall_mm"], unit="mm thinnest boss wall",
                               what=f"around a {w['d_mm']} mm {w.get('role', 'hole')} ({w.get('thread') or 'sleeve'}); line width {lw} mm"
                                    + (f"; {w['boss_wall_open_pct']} % of the rays open (teardrop / slot / breakout)" if w.get("boss_wall_open_pct") else "")))
         sl = [h for h in r["hole_list"] if "press_interference_mm" in h]
         if sl:
             v = [h["press_interference_mm"] for h in sl]
-            cases.append(dict(part=n, mating_part=f"{n}_steel_sleeves", pose=None, location_mm=None, value=round(min(v), 3), unit="mm sleeve press interference (min)",
+            cases.append(dict(part=n, mating_part=", ".join(ctx.rel.sleeve_sets_of(n)) or None, pose=None, location_mm=None, value=round(min(v), 3), unit="mm sleeve press interference (min)",
                               what=f"{len(sl)} sleeve holes, interference {min(v)} to {max(v)} mm in CAD"
                                    + ("" if r["hole_offset_mm"] is not None else "; printer hole offset not measured (coupon)")))
         pil = [h for h in r["hole_list"] if h.get("role") == "pilot"]
@@ -285,4 +302,4 @@ def run(ctx):
                 notes=f"holes = concave B-rep cylinders wrapping >= {HOLE_SPAN_DEG:g} deg (180-300 deg kept as partial when hardware sits in them: teardrop, slot or breakout); "
                       f"sleeve boss walls are measured over the sleeve's length only; head recesses (screw-coaxial holes >= {RECESS_OVER_MAJOR:g} x thread major or 90 % of the head) and counterbores around sleeves get no boss wall; coaxial = axis within {AX_TOL_DEG:g} deg and lines within {LINE_TOL_MM} mm; "
                       "horizontal = axis more than 60 deg from the print direction; boss wall = shortest of 120 radial rays from the hole surface to the part's "
-                      f"outer surface over the rays that start in material (boss_wall_open_pct = the rays that start in air: the open sector of a teardrop, slot or breakout), holes at least {BOSS_MIN_DEPTH_MM:g} mm deep; thread data and pilot reference band from data/hardware.json; printer hole offset from printers.json (null = not measured)")
+                      f"outer surface over the rays that start in material (boss_wall_open_pct = the rays that start in air: the open sector of a teardrop, slot or breakout), holes at least {BOSS_MIN_DEPTH_MM:g} mm deep; screws = hardware whose definition spec.kind is screw or that carries a builder's screw_plan, thread from that spec (never the name); thread data and pilot reference band from data/hardware.json; printer hole offset from printers.json (null = not measured)")

@@ -1,7 +1,10 @@
 """Standard-part instances of a body manifest, registered to their official definitions (robot/actuators/interfaces).
 
-Each servo case / horn / idler part of the manifest is matched to its motor's official STEP by rigid registration
-(PCA start over all 48 axis permutations incl. mirror, then ICP). The result per instance: the transform, the RMS
+Which standard part a servo case / output part is comes from its body definition (part_number, spec) or the manifest's motor
+text, matched against the `identified_by` tokens of standard-parts.json; an output's from the case across its joint (joint tree
+and geometry, servo_identities); never from part names. Each is matched to that motor's official STEP by rigid registration
+(PCA start over all 48 axis permutations incl. mirror, then ICP); for an output the registration also decides the member
+(horn, idler or both: the lowest rms). The result per instance: the transform, the RMS
 distance between the instance surface and the official surface both ways (mm; a large value means the body uses a
 different CAD of that servo), whether it is mirrored, and every defined mount hole in the body frame.
 """
@@ -11,7 +14,6 @@ import hashlib
 import itertools
 import json
 import math
-import re
 from pathlib import Path
 
 import numpy as np
@@ -26,36 +28,101 @@ sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import cachefs  # noqa: E402
 CACHE = cachefs.work() / "mount-check/canon"   # keyed by STEP / mesh sha256: shared with the worktrees
 
-MOTOR_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference", "output", "output_horn", "horn",
-               "purchased_servo_output_family_reference"}
+CHECKS_DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or ROOT / "robot/body/checks/data")
+COAXIAL_MM = 5.0      # an output part belongs to the joint whose axis passes within this of its box centre (measured 2026-11-23: all 36
+                      # servo outputs of the selected body within 2.67 mm of their joint's axis, the next joint's axis 14.8 mm or more away)
 
 
-def family_of(name: str, part: dict, by_joint: dict) -> tuple[str, str] | None:
-    """(motor key, member) for a servo part of the manifest, or None."""
-    n = name
-    if "ST3025" in n:
-        return ("ST3025", "case" if n.endswith("_case") else "output")
-    if "XM335" in n:
-        return ("XM335", "case")
-    if re.search(r"neck_(pitch|yaw)_front_horn", n):
-        return ("XM335", "horn")
-    if "hand_OEM" in n:
-        return None
-    member = "idler" if "idler" in n else "horn" if "horn" in n else "case" if "case" in n else None
-    if member is None:
-        return None
-    motor = part.get("motor") or by_joint.get(joint_key(n), "")
-    key = "STS3250" if "STS3250" in motor else "ST3215" if ("ST3215" in motor or "C047" in motor) else None
-    return (key, member) if key else None
+def servo_classes() -> tuple[set, set]:
+    """(case roles, output roles): the role classes servo_case and servo_output of checks/data/roles.json."""
+    c = json.loads((CHECKS_DATA / "roles.json").read_text())["classes"]
+    return set(c["servo_case"]["roles"]), set(c["servo_output"]["roles"])
 
 
-def joint_key(n: str) -> str:
-    """One key per servo joint. The upper__ (shoulder/arm) and lower__/unprefixed (leg) parts keep their tier in the key:
-    both chains have R_yaw and R_roll, with different servos (STS3250 shoulder yaw, ST3215 hip yaw)."""
-    tier = "upper" if n.startswith("upper__") else "lower"
-    n = re.sub(r"^(upper__|lower__)", "", n)
-    return tier + ":" + re.sub(r"_(C047_)?(main_horn|upper_horn_reference|passive_idler_reference|upper_horn|rear_idler|passive_idler|servo_case_reference|case_reference|case|"
-                  r"foot_roll_main_horn|foot_roll_rear_idler|foot_roll_case)$", "", n).replace("_C047", "").replace("_foot_roll", "")
+MOTOR_ROLES = set().union(*servo_classes())     # a servo's case, output wheel, horn or idler
+
+
+def _claims(names) -> dict:
+    """The body definitions' entry per part (robot/body/bom/definitions.py); {} without readable definitions."""
+    try:
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        return DEF.load().claims(list(names))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def model_of(part: dict, claim: dict, defs: dict) -> str | None:
+    """The standard part (standard-parts.json motors key) a servo part is: the key whose `identified_by` tokens occur in its body
+    definition's part_number or spec, else in the manifest part's `motor` text. None when no source names exactly one."""
+    texts = [claim.get("part_number"), *[str(v) for v in (claim.get("spec") or {}).values()], part.get("motor")]
+    for t in texts:
+        hit = [k for k, m in defs["motors"].items() if t and any(tok in str(t) for tok in m.get("identified_by", []))]
+        if len(hit) == 1:
+            return hit[0]
+    return None
+
+
+def _line_dist(x, o, a):
+    v = x - o
+    return float(np.linalg.norm(v - (v @ a) * a))
+
+
+def _line_meets_box(o, a, b, margin=1.0):
+    lo, hi = np.asarray(b[0], float) - margin, np.asarray(b[1], float) + margin
+    t0, t1 = -np.inf, np.inf
+    for i in range(3):
+        if abs(a[i]) < 1e-12:
+            if not lo[i] <= o[i] <= hi[i]:
+                return False
+            continue
+        u, v = (lo[i] - o[i]) / a[i], (hi[i] - o[i]) / a[i]
+        t0, t1 = max(t0, min(u, v)), min(t1, max(u, v))
+    return t0 <= t1
+
+
+def servo_identities(man: dict, defs: dict) -> dict:
+    """{part: dict(standard, member, joint, case, source) or dict(reason)} for every servo part of the manifest (role classes
+    servo_case / servo_output), from the definitions, the manifest's joint tree and its geometry, never from names:
+      case    standard = model_of(the part)
+      output  joint = the joint of its link whose axis passes nearest its box centre (within COAXIAL_MM); its case = the
+              servo_case part on that joint's other link whose box the axis passes through, nearest the output (a servo may
+              sit on either side of its joint); standard = the output's own model_of, else its case's.
+    member is case / output: which output member (horn, idler, both) the registration decides (cached_fit)."""
+    cases_r, outs_r = servo_classes()
+    P = {p["name"]: p for p in man["parts"]} if isinstance(man.get("parts"), list) else dict(man.get("parts", {}))
+    servo = {n: p for n, p in P.items() if p.get("role") in cases_r | outs_r}
+    claims = _claims(servo)
+    joints = man.get("joints", [])
+    out = {}
+    for n, p in servo.items():
+        if p["role"] in cases_r:
+            k = model_of(p, claims.get(n) or {}, defs)
+            out[n] = dict(standard=k, member="case", source="definition / manifest motor") if k else dict(
+                reason="no official definition (unknown servo): neither the definition's part_number / spec nor the manifest motor names a standard part")
+            continue
+        c = np.asarray(p["bounds_mm"], float).mean(0)
+        best = None
+        for j in joints:
+            if p.get("owning_link") not in (j.get("parent"), j.get("child")):
+                continue
+            o, a = np.asarray(j.get("origin_world_mm", [0, 0, 0]), float), np.asarray(j.get("axis_world_neutral", [0, 0, 1]), float)
+            a = a / np.linalg.norm(a)
+            d = _line_dist(c, o, a)
+            if d <= COAXIAL_MM and (best is None or d < best[0]):
+                best = (d, j, o, a)
+        if best is None:
+            out[n] = dict(reason=f"no joint of its link has its axis within {COAXIAL_MM:g} mm of the part")
+            continue
+        _, j, o, a = best
+        other = j["child"] if p["owning_link"] == j["parent"] else j["parent"]
+        cs = sorted((float(np.linalg.norm(np.asarray(q["bounds_mm"], float).mean(0) - c)), m) for m, q in servo.items()
+                    if q["role"] in cases_r and q.get("owning_link") == other and _line_meets_box(o, a, q["bounds_mm"]))
+        case = cs[0][1] if cs else None
+        k = model_of(p, claims.get(n) or {}, defs) or (model_of(servo[case], claims.get(case) or {}, defs) if case else None)
+        out[n] = dict(standard=k, member="output", joint=j["name"], case=case, source="joint tree + geometry") if k else dict(
+            reason=f"no official definition (unknown servo): joint {j['name']}, case {case}", joint=j["name"], case=case)
+    return out
 
 
 def canonical(defs: dict, key: str, member: str):
@@ -284,8 +351,8 @@ def cached_fit(defs, key, member, body, n):
     if z is not None:
         z["T"] = np.array(z["T"]); return z
     tries = ("output", "horn", "idler") if member == "output" else (member,)
-    # STS3250 and ST3215 share one case frame and hole pattern; the body may model one with the other's CAD
-    shapes = (key, "ST3215") if key == "STS3250" else (key, "STS3250") if key == "ST3215" else (key,)
+    # standard parts that share one case frame and hole pattern (standard-parts.json shares_case_cad_with): the body may model one with the other's CAD
+    shapes = (key, *defs["motors"][key].get("shares_case_cad_with", []))
     fits = []
     for mem in tries:            # an 'output' part may be the front wheel alone (no rear idler)
         for shp in shapes:
@@ -302,21 +369,18 @@ def cached_fit(defs, key, member, body, n):
 
 
 def instances(body, man) -> dict:
+    """Every servo part of the body registered to its standard part (servo_identities): transform, fit, defined holes."""
     defs = json.loads(DEFS.read_text())
-    by_joint: dict = {}
-    for n, p in body.parts.items():
-        if p.get("motor"):
-            if by_joint.setdefault(joint_key(n), p["motor"]) != p["motor"]:
-                raise ValueError(f"joint key {joint_key(n)!r} maps to two servos ({by_joint[joint_key(n)]!r}, {p['motor']!r} at {n})")
+    ident = servo_identities(man, defs)
     rows, holes, missing = [], [], []
     for n, p in body.parts.items():
-        if p["role"] not in MOTOR_ROLES:
+        if n not in ident:
             continue
-        fam = family_of(n, p, by_joint)
-        if not fam:
-            missing.append(dict(part=n, role=p["role"], reason="no official definition (unknown servo)"))
+        fam = ident[n]
+        if not fam.get("standard"):
+            missing.append(dict(part=n, role=p["role"], reason=fam["reason"]))
             continue
-        key, member = fam
+        key, member = fam["standard"], fam["member"]
         fit = cached_fit(defs, key, member, body, n)
         T = fit["T"]; R, t = T[:3, :3], T[:3, 3]
         fitted = fit.get("member_fitted", member)

@@ -13,11 +13,10 @@ import numpy as np
 
 from checks import bodylib as BL
 from checks.core import R, tick
-from checks.modules.range_sweep import Prep, controller_limit, scope_joints
+from checks.modules.range_sweep import Prep, controller_limit, in_class, scope_joints
 from checks.registry import register
 
 F = BL
-SKIP_ROLES = {"cut_material", "adhesive_allocation", "authored_harness", "candidate_sensor", "produced_backing"}
 
 
 def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
@@ -27,7 +26,7 @@ def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
     o = np.array(body.joints[jn]["origin_world_mm"], float)
     names = []
     for n, p in body.parts.items():
-        if F.is_fastener(n, p) or p.get("role") in SKIP_ROLES:
+        if F.is_fastener(n, p) or in_class(body, n, "no_collision"):   # role class (data/roles.json): glue, harness, sensor layers
             continue
         b = np.array(p["bounds_mm"], float)
         if np.linalg.norm(0.5 * (b[0] + b[1]) - o) < reach_mm + 0.5 * np.linalg.norm(b[1] - b[0]):

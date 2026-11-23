@@ -1,6 +1,6 @@
 """screws: the screw connections of the scoped parts, measured by robot/body/fastening/mount_check.py (its functions, not a copy).
 
-Screws that touch a scoped part or its steel sleeves (screwlib.screws_of_scope) are analysed by mount_check.run_screws in the
+Screws that touch a scoped part or the sleeve sets pressed into it (screwlib.screws_of_scope, checks.relations) are analysed by mount_check.run_screws in the
 manifest's neutral frame (screws, standard parts, sleeves and printed parts share it; the screw geometry does not depend on the
 pose). Per screw: thread engagement against the official reference of the standard part's tapped hole (shortfall mm), hole
 centre offset from the screw axis (terminal and clamped holes), clamp-stack gaps (head seat and each layer pair, mm, < 0 =
@@ -38,7 +38,7 @@ def screw_summary(r, touched):
                    level_gap_mm=c.get("level_gap_mm"), bears=c.get("bears"))
               for c in r.get("contacts", [])]
     return dict(thread=r.get("thread"), nominal_length_mm=r.get("nominal_length_mm"), head_standard=r.get("head_standard"),
-                spec_source=r.get("spec_source"), name_length_mm=r.get("name_length_mm"), touches=touched, head_mm=r["head_mm"], axis=r["axis"], length_mm=r["length_mm"],
+                spec_source=r.get("spec_source"), touches=touched, head_mm=r["head_mm"], axis=r["axis"], length_mm=r["length_mm"],
                 terminal=dict(kind=t.get("kind"), part=t.get("part"), engagement_mm=t.get("engagement_mm"), reference_engagement_mm=ref,
                               shortfall_mm=None if ref is None or t.get("engagement_mm") is None else round(ref - t["engagement_mm"], 3),
                               axis_offset_mm=t.get("axis_offset_mm"), angle_deg=t.get("angle_deg")) if t else None,
@@ -96,7 +96,8 @@ def run(ctx):
     for k, r in rows.items():
         if "error" in r:
             continue
-        mine = [n for n in found[k]["touched"] if n in r["stack"] or f"{n}_steel_sleeves" in r["stack"] or (r.get("terminal") or {}).get("part") == n]
+        mine = [n for n in found[k]["touched"] if n in r["stack"] or any(s in r["stack"] for s in ctx.rel.sleeve_sets_of(n))
+                or (r.get("terminal") or {}).get("part") == n]
         if not mine:
             continue
         s = screw_summary(r, mine)
@@ -139,21 +140,25 @@ def run(ctx):
     fbody = F.Body(man)
     iface = MC.I.instances(fbody, man)
     scoped = set(ctx.scope)
-    sc_parts = {n: fbody.parts[n] for n in fbody.parts if fbody.parts[n]["role"] == "compression_limit_sleeves" and n[:-len("_steel_sleeves")] in scoped}
+    owner = {s: n for n in ctx.scope for s in ctx.rel.sleeve_sets_of(n)}        # sleeve set -> the scoped part it is pressed into
+    sc_parts = {s: fbody.parts[s] for s in owner if s in fbody.parts}
     shim = types.SimpleNamespace(parts=sc_parts)
     iface_scope = dict(iface, holes=[h for h in iface["holes"] if h["part"] in scoped])
     good = [r for r in rep["rows"] if "error" not in r]
     cache = {}
     rv = MC.reverse_view(shim, good, iface_scope, lambda n: cache.setdefault(n, fbody.mesh(n)))
     for n in ctx.scope:
-        per[n]["reverse"] = dict(sleeves=[s for s in rv["sleeves"] if s["part"] == f"{n}_steel_sleeves"],
+        per[n]["reverse"] = dict(sleeves=[s for s in rv["sleeves"] if owner.get(s["part"]) == n],
                                  interface_faces=[f for f in rv["interface_faces"] if f["part"] == n])
     for s in rv["sleeves"]:
         if s["nearest_screw"] is None:
-            cases.append(dict(part=s["part"][:-len("_steel_sleeves")], mating_part=None, pose=None, location_mm=s["centre_mm"], value=s["length_mm"],
+            cases.append(dict(part=owner[s["part"]], mating_part=None, pose=None, location_mm=s["centre_mm"], value=s["length_mm"],
                               unit="mm steel sleeve with no screw through it", what=f"sleeve {s['index']} od {s['od_mm']} / id {s['id_mm']} mm"))
     unused_faces = [f for f in rv["interface_faces"] if f["used"] < f["holes"]]
     errs = [k for k, r in rows.items() if "error" in r]
+    mine_rows = [r for k, r in rows.items() if "error" not in r and any(k in p["screws"] for p in per.values())]
+    no_spec = sorted(r["name"] for r in mine_rows if not r.get("spec_source"))          # thread / length declared nowhere
+    unknown = sorted({c for r in mine_rows for c, x in r["parts"].items() if x.get("hardware") == "unknown"})   # hardware of no known kind
     allf = [f for s in (x for p in per.values() for x in p["screws"].values()) for f in s["findings"]]
     tick("screws", t0)
     return dict(per_part=per, worst_cases=cases[:30], evidence=[],
@@ -161,8 +166,10 @@ def run(ctx):
                                 screws_with_hole_offset_over_0p1mm=sum(1 for c in cat["offset"] if c["value"] > 0.1),
                                 screws_with_gap_over_0p05mm=sum(1 for c in cat["gap"] if c["value"] > 0.05),
                                 sleeves_without_screw=sum(1 for s in rv["sleeves"] if s["nearest_screw"] is None), mount_hole_faces_with_unused_holes=len(unused_faces),
-                                screws_not_analysed=len(errs)),
-                screws_not_analysed=errs,
+                                screws_not_analysed=len(errs), screws_without_spec=len(no_spec), hardware_kind_unknown=len(unknown)),
+                screws_not_analysed=errs, screws_without_spec=no_spec, hardware_kind_unknown=unknown,
                 notes="mount_check.run_screws on the screws that touch the scope (ring points r_shank + 0.8 mm inside the part or its sleeve); per-screw numbers are the "
                       "full mount_check numbers (neutral frame, same functions); engagement shortfall = reference - engaged (>0 = short); offsets are screw axis vs hole centre; "
-                      "gaps signed (< 0 interpenetration); reverse view restricted to scoped parts and their sleeves; driver / insertion access is the driver_access check")
+                      "gaps signed (< 0 interpenetration); reverse view restricted to scoped parts and their sleeves; driver / insertion access is the driver_access check; "
+                      "screw kind, thread, length and head standard from the body definition / screw_plan (screws_without_spec: declared nowhere; hardware_kind_unknown: "
+                      "hardware in a screw's stack whose kind neither a definition, a screw_plan nor its shape says: declare them)")

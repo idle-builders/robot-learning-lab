@@ -82,6 +82,14 @@ def turn_T(side):
     return T
 
 
+def turn_T_at(x_mm):
+    """turn_T for a case whose box centre is at x_mm: the right-side turn on RF_AX's side of the mirror plane (geometry
+    mirror_plane_x_mm, checks/data/roles.json), its mirror on the other side. The side comes from where the part is, not its name."""
+    from checks.relations import GEO
+    x0 = GEO["mirror_plane_x_mm"]
+    return turn_T("R" if (x_mm - x0) * (B.RF_AX - x0) > 0 else "L")
+
+
 # ------------------------------------------------------------------------------------------------ manifest variant
 def save_npz(name, mesh):
     MOVED.mkdir(parents=True, exist_ok=True)
@@ -288,7 +296,10 @@ def build_manifest():
         print(" ", line)
 
 
-def brep(name, man_parts, turned=False, keep_case_solids=False):
+def brep(name, man_parts, turned=False, min_solid_mm3=0.0):
+    """The part's native STEP solids in the manifest frame; min_solid_mm3: only solids of at least this volume (a servo's
+    external housing without its internal gears: the part's exact_fit.min_solid_mm3 setting); turned: the roll-flip turn of
+    the case's side (turn_T_at its box centre)."""
     from build123d import Compound, import_step, Location
     p = man_parts[name]
     path = p.get("native_step") or p.get("native_step_unmodified")
@@ -296,33 +307,23 @@ def brep(name, man_parts, turned=False, keep_case_solids=False):
     off = p.get("native_step_offset_mm") or [0.0, 0.0, 0.0]
     sh = sh.moved(Location(tuple(float(v) for v in off)))
     sols = sh.solids()
-    if keep_case_solids:   # external housing only (as fit_check_upper_hip): no internal gears
-        sols = [s for s in sols if s.volume >= 4000.0]
+    if min_solid_mm3:
+        sols = [s for s in sols if s.volume >= min_solid_mm3]
     c = Compound(children=list(sols))
-    return LFIT.transform_shape(c, turn_T(name[0])) if turned else c
+    return LFIT.transform_shape(c, turn_T_at(0.5 * sum(float(b[0]) for b in p["bounds_mm"]))) if turned else c
 
 
 def fit_poses():
-    """fit_check_upper_hip.py's pose list on the current joint names, plus the hip-shell target extremes."""
-    P = [("standing", {})]
-    P += [(f"hip_yaw_{a:+d}", {"R_hip_yaw": float(a)}) for a in range(-40, 45, 5) if a]
-    P += [(f"hip_pitch_{a:+d}", {"R_hip_pitch": float(a)}) for a in range(-90, 45, 5) if a]
-    P += [(f"hip_roll_{a:+d}", {"R_hip_roll": float(a)}) for a in range(-45, 30, 5) if a]
-    P += [(f"knee_{a:d}", {"R_knee": float(a)}) for a in (15, 30, 45, 60, 75, 90, 105, 115, 125)]
-    P += [("deep_crouch", {"R_hip_pitch": -35.0, "R_knee": 70.0, "R_ankle_pitch": -35.0}),
-          ("wide_straddle_crouch", {"R_hip_yaw": 15.0, "R_hip_roll": -18.0, "R_hip_pitch": -30.0, "R_knee": 60.0, "R_ankle_pitch": -30.0}),
-          ("abducted_extension", {"R_hip_yaw": -15.0, "R_hip_roll": 25.0, "R_hip_pitch": 30.0, "R_knee": 30.0, "R_ankle_pitch": 20.0}),
-          ("max_flex_combined", {"R_hip_pitch": -35.0, "R_hip_roll": 20.0, "R_knee": 125.0, "R_ankle_pitch": 35.0, "R_ankle_roll": -25.0}),
-          ("flex90_roll_out45", {"R_hip_pitch": -90.0, "R_hip_roll": -45.0, "R_knee": 95.0}),
-          ("flex90_roll_in25", {"R_hip_pitch": -90.0, "R_hip_roll": 25.0, "R_knee": 95.0}),
-          ("ext40_roll_out45", {"R_hip_pitch": 40.0, "R_hip_roll": -45.0}),
-          ("ext40_roll_in25_yaw40", {"R_hip_pitch": 40.0, "R_hip_roll": 25.0, "R_hip_yaw": 40.0})]
-    return P
+    """The exact-fit pose list [(name, {joint: deg})]: checks/data/pose_sets.json fit_poses (fit_check_upper_hip.py's list on the
+    current joint names, plus the hip-shell target extremes), read by checks.core."""
+    from checks import core
+    return core.fit_poses()
 
 
 # ------------------------------------------------------------------------------------------------ closed solids
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import cachefs  # noqa: E402
+from checks.relations import ROLES as _ROLES  # noqa: E402   (role classes: which roles are a servo case)
 SOLIDS = cachefs.work() / "roll-flip/solids"    # keyed by the part name and its mesh sha256: shared with the worktrees
 VOX = 0.4
 
@@ -340,8 +341,8 @@ def closed(body, n):
     if d is not None:
         return trimesh.Trimesh(d["v"], d["f"], process=False)
     s = solid(body, n)
-    if n[2:] == CASE:   # box-like: leg_motion's solid (its hull), as in F-03; turned with the case in the variant
-        return s
+    if p.get("role") in _ROLES["classes"]["servo_case"]["roles"]:   # a servo case (role class, checks/data/roles.json) is box-like:
+        return s                                                      # leg_motion's solid (its hull), as in F-03
     hull = s.convex_hull
     m = s
     if s.is_watertight and s.volume < 0.98 * hull.volume:   # leg_motion's solid is already a real (non-hull) closed mesh
@@ -352,16 +353,18 @@ def closed(body, n):
         import subprocess                                           # in a subprocess under a hard 300 s limit
         tmp = SOLIDS / f"{n}-gmsh-{os.getpid()}.npz"; SOLIDS.mkdir(parents=True, exist_ok=True)
         code = ("import sys, numpy as np; sys.path.insert(0, %r); from surface_mesh import step_to_closed_mesh; "
-                "g = step_to_closed_mesh(%r, 1.0); np.savez(%r, v=g.vertices, f=g.faces)"
-                % (str(ROOT / "robot/body/motor-refit"), str(F.src(step)), str(tmp)))
+                "from build123d import import_step; "
+                "g = step_to_closed_mesh(%r, 1.0); vs = sum(s.volume for s in import_step(%r).solids()); "
+                "np.savez(%r, v=g.vertices, f=g.faces, vs=vs)"
+                % (str(ROOT / "robot/body/motor-refit"), str(F.src(step)), str(F.src(step)), str(tmp)))
         try:
             subprocess.run([sys.executable, "-B", "-c", code], timeout=300, check=True, capture_output=True)
-            d = np.load(tmp); g = trimesh.Trimesh(d["v"], d["f"], process=True); tmp.unlink()
+            d = np.load(tmp); g = trimesh.Trimesh(d["v"], d["f"], process=True); v_step = float(d["vs"]); tmp.unlink()
         except Exception as exc:  # noqa: BLE001
             print(f"  {n}: gmsh surface not used ({type(exc).__name__}); voxel fill instead", flush=True)
     if g is not None:
         g.apply_translation(p.get("native_step_offset_mm") or [0.0, 0.0, 0.0])
-        v_ref = p.get("volume_mm3") or (p.get("mass_kg") or 0.0) / 1.22e-6
+        v_ref = p.get("volume_mm3") or v_step      # the manifest's volume, else the STEP's own (sum of its solids)
         if g.volume < 0:
             g.invert()
         ok = kit.mf(g).status().name == "NoError"   # manifold3d accepts the few 4-face edges where faces touch

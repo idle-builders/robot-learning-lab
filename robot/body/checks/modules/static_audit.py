@@ -6,19 +6,17 @@ import time
 
 import numpy as np
 
-from checks import bodylib as BL
 from checks.core import R, kit, tick
 from checks.registry import register
-
-SKIP = {"cut_material", "adhesive_allocation", "authored_harness"}
 
 
 @register("static_audit", lambda ctx: bool(ctx.scope))
 def run(ctx):
-    """Standing: overlap volume (mm3) of each scoped part against every other non-fastener part (bounds within 0.2 mm), exact mesh booleans."""
+    """Standing: overlap volume (mm3) of each scoped part against every other non-fastener part (bounds within 0.2 mm), exact mesh booleans.
+    Left out: fasteners and the role class audit_skip (glue, harness, cut material: data/roles.json), as ctx.rel says."""
     t0 = time.time()
     body = ctx.body
-    others = [n for n, p in body.parts.items() if not BL.is_fastener(n, p) and p.get("role") not in SKIP]
+    others = [n for n in body.parts if not ctx.rel.is_fastener(n) and not ctx.rel.in_class(n, "audit_skip")]
     bb = {n: np.array(body.parts[n]["bounds_mm"], float) for n in others}
     rows, per_part, unmeasurable = {}, {}, 0
     for a in ctx.scope:

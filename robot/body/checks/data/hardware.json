@@ -1,5 +1,5 @@
 {
- "_doc": "Hardware library for the checks (mm). threads: nominal major diameter per thread family as the manifest names it (M2, M2.5, M3: ISO metric; PA2, PA2.5, PA3: self-tapping screws for plastics, major diameter = the number). self_tapping: families that cut or form their own thread in the printed part. pilot_pct_of_major: the range the research catalogue cites for self-tapping screws into printed plastic (about 80-90 % of the major diameter, docs/research/design-checks.md S32/S33); a reference band, not a rule. Sleeve sizes are not listed here: the body uses several (4.5 / 3.2, 3.9 / 2.6, 3.6 / 2.2, 3.2 / 2.1 mm outer / inner), so the checks read them from each part's <part>_steel_sleeves geometry.",
+ "_doc": "Hardware library for the checks (mm). threads: nominal major diameter per thread family as the manifest names it (M2, M2.5, M3: ISO metric; PA2, PA2.5, PA3: self-tapping screws for plastics, major diameter = the number). self_tapping: families that cut or form their own thread in the printed part (mount_check: such a screw fits a plastic hole tapped for the metric thread of its major diameter, PA2 into M2). pilot_pct_of_major: the range the research catalogue cites for self-tapping screws into printed plastic (about 80-90 % of the major diameter, docs/research/design-checks.md S32/S33); a reference band, not a rule. Sleeve sizes are not listed here: the body uses several (4.5 / 3.2, 3.9 / 2.6, 3.6 / 2.2, 3.2 / 2.1 mm outer / inner), so the checks read them from the geometry of the sleeve set pressed into each part (checks.relations sleeve_sets_of).",
  "threads": {
   "M2": 2.0,
   "M2.5": 2.5,
@@ -222,6 +222,17 @@
      "reference_engagement_mm": 2.4
     }
    }
+  }
+ },
+ "geometry_kinds": {
+  "_doc": "Which fastener a hardware part is when neither its body definition (spec.kind) nor a screw_plan says it: from its mesh (fastening/mount_check.py hardware_shape, geometry_kind), only where the declared parts separate. Measured on the selected body's declared hardware (2026-11-23): 271 screws (259 spec.kind screw, 12 screw_plan) all solid on their revolution axis with a wide / narrow end radius ratio 1.75-2.24; 62 washers open on the axis with length / diameter 0.05-0.17; the open parts that are not washers 0.26 and up (41 nuts 0.28-0.38, 22 spacers 0.26-0.71, 10 threaded sleeves 0.77-0.85). Nuts and spacers overlap in shape, so an undeclared nut or spacer stays kind unknown (reported by name: declare it).",
+  "screw": {
+   "axis": "solid",
+   "end_radius_ratio_min": 1.5
+  },
+  "washer": {
+   "axis": "open",
+   "length_over_dia_max": 0.2
   }
  }
 }
