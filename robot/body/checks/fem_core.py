@@ -2,7 +2,8 @@
 (unit-wrench basis at the load patch, support patches clamped; maths moved from motor-refit/fem_refit.solve with the
 material table injected from data/materials.json), one material table, patches that follow the part.
 
-A setup is data in data/part_settings.json under part_settings[part]["fem"]:
+A setup is data: the `fem` block of the part's body definition (robot/**/<builder>.bom.yaml), else data/part_settings.json
+part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and its `_defaults`, run overrides):
 
   mesh_h_mm        2.2
   bonded           [{"part": "<sleeve part>", "material": "<name in data/materials.json>"}]   companions meshed with the part (bonded);
@@ -80,13 +81,14 @@ def LL():
 
 # ------------------------------------------------------------------------------------------------ setups
 def merged_setup(ctx, part, variant=None):
-    """fem setup of a part (None when it has none); a variant replaces the keys it names."""
-    s = ctx._settings.get(part, {}).get("fem")
-    if not s:
+    """fem setup of a part (None when it has none): ctx.settings(part)["fem"] (its definition, else part_settings.json); a variant
+    replaces the keys it names."""
+    full = ctx.settings(part).get("fem")
+    if not full:
         return None
-    s = {k: v for k, v in s.items() if k != "variants"}
+    s = {k: v for k, v in full.items() if k != "variants"}
     if variant and variant != STUDIED:
-        v = ctx._settings[part]["fem"].get("variants", {}).get(variant)
+        v = full.get("variants", {}).get(variant)
         if v is None:
             return None
         s.update(v)

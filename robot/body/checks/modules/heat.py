@@ -31,7 +31,7 @@ def sources(ctx, tab=None):
     tab = tab or table()
     out = {}
     for n in ctx.parts:
-        k = (ctx._settings.get(n, {}).get("heat_source") or {}).get("kind")
+        k = (ctx.settings(n).get("heat_source") or {}).get("kind")
         if k:
             out[n] = (k, tab["kinds"][k])
     return out

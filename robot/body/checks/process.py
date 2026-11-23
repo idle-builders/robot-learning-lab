@@ -4,7 +4,7 @@ part's solid turned into its print frame. Every printability check reads the pro
 Resolution, per key (the source of each value is reported):
   1. run override      `run.py --process KEY=VALUE` (cross-evaluation: another nozzle, material, layer height for every
                        printed part in scope; never stored)
-  2. part setting      part_settings.json <part>.process
+  2. part setting      the part's body definition `process` block, else part_settings.json <part>.process (ctx.settings)
   3. material default  materials.json <material>.nozzle_mm_default (manufacturer recommendation)
   4. printer default   printers.json <printer>.by_nozzle[<nozzle>] (layer height, line width)
 
@@ -46,11 +46,28 @@ def parse_override(items):
 
 
 def is_printed(ctx, n, settings=None):
-    p = ctx.parts[n]
+    """Whether part n is printed: its process.printed setting when set, else the relations (checks/relations.py): the kind its
+    body definition declares (kind: printed), else the kind of its manifest role in data/roles.json. Never its name."""
     s = (settings if settings is not None else ctx.settings(n)).get("process") or {}
     if "printed" in s:
         return bool(s["printed"])
-    return p.get("role") in ctx._settings.get("_printed", {}).get("roles", [])
+    return ctx.rel.is_printed(n)
+
+
+def relations(body):
+    """What each part of `body` is and how parts relate (checks/relations.py): the run's (bodylib.RELATIONS, set by ctx.Ctx), else
+    one built for this body, for callers without a ctx (robot/body/leg/fast_check.py)."""
+    from checks import bodylib as BL
+    if BL.RELATIONS is not None and BL.RELATIONS.body is body:
+        return BL.RELATIONS
+    if getattr(body, "_relations", None) is None:
+        import tempfile
+        from checks.relations import Relations
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+            json.dump(dict(parts=list(body.parts.values()), joints=list(body.joints.values())), f)
+            f.flush()
+            body._relations = Relations(body, f.name)
+    return body._relations
 
 
 def up_vector(up):

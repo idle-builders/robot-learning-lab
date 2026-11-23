@@ -1,4 +1,4 @@
-"""fem: static FEM of every scoped part that has a per-part FEM setup (data/part_settings.json -> part -> fem). One mesher, one solver
+"""fem: static FEM of every scoped part that has a per-part FEM setup (its body definition's `fem` block, else data/part_settings.json -> part -> fem). One mesher, one solver
 (fem_core), run along the part's decided print direction (process.up; --fem-variant studied_axes: the stored layer_normal_axes). Per part, material and layer-normal axis: p99 / peak von Mises, p99 layer tension, strength ratios (in-plane and across layers), max displacement per load case."""
 from __future__ import annotations
 

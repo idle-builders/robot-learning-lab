@@ -5,10 +5,9 @@ from __future__ import annotations
 import numpy as np
 
 from checks import fem_core as FC
+from checks import process as P
 from checks.core import R
 from checks.registry import register
-
-PRINTED = ("printed_structural_connector", "printed_structural_carrier", "body_shell")     # shells are printed too: a shell without a setup is a coverage gap
 
 
 def holes(ctx, name, r_max=5.0):
@@ -27,7 +26,7 @@ def run(ctx):
     for n in ctx.scope:
         s = FC.merged_setup(ctx, n, variant)
         if not s:
-            if ctx.parts[n].get("role") in PRINTED:
+            if P.is_printed(ctx, n):           # every printed part, shells too: one without a setup is a coverage gap
                 uncovered.append(n)
             continue
         if "native_step" not in ctx.parts[n]:
@@ -68,5 +67,5 @@ def run(ctx):
                                  fem_parts_without_print_direction=len(nodir), fem_parts_with_seeded_print_direction=len(seeded), fem_parts_print_direction_disagrees_with_layer_normal_axes=len(disagree)),
                 evidence=[], coverage=dict(printed_without_setup=uncovered, setup_not_checked=not_checked, print_direction_missing_fallback_to_stored_axes=nodir,
                                        print_direction_seeded=seeded, print_direction_disagrees=disagree),
-                notes="worst-first = smallest patch; coverage.printed_without_setup lists printed parts (connectors, carriers and body shells) in scope with no fem setup. "
+                notes="worst-first = smallest patch; coverage.printed_without_setup lists printed parts (process.is_printed: definition kind, else role table) in scope with no fem setup. "
                 + " | ".join(f"{n}: {p['setup_notes'].get('open_difference', '')}" for n, p in per.items() if p["setup_notes"].get("open_difference")))
