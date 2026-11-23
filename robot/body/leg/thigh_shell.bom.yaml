@@ -105,3 +105,12 @@ parts:
     the bosses from the counterbore floor to the boss end, which seats on the shin frame's side wall.
   generator: shin-cover
   section: Knee
+# Configured values of thigh_shell.py (robot/body/bom/bom_config.py value("thigh-shell", NAME)); the single source.
+config:
+  ROLL_SWEEP_DEG:
+    value: [-45.0, 25.0]
+    unit: deg
+    doc: Hip-roll sweep of the Stage 5 (yellow pitch-to-roll) slot clearance in the thigh shell. A design sweep, not the joint range
+      (declared hip roll -30..25 in package_complete_leg_hip.bom.yaml); the lower end covers the A-11 leg-out / side-step poses at roll -45
+      (robot/body/hip-shell/sections/leg_motion.py).
+    decision: thigh session 2026-11-23 (geometry unchanged from 011827980)

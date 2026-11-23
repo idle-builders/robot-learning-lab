@@ -52,6 +52,8 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parents[0] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges and this builder's config: robot/body/leg/thigh_shell.bom.yaml)
 import roll_flip_checks as R  # noqa: E402  (kit, closed(), library poses, manifest paths)
 import build_upper_hip_connectors as B  # noqa: E402
 
@@ -66,7 +68,8 @@ if os.environ.get("THIGH_SHELL_OUT"):
 GAP, WALL = 1.5, 2.1              # inner clearance to covered parts, wall thickness (today's covers: 2.1)
 Z0, TOP_Z = 116.0, 206.5          # tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
 WINDOW = 5.0                      # each station hulls the sections within +- WINDOW mm (no waviness)
-ROLL_RANGE, CLEAR = (-45.0, 25.0), 1.5
+ROLL_RANGE = tuple(BOM_CONFIG.value("thigh-shell", "ROLL_SWEEP_DEG"))   # design sweep of the Stage 5 slot, not the joint range
+CLEAR = 1.5
 NTH = 144
 CENTRE = np.array([55.0, 5.0])
 COVERED = ("R_thigh_roll_flip", "R_roll_servo_case_reference", "R_knee_ST3025_case",
@@ -536,7 +539,7 @@ def yellow_sweep(body):
 #     keeps both their distance rho from the roll axis and their y, so the pitch sweep gives the smallest rho per angle and y. Above the roll
 #     axis everything farther than that (minus CLEAR) is cut: a surface of revolution about the roll axis whose radius R(y)
 #     changes with y at most 1 mm per mm (front wall: the arc round the roll horn; back wall: a wider arc).
-KNEE_RANGE = (0.0, 95.0)          # knee flexion the shell leaves room for (owner 2026-11-23: accepted joint range 0..95, the shells close to about 1 mm at 95; was 110, owner 2026-11-18)
+KNEE_RANGE = tuple(BOM_CONFIG.joint_range("R_knee"))   # knee flexion the shell leaves room for: the declared joint range, no margin (owner 2026-11-23: shells close to about 1 mm at 95; was 110, owner 2026-11-18)
 PITCH_RANGE, ROLL_SWEEP = (-90.0, 45.0), (-50.0, 30.0)   # range limits -85..40 / -45..25 plus 5 deg
 KNEE_PARTS = ("R_shin_combined", "R_shin_back_hard_cover", "R_shin_front_hard_cover")
 TOP_PARTS = ("R_hip_yaw_to_pitch_combined", "R_hip_pitch_ST3025_case", "R_hip_pitch_ST3025_output")   # green parts above the thigh
