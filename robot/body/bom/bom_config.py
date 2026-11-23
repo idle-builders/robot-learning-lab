@@ -109,7 +109,9 @@ def material(name, builder=None, defs=None):
         return value(builder, "PRINTED_MATERIAL", defs)
     m = (e.get("process") or {}).get("material")
     if not m:
-        raise Undeclared(f"part {name!r}: {e['file']} parts[{e['index']}] declares no process.material")
+        if builder is None:
+            raise Undeclared(f"part {name!r}: {e['file']} parts[{e['index']}] declares no process.material")
+        return value(builder, "PRINTED_MATERIAL", defs)   # the writing builder's declared material; mass_record names it
     return m
 
 
@@ -131,8 +133,10 @@ def mass_record(name, volume_mm3, builder=None, digits=6, defs=None):
     """{mass_kg, mass_basis} of a printed part from its declared material, naming where the material is declared."""
     m, rho = material(name, builder, defs), density_kg_mm3(name, builder, defs)
     try:
-        e = part_entry(name, defs); where = f"{e['file']} parts[{e['index']}]"
+        e = part_entry(name, defs)
+        where = f"{e['file']} parts[{e['index']}]" if (e.get("process") or {}).get("material") else \
+            f"{builder} config PRINTED_MATERIAL; {e['file']} parts[{e['index']}] declares none"
     except Undeclared:
-        where = f"{builder} config PRINTED_MATERIAL"
+        where = f"{builder} config PRINTED_MATERIAL; no definition claims the part"
     return dict(mass_kg=round(float(volume_mm3) * rho, digits),
                 mass_basis=f"Exact native STEP volume * {rho * 1e6:g} g/cm3 ({m}, declared in {where})")
