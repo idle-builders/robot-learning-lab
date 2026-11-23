@@ -281,6 +281,25 @@ def screen_solid(body, n, changed):
     return s, how
 
 
+def full_closed_mesh(body, n):
+    """Part n's own mesh, not decimated, when it is a closed manifold; else None. screen_solid decimates such a mesh to 40k
+    faces for neighbour screening (R.slim); the print checks read surface detail (walls, bed, small features) the
+    decimation moves, so they measure a mesh-only part on this instead. Additive: screen_solid is unchanged."""
+    p = body.parts[n]
+    if not p.get("mesh"):
+        return None
+    mesh_file = BL.src(p["mesh"])
+    if not mesh_file.is_file():
+        return None
+    sha(mesh_file)                                  # an input of the running check (result cache)
+    full = body.mesh(n)
+    if full.volume < 0:
+        full = full.copy(); full.invert()
+    if len(full.faces) and kit.mf(full).status().name == "NoError" and not kit.mf(full).is_empty():
+        return full
+    return None
+
+
 # ------------------------------------------------------------------------------------------------ poses
 def region_poses(body, which, links):
     """[(name, family, {joint: deg})] of the arm / neck / torso regions (pose_sets.json region_poses) that hold one of `links`; standing

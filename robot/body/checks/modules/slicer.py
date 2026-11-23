@@ -5,7 +5,13 @@ support time and support filament (summed from the G-code's support sections), b
 
 The profiles are flattened from their inheritance chains and their sha256 recorded with the slicer version; the part
 mesh goes to the run's work folder (derived, recreated by running this). The part's own layer height (process setting)
-replaces the profile's. Measurements and counts only."""
+replaces the profile's.
+
+Log lines: Bambu Studio logs its own internal diagnostics at [error] level on slices that succeed (return code 0): the
+CLI's "parent path ... create it" and the Z-filler's clipper index "ZFiller: encounter idx from clip: N" (seen on mirror
+twins with different N and counts, nothing in the G-code or result.json). Those are listed apart per part
+(slicer_internal_log_lines, SLICER_INTERNAL_LOG) and not counted as slicer warnings; every other [warning] / [error] line
+and the result's own warning are. Measurements and counts only."""
 from __future__ import annotations
 
 import hashlib
@@ -17,12 +23,14 @@ import time
 
 import numpy as np
 
+from checks import print_solid as PS
 from checks import process as P
 from checks.core import ROOT, tick
 from checks.registry import register
 
 TIMEOUT_S = 300
 FILAMENT_D_MM = 1.75
+SLICER_INTERNAL_LOG = (r"the parent path .* is not there, create it", r"ZFiller: encounter idx from clip")   # the slicer's own diagnostics
 
 
 def _targets(ctx):
@@ -88,7 +96,7 @@ def slice_part(ctx, n, out_dir):
                 d["layer_height"] = f"{e['layer_height_mm']:g}"
         f = wd / f"{kind}.json"; f.write_text(json.dumps(d, indent=1))
         prof[kind] = f; hashes[kind] = hashlib.sha256(f.read_bytes()).hexdigest()
-    P.print_mesh(ctx, n, e).export(wd / "part.stl")
+    PS.print_mesh(ctx, n, e).export(wd / "part.stl")      # the full closed mesh of a mesh-only part (checks/print_solid.py)
     cmd = [str(binary), "--datadir", str(wd / "data"), "--load-settings", f"{prof['machine']};{prof['process']}", "--load-filaments", str(prof["filament"]),
            "--slice", "0", "--arrange", "1", "--orient", "0", "--outputdir", str(wd / "out"), "--export-3mf", "out.3mf", str(wd / "part.stl")]
     try:
@@ -97,9 +105,11 @@ def slice_part(ctx, n, out_dir):
     except subprocess.TimeoutExpired:
         return dict(profiles=names, failed=f"slicer timed out after {TIMEOUT_S} s")
     (wd / "cli.log").write_text(log)
-    warn = sorted({re.sub(r"^\[[^\]]*\] \[[^\]]*\] ", "", ln).strip() for ln in log.splitlines()
-                   if re.search(r"\[(warning|error)\]", ln) and "parent path" not in ln})
-    r = dict(profiles=names, profile_sha256=hashes, slicer=bs["version"], exit_code=code, log_warnings_errors=warn[:20])
+    lines = [re.sub(r"^\[[^\]]*\] \[[^\]]*\] ", "", ln).strip() for ln in log.splitlines() if re.search(r"\[(warning|error)\]", ln)]
+    internal = [ln for ln in lines if any(re.search(pat, ln) for pat in SLICER_INTERNAL_LOG)]
+    warn = sorted(set(ln for ln in lines if ln not in internal))
+    r = dict(profiles=names, profile_sha256=hashes, slicer=bs["version"], exit_code=code, log_warnings_errors=warn[:20],
+             slicer_internal_log_lines=len(internal), slicer_internal_log=sorted(set(internal))[:10])
     rf = wd / "out" / "result.json"
     if rf.exists():
         res = json.loads(rf.read_text())
@@ -148,4 +158,4 @@ def run(ctx):
     cases.sort(key=lambda c: -c["value"])
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
                 notes="Bambu Studio CLI (--slice 0 --orient 0) on the part's print-frame mesh; system profiles flattened (sha256 per run), bed type and "
-                      "overrides from printers.json; support filament = net E inside '; FEATURE: Support*' sections (all features together match the G-code's total weight) x filament area x density")
+                      "overrides from printers.json; the slicer's internal diagnostic log lines (SLICER_INTERNAL_LOG) listed per part, not counted as warnings; support filament = net E inside '; FEATURE: Support*' sections (all features together match the G-code's total weight) x filament area x density")
