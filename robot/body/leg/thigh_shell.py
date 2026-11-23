@@ -1216,6 +1216,18 @@ PA2_ENG = 4.25                    # engagement in the frame wall the head seat i
 BOSS_BACK = 6.0                   # the side-mount boss runs this far toward +y past the screws (into the curving wing)
 BOSS_END_Y = 18.0                 # above this y the boss end is bevelled back to the wing (the frame wall face ends at y 17.5)
 BOSS_END_BEVEL_DEG = 67.5         # bevel turn (the bevel face runs 90 - this from the end face's +y direction)
+# Flat land for the sleeve press (owner 2026-11-23): the press check's spacer block bears on the exit plane over a dia 10
+# annulus (press_lib ANVIL_D) about each sleeve exit, but the dia 6.5 boss end gave it 68.9 % (recess 20.8 % beyond the boss
+# outline, open 10.3 % past the wings' front edge). The boss end grows to LAND_D about each exit, as part of the boss hull
+# (no step, no crevice to the wing), its end in the plane of the sleeve exit on the frame wall; it runs down to the print bed
+# (the wings' front edges, up +y), where its edge on the frame wall is chamfered LAND_BED_CHAMFER (elephant foot); it stays
+# LAND_RUN_CLEAR outside the ankle coupler's top arc (radius about the ankle pitch axis) where the coupler's x span comes
+# within LAND_RUN_CLEAR of the land's (medial: the coupler stands 0.32 mm proud of the frame wall face; lateral it is 0.65 mm
+# short of it: untrimmed, the lateral land ran 0.73 mm from the coupler, against 1.68 mm before the land).
+LAND_D = 10.4
+LAND_BED_CHAMFER = 0.3
+LAND_RUN_CLEAR = 1.0
+COUPLER, ANKLE_PITCH = "R_ankle_coupler_combined", "R_ankle_pitch"
 CB_CHAMFER_SINK = 0.9             # the counterbore's entry chamfer starts this far under the deepest rim point (+y side)
 CB_CHAMFER_LEN = 4.0              # length along the axis of the oblique chamfer cone (outward, past the skin)
 SLV_D, SLV_BORE_D = 3.6, 2.2      # 304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)
@@ -1280,9 +1292,18 @@ def cover_mounts(cov, c, q, body):
     sleeve solids. Per side the two bosses are one stadium (two discs 6.5 apart in z touched tangentially: a non-manifold
     seam and a 0.004 mm slit); its end face seats on the frame's flat side wall (no clamp gap)."""
     import manifold3d as M
+    import trimesh
     fr = body.mesh(FRAME)
     sites, sleeves = [], []
     m = kit.mf(cov)
+    y_bed = float(cov.bounds[0][1]) + BED_LAND           # print_trims' bed land (up +y): the land runs to just under it
+    cp, aj = body.mesh(COUPLER), body.joints[ANKLE_PITCH]
+    a_o = np.asarray(aj["origin_world_mm"], float)
+    assert abs(abs(aj["axis_world_neutral"][0]) - 1.0) < 1e-6, "ankle pitch axis not along x"
+    V = cp.vertices
+    rad = np.hypot(V[:, 1] - a_o[1], V[:, 2] - a_o[2])
+    ang = np.degrees(np.arctan2(V[:, 1] - a_o[1], V[:, 2] - a_o[2]))   # from +z toward +y
+    lo, hi = aj["range_deg"]
     for side, x0 in (("medial", 0.0), ("lateral", 120.0)):
         d = 1.0 if x0 < 50 else -1.0                          # screw direction, from the cover skin into the frame
         ss = []
@@ -1299,7 +1320,26 @@ def cover_mounts(cov, c, q, body):
         # convex hull of the two boss cylinders (a box between them met their sides tangentially: non-manifold edges), run
         # BOSS_BACK toward +y into the wing where it curves round to the back (its flat side met the wing's inner skin at 45
         # deg: a V-crevice that read as a 0.02-0.4 mm gap)
-        boss = M.Manifold.batch_hull([_cyl_x(xs0 - d * 3.0, end, s_["y"] + dy, s_["z"], BOSS_D) for s_ in ss for dy in (0.0, BOSS_BACK)])
+        old = [_cyl_x(xs0 - d * 3.0, end, s_["y"] + dy, s_["z"], BOSS_D) for s_ in ss for dy in (0.0, BOSS_BACK)]
+        boss = M.Manifold.batch_hull(old + [_cyl_x(xs0 - d * 3.0, end, s_["y"], s_["z"], LAND_D) for s_ in ss])
+        xa, xb = sorted((xs0 - d * 3.0, end))
+        boss = boss ^ kit.mf(trimesh.creation.box(bounds=[[xa - 1.0, y_bed - 0.5 * BED_LAND, 0.0], [xb + 1.0, 60.0, 200.0]]))
+        # land edge on the frame wall at the bed: 45 deg chamfer
+        zl = [min(s_["z"] for s_ in ss) - LAND_D, max(s_["z"] for s_ in ss) + LAND_D]
+        c_ = LAND_BED_CHAMFER + 0.5 * BED_LAND
+        boss = boss - kit.mf(trimesh.convex.convex_hull(np.array(
+            [[end + d * 1.0, y_bed - 1.0, zz] for zz in zl] + [[end - d * (c_ + 1.0), y_bed - 1.0, zz] for zz in zl]
+            + [[end + d * 1.0, y_bed + c_ + 1.0, zz] for zz in zl])))
+        # the ankle coupler's top arc (its vertices that turn into the land's angular sector over the ankle range), where its x
+        # span reaches into the land: the land stays LAND_RUN_CLEAR outside it (the dia 6.5 boss as before)
+        cx0, cx1 = float(cp.bounds[0][0]), float(cp.bounds[1][0])
+        coupler_keep = None
+        if cx0 < xb + LAND_RUN_CLEAR and cx1 > xa - LAND_RUN_CLEAR:
+            sa = [float(np.degrees(np.arctan2(s_["y"] - a_o[1], s_["z"] - a_o[2]))) for s_ in ss]
+            sel = (ang > min(sa) - 30.0 - hi) & (ang < max(sa) + 30.0 - lo) & (V[:, 0] > xa - 1.0) & (V[:, 0] < xb + 1.0)
+            coupler_keep = float(rad[sel].max()) + LAND_RUN_CLEAR
+            keep = M.Manifold.cylinder(xb - xa + 2.0, coupler_keep, coupler_keep, 192).rotate([0.0, 90.0, 0.0]).translate([xa - 1.0, a_o[1], a_o[2]])
+            boss = (boss - keep) + M.Manifold.batch_hull(old)
         for s_ in ss:
             boss = boss - s_["hf"]
         # the end face met the wing's inner skin (curving back at ~45 deg) in a 45 deg V that read as a 0.02 mm gap and a
@@ -1342,7 +1382,8 @@ def cover_mounts(cov, c, q, body):
                 h = np.array(_hits_x(fr, y + (PILOT_D / 2 + 1.0) * np.cos(a), z + (PILOT_D / 2 + 1.0) * np.sin(a), x0))
                 k = [(d * (h[i] - ff), d * (h[i + 1] - ff)) for i in range(0, len(h) - 1, 2)]
                 ring_wall.append(sum(max(0.0, min(b2, PILOT_DEPTH + 0.5) - max(a2, -0.1)) for a2, b2 in k))
-            sites.append(dict(y=y, z=z, side=side, dir=d, cover_outer_x=round(float(xo), 2),
+            sites.append(dict(y=y, z=z, side=side, dir=d, cover_outer_x=round(float(xo), 2), land_dia_mm=LAND_D,
+                              land_bed_y=round(y_bed, 3), land_coupler_keep_radius_mm=None if coupler_keep is None else round(coupler_keep, 3),
                               skin_slant_across_boss_mm=round(float(np.ptp([_hits_x(cov, y + BOSS_D / 2 * np.cos(a), z + BOSS_D / 2 * np.sin(a), x0)[0]
                                                                         for a in np.linspace(0, 2 * np.pi, 16)])), 2),
                               wall_thickness_along_x_min_mm=round(float(min(wall)), 2),
