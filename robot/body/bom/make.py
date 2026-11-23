@@ -147,7 +147,7 @@ def run_one(g, log_dir: Path):
             reads[r] = "unknown"; notes.append(f"read and rewrote a file outside {WRITABLE}: {r}")
         else:
             reads[r] = GC.file_state(ROOT, r)
-    dirs = {r: GC.dir_state(ROOT, r) for r in sorted(Dl) if r.startswith("glob:") or data_dir(r) and not any(covers(x, r) or covers(r, x) for x in roots)}
+    dirs = {r: GC.dir_state(ROOT, r) for r in sorted(Dl) if r.startswith(("glob:", "values:")) or data_dir(r) and not any(covers(x, r) or covers(r, x) for x in roots)}
     return 0, reads, dirs, outputs, deleted, notes, secs, peak[-1] if peak else None
 
 

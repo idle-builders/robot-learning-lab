@@ -18,3 +18,25 @@ generators:
   - artifacts/robot/body/leg/complete_leg_hip_combined
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+# Joint ranges of the legs: the single source of these ranges (owner 2026-11-23). The assembler writes them into the body
+# manifest, the checks sweep them and the dashboard moves the CAD over them (robot/body/bom/bom_config.py). Change a range here.
+joints:
+- match: [R_hip_yaw, L_hip_yaw]
+  range_deg: [-30.0, 30.0]
+  doc: Hip yaw, accepted range.
+- match: [R_hip_pitch, L_hip_pitch]
+  range_deg: [-58.0, 45.0]
+  doc: Hip pitch (negative = flexion forward), accepted range.
+- match: [R_hip_roll, L_hip_roll]
+  range_deg: [-30.0, 25.0]
+  doc: Hip roll, accepted range of the roll-flip thigh (hip-roll motor in the thigh).
+- match: [R_knee, L_knee]
+  range_deg: [0.0, 95.0]
+  doc: Knee flexion; the A-11 realistic pose library (robot/body/hip-shell/sections/leg_motion.py) reaches 95. Confirmed with the owner
+    on the hip-roll-motor-in-thigh study, 2026-11-23; the thigh shells are extended down to suit it.
+- match: [R_ankle_pitch, L_ankle_pitch]
+  range_deg: [-25.0, 25.0]
+  doc: Ankle pitch, accepted range.
+- match: [R_ankle_roll, L_ankle_roll]
+  range_deg: [-20.0, 20.0]
+  doc: Ankle roll, accepted range.

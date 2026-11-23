@@ -37,6 +37,8 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import cad_ops as C  # noqa: E402
 sys.path.insert(0, str(ROOT / "robot/body"))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
 from checks import bodylib as F  # noqa: E402
 import servo_placement as SP  # noqa: E402
 
@@ -475,7 +477,7 @@ def fix_range_contacts(new):
     for target, tool, joints, step in RANGE_NOTCHES:
         grids = []
         for jn in joints:
-            r = J[jn].get("range_deg") or [-30, 30]
+            r = BOM_CONFIG.joint_range(jn)          # declared in the body definitions; undeclared raises (no invented range)
             grids.append(list(np.arange(r[0], r[1] + 1e-6, step)))
         res = results.get(target) or F.to_mf(B.mesh(target))
         tool_mf = F.to_mf(B.mesh(tool)); lt, lk = P[target]["owning_link"], P[tool]["owning_link"]

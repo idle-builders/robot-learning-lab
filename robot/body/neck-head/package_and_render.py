@@ -14,6 +14,8 @@ import struct
 import subprocess
 import sys
 import numpy as np
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
 import trimesh
 from PIL import Image, ImageDraw
 import matplotlib
@@ -389,7 +391,7 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "child": "neck_yaw",
             "origin_world_mm": P_NECK_YAW.tolist(),
             "axis_world_neutral": AXIS_NECK_YAW.tolist(),
-            "range_deg": [-60, 60],
+            "range_deg": BOM_CONFIG.joint_range("neck_yaw"),
         },
         {
             "name": "neck_pitch",
@@ -397,12 +399,12 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "child": "head",
             "origin_world_mm": P_NECK_PITCH.tolist(),
             "axis_world_neutral": AXIS_NECK_PITCH.tolist(),
-            "range_deg": [-30, 35],
+            "range_deg": BOM_CONFIG.joint_range("neck_pitch"),
         },
     ]
     neck_controls = [
-        {"name": "neck_yaw", "joint": "neck_yaw", "joints": ["neck_yaw"], "range_deg": [-60, 60]},
-        {"name": "neck_pitch", "joint": "neck_pitch", "joints": ["neck_pitch"], "range_deg": [-30, 35]},
+        {"name": "neck_yaw", "joint": "neck_yaw", "joints": ["neck_yaw"], "range_deg": BOM_CONFIG.joint_range("neck_yaw")},
+        {"name": "neck_pitch", "joint": "neck_pitch", "joints": ["neck_pitch"], "range_deg": BOM_CONFIG.joint_range("neck_pitch")},
     ]
 
     write_json(

@@ -1796,3 +1796,11 @@ compose:                           # edits of the manifest composed by roll_flip
   takes: manifest
   after: [hip-screws]
   notes: rebuilt XM335 neck connectors + their screws, when built (T-6dvwjq)
+# Joint ranges of the neck: the single source of these ranges (owner 2026-11-23); see robot/body/bom/bom_config.py.
+joints:
+- match: neck_yaw
+  range_deg: [-60.0, 60.0]
+  doc: Neck yaw (was hard-coded in neck-head/package_and_render.py).
+- match: neck_pitch
+  range_deg: [-30.0, 35.0]
+  doc: Neck pitch (was hard-coded in neck-head/package_and_render.py).

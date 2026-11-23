@@ -68,6 +68,8 @@ EXE_RENDERER = ART_DIR / "zbuffer_renderer_bin"
 # NOTE: Do NOT import `solid_to_watertight_arrays` or `manifold3d` at module top-level before running
 # OpenCASCADE (`OCP`) BRepFilletAPI_MakeFillet (`bevel_3d_edges` / `fillet_2d_face`) on macOS ARM64.
 sys.path.insert(0, str(ROOT / "robot/body/leg"))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges: robot/body/bom/bom_config.py, from the body definitions)
 from build_upper_hip_connectors import (  # noqa: E402
     bevel_3d_edges,
     cut_all,
@@ -2664,29 +2666,15 @@ def build_complete_assembly() -> dict:
     joints: list[dict] = []
     controls: list[dict] = []
 
-    # 12 Lower-Body joints (re-parent R_hip_yaw & L_hip_yaw from "pelvis" to "torso", and populate collision-free ranges)
-    leg_joint_ranges = {
-        "R_hip_yaw": [-30.0, 30.0],
-        "L_hip_yaw": [-30.0, 30.0],
-        "R_hip_pitch": [-58.0, 45.0],
-        "L_hip_pitch": [-58.0, 45.0],
-        "R_hip_roll": [-30.0, 25.0],
-        "L_hip_roll": [-30.0, 25.0],
-        "R_knee": [0.0, 95.0],
-        "L_knee": [0.0, 95.0],
-        "R_ankle_pitch": [-25.0, 25.0],
-        "L_ankle_pitch": [-25.0, 25.0],
-        "R_ankle_roll": [-20.0, 20.0],
-        "L_ankle_roll": [-20.0, 20.0],
-    }
+    # 12 Lower-Body joints (re-parent R_hip_yaw & L_hip_yaw from "pelvis" to "torso"). Every joint range comes from the body
+    # definitions (`joints:` in robot/body/leg/package_complete_leg_hip.bom.yaml, arm/build_arm_connectors.bom.yaml,
+    # neck-head/build_neck_head_connectors.bom.yaml, assembly/assemble_complete_fdm_body.bom.yaml): BOM_CONFIG.apply_joint_ranges below.
     for j in leg_man["joints"]:
         jc = copy.deepcopy(j)
         if jc["parent"] == "pelvis":
             jc["parent"] = "torso"
-        if jc["name"] in leg_joint_ranges:
-            jc["range_deg"] = leg_joint_ranges[jc["name"]]
         joints.append(jc)
-        controls.append({"name": jc["name"], "range_deg": jc["range_deg"]})
+        controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
     # 8 Arm joints (with updated shoulder pitch, flipped shoulder roll, inward-shifted yaw & elbow origins, and collision-free shell ranges)
     arm_joint_origins = {
@@ -2703,26 +2691,14 @@ def build_complete_assembly() -> dict:
         "R_shoulder_yaw": [-0.2236068, -0.1490712, 0.96308682],
         "L_shoulder_yaw": [-0.2236068, 0.1490712, -0.96308682],
     }
-    arm_joint_ranges = {
-        "R_shoulder_pitch": [-60.0, 150.0],
-        "L_shoulder_pitch": [-60.0, 150.0],
-        "R_shoulder_roll": [-15.0, 95.0],
-        "L_shoulder_roll": [-15.0, 95.0],
-        "R_shoulder_yaw": [-60.0, 60.0],
-        "L_shoulder_yaw": [-60.0, 60.0],
-        "R_elbow": [0.0, 95.0],
-        "L_elbow": [0.0, 95.0],
-    }
     for j in arm_man["joints"]:
         jc = copy.deepcopy(j)
         if jc["name"] in arm_joint_origins:
             jc["origin_world_mm"] = arm_joint_origins[jc["name"]]
         if jc["name"] in arm_joint_axes:
             jc["axis_world_neutral"] = arm_joint_axes[jc["name"]]
-        if jc["name"] in arm_joint_ranges:
-            jc["range_deg"] = arm_joint_ranges[jc["name"]]
         joints.append(jc)
-        controls.append({"name": jc["name"], "range_deg": jc["range_deg"]})
+        controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
     # 4 Geared-Hand Finger Joints driven by 2 controls (`R_finger_opening`, `L_finger_opening`)
     joints.extend([
@@ -2732,7 +2708,7 @@ def build_complete_assembly() -> dict:
             "child": "R_right_finger",
             "origin_world_mm": [139.50, 1.00, 141.45],
             "axis_world_neutral": [0.0, -1.0, 0.0],
-            "range_deg": [0.0, 45.0],
+            "range_deg": BOM_CONFIG.joint_range("R_right_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": 1.0}},
         },
         {
@@ -2741,7 +2717,7 @@ def build_complete_assembly() -> dict:
             "child": "R_left_finger",
             "origin_world_mm": [121.50, 1.00, 141.45],
             "axis_world_neutral": [0.0, -1.0, 0.0],
-            "range_deg": [-45.0, 0.0],
+            "range_deg": BOM_CONFIG.joint_range("R_left_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": -1.0}},
         },
         {
@@ -2750,7 +2726,7 @@ def build_complete_assembly() -> dict:
             "child": "L_right_finger",
             "origin_world_mm": [-139.50, 1.00, 141.45],
             "axis_world_neutral": [0.0, 1.0, 0.0],
-            "range_deg": [0.0, 45.0],
+            "range_deg": BOM_CONFIG.joint_range("L_right_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": 1.0}},
         },
         {
@@ -2759,20 +2735,25 @@ def build_complete_assembly() -> dict:
             "child": "L_left_finger",
             "origin_world_mm": [-121.50, 1.00, 141.45],
             "axis_world_neutral": [0.0, 1.0, 0.0],
-            "range_deg": [-45.0, 0.0],
+            "range_deg": BOM_CONFIG.joint_range("L_left_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": -1.0}},
         },
     ])
     controls.extend([
-        {"name": "R_finger_opening", "range_deg": [0.0, 45.0]},
-        {"name": "L_finger_opening", "range_deg": [0.0, 45.0]},
+        {"name": "R_finger_opening", "range_deg": BOM_CONFIG.joint_range("R_finger_opening")},
+        {"name": "L_finger_opening", "range_deg": BOM_CONFIG.joint_range("L_finger_opening")},
     ])
 
     # 2 Neck/Head joints (`neck_yaw`, `neck_pitch`)
     for j in neck_man["joints"]:
         jc = copy.deepcopy(j)
         joints.append(jc)
-        controls.append({"name": jc["name"], "range_deg": jc["range_deg"]})
+        controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
+
+    # Joint ranges: the declarations in the body definitions are the only source (owner 2026-11-23); an undriven joint
+    # without one stops the build here, naming it.
+    for line in BOM_CONFIG.apply_joint_ranges({"joints": joints, "controls": controls}):
+        print(f"  joint range from definitions: {line}", flush=True)
 
     # Export Complete 28-Part + 316-Sleeve Structural Skeleton STEP
     skeleton_step_path = ART_DIR / "complete-fdm-structural-skeleton.step"

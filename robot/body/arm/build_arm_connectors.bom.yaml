@@ -18,3 +18,17 @@ generators:
   - artifacts/robot/body/arm
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+# Joint ranges of the arms: the single source of these ranges (owner 2026-11-23); see robot/body/bom/bom_config.py.
+joints:
+- match: [R_shoulder_pitch, L_shoulder_pitch]
+  range_deg: [-60.0, 150.0]
+  doc: Shoulder pitch, collision-free shell range (was hard-coded in assemble_complete_fdm_body.py).
+- match: [R_shoulder_roll, L_shoulder_roll]
+  range_deg: [-15.0, 95.0]
+  doc: Shoulder roll (flipped), collision-free shell range.
+- match: [R_shoulder_yaw, L_shoulder_yaw]
+  range_deg: [-60.0, 60.0]
+  doc: Shoulder yaw.
+- match: [R_elbow, L_elbow]
+  range_deg: [0.0, 95.0]
+  doc: Elbow flexion.

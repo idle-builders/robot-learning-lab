@@ -1,7 +1,7 @@
 import {esc} from './readable.js?v=studies-final-20261020';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 import {assetUrl} from './asset-url.js';
-import {bodyViewMarkup, bindBodyView} from './cad-bom.js?v=body-view-20261122';
+import {bodyViewMarkup, bindBodyView} from './cad-bom.js?v=bom-ranges-20261123';
 
 const amount = value => value == null ? 'Unknown' : Number(value).toLocaleString(undefined, {maximumFractionDigits: 4});
 const endpoint = id => `/api/design-bom?result=${encodeURIComponent(id)}`;
