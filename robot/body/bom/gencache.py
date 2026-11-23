@@ -147,6 +147,11 @@ def values_state(root: Path, rel: str) -> str:
         v = {n: d["range_deg"] for n, d in sorted(D.joints.items())}
     elif what.startswith("config:"):
         v = {k: x.get("value") for k, x in sorted(D.config.get(what[len("config:"):], {}).items())}
+    elif what.startswith("part:"):                      # the claiming entry's declared values (bom_config.part_entry)
+        import fnmatch
+        n = what[len("part:"):]
+        e = next((e for e in D.entries if any(fnmatch.fnmatchcase(n, p) for p in mod.names_of(e["match"]))), None)
+        v = {k: x for k, x in (e or {}).items() if k not in ("file", "index")} if e else None
     else:
         return "unknown-values-key"
     return hashlib.sha256(json.dumps(v, sort_keys=True, default=str).encode()).hexdigest()[:16]

@@ -42,13 +42,14 @@ REFIT = HERE.parent / "motor-refit"
 sys.path.insert(0, str(REFIT))
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (declared values: materials, joint ranges)
 import cad_ops as C  # noqa: E402
 import fit_check as F  # noqa: E402
 
 SRC = ROOT / "artifacts/robot/body/motor-refit/assembly-parts.json"
 OUT = Path(os.environ.get("APE_OUT", ROOT / "artifacts/robot/body/ape-proportions"))  # APE_OUT: a variant build elsewhere
 PARTS = OUT / "parts"
-PAHT_CF = 1.22e-6  # kg / mm^3
 
 UPPER_ARM_SCALE = float(os.environ.get("APE_UPPER", 1.570))  # owner 2026-11-13; env only for comparison variants
 FOREARM_SCALE = float(os.environ.get("APE_FOREARM", 1.0))
@@ -141,7 +142,7 @@ def save_step(name, shape, kind):
                bounds_mm=[tm.bounds[0].round(3).tolist(), tm.bounds[1].round(3).tolist()],
                native_solid_count=len(sols), native_validity=[bool(C.valid(s)) for s in sols], volume_mm3=round(vol, 2))
     if kind == "printed":
-        rec.update(mass_kg=round(vol * PAHT_CF, 6), mass_basis="Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)")
+        rec.update(mass_kg=BOM_CONFIG.mass_kg(name, vol), mass_basis=f"Exact native STEP volume * {BOM_CONFIG.density_kg_mm3(name) * 1e6:g} g/cm3 ({BOM_CONFIG.material(name)}, declared in its definition)")
     return rec
 
 

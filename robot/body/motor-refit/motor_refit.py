@@ -45,7 +45,6 @@ import servo_placement as SP  # noqa: E402
 R1 = ROOT / "artifacts/robot/body/assembly"
 OUT = ROOT / "artifacts/robot/body/motor-refit"
 PARTS = OUT / "parts"
-PAHT_CF = 1.22e-6  # kg / mm^3
 
 HIP_SHIFT = 4.0
 DOWNSTREAM = ("pitch_link", "roll_link", "shin", "ankle_pitch", "foot")  # leg links below the hip pitch, per side
@@ -95,8 +94,8 @@ def save(name, shape, kind="printed"):
                 mesh_sha256=hashlib.sha256(npz.read_bytes()).hexdigest(),
                 bounds_mm=[v.min(0).round(3).tolist(), v.max(0).round(3).tolist()],
                 native_solid_count=len(sols), native_validity=[bool(C.valid(s)) for s in sols],
-                volume_mm3=round(vol, 2), **({"mass_kg": round(vol * PAHT_CF, 6),
-                                              "mass_basis": "Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)"} if kind == "printed" else {}))
+                volume_mm3=round(vol, 2), **({"mass_kg": BOM_CONFIG.mass_kg(name, vol),
+                                              "mass_basis": f"Exact native STEP volume * {BOM_CONFIG.density_kg_mm3(name) * 1e6:g} g/cm3 ({BOM_CONFIG.material(name)}, declared in its definition)"} if kind == "printed" else {}))
 
 
 def st3025_solids():

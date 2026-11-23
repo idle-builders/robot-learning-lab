@@ -78,3 +78,43 @@ def apply_joint_ranges(manifest, defs=None, strict=True):
     if missing and strict:
         raise Undeclared(f"joints without a declared range: {sorted(set(missing))}")
     return log
+
+
+# ------------------------------------------------------------------ per-part values (the part's definition entry)
+def _materials():
+    import json
+    return json.loads((Path(__file__).resolve().parents[1] / "checks/data/materials.json").read_text())
+
+
+def part_entry(name, defs=None):
+    """The definition entry (parts[i], with its file) that claims manifest part `name`, matched by its `match` globs in
+    discovery order (the BOM's first-claim rule). Raises when no definition claims it."""
+    import fnmatch
+    D = _defs(defs, f"values:part:{name}")
+    for e in D.entries:
+        if any(fnmatch.fnmatchcase(name, p) for p in DEF.names_of(e["match"])):
+            return e
+    raise Undeclared(f"part {name!r}: no definition claims it (parts: match in the owning <builder>.bom.yaml)")
+
+
+def material(name, defs=None):
+    """The material declared for part `name` (its entry's process.material)."""
+    e = part_entry(name, defs)
+    m = (e.get("process") or {}).get("material")
+    if not m:
+        raise Undeclared(f"part {name!r}: {e['file']} parts[{e['index']}] declares no process.material")
+    return m
+
+
+def density_kg_mm3(name, defs=None):
+    """Density of part `name` from its declared material (robot/body/checks/data/materials.json, datasheet values)."""
+    m = material(name, defs)
+    row = _materials().get(m)
+    if not row or not row.get("density_g_cm3"):
+        raise Undeclared(f"part {name!r}: material {m!r} has no density_g_cm3 in robot/body/checks/data/materials.json")
+    return float(row["density_g_cm3"]) * 1e-6
+
+
+def mass_kg(name, volume_mm3, digits=6, defs=None):
+    """Mass of part `name` from its volume and its declared material."""
+    return round(float(volume_mm3) * density_kg_mm3(name, defs), digits)
