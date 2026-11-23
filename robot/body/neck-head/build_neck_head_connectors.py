@@ -1,7 +1,7 @@
 """Phase 3: Build clean, watertight OpenCascade BRep STEP/STL/NPZ models for all 4 Neck & Head
 connector stages across Family 1 (`truss_box` — Parametric 3D Space-Truss & Ribbed Box-Cradle)
 and Family 2 (`topopt` — Blank-State 3D SIMP Topology-Optimized Monocoque), with asymmetric
-3D beveling (`r_inner > r_outer`) and 34 pressed-in 304 SS compression sleeves.
+3D beveling (`r_inner > r_outer`); stages 1-3 with pressed-in 304 SS compression sleeves, stage 4 with brass heat-set inserts.
 """
 from __future__ import annotations
 
@@ -55,6 +55,37 @@ def _seat(connector: str, group: str) -> float:
     return float(np.mean(xs))
 
 
+def teardrop_along(pt, direction, r: float, length: float, apex_dir, flat_at: float | None = None):
+    """A cylinder of radius r along `direction` from `pt` with a 45 deg teardrop point toward `apex_dir` (perpendicular to the axis): the
+    horizontal hole / boss profile FDM prints without support (apex up for a hole, down for a boss). flat_at: the point cut flat at that
+    distance from the axis (a boss's apex would otherwise stand as a knife edge past the circle)."""
+    from build123d import Plane
+    d = np.asarray(direction, float); d = d / np.linalg.norm(d)
+    a = np.asarray(apex_dir, float); a = a - np.dot(a, d) * d; a = a / np.linalg.norm(a)
+    pl = Plane(origin=tuple(float(x) for x in pt), x_dir=tuple(float(x) for x in a), z_dir=tuple(float(x) for x in d))
+    q = r / np.sqrt(2.0)
+    tri = Polygon((q, -q), (r * np.sqrt(2.0), 0.0), (q, q), align=None)
+    face = (Circle(r) + tri).faces()[0]
+    if flat_at is not None and flat_at < r * np.sqrt(2.0):
+        face = (face - Pos(flat_at + r, 0.0) * Rectangle(2 * r, 4 * r)).faces()[0]
+    return Solid.extrude(pl.location * face, tuple(float(x) * length for x in d))
+
+
+def revolved_column(c, segments):
+    """A printed column along +y at centre (x, z) of c: cylinders and 45 deg cones (kind, y0, y1, r0, r1) fused."""
+    sol = None
+    for kind, y0, y1, r0, r1 in segments:
+        if y1 - y0 <= 1e-6:
+            continue
+        if kind == "cyl":
+            piece = cyl_along(np.array([float(c[0]), float(y0), float(c[2])]), np.array([0.0, 1.0, 0.0]), float(r0), float(y1 - y0))
+        else:
+            from build123d import Plane
+            piece = Solid.make_cone(float(r0), float(r1), float(y1 - y0), Plane(origin=(float(c[0]), float(y0), float(c[2])), z_dir=(0.0, 1.0, 0.0)))
+        sol = piece if sol is None else sol + piece
+    return Solid(sol.wrapped) if hasattr(sol, "wrapped") else sol
+
+
 # (stage, role) sites on a plate whose thickness equals the sleeve length (screws into the XM335 holes, generated from the
 # definitions by defined_holes.py / neck_screws.py)
 FLUSH_SITES = {("stage1_neck_root_cradle", "load"), ("stage2_neck_yaw_to_pitch_link", "support"),
@@ -75,11 +106,30 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
         for k, (pt, n_raw) in enumerate(zip(centres, normals)):
             n = np.asarray(n_raw, dtype=float)
             n = n / np.linalg.norm(n)
+            if grp.get("no_sleeve"):
+                # T-5bqc3m K2: plain clearance hole through the plate (and the printed column of a compute post), no sleeve
+                pt = np.asarray(pt, float)
+                if role_key == "support":        # neck root: ISO 7380-1 head on the rear face, a clearance cut for it through the dorsal ribs
+                    cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, h + 2.0))
+                    w = max(float(grp["rib_window_half"]), float(grp["head_clear_r"]))
+                    keep_out.append(Pos(float(pt[0]), float(np.dot(pt, n)) + h + 3.0, float(pt[2])) * Box(2 * w, 6.0, 2 * w))
+                else:                            # compute: through the column, counterbore for the washer where the post has a column
+                    post = grp["posts"][k]
+                    top = float(post["column_top"]) if post["kind"] == "column" else float(np.dot(pt, n)) + h
+                    cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, top - float(np.dot(pt, n)) + 2.0))
+                    if post["kind"] == "column":
+                        cut_tools.append(cyl_along(pt - 1.0 * n, n, float(grp["counterbore_r"]), float(post["floor"]) - float(np.dot(pt, n)) + 1.0))
+                continue
             if role_key in ("camera", "mic"):
                 # heat-set insert (hole = 2 ro, length h) pushed in from the far end (camera: the plate's rear face; mic: the boss end) up to a ledge,
                 # a clearance bore through the column / the wing's floor in front of it (T-5bqc3m)
                 start = pt + (float(grp["sleeve_starts"][k]) - float(np.dot(pt, n))) * n
                 bore = float(grp["column" if role_key == "camera" else "wing"]["bore_dia"]) / 2.0
+                if role_key == "mic":            # horizontal holes: 45 deg teardrops pointing up in the print direction (no support)
+                    up = -np.asarray(grp["boss"]["teardrop_down"], float)
+                    cut_tools.append(teardrop_along(start, n, ro, h + 3.0, up))
+                    cut_tools.append(teardrop_along(start - 8.0 * n, n, bore, 8.2, up))
+                    continue
                 cut_tools.append(cyl_along(start, n, ro, h + 3.0))
                 cut_tools.append(cyl_along(start - 8.0 * n, n, bore, 8.2))
                 if role_key == "camera":
@@ -132,8 +182,16 @@ def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
         normals = grp.get("normals", [grp["normal"]] * len(centres))
         ro = float(grp["sleeve_ro"]) + margin
         h = float(grp["sleeve_len"])
-        for pt, n_raw in zip(centres, normals):
+        for k, (pt, n_raw) in enumerate(zip(centres, normals)):
             n = np.asarray(n_raw, dtype=float) / np.linalg.norm(n_raw)
+            if grp.get("no_sleeve"):        # plain holes: the head / washer seat, the counterbore, the column
+                if role_key == "support":
+                    cyls.append((pt, n, max(float(grp["rib_window_half"]), float(grp["head_clear_r"])) * 1.42 + margin, h + 6.0))
+                else:
+                    post = grp["posts"][k]
+                    r_lim = max(float(grp["counterbore_r"]), float(grp["column"]["base_ro"]) if post["kind"] == "column" else 0.0) + margin
+                    cyls.append((pt, n, r_lim, float(post["column_top"]) - float(np.dot(pt, n)) + 1.0))
+                continue
             if role_key == "camera":        # the printed column in front of the plate carries the bore and its edges
                 cyls.append((pt - float(grp["column"]["height"]) * n, n, ro, h + float(grp["column"]["height"])))
                 continue
@@ -398,10 +456,10 @@ def build_stage3(family: str) -> Solid:
 # ==============================================================================
 def build_stage4(family: str) -> Solid:
     """Build Stage 4 (`head_sensor_compute_carrier`): consolidates `single_shared_carrier_v23`
-    and `microphone_compact_tab_v23` into a single one-piece FDM carrier with 6 pressed-in 304 SS
-    sleeves (`2x M3` neck root + `4x M2.5` ROCK4D), 9 brass M2 heat-set inserts (8 camera columns, 1 mic boss,
-    T-5bqc3m), integrated right microphone side wing, radial head-skin lugs, and dorsal stiffening ribs in the
-    collision-free `Y in [-11.40, -10.15]` corridor.
+    and `microphone_compact_tab_v23` into a single one-piece FDM carrier with 9 brass M2 heat-set inserts (8 camera columns,
+    1 mic boss, T-5bqc3m) and plain catalogue-screw holes elsewhere (2x M3 neck root, 4x M2.5 ROCK4D: ISO 7092 washer seats,
+    printed columns at the fan-bridge posts; no steel rings, T-5bqc3m K2), integrated right microphone side wing, radial
+    head-skin lugs, and dorsal stiffening ribs in the collision-free `Y in [-11.40, -10.15]` corridor.
     """
     # 1. Main carrier XZ profile (Y in [-12.90, -11.40]); lower neck tongue X in [-4.2, 2.5] clears Stage 3 X >= 3.25
     pts_main = [
@@ -442,11 +500,25 @@ def build_stage4(family: str) -> Solid:
     import head_holes as HH
     y_front, y_rear = HH.plate_faces()      # where the camera / compute spacers rest (supplier parts)
     specs4 = stage_interface_specs()["stage4_head_sensor_compute_carrier"]
-    for role in ("load", "camera"):         # material all round each sleeve: an ear where the profile ends too close
+    for role in ("load", "camera"):         # material all round each insert / washer seat: an ear where the profile ends too close
         g = specs4[role]
-        for c in g["centres"]:
+        for k, c in enumerate(g["centres"]):
             # @lore 0.7 mm rim: 0.6 left a ring thinner than one 0.62 mm print line (walls under one line 45 -> 107 mm2)
-            ear = Pos(float(c[0]), float(c[2])) * Circle(max(float(g["sleeve_ro"]) + 0.7, float(g.get("column", {}).get("ro", 0.0))))
+            # compute: the ISO 7092 washer seat with 2 lines (1.24 mm) round it (3.74; the old 6.1 mm collar's ear was 3.75), and under a
+            # printed column's base (base_ro: a base past the plate's edge left a 0.8 mm ledge)
+            if role == "load":
+                r_ear = float(g["washer_r"]) + 1.24
+                if g["posts"][k]["kind"] == "column":
+                    r_ear = max(r_ear, float(g["column"]["base_ro"]))
+            else:
+                r_ear = max(float(g["sleeve_ro"]) + 0.7, float(g["column"]["ro"]))
+            # an ear arc passing within 0.3 mm of an outline corner left a sliver face and micro-edges (compute post 2 by the corner
+            # (-44, 427.5), rv3-5bqc3m): grow it past the corner
+            for (px, pz) in pts_main:
+                dv = float(np.hypot(px - float(c[0]), pz - float(c[2])))
+                if abs(dv - r_ear) < 0.3:
+                    r_ear = dv + 0.3
+            ear = Pos(float(c[0]), float(c[2])) * Circle(r_ear)
             if (ear - f_main).area > 0.05:
                 f_main = (f_main + ear).faces()[0]
     s_plate = extrude_xy_to_y(f_main, y_front, y_rear)
@@ -490,18 +562,31 @@ def build_stage4(family: str) -> Solid:
     s_mic_side = Solid((s_mic_side - Pos(xt, 0.0, (zt0 + z_top + 2.0) / 2) * Box(2 * (xt - xf - float(w["taper_t_mm"])), 30.0, z_top + 2.0 - zt0)).wrapped)
     c_mic = np.asarray(gm["centres"][0], float)
     boss_end = float(gm["sleeve_starts"][0]) + float(gm["sleeve_lens"][0])      # the insert's rear end is flush with the boss end
-    s_boss = cyl_along(np.array([xf, c_mic[1], c_mic[2]]), np.array([1.0, 0.0, 0.0]), float(gm["boss"]["ro"]), boss_end - xf)
+    # horizontal boss: its underside a 45 deg teardrop pointing down in the print direction (prints without support, T-5bqc3m review)
+    s_boss = teardrop_along(np.array([xf, c_mic[1], c_mic[2]]), np.array([1.0, 0.0, 0.0]), float(gm["boss"]["ro"]), boss_end - xf,
+                            np.asarray(gm["boss"]["teardrop_down"], float), flat_at=float(gm["boss"]["ro"]))
     pin = gm["pin"]
     s_pin = cyl_along(np.array([xf, pin["centre"][1], pin["centre"][2]]), np.array([-1.0, 0.0, 0.0]), float(pin["dia"]) / 2.0, float(pin["length"]))
     port = gm["port"]
     c_port = cyl_along(np.array([xf - 1.0, float(port["y"]), float(port["z"])]), np.array([1.0, 0.0, 0.0]), float(port["dia"]) / 2.0, xt - xf + 2.0)
     s_mic = Solid((s_mic_br + s_mic_side + s_boss + s_pin - c_port).wrapped)
-    # 5. Camera columns: the 8 supplier F-F standoffs become printed columns (ro, height = the standoff) on the plate's front face; the
-    # insert sits in their rear end (_cut_stage_bores)
-    g = specs4["camera"]
-    col = g["column"]
-    cols = [cyl_along(np.array([float(c[0]), y_front, float(c[2])]), np.array([0.0, -1.0, 0.0]), float(col["ro"]), float(col["height"]))
-            for c in g["centres"]]
+    # 5. Camera columns: the 8 supplier F-F standoffs become printed columns (height = the standoff) on the plate's front face, narrower next to
+    # the components on the board's back (radius bands from the board's mesh, head_holes.column_profile, T-5bqc3m K1); the insert sits in their
+    # rear end (_cut_stage_bores)
+    cols = [revolved_column(np.asarray(p["centre"], float), p["segments"]) for p in HH.column_profile()]
+    # 6. Compute columns (T-5bqc3m K2): where no ISO 4762 M2.5 length reaches the nut with the washer on the plate front (the fan-bridge posts),
+    # the supplier F-F spacer becomes a printed column from the plate's rear face to the board (gap_mm short), with a base of base_ro round the
+    # washer's counterbore and a 45 deg cone up to the column radius
+    gl = specs4["load"]
+    gc = gl["column"]
+    for post in gl["posts"]:
+        if post["kind"] != "column":
+            continue
+        c, ro_c, rb = post["centre"], float(gc["ro"]), float(gc["base_ro"])
+        y_base = max(y_rear, float(post["floor"])) + float(gc["base_above_floor_mm"])
+        segs = [("cyl", y_rear, y_base, rb, rb), ("cone", y_base, y_base + (rb - ro_c), rb, ro_c),
+                ("cyl", y_base + (rb - ro_c), float(post["column_top"]), ro_c, ro_c)]
+        cols.append(revolved_column(np.asarray(c, float), segs))
     raw = s_plate + rib1 + rib2 + rib3 + rib4 + s_lug_l + s_lug_r + s_mic
     for b in cols:
         raw = raw + b
@@ -526,7 +611,7 @@ def main():
     candidate_steps: dict[str, dict[str, Path]] = {"truss_box": {}, "topopt": {}}
     manifest_parts = []
 
-    # First export all 34 pressed-in 304 SS sleeves
+    # First export the pressed-in sleeves / inserts of every stage
     sleeves_by_stage = {}
     for stg_key in STAGE_PART_BASENAMES:
         slvs = build_stage_sleeves(stg_key)

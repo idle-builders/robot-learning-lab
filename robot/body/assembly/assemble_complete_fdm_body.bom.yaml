@@ -156,13 +156,18 @@ parts:
   - fan_bridge_nut_0
   - fan_bridge_nut_1
   kind: hardware
-  line: hw:M2-hex-nut-ISO-4032
-  name: M2 hex nut ISO 4032
+  line: hw:M2.5-hex-nut-ISO-4032
+  name: M2.5 hex nut ISO 4032
   make_buy: buy
   quantity: 4
-  spec: *id002
+  spec:
+    kind: nut
+    thread: M2.5
+    standard: ISO 4032
+    across_flats_mm: 5.0
+    label: M2.5 hex nut ISO 4032
   supplier: unknown
-  part_number: M2 hex nut ISO 4032
+  part_number: M2.5 hex nut ISO 4032
   notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
     from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
     the named head form. Supplier: no repo source (unknown).'
@@ -707,38 +712,13 @@ parts:
   quantity: 1
   section: Neck / head
 - match:
-  - neck_M3x6_countersunk_0
-  - neck_M3x6_countersunk_1
-  kind: hardware
-  line: hw:M3-x-6-ISO-10642
-  name: M3 x 6 ISO 10642
-  make_buy: buy
-  quantity: 2
-  spec:
-    kind: screw
-    thread: M3
-    family: M
-    length_mm: 6.0
-    standard: ISO 10642
-    head_dia_mm: 6.72
-    head_height_mm: 1.86
-    label: M3 x 6 ISO 10642
-  supplier: unknown
-  part_number: M3 x 6 ISO 10642
-  notes: 'Standard part: the designation is the part number (thread x length, head standard ISO 4762 / 7380-1 / 7045 / 10642, or ISO 4032 nut,
-    from robot/body/standard-hardware/generate.py). PA = thread-forming screw for plastics (robot/actuators/interfaces/standard-parts.json) with
-    the named head form. Supplier: no repo source (unknown).'
-  section: Neck / head
-- match:
-  - compute_FF4_spacer_0
-  - compute_FF4_spacer_1
   - compute_FF4_spacer_2
   - compute_FF4_spacer_3
   kind: hardware
   line: hw:M2.5-F-F-standoff-6.0-2.7-x-4.0
   name: M2.5 F-F standoff 6.0/2.7 x 4.0
   make_buy: buy
-  quantity: 4
+  quantity: 2
   spec:
     kind: spacer
     thread: M2.5
@@ -749,7 +729,8 @@ parts:
     label: M2.5 F-F standoff 6.0/2.7 x 4.0
   supplier: unknown
   part_number: unknown
-  notes: Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown).
+  notes: 'Spacer / standoff size measured by hardware.py; no standard designation in the repo, no repo source (unknown). Spacers 0 / 1 (the
+    fan-bridge posts) are printed columns of the head carrier since T-5bqc3m K2 (robot/body/neck-head/head_carrier_posts.json compute.column).'
   section: Neck / head
 - match:
   - upper__L_yaw_case_PA2x7_3
@@ -1588,13 +1569,18 @@ assembly:
   - id: neck_head:s016
     subassembly: neck_head
     screw:
-    - neck_M3x6_countersunk_0
-    - neck_M3x6_countersunk_1
+    - head_root_M3x8_0
+    - head_root_M3x8_1
+    with:
+    - head_root_M3_nut_0
+    - head_root_M3_nut_1
     direction: screw axis
     after:
     - neck_head:p015
-    status: seeded
-    derived: 2 screw(s) whose joined parts are all placed after combined__head_sensor_compute_carrier; driver path vs placed parts
+    status: designer
+    derived: 'T-5bqc3m K2: 2 ISO 7380-1 M3x8 from the carrier''s rear face (hex key 2) through the carrier and the cradle tongue into the 2 ISO
+      4032 nuts held on the tongue''s front face (see build_neck_head_connectors.bom.yaml defects head-root-nut-holding); replaces the M3x6
+      countersunk models.'
   - id: neck_head:p017
     subassembly: neck_head
     part: Radian_INL25001_bare
@@ -1657,8 +1643,8 @@ assembly:
     after:
     - neck_head:p021
     status: designer
-    derived: 'T-5bqc3m: one ISO 7380-1 M2 button head from the board side (hex key along +x, ROCK4D not yet on) through the PCB and the wing
-      floor into the heat-set insert pressed into the wing boss on the bench before neck_head:p015.'
+    derived: 'T-5bqc3m: one ISO 14580 M2 cheese head (T6 hexalobular driver along +x, ROCK4D not yet on) from the board side through the PCB
+      and the wing floor into the heat-set insert pressed into the wing boss on the bench before neck_head:p015.'
   - id: neck_head:p023
     subassembly: neck_head
     part: heatsink_nonpreloaded_guard
@@ -1741,7 +1727,8 @@ assembly:
     - neck_head:s030
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 8 screw(s) joining it to placed parts (B0410_camera_M2x4, B0410_plate_M2x4), head to tip when the part carries the head, else reversed;
+      of 8 screw(s) joining it to placed parts (seeded with the old B0410 M2x4 screws; T-5bqc3m: 4 ISO 4762 M2x8 into the carrier''s inserts,
+      neck_head:s033), head to tip when the part carries the head, else reversed;
       moved after s018 (its part B0410_supplier_native_v23 blocked that screw''s driver path, 0.496 mm3); moved after s021 (its part B0410_supplier_native_v23
       blocked that screw''s driver path, 25.454 mm3); moved after s029 (its part B0410_supplier_native_v23 blocked that screw''s driver path,
       0.496 mm3)'
@@ -1756,7 +1743,8 @@ assembly:
     - neck_head:s035
     status: seeded
     derived: 'graph order, fastened distance 7 from what is present (via combined__head_sensor_compute_carrier); direction: mean screw direction
-      of 8 screw(s) joining it to placed parts (B0196_camera_M2x4, B0196_plate_M2x4), head to tip when the part carries the head, else reversed;
+      of 8 screw(s) joining it to placed parts (seeded with the old B0196 M2x4 screws; T-5bqc3m: 4 ISO 4762 M2x8 into the carrier''s inserts,
+      neck_head:s038), head to tip when the part carries the head, else reversed;
       moved after s024 (its part B0196_supplier_native_v23 blocked that screw''s driver path, 15.104 mm3); moved after s029 (its part B0196_supplier_native_v23
       blocked that screw''s driver path, 44.689 mm3); moved after s031 (its part B0196_supplier_native_v23 blocked that screw''s driver path,
       15.104 mm3)'
