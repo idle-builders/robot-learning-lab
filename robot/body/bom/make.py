@@ -147,7 +147,7 @@ def run_one(g, log_dir: Path):
             reads[r] = "unknown"; notes.append(f"read and rewrote a file outside {WRITABLE}: {r}")
         else:
             reads[r] = GC.file_state(ROOT, r)
-    dirs = {r: GC.dir_state(ROOT, r) for r in sorted(Dl) if data_dir(r) and not any(covers(x, r) or covers(r, x) for x in roots)}
+    dirs = {r: GC.dir_state(ROOT, r) for r in sorted(Dl) if r.startswith("glob:") or data_dir(r) and not any(covers(x, r) or covers(r, x) for x in roots)}
     return 0, reads, dirs, outputs, deleted, notes, secs, peak[-1] if peak else None
 
 
@@ -194,7 +194,7 @@ def lock():
 MAX_PASSES = 3
 
 
-def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
+def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False, rerun=()):
     plan, D = generators(run_sections)
     log_dir = ROOT / ".cache/work/make-logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -209,6 +209,8 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False):
         earlier = set().union(*(outs[h["id"]] for h, _ in plan[:pos])) if pos else set()
         later = set().union(*(outs[h["id"]] for h, _ in plan[pos + 1:])) if pos + 1 < len(plan) else set()
         e, why = GC.lookup(gid, ROOT, g["command"], overlay if status_only else None, earlier, later)
+        if gid in rerun and not status_only:
+            e, why = None, "--rerun"
         if e is not None:
             if status_only:
                 overlay.update(e["outputs"]); overlay.update({r: "missing" for r in e.get("deleted", [])})
@@ -297,6 +299,8 @@ def main():
     ap.add_argument("--run", default="", help="section builders (rebuild false) to run here too, comma-separated ids")
     ap.add_argument("--only", default="", help="only these generator ids (assumes the others are current)")
     ap.add_argument("--upto", help="stop after this generator")
+    ap.add_argument("--rerun", default="", help="run these generator ids even when an entry could be reused (a fresh entry "
+                    "after make or gensite changed what is recorded); the ones after them are reused when its outputs match")
     ap.add_argument("--report", action="store_true", help="after make: BOM, bom check, changed findings")
     ap.add_argument("--dry-run", action="store_true", help="gc: list only")
     ap.add_argument("--grace-days", type=float, default=GC.GRACE_DAYS)
@@ -310,7 +314,7 @@ def main():
         rc, _ = make(status_only=True, run_sections=runs, only=only)
         return rc
     _lk = lock()
-    rc, summary = make(run_sections=runs, only=only, upto=a.upto)
+    rc, summary = make(run_sections=runs, only=only, upto=a.upto, rerun=set(x for x in a.rerun.split(",") if x))
     # the chain has loops (generators that read what a later one rewrites, see the findings): a pass that ran something may
     # leave earlier generators out of date; repeat until a pass runs nothing, at most MAX_PASSES
     n = 1
