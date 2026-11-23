@@ -91,6 +91,16 @@
     "bearing"
    ],
    "_doc": "hardware in the BOM, but measured as a solid part (neighbour, overlaps), not as a fastener"
+  },
+  "not_probed": {
+   "roles": [
+    "battery_cell",
+    "battery_insulator",
+    "battery_heatsink_fin",
+    "authored_harness",
+    "adhesive_allocation"
+   ],
+   "_doc": "parts mount_check does not probe a screw against (no screw mates with a cell, its insulation or fins, a harness or glue)"
   }
  },
  "geometry": {

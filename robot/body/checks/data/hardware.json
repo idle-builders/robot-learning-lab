@@ -234,15 +234,5 @@
    "axis": "open",
    "length_over_dia_max": 0.2
   }
- },
- "not_probed": {
-  "_doc": "Role class (as checks/data/roles.json classes, kept here until roles.json carries it): parts mount_check does not probe a screw against (no screw mates with a cell, its insulation or fins, a harness or glue).",
-  "roles": [
-   "battery_cell",
-   "battery_insulator",
-   "battery_heatsink_fin",
-   "authored_harness",
-   "adhesive_allocation"
-  ]
  }
 }

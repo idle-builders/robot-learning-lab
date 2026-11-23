@@ -45,6 +45,11 @@ import interfaces as I  # noqa: E402  (standard-part instances and their defined
 
 DEFAULT_MANIFEST = ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
 CHECKS_DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or ROOT / "robot/body/checks/data")
+
+
+def _roles_class(c):
+    """The manifest roles of role class c in data/roles.json (the checks' role vocabulary)."""
+    return json.loads((CHECKS_DATA / "roles.json").read_text())["classes"].get(c, {}).get("roles", [])
 HARDWARE = json.loads((CHECKS_DATA / "hardware.json").read_text())
 FASTENER_KINDS = ("screw", "washer", "nut", "spacer")
 NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I)
@@ -770,7 +775,7 @@ def run_screws(manifest_path: Path, only: str | None, out: Path, part: str | Non
     if part:
         a, b = map(int, part.split(":"))
         screws = screws[a:b]
-    skip_roles = set(HARDWARE["not_probed"]["roles"])        # role class: parts no screw is probed against
+    skip_roles = set(_roles_class("not_probed"))             # role class (data/roles.json): parts no screw is probed against
     meshes = {}
 
     class LazyRays(dict):
