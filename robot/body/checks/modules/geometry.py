@@ -356,7 +356,7 @@ def audit_part(ctx, name):
     t0 = time.time()
     sh, sols = _solids(step)
     vol = sum(float(s.volume) for s in sols)
-    out = dict(step_sha256=sha(step), solids=len(sols), invalid_solids=sum(1 for s in sols if not s.is_valid), volume_mm3=round(vol, 2))
+    out = dict(step_sha256=sha(step, raw=True), solids=len(sols), invalid_solids=sum(1 for s in sols if not s.is_valid), volume_mm3=round(vol, 2))
     mirror = ctx.rel.mirror_of(name)       # the definition's mirror_of, else the part whose x-mirrored box matches (never the name)
     mstep = _step(ctx, mirror) if mirror else None
     if mstep is not None:

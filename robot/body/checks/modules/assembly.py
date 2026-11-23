@@ -369,7 +369,9 @@ class Walker:
                     rl = DA.measure_screw(self.coarse, k, info, self.T, assembled + later, self.WB, self.box, self.tdata) if "error" not in r else None
                     if "error" not in r:
                         new = {b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])}
-                        cover = {n for n in new if parts[n].get("role") == COVER_ROLE}     # a cover going on over its screws is the order working
+                        # a cover going on over its screws is the order working; measure_screw reports body shells apart (shell_by_part)
+                        cover = ({b["part"] for b in rl.get("shell_by_part", [])} - {b["part"] for b in r.get("shell_by_part", [])}) \
+                            | {n for n in new if parts[n].get("role") == COVER_ROLE}
                         dist = {b["part"]: b["from_mm"] for b in rl.get("by_part", []) if b["part"] in new - cover}
                         reach = self.tdata["path"]["min_length_mm"]                       # a part further out is passed by tilting the driver
                         r["closed_in_by"] = sorted(n for n, d in dist.items() if d <= reach)

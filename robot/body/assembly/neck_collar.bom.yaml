@@ -556,3 +556,11 @@ assembly:
     - neck_head:p039
     status: seeded
     derived: 1 screw whose joined parts are all placed after head_neck_collar; driver path vs placed parts
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: neck-collar
+  into: roll-flip
+  call: robot/body/assembly/neck_collar.py:swap_parts
+  takes: parts
+  after: [neck-parts]
+  needs: [neck-collar]
+  notes: head_neck_collar screwed to the yaw-to-pitch link; after neck-parts, which edits the link (T-a2mt33)

@@ -33,6 +33,14 @@ GIB = 2 ** 30
 HEAVY = ("fit", "range_sweep", "collision_sweep", "fem", "screws")
 
 
+
+def awake_clock() -> float:
+    """Seconds the machine has been awake, the same in every process (as infra/tools/memguard.py awake_clock)."""
+    for c in ("CLOCK_UPTIME_RAW", "CLOCK_MONOTONIC"):
+        if hasattr(time, c):
+            return time.clock_gettime(getattr(time, c))
+    return time.time()
+
 def gib_of_maxrss(ru):
     """GiB (memguard's unit) of a rusage max RSS: bytes on macOS, KiB on Linux."""
     return round(ru.ru_maxrss / (1 if sys.platform == "darwin" else 1024) / GIB, 2)
@@ -351,7 +359,7 @@ def manifest_freshness(man):
                     h = d.get(f"{k}_sha256") or (d.get("sha256") if k == "path" else None)
                     p = ROOT / v
                     if h and p.is_file():
-                        now = sha(p)
+                        now = sha(p, raw=True)          # the bytes the generator hashed
                         if now != h:
                             out.append(dict(kind="recorded source changed", field=f"{where}{k}", path=v, recorded_sha256=h[:12], now_sha256=now[:12],
                                             changed_at=time.strftime("%m-%d %H:%M", time.localtime(p.stat().st_mtime))))
@@ -489,7 +497,7 @@ def main(argv=None):
     ap.add_argument("--_plan", help=argparse.SUPPRESS)    # child mode: write the plan (scope, applicable checks) to this file
     ap.add_argument("--list-checks", action="store_true")
     a = ap.parse_args(argv)
-    t_all = time.time()
+    t_all, m_all = time.time(), awake_clock()        # awake_clock stops while the laptop sleeps: slept_s = the difference
     split = lambda s: [x for x in (s or "").split(",") if x]  # noqa: E731
     if a.list_checks:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -531,7 +539,11 @@ def main(argv=None):
     keep_awake()
     peaks = dict(tree=0.0, parent=0.0)
     # memguard exports its deadline: stop 20 s before it, so the report and the summary are written and say where it stood
-    deadline = float(os.environ.get("MEMGUARD_DEADLINE", "0") or 0) - 20.0
+    # in awake time when memguard gives it (MEMGUARD_DEADLINE_AWAKE, infra/tools/memguard.py awake_clock): a sleeping
+    # laptop does not run the clock out; an older memguard gives wall time only
+    aw = bool(os.environ.get("MEMGUARD_DEADLINE_AWAKE"))
+    deadline = float(os.environ.get("MEMGUARD_DEADLINE_AWAKE" if aw else "MEMGUARD_DEADLINE", "0") or 0) - 20.0
+    clock = awake_clock if aw else time.time
     stop = dict(why=None, child=None)
 
     def on_term(sig, _frm):
@@ -550,7 +562,7 @@ def main(argv=None):
             pid, status, ru = os.wait4(p.pid, os.WNOHANG)
             if pid:
                 break
-            if deadline > 0 and time.time() > deadline and not stop["why"]:
+            if deadline > 0 and clock() > deadline and not stop["why"]:
                 stop["why"] = "stopped 20 s before the memguard timeout"
                 raise StopRun()
             t, par = tree_rss_gib(os.getpid())
@@ -597,7 +609,7 @@ def main(argv=None):
         cost = f"earlier runs suggest about {tot:.0f} s (p90 {p90:.0f} s)" + (f", no history for {', '.join(nohist)}" if nohist else "")
     msg = f"plan: {len(names)} part(s), {len(run)} check(s){' (heavy: ' + ', '.join(heavy) + ')' if heavy else ''}; " + cost
     if deadline > 0:
-        left = deadline - time.time()
+        left = deadline - clock()
         msg += f"; {left:.0f} s left before memguard stops it"
         if p90 > left:
             acc, late = 0.0, []
@@ -629,6 +641,8 @@ def main(argv=None):
                 if d.get("file") and "definition" not in c:
                     c["definition"] = f"{d['file']} ({d['entry']})"
         rep["seconds"] = dict(secs, total=round(time.time() - t_all, 1))
+        slept = (time.time() - t_all) - (awake_clock() - m_all)
+        rep["slept_s"] = round(slept, 1) if slept > 5 else 0.0      # check / step seconds include it: a long step with slept_s > 0 is sleep, not work
         rep["setup_seconds_summed_over_children"] = dict(setup_secs, children=n_children[0])
         rep["peak_tree_gib"] = round(peaks["tree"], 2)
         rep["peak_parent_gib"] = round(peaks["parent"], 2)
@@ -814,6 +828,8 @@ def summary(rep, top=6):
                    for n, h in hows.items() if "voxel" in h or "hull" in h}
     print(f"manifest {rep['manifest']} ({rep['manifest_sha256'][:12]}), scope {sc['selectors']}: {len(sc['parts'])} parts"
           + (f" ({', '.join(sc['parts'][:6])}{' ...' if len(sc['parts']) > 6 else ''})"))
+    if rep.get("slept_s"):
+        print(f"  the laptop slept {rep['slept_s']:.0f} s during this run: check and step seconds include it (memguard's timeout does not)")
     odd = sorted(n for n, h in rep["other_solids"].items() if "hull" in h)
     if odd:
         print(f"  neighbours screened as convex hulls (over-state overlap): {len(odd)}")
