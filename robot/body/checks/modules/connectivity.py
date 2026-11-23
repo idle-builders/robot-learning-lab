@@ -4,9 +4,12 @@ shows up (owner 2026-11-19: no part unconnected; every part linked through the a
 Nodes: every non-hardware part. Edges:
   screw     a screw holds both parts: the part encircles the shank (rings at several radii beyond the shank, so a
             hole with a pressed steel sleeve counts too) or the head bears on it
-            (a threaded spacer / standoff that two screws enter joins the parts of both screws)
-  sleeve    <part>_steel_sleeves is pressed into <part>
-  joint     for each joint, the servo case / motor parts and the horn / output parts of its two links within 5 mm
+            (a threaded spacer / standoff that two screws enter joins the parts of both screws; so does hardware of unknown kind:
+            mount_check.kind; screws as the definitions / screw_plans declare them, else by their shape)
+  sleeve    a sleeve set and the part it is pressed into (checks.relations: declared joined_to {how: pressed}, else the part its
+            sleeves' surface touches)
+  joint     for each joint, the servo case parts and the servo output parts (role classes servo_case / servo_output) of its two
+            links within 5 mm
   joined    the parts are one piece once made: printed together (two nozzles, one print) or bonded, as the part's body
             definition declares it (`joined_to: [{part, how: co_printed | bonded}]` on its parts entry); never from names
   contact   the two parts are within CONTACT_MM at standing (touching, seated, or just resting)
@@ -16,7 +19,7 @@ scoped part the fine 0.03 mm STEP tessellation, and an unscoped run scopes all 1
 0.03 mm cache entry, among them supplier STEPs of 78 / 44 / 26 / 22 MB (power supervisor board, ROCK4D, B0196, B0410)
 whose thousands of component solids are each tessellated and unioned; the first one alone ran past 170 s, and the run
 did not finish in 2400 s (T-c4sy9d, 2026-11-20). The 19 Nov 27.6 s runs were scoped to one part.
-The core is part_settings _core.part, else the largest printed part on the root link. Reported: parts with no edge,
+The core is part_settings _core.part, else the largest printed part on the manifest's root_link (else the joint tree's root link). Reported: parts with no edge,
 connected groups that do not reach the core, parts that reach the core only through contact edges, and per scoped part
 its shortest chain to the core with the edge kinds (fastened edges preferred). Manifest-wide; the scope selects whose
 chains are listed. Measurements and counts only."""
@@ -38,8 +41,6 @@ STATION_MM = 0.5                        # ring spacing along the shank
 ENCIRCLE = 5                            # of 8 ring angles inside the part at one station and radius: the part surrounds the shank
 HEAD_BEAR = 3                           # of 8 points just under the head inside the part: the head bears on it
 CONTACT_MM = 0.2
-CASE_ROLES = {"motor", "actuator", "purchased_servo_case_family_reference"}
-HORN_ROLES = {"output", "output_horn", "horn", "purchased_servo_output_family_reference"}
 COST = dict(screw=1.0, sleeve=1.0, joint=1.0, joined=1.0, contact=10.0)    # path search prefers fastened chains
 
 
@@ -71,14 +72,12 @@ def screw_probe_points(g):
     return np.array(shank + head), len(shank)
 
 
-def screw_from_bounds(p, nominal):
+def screw_from_bounds(p, spec):
     """Screw geometry for a screw row without a usable mesh (L/R_wrist_M3x8_1..4 carry bounds only): the axis along the
-    longest extent of its bounds through their centre, shank radius from the thread in its name, no head (rings only)."""
-    th = nominal(p["name"]).get("thread", "")
-    try:
-        rs = float(th[1:]) / 2.0 if th.upper().startswith("M") else None
-    except ValueError:
-        rs = None
+    longest extent of its bounds through their centre, shank radius from its declared thread (spec = mount_check.screw_spec;
+    major diameter from data/hardware.json threads), no head (rings only)."""
+    rs = SL.hardware()["threads"].get(spec.get("thread"))
+    rs = rs / 2.0 if rs else None
     if not rs or not p.get("bounds_mm"):
         return None
     b = np.array(p["bounds_mm"], float); ext = b[1] - b[0]; i = int(np.argmax(ext))
@@ -93,11 +92,11 @@ def solid(ctx, n):
 
 def build_graph(ctx):
     sys.path.insert(0, str(ROOT / "robot/body/fastening"))
-    from mount_check import kind, nominal, screw_geometry
-    body = ctx.body
+    from mount_check import kind, screw_geometry, screw_spec
+    body, rel = ctx.body, ctx.rel
     screws_from_bounds, screws_unprobed = ctx.__dict__.setdefault("_conn_screws_from_bounds", []), ctx.__dict__.setdefault("_conn_screws_unprobed", [])
     parts = body.parts
-    nodes = [n for n, p in parts.items() if kind(p) is None and (not BL.is_fastener(n, p) or p.get("role") == "compression_limit_sleeves")]
+    nodes = [n for n, p in parts.items() if kind(p) is None]      # no fastener (sleeve sets are nodes: part of what they are pressed into)
     q0 = body.standing
     T = {lk: body.link_T(lk, q0) for lk in {p["owning_link"] for p in parts.values()}}
 
@@ -114,10 +113,11 @@ def build_graph(ctx):
         key = tuple(sorted((a, b)))
         edges.setdefault(key, {}).setdefault(k, []).append(via)
     # sleeves
-    for n in nodes:
-        s = f"{n}_steel_sleeves"
-        if s in parts and s in WB:
-            add(n, s, "sleeve", s)
+    for s in nodes:
+        if rel.is_sleeve_set(s):
+            o = rel.sleeve_owner(s)
+            if o in WB:
+                add(o, s, "sleeve", s)
     # screws: rings around the shank at several radii, and under the head, in the screw's manifest (neutral) frame,
     # mapped to world at standing; a part is held by the screw when it encircles the shank or bears the head
     t0 = time.time()
@@ -125,19 +125,17 @@ def build_graph(ctx):
     raw = {p["name"]: p for p in json_manifest(ctx).get("parts", []) if p.get("name") not in parts and p.get("owning_link") in T}
     # threaded standoffs / spacers are hardware, not nodes: a spacer that two screws enter joins the parts of both
     # (B0196 / B0410 camera: camera screw into an M2 F-F standoff, plate screw into its other end)
-    spacers = [n for n, p in parts.items() if kind(p) == "spacer"]
+    spacers = [n for n, p in parts.items() if kind(p) in ("spacer", "unknown")]
     for n in spacers:
         WB[n] = world_bounds(n)
     via_spacer = {}
     for k, p in list(parts.items()) + list(raw.items()):
-        # a screw named without its length (fan_M3_11_430) is "other_hardware" to mount_check.kind: a thread in the name
-        # and a screw-shaped mesh make it a screw here
-        if kind(p) != "screw" and not (kind(p) == "other_hardware" and nominal(k).get("thread")):
+        if kind(p) != "screw":
             continue
         try:
             g = screw_geometry(BL.load_mesh(p["mesh"]))
         except Exception:  # noqa: BLE001
-            g = screw_from_bounds(p, nominal)
+            g = screw_from_bounds(p, screw_spec(p))
             if g is None:
                 screws_unprobed.append(k)
                 continue
@@ -181,8 +179,8 @@ def build_graph(ctx):
     joints = [(jj.get("parent"), jj.get("child"), jj.get("name")) for jj in json_joints(ctx)]
     for par, chi, name in joints:
         cands = [n for n in nodes if parts[n]["owning_link"] in (par, chi)]
-        cases = [n for n in cands if parts[n].get("role") in CASE_ROLES]
-        horns = [n for n in cands if parts[n].get("role") in HORN_ROLES]
+        cases = [n for n in cands if rel.in_class(n, "servo_case")]
+        horns = [n for n in cands if rel.in_class(n, "servo_output")]
         for a in cases:
             for b in horns:
                 if parts[a]["owning_link"] != parts[b]["owning_link"] and _near(WB[a], WB[b], 5.0):
@@ -248,12 +246,13 @@ def run(ctx):
     from checks import process as P
     t0 = time.time()
     nodes, edges = build_graph(ctx)
-    parts = ctx.body.parts
+    parts, rel = ctx.body.parts, ctx.rel
     core = (ctx._settings.get("_core") or {}).get("part")
     if not core:
         man = json.loads(open(ctx.manifest).read())
-        root = man.get("root_link", "torso")
-        pr = [n for n in nodes if parts[n]["owning_link"] == root and parts[n].get("role") in ("printed_structural_carrier", "printed_structural_connector")]
+        J = man.get("joints", [])
+        root = man.get("root_link") or next(iter({j["parent"] for j in J} - {j["child"] for j in J}), None)
+        pr = [n for n in nodes if parts[n]["owning_link"] == root and rel.is_printed(n) and not rel.is_shell(n)]
         core = max(pr, key=lambda n: solid(ctx, n)[0].volume) if pr else None
     adj = {n: [] for n in nodes}
     for (a, b), ks in edges.items():

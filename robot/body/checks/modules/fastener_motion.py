@@ -16,7 +16,6 @@ from checks.registry import register
 TIP_MM = 3.0            # the tip zone: last 3 mm of the screw
 HEAD_IN_PLATE_MM3 = 1.0  # head volume inside a same-link part at standing above this = a screw model placed inside its own plate
 OVERLAP_MM3 = 1e-3
-KEEP = "compression_limit_sleeves"
 
 
 def _zones(mf, g):
@@ -62,10 +61,11 @@ def run(ctx):
     names = _screw_names(ctx, touching)
     poses = _poses(ctx)
     search = ctx.search_mm
-    hw = lambda n, p: BL.is_fastener(n, p) and p.get("role") != KEEP    # noqa: E731  steel sleeves are part of the printed part they sit in
-    # other links: the printed / purchased parts only (a sleeve set is a few tubes in a hole of the part it sits in; its boolean against a screw costs minutes)
-    cand = [n for n, p in parts.items() if not BL.is_fastener(n, p) and p.get("role") not in ("cut_material", "adhesive_allocation", "authored_harness",
-            "candidate_sensor", "produced_backing") and (ctx.include_shells or p.get("role") != "body_shell")]
+    rel = ctx.rel
+    hw = lambda n: rel.is_fastener(n) and not rel.is_sleeve_set(n)    # noqa: E731  sleeve sets are part of the printed part they are pressed into
+    # other links: the parts that collide as rigid bodies (role class no_collision left out) and no fasteners (a sleeve set is a few
+    # tubes in a hole of the part it sits in; its boolean against a screw costs minutes); body shells only on request
+    cand = [n for n in parts if not rel.is_fastener(n) and not rel.in_class(n, "no_collision") and (ctx.include_shells or not rel.is_shell(n))]
     corners = {n: np.array([[b[i][0], b[j][1], b[k][2]] for i in (0, 1) for j in (0, 1) for k in (0, 1)]) for n in cand for b in [parts[n]["bounds_mm"]]}
     Tc = {}
 
@@ -138,7 +138,7 @@ def run(ctx):
         own = []
         for n in parts:
             pn_ = parts[n]
-            if n == sn or hw(n, pn_) or pn_["owning_link"] != lk or pn_.get("role") in ("cut_material", "adhesive_allocation"):
+            if n == sn or hw(n) or pn_["owning_link"] != lk or rel.in_class(n, "audit_skip"):
                 continue
             nb = np.array(pn_["bounds_mm"], float)
             if np.any(m.bounds[0] > nb[1]) or np.any(m.bounds[1] < nb[0]):
