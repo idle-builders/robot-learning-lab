@@ -244,8 +244,10 @@ SETUP_TIMERS = ("solids (scope)", "solids (others)", "neighbours")     # every c
 
 
 def recordable(man):
-    """A manifest whose reads the result cache records: inside the repository and not under .cache (eval copies)."""
-    return man.is_relative_to(ROOT) and not man.is_relative_to(ROOT / ".cache")
+    """A manifest whose reads the result cache records (resultcache.rel_or_none): inside the repository and not in the
+    checks' own cache / report folders (eval copies live there); a scratch manifest elsewhere under .cache/work is."""
+    from checks import resultcache
+    return resultcache.rel_or_none(man) is not None
 
 
 def man_rel(man):
