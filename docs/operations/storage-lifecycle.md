@@ -115,7 +115,10 @@ Without it, a new computer cannot reach anything offloaded after the previous ba
 
 ## Delete proposal for old study folders (measured 2026-11-23, nothing deleted yet)
 
-The owner confirms this list before anything is deleted. The generator cache's own GC
+Owner decision (2026-11-23): delete all of tier 1 and prune all of tier 2 locally, remove the
+156,815 dangling symlinks and the folders left empty; keep the hold tier until each folder is
+confirmed as derived; keep the whole bucket (the five perception clips are current state).
+Re-measure right before deleting and run `rebuild_chain.py --dry-run` afterwards. The generator cache's own GC
 covers only its cache store; this covers `artifacts/` outside it and the private bucket.
 
 How "what reads it" was measured, per file under `artifacts/` (paths resolved through
