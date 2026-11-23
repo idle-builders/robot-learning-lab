@@ -94,8 +94,7 @@ def save(name, shape, kind="printed"):
                 mesh_sha256=hashlib.sha256(npz.read_bytes()).hexdigest(),
                 bounds_mm=[v.min(0).round(3).tolist(), v.max(0).round(3).tolist()],
                 native_solid_count=len(sols), native_validity=[bool(C.valid(s)) for s in sols],
-                volume_mm3=round(vol, 2), **({"mass_kg": BOM_CONFIG.mass_kg(name, vol),
-                                              "mass_basis": f"Exact native STEP volume * {BOM_CONFIG.density_kg_mm3(name) * 1e6:g} g/cm3 ({BOM_CONFIG.material(name)}, declared in its definition)"} if kind == "printed" else {}))
+                volume_mm3=round(vol, 2), **(BOM_CONFIG.mass_record(name, vol, builder="motor-refit") if kind == "printed" else {}))
 
 
 def st3025_solids():

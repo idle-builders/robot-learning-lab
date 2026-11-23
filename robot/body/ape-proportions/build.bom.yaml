@@ -2694,3 +2694,10 @@ defects:
   reference: artifacts/cove50-strength/arm-fdm-connectors-20261102/shell_hardware/<part>.step (path-moves -> artifacts/robot/body/arm/shell_hardware/<part>.step;
     only the .npz exists there)
   task: 'needs task (low value: hardware.py already generates the nut)'
+# Configured values of this builder (robot/body/bom/bom_config.py); the single source.
+config:
+  PRINTED_MATERIAL:
+    value: Bambu PAHT-CF
+    doc: Material of the printed parts this builder writes that no definition entry claims (intermediate parts a later generator
+      replaces); a claimed part takes its entry's process.material. Density from robot/body/checks/data/materials.json.
+    decision: bom-config 2026-11-23 (was a 1.22 g/cm3 literal in the script)

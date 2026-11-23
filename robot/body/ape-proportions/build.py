@@ -142,7 +142,7 @@ def save_step(name, shape, kind):
                bounds_mm=[tm.bounds[0].round(3).tolist(), tm.bounds[1].round(3).tolist()],
                native_solid_count=len(sols), native_validity=[bool(C.valid(s)) for s in sols], volume_mm3=round(vol, 2))
     if kind == "printed":
-        rec.update(mass_kg=BOM_CONFIG.mass_kg(name, vol), mass_basis=f"Exact native STEP volume * {BOM_CONFIG.density_kg_mm3(name) * 1e6:g} g/cm3 ({BOM_CONFIG.material(name)}, declared in its definition)")
+        rec.update(BOM_CONFIG.mass_record(name, vol, builder="ape-proportions-build"))
     return rec
 
 

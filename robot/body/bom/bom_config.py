@@ -97,24 +97,42 @@ def part_entry(name, defs=None):
     raise Undeclared(f"part {name!r}: no definition claims it (parts: match in the owning <builder>.bom.yaml)")
 
 
-def material(name, defs=None):
-    """The material declared for part `name` (its entry's process.material)."""
-    e = part_entry(name, defs)
+def material(name, builder=None, defs=None):
+    """The material declared for part `name`: its entry's process.material; for a part no definition claims (an
+    intermediate part a later generator replaces), the builder definition's config PRINTED_MATERIAL when `builder` (a
+    definition id) is given. Raises when neither declares one."""
+    try:
+        e = part_entry(name, defs)
+    except Undeclared:
+        if builder is None:
+            raise
+        return value(builder, "PRINTED_MATERIAL", defs)
     m = (e.get("process") or {}).get("material")
     if not m:
         raise Undeclared(f"part {name!r}: {e['file']} parts[{e['index']}] declares no process.material")
     return m
 
 
-def density_kg_mm3(name, defs=None):
+def density_kg_mm3(name, builder=None, defs=None):
     """Density of part `name` from its declared material (robot/body/checks/data/materials.json, datasheet values)."""
-    m = material(name, defs)
+    m = material(name, builder, defs)
     row = _materials().get(m)
     if not row or not row.get("density_g_cm3"):
         raise Undeclared(f"part {name!r}: material {m!r} has no density_g_cm3 in robot/body/checks/data/materials.json")
     return float(row["density_g_cm3"]) * 1e-6
 
 
-def mass_kg(name, volume_mm3, digits=6, defs=None):
+def mass_kg(name, volume_mm3, builder=None, digits=6, defs=None):
     """Mass of part `name` from its volume and its declared material."""
-    return round(float(volume_mm3) * density_kg_mm3(name, defs), digits)
+    return round(float(volume_mm3) * density_kg_mm3(name, builder, defs), digits)
+
+
+def mass_record(name, volume_mm3, builder=None, digits=6, defs=None):
+    """{mass_kg, mass_basis} of a printed part from its declared material, naming where the material is declared."""
+    m, rho = material(name, builder, defs), density_kg_mm3(name, builder, defs)
+    try:
+        e = part_entry(name, defs); where = f"{e['file']} parts[{e['index']}]"
+    except Undeclared:
+        where = f"{builder} config PRINTED_MATERIAL"
+    return dict(mass_kg=round(float(volume_mm3) * rho, digits),
+                mass_basis=f"Exact native STEP volume * {rho * 1e6:g} g/cm3 ({m}, declared in {where})")
