@@ -57,6 +57,13 @@
    "R_knee"
   ]
  },
+ "joint_mirrors": {
+  "_doc": "Mirror joints declared where the joint table does not give them (checks.relations.joint_mirrors finds the joint whose origin and axis mirror a joint's within 1 mm): {joint: [mirror joint, angle sign]}, used both ways by the motion checks (core.joint_mirrors). L_ankle_roll's manifest origin (y -19.0) is 5.5 mm off the mirror of R_ankle_roll's (y -13.5).",
+  "R_ankle_roll": [
+   "L_ankle_roll",
+   1.0
+  ]
+ },
  "fit_poses": {
   "_doc": "The exact-fit pose list (fit_check_upper_hip.py's list plus the hip-shell target extremes; roll_flip_checks.fit_poses() reads it): standing, then each sweep's joint alone at each of its angles (pose name = name formatted with deg), then the combined poses in order.",
   "sweeps": [
@@ -223,7 +230,7 @@
   ]
  },
  "joint_sweep_wide_deg": {
-  "_doc": "Widest range each joint is swept over by range_sweep (deg): what the training tape asks for, with margin. Keyed by full joint name; a joint not listed takes its mirror joint's entry (checks.relations.joint_mirrors, angles x sign), else its manifest range_deg widened by _margin_deg on each side. L_ankle_roll is listed itself: its manifest origin (y -19.0) is not the mirror of R_ankle_roll's (y -13.5), so the joint table gives it no mirror joint.",
+  "_doc": "Widest range each joint is swept over by range_sweep (deg): what the training tape asks for, with margin. Keyed by full joint name; a joint not listed takes its mirror joint's entry (checks.relations.joint_mirrors, angles x sign), else its manifest range_deg widened by _margin_deg on each side.",
   "_margin_deg": 15.0,
   "R_hip_yaw": [
    -45,
@@ -246,10 +253,6 @@
    40
   ],
   "R_ankle_roll": [
-   -30,
-   30
-  ],
-  "L_ankle_roll": [
    -30,
    30
   ],

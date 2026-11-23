@@ -10,7 +10,7 @@ import time
 import numpy as np
 
 from checks import bodylib as BL
-from checks.core import DATA, R, tick
+from checks.core import DATA, R, joint_mirrors, tick
 from checks.relations import ROLES
 from checks.registry import register
 
@@ -29,19 +29,12 @@ def in_class(body, n, cls):
     return rel.in_class(n, cls) if rel is not None else body.parts[n].get("role") in ROLES["classes"][cls]["roles"]
 
 
-def _mirrors(body):
-    if getattr(body, "_joint_mirrors", None) is None:
-        from checks.relations import joint_mirrors
-        body._joint_mirrors = joint_mirrors(body.joints)
-    return body._joint_mirrors
-
-
 def wide_range(body, jn):
     """(lo, hi) deg range_sweep turns joint jn over: its own joint_sweep_wide_deg entry, else its mirror joint's (angles x sign,
-    checks.relations.joint_mirrors), else its manifest range_deg widened by _margin_deg each side (pose_sets.json)."""
+    core.joint_mirrors), else its manifest range_deg widened by _margin_deg each side (pose_sets.json)."""
     if jn in WIDE:
         return WIDE[jn]
-    m, sg = _mirrors(body).get(jn, (None, None))
+    m, sg = joint_mirrors(body).get(jn, (None, None))
     if m in WIDE:
         return tuple(sorted(sg * a for a in WIDE[m]))
     r = body.joints[jn].get("range_deg") or [0.0, 0.0]
@@ -50,11 +43,11 @@ def wide_range(body, jn):
 
 def controller_limit(body, q):
     """The joints of a controller-limit corner at pose q (data/pose_sets.json controller_limit_corners, owner decision D-15): every
-    joint of a group, or of its mirror group (checks.relations.joint_mirrors), at (or past) an end of its range_deg at once; [] when q
+    joint of a group, or of its mirror group (core.joint_mirrors), at (or past) an end of its range_deg at once; [] when q
     is no such corner. Joints q leaves out stand at 0."""
     tol = LIMIT["end_tol_deg"]
     at_end = lambda j: q.get(j, 0.0) <= min(body.joints[j]["range_deg"]) + tol or q.get(j, 0.0) >= max(body.joints[j]["range_deg"]) - tol  # noqa: E731
-    jm = _mirrors(body)
+    jm = joint_mirrors(body)
     for grp in LIMIT["groups"]:
         for js in (list(grp), [jm.get(j, (None,))[0] for j in grp]):
             if all(j in body.joints and body.joints[j].get("range_deg") and at_end(j) for j in js):

@@ -308,14 +308,27 @@ def _leg_sources(spec):
     return P
 
 
+def joint_mirrors(body):
+    """{joint: (mirror joint, angle sign)}: the joint table's (checks.relations.joint_mirrors: origin and axis mirrored), plus the
+    mirrors pose_sets.json joint_mirrors declares, both ways. Cached on the body."""
+    if getattr(body, "_joint_mirrors", None) is None:
+        from checks.relations import joint_mirrors as derived
+        jm = derived(body.joints)
+        for a, (b, s) in ((k, v) for k, v in json.loads((DATA / "pose_sets.json").read_text())["joint_mirrors"].items() if not k.startswith("_")):
+            if a in body.joints and b in body.joints:
+                jm[a], jm[b] = (b, float(s)), (a, float(s))
+        body._joint_mirrors = jm
+    return body._joint_mirrors
+
+
 def leg_sides(body, joints, links):
     """(as named, mirrored): which side(s) the leg-motion sources, which set `joints`, are given for scoped parts on `links`.
     Limbs and mirror joints come from the joint table (checks.relations.limbs / joint_mirrors), not names: mirrored when a
     scoped link is on the mirror limb of a limb the sources move; as named when a scoped link is on a limb they move, on no
     limb (torso: it meets both legs), or when nothing is scoped or no mirror applies."""
-    from checks.relations import joint_mirrors, limbs
+    from checks.relations import limbs
     lim = limbs(body.joints, {p["owning_link"] for p in body.parts.values()})
-    jm = joint_mirrors(body.joints)
+    jm = joint_mirrors(body)
     src = {lim.get(body.joints[j]["child"]) for j in joints if j in body.joints} - {None}
     mirror = {jm[r][0] for r in src if r in jm}
     scoped = {lim.get(lk) for lk in links}
@@ -324,9 +337,8 @@ def leg_sides(body, joints, links):
 
 
 def mirror_cmd(body, cmd):
-    """cmd's angles moved onto the mirror joints (angle x sign, checks.relations.joint_mirrors); a joint without a mirror keeps its own."""
-    from checks.relations import joint_mirrors
-    jm = joint_mirrors(body.joints)
+    """cmd's angles moved onto the mirror joints (angle x sign, joint_mirrors); a joint without a mirror keeps its own."""
+    jm = joint_mirrors(body)
     return {jm.get(j, (j, 1.0))[0]: jm.get(j, (j, 1.0))[1] * a for j, a in cmd.items()}
 
 
