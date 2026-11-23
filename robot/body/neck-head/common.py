@@ -540,8 +540,11 @@ def cyl_along(pt, direction, r: float, length: float):
 
 # @lore Sleeve length = plate thickness at an XM335 screw site, chosen so a standard screw length reaches the hole's reference
 # engagement with the tip inside the hole (screw_plan.choose_length): the case M2 holes are 1.8 mm deep from a seat 0.2 mm
-# outside the opening, so a 2.5 mm sleeve takes M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
+# outside the opening, so a 2.5 mm sleeve took M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
 # reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6).
+# The pitch-case cradle has no sleeves since T-acpw7j: plain holes, an ISO 7089 washer under the head, the plate as thick as
+# pitch_case_joint() derives (2.5 mm with M2x5: the full thread ends 0.3 mm short of the 2.0 mm tap bottom, 1.5 mm engaged below the
+# 0.2 mm mouth chamfer; review rv-acpw7j).
 # Head-skin taper cut of the microphone wing's top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it
 MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 
@@ -549,6 +552,32 @@ MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 def neck_anchor() -> dict:
     """The neck anchor joint (cradle to torso chassis, T-jxshhv): robot/body/neck-head/neck_anchor.json."""
     return json.loads((Path(__file__).resolve().parent / "neck_anchor.json").read_text())
+
+
+def pitch_case_joint() -> dict:
+    """The cradle-to-pitch-case joint (T-acpw7j): robot/body/neck-head/pitch_case_joint.json plus what follows from the case's taps
+    (defined_holes.seat_sites): the tap depth from the case face (the defined depth below the opening + the 0.2 mm mouth chamfer that
+    seat_offset measures, capped at the drawing's DP2; the shallowest of the four), the seat offset, and the ISO 7380-1 M2 length and
+    plate thickness that end the full thread tip_allowance_mm short of the tap bottom (review rv-acpw7j):
+    plate_t = L - point - (tap - tip_allowance) - washer h for the shortest standard length whose plate is at least plate_min_mm.
+    engagement_mm = the full thread inside the tapped bore below the opening (tap - tip_allowance - seat)."""
+    import defined_holes as DH
+    pj = json.loads((Path(__file__).resolve().parent / "pitch_case_joint.json").read_text())
+    st = json.loads((ROOT / "robot/body/checks/data/hardware.json").read_text())["screw_standards"]
+    sites = [x for x in DH.seat_sites("neck_pitch_to_head_cradle") if x["group"] == "pitch_case_rear"]
+    taps = [min(float(x["depth_mm"]) + float(x["seat_offset_mm"]), float(x["drawing_max_tap_depth_mm"] or 1e9)) for x in sites]
+    tap = min(taps)
+    seat = float(np.mean([x["seat_offset_mm"] for x in sites]))
+    allow = float(pj["tip_allowance_mm"])
+    g = DH.connectors()["neck_pitch_to_head_cradle"]["groups"]["pitch_case_rear"]
+    head = st["head_types"][g["head"]][sites[0]["thread"]]
+    pt, wh = float(st["point_mm"]), float(pj["washer"]["h"])
+    rows = [(float(L), round(float(L) - pt - (tap - allow) - wh, 3)) for L in sorted(head["lengths"])]
+    L, t = next((L, t) for L, t in rows if t >= float(pj["plate_min_mm"]) - 1e-9)
+    pj.update(screw_length_mm=L, plate_t_mm=t, tap_depth_from_face_mm=round(tap, 3), engagement_mm=round(tap - allow - seat, 3),
+              reference_engagement_mm=float(sites[0]["reference_engagement_mm"]), seat_offset_mm=round(seat, 3),
+              head_dk_mm=float(head["dk"]), length_rows=rows)
+    return pj
 
 
 def head_std_m3_button() -> dict:
@@ -570,9 +599,10 @@ def stage_interface_specs() -> dict:
             `(0, -1, 372.5)`, `(0, 11, 372.5)`, `(-6, 5, 372.5)`, `(6, 5, 372.5)`, normal `+Z`, `h = 3.0 mm`)
           * Load: all 4x M2 holes on `upper__neck_pitch_front_horn` (`PCD 12.0 mm` at `(-21, 5, 414.0)`:
             `(-21, 5, 408)`, `(-21, 5, 420)`, `(-21, -1, 414)`, `(-21, 11, 414)`, normal `-X`, `h = 3.0 mm`)
-      - Stage 3 (`stage3_neck_pitch_to_head_cradle`, on `head` — 4 sleeves + 2 inserts: 4x M2 pitch case sleeves + 2x M3 heat-set inserts):
+      - Stage 3 (`stage3_neck_pitch_to_head_cradle`, on `head` — 2 brass M3 heat-set inserts; the 4 M2 case holes are plain, T-acpw7j):
           * Support: 4x M2 rear taps on `upper__neck_pitch_case_XM335`:
-            `(-10.75, 14.5, 391.5)`, `(-10.75, 14.5, 401.0)`, `(-5.25, 14.5, 391.5)`, `(-5.25, 14.5, 401.0)` (normal `+Y`, `h = 3.0 mm`)
+            `(-10.75, 14.5, 391.5)`, `(-10.75, 14.5, 401.0)`, `(-5.25, 14.5, 391.5)`, `(-5.25, 14.5, 401.0)` (normal `+Y`): plain teardrop
+            clearance holes through the rear plate (pitch_case_joint.json), ISO 7380-1 M2 on an ISO 7089 washer
           * Load: 2x brass M3 x 4 heat-set inserts in the tongue (head_carrier_posts.json neck_root: x -0.85, z 413 / 419, from the
             tongue's rear face y -12.92 to its front face, normal `-Y`; T-9wjdqc)
       - Stage 4 (`stage4_head_sensor_compute_carrier`, on `head` — 9 brass M2 heat-set inserts: 8 cameras + 1 mic; T-5bqc3m):
@@ -610,6 +640,7 @@ def stage_interface_specs() -> dict:
     # Stage 3 (`neck_pitch_to_head_cradle`)
     s3_sup_pts = _pts("neck_pitch_to_head_cradle", "pitch_case_rear")
     s3_sup_norms = _norms("neck_pitch_to_head_cradle", "pitch_case_rear")
+    pcj = pitch_case_joint()
 
     # neck root (T-9wjdqc): one pair of axes for the carrier holes and the cradle tongue's M3 heat-set inserts (head_carrier_posts.json
     # neck_root); the inserts sit flush in the tongue from its rear face (the carrier's seat) to its front face
@@ -692,14 +723,18 @@ def stage_interface_specs() -> dict:
             "aux_bores": [],
         },
         "stage3_neck_pitch_to_head_cradle": {
-            "support": {
+            "support": {    # plain teardrop clearance holes, no sleeve (T-acpw7j): ISO 7380-1 M2 on an ISO 7089 washer into the case taps
                 "name": "neck_pitch_case_rear",
                 "normal": np.array([0.0, 1.0, 0.0]),
                 "normals": s3_sup_norms,
                 "centres": s3_sup_pts,
-                "sleeve_ro": 1.75,
-                "sleeve_ri": 1.10,
-                "sleeve_len": 2.5,
+                "no_sleeve": True,
+                "sleeve_ro": float(pcj["hole_dia"]) / 2.0,
+                "sleeve_ri": float(pcj["hole_dia"]) / 2.0,
+                "sleeve_len": float(pcj["plate_t_mm"]),
+                "head_clear_r": float(pcj["washer"]["d2"]) / 2.0 + float(pcj["head_clear_mm"]),
+                "teardrop_up": np.asarray(pcj["teardrop_up"], float),
+                "teardrop_flat_mm": float(pcj["teardrop_flat_mm"]),
                 "patch_r": 2.2,
             },
             "load": {       # 2 brass M3 heat-set inserts (T-9wjdqc), pressed from the tongue's front face, flush with both faces

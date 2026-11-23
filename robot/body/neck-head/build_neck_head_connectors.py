@@ -1,7 +1,8 @@
 """Phase 3: Build clean, watertight OpenCascade BRep STEP/STL/NPZ models for all 4 Neck & Head
 connector stages across Family 1 (`truss_box` — Parametric 3D Space-Truss & Ribbed Box-Cradle)
 and Family 2 (`topopt` — Blank-State 3D SIMP Topology-Optimized Monocoque), with asymmetric
-3D beveling (`r_inner > r_outer`); stages 1-3 with pressed-in 304 SS compression sleeves, stage 4 with brass heat-set inserts.
+3D beveling (`r_inner > r_outer`); stages 1-2 with pressed-in 304 SS compression sleeves, stages 3-4 with brass heat-set inserts
+and plain clearance holes (stage 3 case screws on ISO 7089 washers, T-acpw7j).
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from build123d import (
     Circle,
     Cylinder,
     Face,
+    Plane,
     Polygon,
     Pos,
     Rectangle,
@@ -34,6 +36,7 @@ from common import (
     bevel_3d_edges,
     build_stage_sleeves,
     cyl_along,
+    pitch_case_joint,
     extrude_xy_to_x,
     extrude_xy_to_y,
     extrude_xy_to_z,
@@ -115,6 +118,12 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
                     cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, h + 2.0))
                     keep_out.append(cyl_along(pt + h * n, n, float(grp["head_clear_r"]), 6.0))
                     continue
+                if stage_key == "stage3_neck_pitch_to_head_cradle" and role_key == "support":
+                    # pitch case (T-acpw7j): horizontal clearance hole through the rear plate as a 45 deg teardrop pointing up in the print
+                    # direction, flat at teardrop_flat_mm; the washer and head on the rear face keep a ring of head_clear_r free behind it
+                    cut_tools.append(teardrop_along(pt - 1.0 * n, n, ro, h + 2.0, grp["teardrop_up"], flat_at=float(grp["teardrop_flat_mm"])))
+                    keep_out.append(cyl_along(pt + (h + 0.02) * n, n, float(grp["head_clear_r"]), 6.0))   # starts past the face: no skim
+                    continue
                 if role_key == "support":        # neck root: ISO 7380-1 head on the rear face, a clearance cut for it through the dorsal ribs
                     cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, h + 2.0))
                     w = max(float(grp["rib_window_half"]), float(grp["head_clear_r"]))
@@ -189,7 +198,8 @@ def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
         for k, (pt, n_raw) in enumerate(zip(centres, normals)):
             n = np.asarray(n_raw, dtype=float) / np.linalg.norm(n_raw)
             if grp.get("no_sleeve"):        # plain holes: the head / washer seat, the counterbore, the column
-                if stage_key == "stage1_neck_root_cradle":      # torso anchor: the plate's hole and the head seat round it
+                if stage_key == "stage1_neck_root_cradle" or (stage_key == "stage3_neck_pitch_to_head_cradle" and role_key == "support"):
+                    # torso anchor / pitch case: the plate's hole and the head (washer) seat round it
                     cyls.append((pt, n, float(grp["head_clear_r"]) + margin, h))
                     continue
                 if role_key == "support":
@@ -416,6 +426,8 @@ def build_stage2(family: str) -> Solid:
 # corner there is rounded 0.8, not 1.6: a 1.6 corner left 0.55 mm at the front lip); its top at 423.0 keeps 2.0 mm over the upper hole
 # (z 419): the carrier is all behind y -12.9 there and the bridge behind the tongue stays at 421.2 under the carrier plate (z >= 422).
 TONGUE_X_MIN, TONGUE_TOP, TONGUE_CORNER_R = -5.0, 423.0, 0.8
+PLATE_Z_BOTTOM = 388.5     # the U-profile's (rear plate's) bottom face
+X_BRIDGE = 8.8             # the U-profile's +x face (right bridge)
 
 
 def _fillet_vertex(face, xy, r: float):
@@ -423,6 +435,26 @@ def _fillet_vertex(face, xy, r: float):
     from build123d import fillet
     v = [v for v in face.vertices() if (v.X - xy[0]) ** 2 + (v.Y - xy[1]) ** 2 < 0.04]
     return fillet(v, r).faces()[0] if v else face
+
+
+def _plate_bottom_relief(x_min: float, x_max: float, y_back: float, z_bot: float = PLATE_Z_BOTTOM):
+    """Cutter for the cradle rear plate's bottom (pitch_case_joint.json bottom_relief, T-acpw7j): a chamfer along the bottom rear edge
+    (edge_chamfer_y_mm into the bottom face, edge_chamfer_z_mm up the rear face, over the plate's whole length) and a flat cut of each
+    bottom rear corner (corner_cuts: the -x end at x_min, the +x end at x_max; the plane with that outward normal lies depth_mm below
+    the sharp corner (x, y_back, z_bot) along it), where the neck collar passes over neck pitch."""
+    rl = pitch_case_joint()["bottom_relief"]
+    cy, cz = float(rl["edge_chamfer_y_mm"]), float(rl["edge_chamfer_z_mm"])
+    pts = [(y_back - cy, z_bot), (y_back, z_bot + cz), (y_back + 2.0, z_bot + cz), (y_back + 2.0, z_bot - 2.0), (y_back - cy, z_bot - 2.0)]
+    cutter = extrude_xy_to_x(Polygon(*pts, align=None), x_min - 1.0, x_max + 1.0)
+    near = {"minus_x": Pos(x_min + 1.5, y_back - 1.0, z_bot + 0.5) * Box(5.0, 4.0, 3.0),     # x_min - 1 .. + 4, y_back - 3 .. + 1
+            "plus_x": Pos(x_max - 2.5, y_back - 1.5, z_bot + 0.5) * Box(7.0, 5.0, 3.0)}      # x_max - 6 .. + 1, y_back - 4 .. + 1
+    for c in rl["corner_cuts"]:
+        n = np.asarray(c["normal"], float)
+        n /= np.linalg.norm(n)
+        p0 = np.array([x_min if c["end"] == "minus_x" else x_max, y_back, z_bot]) - float(c["depth_mm"]) * n
+        half = Plane(origin=tuple(float(v) for v in p0 + 5.0 * n), z_dir=tuple(float(v) for v in n)) * Box(10.0, 10.0, 10.0)
+        cutter = cutter + (half & near[c["end"]])
+    return Solid(cutter.wrapped)
 
 
 def build_stage3(family: str) -> Solid:
@@ -433,21 +465,33 @@ def build_stage3(family: str) -> Solid:
     """
     # 1. U-profile in XY plane (rear plate + right bridge) extruded across Z in [388.5, 421.2], the front tongue on it up to TONGUE_TOP,
     # then sculpted in YZ and XZ
-    y_case = _seat("neck_pitch_to_head_cradle", "pitch_case_rear")   # pitch case rear face (definition); sleeves are 2.5 mm long
-    g3 = stage_interface_specs()["stage3_neck_pitch_to_head_cradle"]["load"]
+    y_case = _seat("neck_pitch_to_head_cradle", "pitch_case_rear")   # pitch case rear face (definition)
+    specs3 = stage_interface_specs()["stage3_neck_pitch_to_head_cradle"]
+    g3 = specs3["load"]
+    sup3 = specs3["support"]
+    # rear plate's rear face: the washer seat, each site's centre + the plate thickness (common.pitch_case_joint, T-acpw7j) along its
+    # axis; the case-face coordinate y_case is a dot product with the slightly tilted hole axes and lies 0.006 mm behind it
+    y_plate_rear = float(np.mean([(np.asarray(c, float) + float(sup3["sleeve_len"]) * np.asarray(a, float))[1]
+                                  for c, a in zip(sup3["centres"], sup3["normals"])]))
+    t_plate = y_plate_rear - y_case
+    edge = pitch_case_joint()["minus_x_edge"]
+    x_min, r_end = float(edge["x_mm"]), float(edge["corner_r_mm"])
     y_rear = float(g3["centres"][0][1])                               # tongue rear face (the carrier's seat)
     y_front = y_rear - float(g3["sleeve_len"])                        # tongue front face: the inserts are flush with both faces
     pts_u = [
-        (-13.8, y_case + 2.5),
-        (8.8, y_case + 2.5),
-        (8.8, y_rear),
+        (x_min, y_case + t_plate),
+        (X_BRIDGE, y_case + t_plate),
+        (X_BRIDGE, y_rear),
         (3.25, y_rear),
         (3.25, y_case),
-        (-13.8, y_case),
+        (x_min, y_case),
     ]
-    # the inner corner at the pitch case's rear edge stays sharp: its 2.4 mm fillet stood 7.63 mm3 inside the case (rv4-5bqc3m)
-    f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4, skip_xy=[(8.8, y_rear), (3.25, y_rear), (3.25, y_case)])
-    s_u = extrude_xy_to_z(f_u, 388.5, 421.2)
+    # the inner corner at the pitch case's rear edge stays sharp: its 2.4 mm fillet stood 7.63 mm3 inside the case (rv4-5bqc3m); the
+    # plate's -x end has its own smaller rounds (T-acpw7j: at 1.6 they left 0.63 .. 0.91 mm of wall beside the case-screw holes)
+    f_u = fillet_2d_face(Polygon(*pts_u, align=None), r_default=1.6, r_inner=2.4,
+                         skip_xy=[(8.8, y_rear), (3.25, y_rear), (3.25, y_case), (x_min, y_case), (x_min, y_case + t_plate)])
+    f_u = _fillet_vertex(_fillet_vertex(f_u, (x_min, y_case), r_end), (x_min, y_case + t_plate), r_end)
+    s_u = extrude_xy_to_z(f_u, PLATE_Z_BOTTOM, 421.2)
     pts_t = [(TONGUE_X_MIN, y_front), (8.8, y_front), (8.8, y_rear), (TONGUE_X_MIN, y_rear)]
     f_t = fillet_2d_face(Polygon(*pts_t, align=None), r_default=1.6, skip_xy=[(8.8, y_rear), (TONGUE_X_MIN, y_rear), (TONGUE_X_MIN, y_front)])
     f_t = _fillet_vertex(f_t, (TONGUE_X_MIN, y_front), TONGUE_CORNER_R)
@@ -456,7 +500,7 @@ def build_stage3(family: str) -> Solid:
 
     # Trim front carrier tongue (Y < -4.5) below Z = 408.8 so the front below Z = 408.8 stays completely open
     cut_front_low = Pos(-6.0, -11.5, 398.0) * Box(24.0, 14.0, 21.6)  # Y in [-18.5, -4.5], Z in [387.2, 408.8]
-    # Also cut the rear plate (Y > 13.5, X < 2.5) above Z = 409.0, 6.25 mm over the upper M2 sleeves (Z 401.0 + 1.75): it frames the 4 rear
+    # Also cut the rear plate (Y > 13.5, X < 2.5) above Z = 409.0, 6.8 mm over the upper M2 holes (Z 401.0 + 1.2): it frames the 4 rear
     # M2 holes, and the bench driver of the head root screws (z 413 / 419, along +y through the U) passes over it (at 413.0 the plate stood
     # in the lower screw's blade path 24.3 mm from the head, 8.6 mm3, nr-v1-asm; T-9wjdqc)
     cut_rear_high = Pos(-6.5, 16.0, 416.5) * Box(18.0, 5.0, 15.0)    # X in [-15.5, 2.5], Z in [409.0, 424.0]
@@ -488,7 +532,11 @@ def build_stage3(family: str) -> Solid:
         s_body = Solid((s_body - c_oval - c_tap).wrapped)
 
     cut_sol = _cut_stage_bores(s_body, "stage3_neck_pitch_to_head_cradle")
-    return bevel_3d_edges(cut_sol, r_outer=0.38, r_inner=0.72, skip_fn=_skip_near_stage_bores("stage3_neck_pitch_to_head_cradle"))
+    s_bev = bevel_3d_edges(cut_sol, r_outer=0.38, r_inner=0.72, skip_fn=_skip_near_stage_bores("stage3_neck_pitch_to_head_cradle"))
+    # the plate's bottom rear edge and both bottom rear corners give way to the neck collar over neck pitch (T-acpw7j, pitch_case_joint.json
+    # bottom_relief), cut after the bevel: cut before it, the chamfer's run-out on the corner rounds broke the bevel's tangent chain
+    # round the plate bottom and every 0.38 round on it was dropped; the cut's own edges stay as cut (obtuse)
+    return Solid((s_bev - _plate_bottom_relief(x_min, X_BRIDGE, y_case + t_plate)).wrapped)
 
 
 # ==============================================================================
