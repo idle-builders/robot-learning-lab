@@ -547,8 +547,8 @@ MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 
 
 def stage_interface_specs() -> dict:
-    """Return exact hole centers, per-hole outward normals, and pressed-in 304 SS compression sleeve specifications
-    for all 4 Neck & Head connector stages:
+    """Return exact hole centers, per-hole outward normals, and the pressed-in sleeve / insert specifications
+    for all 4 Neck & Head connector stages (stages 1-3: 304 SS compression sleeves; stage 4: brass heat-set inserts, plain holes elsewhere):
       - Stage 1 (`stage1_neck_root_cradle`, on `torso` — 8 sleeves: 2x M3 + 6x M2):
           * Support: 2x M3 torso anchor bolts (`(-29.0, 25.0, 347.5)` & `(-21.0, 25.0, 347.5)`, normal `+Y`, `h = 3.0 mm`)
             + 2x M2 ribbon clamp cap seats (`(-37.0, 43.8, 375.0)` & `(-13.0, 43.8, 375.0)`, normal `+Y`, `h = 2.0 mm`)
@@ -564,9 +564,9 @@ def stage_interface_specs() -> dict:
             `(-10.75, 14.5, 391.5)`, `(-10.75, 14.5, 401.0)`, `(-5.25, 14.5, 391.5)`, `(-5.25, 14.5, 401.0)` (normal `+Y`, `h = 3.0 mm`)
           * Load: 2x M3 head carrier tongue interfaces:
             `(0.0, -12.9, 413.0)`, `(0.0, -12.9, 419.0)` (normal `-Y`, `h = 3.0 mm`)
-      - Stage 4 (`stage4_head_sensor_compute_carrier`, on `head` — 14 sleeves: 2x M3 neck root + 4x M2.5 compute + 8x M2 cameras):
-          * Support: 2x M3 neck carrier root interfaces (`(0.0, -12.9, 413.0)`, `(0.0, -12.9, 419.0)`, normal `+Y`, `h = 1.5 mm`)
-          * Load: 4x M2.5 ROCK4D compute posts (`(17.6677, -12.9, 425.8503)`, `(17.6647, -12.9, 474.8643)`, `(-40.3223, -12.9, 425.8613)`, `(-40.3133, -12.9, 474.8483)`, normal `+Y`, `h = 1.5 mm`)
+      - Stage 4 (`stage4_head_sensor_compute_carrier`, on `head` — 9 brass M2 heat-set inserts: 8 cameras + 1 mic; T-5bqc3m):
+          * Support: 2x M3 neck carrier root interfaces (`(0.0, -12.9, 413.0)`, `(0.0, -12.9, 419.0)`, normal `+Y`): plain holes, no sleeve
+          * Load: 4x M2.5 ROCK4D compute posts (measured, head_holes.compute_posts), normal `+Y`: plain holes, no sleeve
             + 4x M2 B0410 camera posts (`(-36.0, -12.9, 441.0)`, `(-36.0, -12.9, 471.0)`, `(-6.0, -12.9, 441.0)`, `(-6.0, -12.9, 471.0)`, normal `+Y`, `h = 1.5 mm`)
             + 4x M2 B0196 camera posts (`(7.0, -12.9, 444.1662)`, `(7.0, -12.9, 472.1662)`, `(35.0, -12.9, 444.1662)`, `(35.0, -12.9, 472.1662)`, normal `+Y`, `h = 1.5 mm`)
     """
@@ -621,7 +621,9 @@ def stage_interface_specs() -> dict:
     s4_cam_pts = hs["camera"]
     s4_load_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_load_pts)
     s4_cam_norms = [np.array([0.0, 1.0, 0.0])] * len(s4_cam_pts)
-    cs, cm = HH.POSTS["compute"]["sleeve"], HH.sleeve("camera")
+    cm = HH.sleeve("camera")
+    comp, root = HH.POSTS["compute"], HH.POSTS["neck_root"]
+    root_head = HH.head_std(root["head"])
     plate_t = HH.plate_faces()[1] - HH.plate_faces()[0]
     cam_lens, cam_starts = HH.sleeve_lens("camera"), HH.sleeve_starts("camera")
     mic_rows = HH.threaded_posts()["mic"]
@@ -702,25 +704,32 @@ def stage_interface_specs() -> dict:
             "aux_bores": [],
         },
         "stage4_head_sensor_compute_carrier": {
-            "support": {
+            "support": {    # no sleeve (T-5bqc3m K2): plain clearance hole, ISO 7380-1 M3 head on the rear face in a clearance cut through the ribs
                 "name": "carrier_neck_root",
                 "normal": np.array([0.0, 1.0, 0.0]),
                 "normals": s4_sup_norms,
                 "centres": s4_sup_pts,
-                "sleeve_ro": 3.35,
-                "sleeve_ri": 2.82,
-                "sleeve_len": 1.5,
+                "no_sleeve": True,
+                "sleeve_ro": float(root["hole_dia"]) / 2.0,
+                "sleeve_ri": float(root["hole_dia"]) / 2.0,
+                "sleeve_len": plate_t,
+                "head_clear_r": float(root_head["dk"]) / 2.0 + float(root["head_clear_mm"]),
+                "rib_window_half": float(root["rib_window_half_mm"]),
                 "patch_r": 3.6,
             },
-            "load": {
+            "load": {       # no sleeve (T-5bqc3m K2): plain clearance hole, ISO 7092 washer on the front (counterbore + printed column where needed)
                 "name": "compute_and_camera_mounts",
                 "normal": np.array([0.0, 1.0, 0.0]),
                 "normals": s4_load_norms,
                 "centres": s4_load_pts,
-                "sleeve_ro": cs["ro"],
-                "sleeve_ri": cs["ri"],
-                "countersink_dia": cs["countersink_dia"],
+                "no_sleeve": True,
+                "sleeve_ro": float(comp["hole_dia"]) / 2.0,
+                "sleeve_ri": float(comp["hole_dia"]) / 2.0,
                 "sleeve_len": plate_t,
+                "posts": HH.compute_posts(),
+                "counterbore_r": float(comp["washer"]["d2"]) / 2.0 + float(comp["column"]["counterbore_clear_mm"]),
+                "washer_r": float(comp["washer"]["d2"]) / 2.0,
+                "column": comp["column"],
                 "patch_r": 3.3,
             },
             "camera": {
@@ -767,12 +776,13 @@ def stage_interface_specs() -> dict:
 
 
 def build_stage_sleeves(stage_key: str) -> list[dict]:
-    """Build all pressed-in 304 stainless steel compression sleeves for `stage_key`."""
-    from build123d import Box, Plane, Pos, Rot, Solid
+    """Build the pressed-in parts of `stage_key`: 304 stainless steel compression sleeves (stages 1-3) and the brass M2 heat-set inserts
+    (stage 4 camera / mic posts, T-5bqc3m); groups marked no_sleeve (stage 4 neck root, compute posts) have none."""
+    from build123d import Plane, Solid
 
     specs = stage_interface_specs()[stage_key]
     out = []
-    for role_key in [r for r in ("support", "load", "camera", "mic") if r in specs]:
+    for role_key in [r for r in ("support", "load", "camera", "mic") if r in specs and not specs[r].get("no_sleeve")]:
         grp = specs[role_key]
         norms = grp.get("normals", [grp["normal"]] * len(grp["centres"]))
         ro = float(grp["sleeve_ro"])
@@ -789,11 +799,6 @@ def build_stage_sleeves(stage_key: str) -> list[dict]:
                 depth = min(h, R0 - ri)
                 cone = Solid.make_cone(R0 + 0.05, ri, depth + 0.05, Plane(origin=tuple(float(x) for x in pt - 0.05 * d), z_dir=tuple(float(x) for x in d)))
                 slv = Solid((slv - cone).wrapped)
-            # D-flat the Stage 4 neck root sleeves at (0, -12.9, 413/419) to X <= 2.50 mm and Z-midplane 416.0 mm
-            if stage_key == "stage4_head_sensor_compute_carrier" and role_key == "support":
-                c_rflat = Pos(4.50, -12.15, float(pt[2])) * Box(4.0, 4.0, 8.0)
-                c_zflat = Pos(0.0, -12.15, 416.0) * Box(8.0, 4.0, 0.60)
-                slv = Solid((slv - c_rflat - c_zflat).wrapped)
             name = f"{STAGE_PART_BASENAMES[stage_key]}__{grp['name']}_sleeve_{idx + 1}"
             vol = float(slv.volume)
             mass_g = vol * (MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3)
