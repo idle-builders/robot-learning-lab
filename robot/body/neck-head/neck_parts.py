@@ -149,6 +149,8 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
     drop = {p["name"] for p in man["parts"] if any(p["name"].endswith(k + str(i)) for c in connectors for k in LEGACY[c] for i in range(8))
             and p["name"].startswith("upper__neck_")}
     man["parts"] = [p for p in man["parts"] if p["name"] not in drop]
+    if "neck_pitch_to_head_cradle" in connectors:
+        pitch_case_washers(man)
     body = bodylib.Body(man)
     iface = I.instances(body, man)
     for h in iface["holes"]:     # a hole is tapped as deep as the drawing says (the modelled bore of some case holes runs on to 18.6 mm)
@@ -164,6 +166,21 @@ def screws(connectors: list[str], man: dict, path: Path) -> list[dict]:
         if conn == "neck_root_cradle":
             plans += anchor_screws(man)
     return plans
+
+
+def pitch_case_washers(man: dict) -> None:
+    """The 4 ISO 7089 M2 washers under the cradle's pitch case screws (T-acpw7j, pitch_case_joint.json): on the rear plate's rear face (the
+    case's seat plane + the plate thickness along the hole axis), toward the head. In the connector's clamped stack (connector_screws.json),
+    so the generated screws stand on them; the legacy washer names they reuse are dropped with the legacy screws first."""
+    pj = C.pitch_case_joint()
+    w = pj["washer"]
+    sites = [x for x in DH.seat_sites("neck_pitch_to_head_cradle") if x["group"] == "pitch_case_rear"]
+    man["parts"] = [p for p in man["parts"] if p["name"] not in set(w["names"])]
+    for x, nm in zip(sites, w["names"]):
+        ax = np.asarray(x["axis_out"], float)
+        base = np.asarray(x["centre"], float) + float(pj["plate_t_mm"]) * ax
+        _add_hardware(man, nm, _ring(base, ax, float(w["d1"]) / 2, float(w["d2"]) / 2, float(w["h"])), "washer",
+                      f"{w['standard']} {w['thread']} washer d1 {w['d1']} / d2 {w['d2']} x {w['h']} under the pitch case screw into {x['hole_id'].split(':')[1]} (T-acpw7j)")
 
 
 def anchor_plans() -> list[dict]:
@@ -300,8 +317,9 @@ def carrier_sleeve_entry(e: dict, mesh) -> None:
 
 
 def cradle_sleeve_entry(e: dict, mesh) -> None:
-    """Material and mass of the cradle's sleeve part (T-9wjdqc): the 4 M2 304 steel sleeves of the pitch case screws and the 2 brass M3 heat-set
-    inserts of the carrier tongue (a component whose extents are the insert's length and hole diameter, 0.15 mm)."""
+    """Material and mass of the cradle's sleeve part (T-9wjdqc): the 2 brass M3 heat-set inserts of the carrier tongue (a component whose
+    extents are the insert's length and hole diameter, 0.15 mm); the pitch case screws have plain holes and ISO 7089 washers since T-acpw7j,
+    any other component is counted as 304 steel and named."""
     import head_holes as HH
     ins = HH.root_insert()
     mass, n_brass, n_steel = 0.0, 0, 0
@@ -309,10 +327,11 @@ def cradle_sleeve_entry(e: dict, mesh) -> None:
         brass = bool(np.allclose(np.sort(c.extents), np.sort([float(ins["length"]), 2 * float(ins["ro"]), 2 * float(ins["ro"])]), atol=0.15))
         mass += abs(float(c.volume)) * (8.5e-6 if brass else STEEL_G_MM3 * 1e-3)
         n_brass += brass; n_steel += not brass
-    e.update(material=f"{n_steel} x 304 stainless steel compression sleeves (7.85 g/cm3, pitch case M2 screws) + {n_brass} x brass {ins['thread']} x "
-                      f"{ins['length']:g} knurled heat-set inserts (8.5 g/cm3; modelled at the {2 * ins['ro']:g} mm hole, carrier tongue, T-9wjdqc)",
-             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass), sleeves x 7.85 g/cm3",
-             neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_steel} steel sleeves, {n_brass} brass heat-set inserts")
+    steel = f" + {n_steel} x unrecognised component counted as 304 steel (7.85 g/cm3)" if n_steel else ""
+    e.update(material=f"{n_brass} x brass {ins['thread']} x {ins['length']:g} knurled heat-set inserts (8.5 g/cm3; modelled at the "
+                      f"{2 * ins['ro']:g} mm hole, carrier tongue, T-9wjdqc){steel}; the pitch case M2 holes are plain (T-acpw7j)",
+             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass)" + (", other x 7.85 g/cm3" if n_steel else ""),
+             neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_brass} brass heat-set inserts, no steel sleeves (T-acpw7j)")
 
 
 def _add_screw(man: dict, pl: dict) -> dict:

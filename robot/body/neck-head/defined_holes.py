@@ -86,5 +86,6 @@ def seat_sites(connector: str, manifest: Path | None = None) -> list[dict]:
             off = seat_offset(mesh, op, ax)
             sites.append(dict(group=gname, index=i, hole_id=h["hole_id"], centre=op + off * ax, axis_out=ax, opening=op,
                               seat_offset_mm=round(off, 3), thread=h["thread"], depth_mm=h["depth_mm"],
-                              reference_engagement_mm=h["reference_engagement_mm"], terminal_material=h["terminal_material"]))
+                              reference_engagement_mm=h["reference_engagement_mm"], terminal_material=h["terminal_material"],
+                              drawing_max_tap_depth_mm=h.get("drawing_max_tap_depth_mm")))
     return sites
