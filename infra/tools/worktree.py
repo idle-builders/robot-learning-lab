@@ -40,6 +40,9 @@ def main() -> int:
     excl = (main_co / common).resolve() / "info" / "exclude" if not common.is_absolute() else common / "info" / "exclude"
     excl.parent.mkdir(parents=True, exist_ok=True)
     have = excl.read_text().splitlines() if excl.exists() else []
+    if any(h in LINKS for h in have):                       # a bare line (an older copy of this script) also ignores robot/body/checks/data
+        have = [h for h in have if h not in LINKS]
+        excl.write_text("\n".join(have) + "\n")
     with excl.open("a") as fh:                              # the links are not ignored by the directory patterns of .gitignore
         for n in LINKS:                                     # anchored: a bare `data` also ignored robot/body/checks/data
             if f"/{n}" not in have:
