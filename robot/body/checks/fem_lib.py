@@ -89,6 +89,37 @@ def volume_quantiles(vals: np.ndarray, vols: np.ndarray) -> dict:
     return {"p50": float(q50), "p95": float(q95), "p99": float(q99)}
 
 
+def gmsh_failure_site() -> str:
+    """Where gmsh failed, from its log (call inside the session, after the error): the entities its error / warning lines name, else the last
+    curve / surface it reported meshing, each with its bounding box in model mm (the manifest frame)."""
+    import re
+    try:
+        log = gmsh.logger.get()
+    except Exception:  # noqa: BLE001
+        return "gmsh log not available"
+    bad = [l for l in log if l.startswith(("Error", "Warning"))]
+    named = []
+    for l in bad[-12:]:
+        for kind, tag in re.findall(r"(curve|surface|volume)\s+(\d+)", l, flags=re.I):
+            named.append((kind.lower(), int(tag)))
+    if not named:     # the error does not name it: the entity gmsh was meshing last
+        for l in reversed(log):
+            m = re.search(r"Meshing (curve|surface)\s+(\d+)", l)
+            if m:
+                named = [(m.group(1), int(m.group(2)))]
+                break
+    dim = {"curve": 1, "surface": 2, "volume": 3}
+    out = []
+    for kind, tag in list(dict.fromkeys(named))[:6]:
+        try:
+            b = gmsh.model.getBoundingBox(dim[kind], tag)
+            out.append(f"{kind} {tag} bbox [{b[0]:.2f}, {b[1]:.2f}, {b[2]:.2f}]..[{b[3]:.2f}, {b[4]:.2f}, {b[5]:.2f}] mm")
+        except Exception:  # noqa: BLE001
+            out.append(f"{kind} {tag}")
+    msgs = "; ".join(dict.fromkeys(l[:200] for l in bad[-4:]))
+    return ("gmsh names " + ", ".join(out) if out else "gmsh names no entity") + (f" (log: {msgs})" if msgs else "")
+
+
 def mesh_compound_steps(step_specs: list[tuple[str, Path]], extra_boxes_or_cyls: list[dict], h_max: float = 2.2) -> dict:
     """Mesh one or more STEP files (and optional tie primitives for multi-part baseline assemblies) into P1 tetrahedra.
     Hard limit CAD_GMSH_TIMEOUT_S (default 600 s): the process stops with its stack printed, even inside gmsh C++."""
@@ -100,7 +131,7 @@ def mesh_compound_steps(step_specs: list[tuple[str, Path]], extra_boxes_or_cyls:
     gmsh.option.setNumber("General.NumThreads", 2)
     gmsh.model.add("connector_fem")
 
-    mat_code_map = {"metal": 0, "polymer": 1, "steel": 2}
+    mat_code_map = {"metal": 0, "polymer": 1, "steel": 2, "metal3": 3, "metal4": 4}    # fem_core.LABEL_CODE
     inputs = []
     try:
         for mat_label, step_path in step_specs:
@@ -139,6 +170,7 @@ def mesh_compound_steps(step_specs: list[tuple[str, Path]], extra_boxes_or_cyls:
         gmsh.option.setNumber("Mesh.MeshSizeMax", h_max)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 12)
         gmsh.option.setNumber("Mesh.Algorithm3D", 10)
+        gmsh.logger.start()
         try:
             gmsh.model.mesh.generate(3)
         except Exception:
@@ -147,7 +179,10 @@ def mesh_compound_steps(step_specs: list[tuple[str, Path]], extra_boxes_or_cyls:
             gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 0)
             gmsh.option.setNumber("Mesh.Algorithm", 6)
             gmsh.option.setNumber("Mesh.Algorithm3D", 1)
-            gmsh.model.mesh.generate(3)
+            try:
+                gmsh.model.mesh.generate(3)
+            except Exception as e:
+                raise RuntimeError(f"{e}; {gmsh_failure_site()}") from e
 
         node_tags, xyz, _ = gmsh.model.mesh.getNodes()
         points = np.array(xyz, dtype=float).reshape(-1, 3)

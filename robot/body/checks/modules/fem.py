@@ -2,6 +2,7 @@
 (fem_core), run along the part's decided print direction (process.up; --fem-variant studied_axes: the stored layer_normal_axes). Per part, material and layer-normal axis: p99 / peak von Mises, p99 layer tension, strength ratios (in-plane and across layers), max displacement per load case."""
 from __future__ import annotations
 
+import json
 import time
 
 from checks import arm_loads as AL
@@ -41,7 +42,12 @@ def run(ctx):
         mesh = FC.get_mesh(ctx, n, s)
         sup = {k: FC.patch(ctx, mesh, v) for k, v in s["supports"].items()}
         wl, linfo, _ = FC.patch(ctx, mesh, s["load"])
-        org = FC.origin_of(ctx, s, mesh, wl)
+        where = f"{n} [{ctx_variant(variant)}]"
+        for k, (w, info, _) in [("load", (wl, linfo, None))] + [(f"support {k}", v) for k, v in sup.items()]:
+            if not (w > 0).any():      # an empty patch: no wrench can be applied / nothing is held; name it as fem_setup does
+                raise ValueError(f"{where}: {k} patch selects no node of the part; patch: {json.dumps(s['load'] if k == 'load' else s['supports'][k[len('support '):]])}; "
+                                 f"per mating part: {json.dumps(info['by_mating_part'])}" + (f"; hole selection: {json.dumps(info['hole_selection'])[:1500]}" if info.get("hole_selection") else ""))
+        org = FC.origin_of(ctx, s, mesh, wl, where)
         release = FC.released_rotations(ctx, mesh, s["load"], f"{n} [{ctx_variant(variant)}]")
         FC.say(f"patches: load {linfo['nodes']} nodes, " + ", ".join(f"support {k} {i['nodes']} nodes" for k, (_, i, _) in sup.items())
                + "".join(f", released about {g['joint']} {len(g['nodes'])} nodes" for g in release or []))
@@ -62,7 +68,8 @@ def run(ctx):
         per[n] = dict(variant=variant, layer_direction=ld, nodes=int(len(mesh["points"])), tets=int(len(mesh["tet"])), origin_mm=org, setup_notes=FC.setup_notes(s),
                       wrenches_N_Nmm={k: v.tolist() for k, v in wr.items()}, envelope_loads={k: e[2] for k, e in env.items()}, released_rotations=[dict(joint=g["joint"], load_members=g["members"], nodes=int(len(g["nodes"]))) for g in release or []],
                       patches=dict(load=linfo, **{f"support_{k}": i for k, (_, i, _) in sup.items()}),
-                      by_layer_normal=res, solver=slog, rigid_load=FC.is_rigid(s["load"]), reaction_plus_wrench_pct_max=max(x.get("reaction_plus_wrench_pct_max", 0.0) for x in slog), mesh_h_mm=float(s.get("mesh_h_mm", 2.2)), regions_elements=mesh.get("region_elements"), bore_collars=mesh.get("bore_collars"), seconds=round(time.time() - t0, 1))
+                      by_layer_normal=res, solver=slog, rigid_load=FC.is_rigid(s["load"]), reaction_plus_wrench_pct_max=max(x.get("reaction_plus_wrench_pct_max", 0.0) for x in slog), mesh_h_mm=float(s.get("mesh_h_mm", 2.2)), regions_elements=mesh.get("region_elements"), bore_collars=mesh.get("bore_collars"), seconds=round(time.time() - t0, 1),
+                      **({"mesh_retry": mesh["mesh_retry"]} if mesh.get("mesh_retry") else {}))
         for ln, bm in res.items():
             for m, rows in bm.items():
                 for c, r in rows.items():
@@ -72,6 +79,8 @@ def run(ctx):
     cases.sort(key=lambda c: -c["value"])
     bad = sum(1 for c in cases if c["strength_ratio"] is not None and c["strength_ratio"] < 1.0)
     return dict(per_part=per, worst_cases=cases, bad_events=dict(cases_with_p99_strength_ratio_below_1=bad, parts_with_setup_not_run=len(skipped),
+                                                                 parts_meshed_at_retry_h=sum(1 for p in per.values() if p.get("mesh_retry")),
+                                                                 collar_sleeves_material_assumed=sum(int(c.get("assumed_sleeves", 0)) for p in per.values() for c in (p.get("bore_collars") or {}).values()),
                                                                  cg_solves_with_residual_above_10x_rtol=sum(1 for p in per.values() for x in p["solver"] if x.get("residual_above_10x_rtol"))),
                 evidence=[], notes=f"gmsh P1 tets, supports clamped, unit-wrench basis at the load patch; skipped: {skipped or 'none'}. "
                 + " | ".join(f"{n} [{ctx_variant(variant)}]: {p['setup_notes'].get('open_difference', p['setup_notes'].get('_doc', ''))}" for n, p in per.items() if p["setup_notes"]))

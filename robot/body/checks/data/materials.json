@@ -328,7 +328,17 @@
    "E_MPa": 200000.0,
    "nu": 0.29
   },
-  "source": "as leg/common.py Steel_Sleeve (bonded sleeves, material id 2)"
+  "source": "as leg/common.py Steel_Sleeve (bonded sleeves, material id 2)",
+  "matches": ["steel", "stainless", "304"]
+ },
+ "Brass CuZn39Pb3 (CW614N)": {
+  "density_g_cm3": 8.47,
+  "fem": {
+   "E_MPa": 97000.0,
+   "nu": 0.32
+  },
+  "source": "Deutsches Kupfer-Institut, Werkstoffdatenblatt CuZn39Pb3 (Werkstoff-Nr. 2.0401, 'Ms 58'; EN CW614N), sections 2.1 Dichte bei 20 C 8.47 kg/dm3 and 2.9 Elastizitaetsmodul bei 20 C 97 kN/mm2 (https://kupfer.de/wp-content/uploads/2019/11/CuZn39Pb3.pdf); the same E (97.00 GPa) and density (8.47 g/cm3) in the Jacques Allemann CuZn39Pb3 wire data sheet. nu is not in the DKI sheet: 0.32 = E / (2 G) - 1 from the NBM Metals C36000 free-machining brass data sheet (Cu 60-63, Pb 2.5-3.0, Zn rest; modulus of elasticity in tension 14000 ksi, modulus of rigidity 5300 ksi: 14000 / 10600 - 1 = 0.32). No reference strength: the FEM reports strength ratios of the printed material only (DKI 3.1.3 rods: F43 Rm >= 430, Rp0.2 <= 250 N/mm2; F50 Rm >= 500, Rp0.2 <= 390 N/mm2). Used for brass knurled heat-set inserts (the common CuZn39Pb3 / C36000 free-cutting brasses; an insert's alloy is not in the repo, so the alloy is an assumption until a supplier is named)",
+  "matches": ["brass", "cuzn39pb3", "cw614n", "c36000", "c38500"]
  },
  "legacy_torso_sleeve_zone": {
   "fem": {

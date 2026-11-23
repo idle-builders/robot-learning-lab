@@ -22,19 +22,40 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
                    (an Al seat with only_polymer keeps the steel collars set before it); distinct materials of bonded + regions: at most two
                    REGION = {"bore_collars": {"of": sleeve part, "r_extra_mm": r, "end_extra_mm": e}}   per sleeve of the sleeve part: within r of the part's bore it is
                                                                                                  pressed into, e beyond its ends; elements by their share inside, up to the
-                                                                                                 collar's volume (collar_elements: the steel volume does not follow the mesh)
+                                                                                                 collar's volume (collar_elements: the steel volume does not follow the mesh).
+                                                                                                 Each sleeve takes the material its sleeve set's definition declares
+                                                                                                 (`contains` item: spec.material, else a spec.standard / spec.label naming
+                                                                                                 one, matched to data/materials.json by the entry name or its `matches`
+                                                                                                 words, e.g. 'brass knurled heat-set insert' -> Brass CuZn39Pb3; several
+                                                                                                 items: the one with the nearest spec.outer_dia_mm); a sleeve its definition
+                                                                                                 does not name keeps the region's material and is counted as assumed
+                                                                                                 (report: bore_collars.by_material, assumed_sleeves, declared_quantity)
                           | {"contact_band": {"parts": [mating parts], "dist_mm": d}}                  within d of the named mating parts' surfaces (follows them)
                           | {"capsules": ...} | {"box": ...}                                           legacy hand-typed sites (see point_pred)
   variants         {"name": {...keys above replaced...}}   e.g. the old hand-typed patches, run with --fem-variant
 
   PATCH = {"contact": [mating part names], "gap_mm": g}     surface of the part within g of the named parts (follows them)
         | {"holes": {"mate": [mating part names], "gap_mm": g, "r_max_mm": 5.0, "rim_mm": 2.0}}
-                                                            the part's own bolt holes (cylindrical faces from r_min_mm (default 0) up to r_max) whose axis lies within g of a
-                                                            mating part, with a rim of rim_mm around each; follows the part and the mating parts.
+                                                            the part's declared screw holes for each mating part, with a rim of rim_mm around each hole face (the part's
+                                                            surface within r + rim of its axis, along the face + 0.5 mm); follows the part, the mating parts and the screws.
+                                                            Hole faces (select_holes): the part's concave cylinder faces (r_min_mm (default 0) .. r_max_mm) around the axis
+                                                            of a screw that joins the part (or its pressed-in sleeves) and the mate (joining_screws: rings around the
+                                                            shank inside both; a mate that is a screw joins when it passes the part); a screw whose holes are all wider
+                                                            than r_max_mm keeps its narrowest (reported as bore_above_r_max). A mate that no screw in the manifest joins
+                                                            falls back to the part's bores within g of the mate: concave faces of one radius on one axis spanning at
+                                                            least "min_arc_deg" (default 270) in all. A round or fillet no screw passes through is never a hole (a slot's round ends
+                                                            around the screw are).
+                                                            "screws": [screw part names] takes the holes around those screws instead (mate and g unused): a fixed,
+                                                            declared set of sites, e.g. to compare geometries at the same screws.
+                                                            "select": "any_cylinder" = the old selection (every cylindrical face in range whose axis centre or end lies
+                                                            within g of the mate), only to reproduce old numbers.
                                                             "of": <sleeve part> takes the hole faces from that companion instead of the part (the pressed-in sleeves
-                                                            sit exactly at the bolt sites): the part's surface within the sleeve radius + rim, along the sleeve + 0.5 mm.
+                                                            sit exactly at the bolt sites; their faces need not be concave): the part's surface within the sleeve radius
+                                                            + rim, along the sleeve + 0.5 mm.
                                                             "axis_within_deg": {"axis": [x, y, z], "deg": d} keeps only the holes pointing within d degrees of the axis
-                                                            (sign ignored): separates sleeves of two servos that both lie close to one mating part
+                                                            (sign ignored): separates sleeves of two servos that both lie close to one mating part.
+                                                            The report (patch info hole_selection, per mate): mode, joining screws, faces per screw, the faces taken and
+                                                            the faces left out with the reason
         | {"axis_band": {...}}                              surface within r_mm of a joint axis on one side of a mating part (clamp cheeks)
         | {"box": {"y": [min|null, max|null], ...}}         axis-aligned half-spaces / slabs (legacy)
         | {"spheres": {"centres": [[x, y, z]], "radius_mm": r}} | {"cylinder_shells": {"axis": "y", "centres": [[u, w]], "radius_mm": r,
@@ -43,6 +64,15 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
         | {"rings": {"axes": [a, b], "sites": [[u, v], ..], "radius_mm": r, "where": {"axis": "y", "max": -8.0}}}
                                                             legacy hand-typed coordinates (kept only to reproduce old numbers)
         | [PATCH, PATCH]                                    union
+  Any PATCH dict can carry "within": {"centre_mm": POINT, "radius_mm": r}: only its surface within r of the point is kept (POINT = [x, y, z] or
+  {"joint": J | "joints": [A, B], "offset_mm": [..]}). With origin_mm a POINT instead of load_centroid, this holds the load site and the wrench origin
+  fixed, so two geometries (or a rim / gap change) are compared at one load site; put it in a variant to run it as --fem-variant.
+  Every patch is reported per site (patch info sites / site_count): the connected pieces of the selected surface, largest first, each with its
+  centroid, area, nodes and triangles, so a patch over two bolt sites does not read as one centroid between them. An empty load or support patch
+  stops the part with a ValueError naming the part, the variant, the patch and what each mate gave (fem), as fem_setup counts it.
+Meshing: gmsh on the STEP as built; on failure the STEP with same-domain faces merged (clean()); on a second failure one retry at 0.85 x mesh_h_mm
+(report mesh_retry: requested and used h, each failure; the numbers are then at the used h). The error of a last failure names the gmsh surface /
+curve with its bounding box (from gmsh's log: the entity its error names, else the last one it was meshing).
 A material of the table can be {"fem": {"factor_of_part_material": f}}: f times the part's own Hooke matrix (the old torso sleeve-zone stiffness, named option).
 Any PATCH dict can carry "rigid": true. A member of a rigid load union can carry "free_rotation_about_joint": J: its nodes follow the rigid motion plus a free,
 unloaded rotation about joint J's axis (a servo idler bearing: forces and off-axis moments, no torque about the axis). Several members may: the members naming
@@ -96,7 +126,61 @@ def merged_setup(ctx, part, variant=None):
         s["mesh_h_mm"] = float(ctx.fem_mesh_h)
     if getattr(ctx, "fem_rigid_load", False) and not is_rigid(s["load"]):     # comparison run: the stored load patch made rigid
         s["load"] = [{**x, "rigid": True} for x in (s["load"] if isinstance(s["load"], list) else [s["load"]])]
+    if s.get("regions"):       # bore collars: the materials the sleeve set's definition declares (brass inserts, ...) take mesh labels too
+        s["regions"] = [dict(r, _declared_materials=sorted({m for _, m, _ in declared_sleeve_items(ctx, r["where"]["bore_collars"]["of"]) if m}))
+                        if "bore_collars" in r.get("where", {}) else r for r in s["regions"]]
     return s
+
+
+def material_of_text(text):
+    """The data/materials.json entry a declared material text names: the entry's own name, else the entry one of whose `matches` words the text
+    contains (case ignored; the longest matching word wins), else None."""
+    if not text:
+        return None
+    mats = materials()
+    if text in mats:
+        return text
+    t = str(text).lower()
+    hits = [(len(w), k) for k, v in mats.items() if isinstance(v, dict) for w in v.get("matches", []) if w.lower() in t]
+    return max(hits)[1] if hits else None
+
+
+def declared_sleeve_items(ctx, sleeve_part):
+    """[(item, material entry | None, source)] of the bought items the sleeve set's body definition declares inside it (`contains`, the items for
+    this part): the material from spec.material, else from a spec field that names one (standard, label: 'brass knurled heat-set insert')."""
+    e = (getattr(ctx.rel, "claims", None) or {}).get(sleeve_part)       # the definition entry that claims the sleeve set (checks.relations)
+    out = []
+    for it in (e or {}).get("contains") or []:
+        if it.get("part") and it["part"] != sleeve_part:
+            continue
+        sp = it.get("spec") or {}
+        m = src = None
+        for k in ("material", "standard", "label"):
+            m = material_of_text(sp.get(k))
+            if m:
+                src = f"definition {it.get('line')}: spec.{k} {sp.get(k)!r}"
+                break
+        out.append((it, m, src))
+    return out
+
+
+def sleeve_site_materials(ctx, sleeve_part, sites, default):
+    """Per collar site (sleeve_bores) its material and source: from the sleeve set's definition when its items name one material, or per site the
+    item whose spec outer_dia_mm is nearest the bore when they name several; else `default` (the region's material), counted as assumed."""
+    items = declared_sleeve_items(ctx, sleeve_part)
+    named = [(it, m, s) for it, m, s in items if m]
+    if not items or not named:
+        why = "no contains in the sleeve set's definition" if not items else "its definition's items name no material"
+        return [(default, f"assumed: region material ({why})") for _ in sites], dict(declared_items=len(items), declared_quantity=sum(int(it.get("quantity") or 0) for it, _, _ in items))
+    out = []
+    if len({m for _, m, _ in named}) == 1 and len(named) == len(items):
+        out = [(named[0][1], named[0][2]) for _ in sites]
+    else:
+        for c in sites:
+            cand = [(abs(float((it.get("spec") or {}).get("outer_dia_mm")) - 2 * c["r"]), m, s) for it, m, s in items if (it.get("spec") or {}).get("outer_dia_mm")]
+            best = min(cand, key=lambda x: x[0]) if cand else None
+            out.append((best[1], best[2] + " (nearest declared outer diameter)") if best and best[1] else (default, "assumed: region material (no declared item matches this sleeve)"))
+    return out, dict(declared_items=len(items), declared_quantity=sum(int(it.get("quantity") or 0) for it, _, _ in items))
 
 
 def is_rigid(spec):
@@ -167,14 +251,19 @@ def cleaned_step(src):
     return dst
 
 
+LABELS = ("steel", "metal", "metal3", "metal4")          # mesh labels of the bonded / region materials, in order of first use
+LABEL_CODE = {"metal": 0, "polymer": 1, "steel": 2, "metal3": 3, "metal4": 4}
+
+
 def _label_map(setup):
-    """{material name: mesh label}: the first distinct bonded / region material is mesh id 2 ('steel'), a second one id 0 ('metal')."""
+    """{material name: mesh label}: the first distinct bonded / region material is mesh id 2 ('steel'), a second one id 0 ('metal'), further ones
+    ids 3 and 4; region materials include the materials a bore-collar region's sleeve set declares (merged_setup)."""
     labels = {}
-    for m in [b["material"] for b in setup.get("bonded", [])] + [r["material"] for r in setup.get("regions", [])]:
+    for m in [b["material"] for b in setup.get("bonded", [])] + [x for r in setup.get("regions", []) for x in [r["material"]] + r.get("_declared_materials", [])]:
         if m not in labels:
-            if len(labels) >= 2:
-                raise ValueError("more than two distinct bonded materials")
-            labels[m] = ("steel", "metal")[len(labels)]
+            if len(labels) >= len(LABELS):
+                raise ValueError(f"more than {len(LABELS)} distinct bonded / region materials: {sorted(set(labels) | {m})}")
+            labels[m] = LABELS[len(labels)]
     return labels
 
 
@@ -260,18 +349,22 @@ def sleeve_bores(ctx, part, sleeves, r_max=5.0, r_tol=0.3):
 _SAMPLES = np.random.default_rng(0).dirichlet(np.ones(4), 64)    # fixed barycentric sample points of a tet (share of an element inside a region)
 
 
-def collar_elements(ctx, mesh, part, spec):
-    """Elements that take the steel of the bore collars of the sleeve part spec["of"]: per sleeve, the collar is the part's material within r_extra_mm of
+def collar_elements(ctx, mesh, part, spec, default=None):
+    """Elements that take the metal of the bore collars of the sleeve part spec["of"]: per sleeve, the collar is the part's material within r_extra_mm of
     the bore it is pressed into (sleeve_bores) and end_extra_mm beyond the sleeve's ends. Its volume inside the part is the sum over elements of element
     volume x the share of 64 sample points inside it, which does not depend on the mesh; the elements with the largest share are taken until their volume
     is closest to it (selection by centroid made a 0.85 mm collar about one element thick, so its steel volume followed the mesh size).
-    Returns (element mask, dict(sleeves, in_bore, collar_mm3, steel_mm3))."""
+    Each sleeve takes the material its definition declares (sleeve_site_materials: brass heat-set inserts, ...), else `default` (assumed).
+    Returns ({material: element mask}, dict(sleeves, in_bore, collar_mm3, steel_mm3 (all collars), by_material, assumed_sleeves, ...))."""
     P, T, V = mesh["points"], mesh["tet"], mesh["vol"]
     cent = P[T].mean(axis=1)
     reach = np.linalg.norm(P[T] - cent[:, None, :], axis=2).max(axis=1)
     sites = sleeve_bores(ctx, part, spec["of"], float(spec.get("r_max_mm", 5.0)))
+    site_mats, decl = sleeve_site_materials(ctx, spec["of"], sites, default)
+    sels = {}
     sel, target = np.zeros(len(T), bool), 0.0
-    for c in sites:
+    for c, (mat, _) in zip(sites, site_mats):
+        before = sel.copy()
         R, L = c["r"] + float(spec["r_extra_mm"]), c["half_len"] + float(spec["end_extra_mm"])
         rel = cent - c["centre"]; al = rel @ c["axis"]
         cand = np.flatnonzero((np.linalg.norm(rel - np.outer(al, c["axis"]), axis=1) <= R + reach) & (np.abs(al) <= L + reach))
@@ -283,7 +376,17 @@ def collar_elements(ctx, mesh, part, spec):
         cum = np.concatenate([[0.0], np.cumsum(V[cand][o])])
         sel[cand[o[:int(np.argmin(np.abs(cum - vol)))]]] = True
         target += vol
-    return sel, dict(sleeves=len(sites), in_bore=sum(1 for c in sites if c["source"] == "bore"), collar_mm3=round(target, 1), steel_mm3=round(float(V[sel].sum()), 1))
+        sels.setdefault(mat, np.zeros(len(T), bool))[sel & ~before] = True
+    by_mat = {}
+    for (mat, src), c in zip(site_mats, sites):
+        b = by_mat.setdefault(mat, dict(sleeves=0, sources=[]))
+        b["sleeves"] += 1
+        if src not in b["sources"]:
+            b["sources"].append(src)
+    for mat, m in sels.items():
+        by_mat[mat]["collar_elements_mm3"] = round(float(V[m].sum()), 1)
+    return sels, dict(sleeves=len(sites), in_bore=sum(1 for c in sites if c["source"] == "bore"), collar_mm3=round(target, 1), steel_mm3=round(float(V[sel].sum()), 1),
+                      by_material=by_mat, assumed_sleeves=sum(1 for _, s in site_mats if s.startswith("assumed")), **decl)
 
 
 def band_pred(ctx, spec):
@@ -298,22 +401,26 @@ def apply_regions(ctx, mesh, setup):
     if not regs:
         return mesh
     lm = _label_map(setup)
-    code = {"metal": 0, "steel": 2}
     ids = mesh["mat_ids"].copy()
     cent = mesh["points"][mesh["tet"]].mean(axis=1)
     counts, collars = {}, {}
     for i, r in enumerate(regs):
         w = r["where"]
         if "bore_collars" in w:
-            sel, collars[f"{r['material']} {i}"] = collar_elements(ctx, mesh, mesh["part"], w["bore_collars"])
+            sels, collars[f"{r['material']} {i}"] = collar_elements(ctx, mesh, mesh["part"], w["bore_collars"], default=r["material"])
         else:
-            sel = (band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)
-        n_sel = int(sel.sum())
-        if r.get("only_polymer"):
-            sel &= ids == 1
-        ids[sel] = code[lm[r["material"]]]
+            sels = {r["material"]: (band_pred(ctx, w["contact_band"]) if "contact_band" in w else point_pred(w))(cent)}
+        n_sel = int(sum(int(s.sum()) for s in sels.values()))
+        poly = ids == 1
+        for mat, sel in sels.items():
+            if r.get("only_polymer"):
+                sel = sel & poly
+            ids[sel] = LABEL_CODE[lm[mat]]
         counts[f"{r['material']} {i}"] = n_sel
     return mesh | {"mat_ids": ids, "region_elements": counts, "bore_collars": collars}
+
+
+MESH_RETRY_FACTOR = 0.85     # gmsh failed on the STEP as built and cleaned: one retry at 0.85 x the setup's mesh size
 
 
 def get_mesh(ctx, part, setup):
@@ -325,18 +432,37 @@ def get_mesh(ctx, part, setup):
     d = cachefs.load_npz(f) if f.exists() else None
     if d is not None:
         say(f"mesh h {h:g} from the cache ({len(d['points'])} nodes, {len(d['tet'])} tets)")
-        return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part}, setup)
+        extra = {"mesh_retry": dict(requested_h_mm=h, used_h_mm=float(d["used_h_mm"]), note="gmsh failed at the requested h; this cached mesh is the retry at used_h_mm")} if "used_h_mm" in d else {}
+        return apply_regions(ctx, {k: d[k] for k in ("points", "tet", "tri", "mat_ids", "vol")} | {"cached": True, "key": key, "part": part} | extra, setup)
     t0 = time.time()
     say(f"meshing h {h:g} (gmsh, {len(steps)} STEP files)")
+    tries, extra = [], {}
     try:
         mesh = LL().mesh_compound_steps(steps, [], h_max=h)
-    except (ValueError, RuntimeError, Exception) as e:   # noqa: BLE001  gmsh raises plain exceptions
+    except Exception as e:   # noqa: BLE001  gmsh raises plain exceptions
+        tries.append(dict(step="as built", h_mm=h, error=" ".join(f"{type(e).__name__}: {e}".split())[:600]))
         # near-coincident faces make the surface mesh intersect (arm roll-to-yaw part: 214 faces); the same part with merged same-domain faces meshes
-        steps[0] = ("polymer", cleaned_step(steps[0][1]))
-        mesh = LL().mesh_compound_steps(steps, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
-    cachefs.savez(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")})
+        try:
+            steps_c = [("polymer", cleaned_step(steps[0][1]))] + steps[1:]
+            mesh = LL().mesh_compound_steps(steps_c, [], h_max=h) | {"healed_step": f"clean() after {type(e).__name__}"}
+        except Exception as e2:  # noqa: BLE001
+            # gmsh "1D mesh not forming a closed loop" on BRepCheck-valid STEPs: the boundary discretisation of one face; another mesh size
+            # discretises its edges differently. One retry at MESH_RETRY_FACTOR x h, reported (the numbers are then at that h).
+            tries.append(dict(step="clean()", h_mm=h, error=" ".join(f"{type(e2).__name__}: {e2}".split())[:600]))
+            h2 = round(h * MESH_RETRY_FACTOR, 3)
+            say(f"gmsh failed at h {h:g} ({str(e).splitlines()[0][:160]}); retrying once at h {h2:g}")
+            try:
+                mesh = LL().mesh_compound_steps(steps, [], h_max=h2)
+            except Exception as e3:  # noqa: BLE001
+                tries.append(dict(step="as built", h_mm=h2, error=" ".join(f"{type(e3).__name__}: {e3}".split())[:600]))
+                nm = os.path.basename(str(steps[0][1]))      # run.py keeps 300 characters of the message: the attempts first, paths shortened
+                raise RuntimeError(f"{part}: gmsh could not mesh {nm} (tried as built and clean() at h {h:g}, retry at h {h2:g}): " + " | ".join(
+                    dict.fromkeys(t["error"].replace(str(steps[0][1]), nm) for t in reversed(tries)))) from e3
+            extra = {"mesh_retry": dict(requested_h_mm=h, used_h_mm=h2, failures=tries)}
+            say(f"meshed at the retry h {h2:g}")
+    cachefs.savez(f, **{k: mesh[k] for k in ("points", "tet", "tri", "mat_ids", "vol")}, **({"used_h_mm": np.array(extra["mesh_retry"]["used_h_mm"])} if extra else {}))
     say(f"meshed: {len(mesh['points'])} nodes, {len(mesh['tet'])} tets in {time.time() - t0:.0f} s")
-    return apply_regions(ctx, mesh | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
+    return apply_regions(ctx, mesh | extra | {"cached": False, "key": key, "part": part, "mesh_seconds": round(time.time() - t0, 1)}, setup)
 
 
 def _sample(mesh, n):
@@ -355,15 +481,20 @@ def _surface_points(ctx, name):
 
 
 def hole_faces(ctx, name, r_max=5.0):
-    """Cylindrical faces of the part's STEP up to r_max radius, manifest frame: [dict(r, centre, axis, half_len)], cached on the ctx."""
+    """Cylindrical faces of the part's STEP up to r_max radius, manifest frame: [dict(r, centre, axis, half_len, arc_deg, concave, face)], cached on
+    the ctx. arc_deg = the face's angular span about its axis; concave = the material lies outside the cylinder (a bore wall, or a concave round);
+    face = the face's index in the STEP."""
     from OCP.BRepAdaptor import BRepAdaptor_Surface
+    from OCP.BRepGProp import BRepGProp_Face
+    from OCP.BRepTools import BRepTools
     from OCP.GeomAbs import GeomAbs_Cylinder
+    from OCP.gp import gp_Pnt, gp_Vec
     from build123d import import_step
     c = ctx.__dict__.setdefault("_fem_holes", {})
     key = (name, r_max)
     if key not in c:
         out = []
-        for f in import_step(str(frame_step(ctx, name))).faces():
+        for i, f in enumerate(import_step(str(frame_step(ctx, name))).faces()):
             a = BRepAdaptor_Surface(f.wrapped)
             if a.GetType() == GeomAbs_Cylinder and a.Cylinder().Radius() <= r_max:
                 d = a.Cylinder().Axis().Direction(); ax = np.array([d.X(), d.Y(), d.Z()])
@@ -371,21 +502,159 @@ def hole_faces(ctx, name, r_max=5.0):
                 loc = a.Cylinder().Location(); loc = np.array([loc.X(), loc.Y(), loc.Z()])
                 com = np.array(f.center().to_tuple()); cen = loc + ((com - loc) @ ax) * ax      # centre of mass projected onto the axis
                 al = (v - cen) @ ax if len(v) else np.zeros(1)
-                out.append(dict(r=a.Cylinder().Radius(), centre=cen, axis=ax, half_len=float(max(abs(al.max()), abs(al.min()), 0.5))))
+                u0, u1, v0, v1 = BRepTools.UVBounds_s(f.wrapped)
+                p, nv = gp_Pnt(), gp_Vec()
+                BRepGProp_Face(f.wrapped).Normal(0.5 * (u0 + u1), 0.5 * (v0 + v1), p, nv)     # outward normal of the solid at the face's middle
+                pm = np.array([p.X(), p.Y(), p.Z()]) - loc
+                concave = float(np.array([nv.X(), nv.Y(), nv.Z()]) @ (pm - (pm @ ax) * ax)) < 0.0
+                out.append(dict(r=a.Cylinder().Radius(), centre=cen, axis=ax, half_len=float(max(abs(al.max()), abs(al.min()), 0.5)),
+                                arc_deg=float(np.degrees(u1 - u0)), concave=concave, face=i))
         c[key] = out
     return c[key]
 
 
-def _axis_filter(hs):
-    a = hs.get("axis_within_deg")
-    if not a:
-        return None
-    u = np.asarray(a["axis"], float)
-    return dict(unit=u / np.linalg.norm(u), cos=float(np.cos(np.radians(a["deg"]))))
+HOLE_SEARCH_R_MM = 5.0       # radius up to which a screw's coaxial bore is looked for (above the patch's r_max: listed as bore_above_r_max)
+MIN_BORE_ARC_DEG = 270.0     # a bore without a joining screw: its coaxial faces of one radius span at least this angle (a fillet spans 90, a slot end 180)
+
+
+def _box(ctx, n, pad=0.0):
+    b = np.array(ctx.parts[n]["bounds_mm"], float)
+    return b[0] - pad, b[1] + pad
+
+
+def _boxes_meet(a, b):
+    return bool(np.all(a[0] <= b[1]) and np.all(b[0] <= a[1]))
+
+
+def _screws(ctx):
+    """{name: None} of the parts that are screws (mount_check.kind: body definition, screw_plan, else the mesh shape), geometry filled lazily."""
+    c = ctx.__dict__.get("_fem_screws")
+    if c is None:
+        from checks import screwlib as SL
+        MC = SL.mount_check()
+        c = ctx._fem_screws = {k: None for k, p in ctx.parts.items() if MC.kind(p) == "screw"}
+    return c
+
+
+def screw_geometry(ctx, name):
+    """mount_check.screw_geometry of a screw part (head point _head, unit axis _d from the head, length_mm, r_shank_mm), None when unreadable."""
+    c = _screws(ctx)
+    if c.get(name) is None:
+        from checks import screwlib as SL
+        try:
+            c[name] = SL.mount_check().screw_geometry(BL.load_mesh(ctx.parts[name]["mesh"]))
+        except Exception:  # noqa: BLE001
+            c[name] = False
+    return c[name] or None
+
+
+def joining_screws(ctx, part, mate):
+    """[(screw, geometry)] of the screws that join `part` (with the sleeve sets pressed into it) and `mate`: at least 2 points of rings 0.8 and 3 mm
+    outside the shank, along it and under the head (screwlib.ring_points), lie inside the part or its sleeves and at least 2 inside the mate (coarse
+    screening solids, manifest frame). A mate that is itself a screw joins when it passes through the part. Cached on the ctx."""
+    c = ctx.__dict__.setdefault("_fem_joins", {})
+    if (part, mate) in c:
+        return c[(part, mate)]
+    from checks import screwlib as SL
+    own = [part] + [s for s in ctx.rel.sleeve_sets_of(part) if s in ctx.parts]
+    screws = _screws(ctx)
+    pb, mb = _box(ctx, part, 1.0), _box(ctx, mate, 1.0)
+    cand = [mate] if mate in screws else [k for k in screws if k != part and _boxes_meet(_box(ctx, k), pb) and _boxes_meet(_box(ctx, k), mb)]
+
+    def inside(n, pts):
+        try:
+            return int(SL.screen(ctx, n)[0].contains(pts).sum())
+        except Exception:  # noqa: BLE001
+            return 0
+    out = []
+    for k in cand:
+        g = screw_geometry(ctx, k)
+        if g is None:
+            continue
+        pts = np.vstack([SL.ring_points(g, SL.RING_MM), SL.ring_points(g, SL.NEAR_MM)])
+        if sum(inside(n, pts) for n in own) >= 2 and (k == mate or inside(mate, pts) >= 2):
+            out.append((k, g))
+    c[(part, mate)] = out
+    return out
+
+
+def _on_screw_axis(h, g, tol=0.5):
+    """A cylinder face around the screw's axis: parallel within 2 deg, the screw's axis inside the face's circle (axis lines within max(tol, r) mm:
+    a round hole, or the rounded ends of a slot the screw sits in) and along its length (head to tip, 1 mm margin)."""
+    d, h0 = np.asarray(g["_d"], float), np.asarray(g["_head"], float)
+    if abs(float(h["axis"] @ d)) < np.cos(np.radians(2.0)):
+        return False
+    rel = h["centre"] - h0
+    t = float(rel @ d)
+    return float(np.linalg.norm(rel - t * d)) <= max(tol, float(h["r"])) and t + h["half_len"] >= -1.0 and t - h["half_len"] <= float(g["length_mm"]) + 1.0
+
+
+def _bore_arc(h, faces):
+    """Angular span (deg) of the faces coaxial with h (axis lines within 0.1 mm) at h's radius: a hole split into two half-cylinder faces is one bore."""
+    return sum(x["arc_deg"] for x in faces if abs(x["r"] - h["r"]) < 1e-3 and x["concave"] == h["concave"] and _coaxial(h, x))
+
+
+def _face_row(h):
+    return dict(face=h.get("face"), r_mm=round(float(h["r"]), 3), centre_mm=np.round(h["centre"], 2).tolist(), axis=np.round(h["axis"], 3).tolist(),
+                arc_deg=round(h.get("arc_deg", 360.0), 1), concave=h.get("concave"))
+
+
+def select_holes(ctx, part, mate, hs):
+    """Hole faces of a holes PATCH for one mating part, and how they were chosen (dict for the report).
+    Sites are declared screw holes: the faces of the source (the part, or the companion "of") on the axis of a screw that joins the part and the mate
+    (joining_screws: the screw is the joint, so gap_mm is not applied), or of the screws the patch names ("screws": [...]); r_min_mm..r_max_mm,
+    concave for the part's own faces; a screw whose bores are all wider than r_max_mm keeps its narrowest one (bore_above_r_max).
+    A mate no screw joins (the screws are not in the manifest) falls back to the part's bores within gap_mm of the mate: concave faces of one radius
+    on one axis spanning at least min_arc_deg (default 270) in all. A concave round or fillet is never a hole. "select": "any_cylinder" restores the old selection (every
+    cylindrical face in range near the mate) for reproducing old numbers."""
+    src = hs.get("of", part)
+    own = src == part
+    r_max, r_min, gap = float(hs.get("r_max_mm", 5.0)), float(hs.get("r_min_mm", 0.0)), float(hs["gap_mm"])
+    axis = _axis_filter(hs)
+    faces = [h for h in hole_faces(ctx, src, max(r_max, HOLE_SEARCH_R_MM))
+             if not (axis and abs(float(h["axis"] @ axis["unit"])) < axis["cos"])]    # sleeve not pointing along the requested axis (sign ignored)
+    tree = _surface_points(ctx, mate) if mate else None
+
+    def near(h):           # axis centre or either end within gap of the mate's surface
+        pts = np.array([h["centre"] + t * h["half_len"] * h["axis"] for t in (-1.0, 0.0, 1.0)])
+        return tree is not None and float(tree.query(pts)[0].min()) <= gap
+    legacy = [h for h in faces if r_min <= h["r"] <= r_max and near(h)]     # what every cylindrical face near the mate gave before
+    if hs.get("select") == "any_cylinder":
+        return legacy, dict(mode="any_cylinder: every cylindrical face in range near the mate (old selection)", faces=len(legacy))
+    named = hs.get("screws")
+    if named:
+        screws, mode = [(k, screw_geometry(ctx, k)) for k in named], "named screws (setup)"
+        missing = [k for k, g in screws if g is None]
+        screws = [(k, g) for k, g in screws if g is not None]
+    else:
+        screws, mode, missing = joining_screws(ctx, part, mate), "screws joining the part and the mate", []
+    picked, per_screw, above = [], {}, []
+    if screws:
+        for k, g in screws:
+            co = [h for h in faces if (h["concave"] or not own) and h["r"] >= r_min and _on_screw_axis(h, g)]
+            sel = [h for h in co if h["r"] <= r_max]
+            if not sel and co:
+                rr = min(h["r"] for h in co)
+                sel = [h for h in co if abs(h["r"] - rr) < 1e-3]
+                above.append(dict(screw=k, bore_r_mm=round(float(rr), 3), r_max_mm=r_max))
+            per_screw[k] = len(sel)
+            picked += [h for h in sel if not any(h is x for x in picked)]
+    else:
+        mode = "bores: no screw in the manifest joins the part and the mate"
+        picked = [h for h in legacy if not own or (h["concave"] and _bore_arc(h, faces) >= float(hs.get("min_arc_deg", MIN_BORE_ARC_DEG)))]
+    dropped = [h for h in legacy if not any(h is x for x in picked)]
+    fil = [h for h in dropped if own and not (h["concave"] and _bore_arc(h, faces) >= float(hs.get("min_arc_deg", MIN_BORE_ARC_DEG)))]
+    det = dict(mode=mode, faces=len(picked), screws=list(per_screw), hole_faces_per_screw=per_screw, screws_without_bore=[k for k, v in per_screw.items() if not v],
+               bore_above_r_max=above, named_screws_not_found=missing,
+               dropped_faces=dict(round_or_partial_arc=len(fil), bore_without_joining_screw=len(dropped) - len(fil)),
+               picked=[_face_row(h) for h in picked][:24], dropped=[dict(_face_row(h), why="round / partial arc" if any(h is x for x in fil) else "no joining screw on its axis")
+                                                                  for h in dropped][:24])
+    return picked, det
 
 
 def holes_near(ctx, name, mates, gap, r_max=5.0, r_min=0.0, axis=None):
-    """The part's hole faces (radius r_min..r_max) with ANY of axis centre / either end within gap of one of the mating parts' surfaces."""
+    """The part's cylinder faces (radius r_min..r_max) with ANY of axis centre / either end within gap of one of the mating parts' surfaces (every
+    cylindrical face: kept for comparisons; the patches use select_holes)."""
     trees = [_surface_points(ctx, m) for m in mates]
     sel = []
     for h in hole_faces(ctx, name, r_max):
@@ -399,17 +668,34 @@ def holes_near(ctx, name, mates, gap, r_max=5.0, r_min=0.0, axis=None):
     return sel
 
 
-def origin_of(ctx, setup, mesh=None, w_load=None):
-    """Wrench origin: a point, {"joint": J, "offset_mm": [..]} = the joint's origin plus an offset (follows the joint; "joints": [A, B] = the midpoint of two joints),
-    or "load_centroid" = the load patch's nodal-weight centroid (needs mesh and w_load)."""
-    o = setup["origin_mm"]
-    if o == "load_centroid":
-        return np.average(mesh["points"][w_load > 0], axis=0, weights=w_load[w_load > 0]).tolist()
+def _axis_filter(hs):
+    a = hs.get("axis_within_deg")
+    if not a:
+        return None
+    u = np.asarray(a["axis"], float)
+    return dict(unit=u / np.linalg.norm(u), cos=float(np.cos(np.radians(a["deg"]))))
+
+
+def point_of(ctx, o):
+    """A body point: [x, y, z], or {"joint": J | "joints": [A, B], "offset_mm": [..]} = the joint's origin (the midpoint of two) plus an offset."""
     if isinstance(o, dict):
         names = o["joints"] if "joints" in o else [o["joint"]]
         base = np.mean([ctx.body.joints[n]["origin_world_mm"] for n in names], axis=0)
-        return (base + np.asarray(o.get("offset_mm", [0, 0, 0]), float)).tolist()
-    return list(o)
+        return base + np.asarray(o.get("offset_mm", [0, 0, 0]), float)
+    return np.asarray(o, float)
+
+
+def origin_of(ctx, setup, mesh=None, w_load=None, where=None):
+    """Wrench origin: a point, {"joint": J, "offset_mm": [..]} = the joint's origin plus an offset (follows the joint; "joints": [A, B] = the midpoint of two joints),
+    or "load_centroid" = the load patch's nodal-weight centroid (needs mesh and w_load). An empty load patch has no centroid: ValueError naming
+    `where` (part [variant]) and the patch."""
+    o = setup["origin_mm"]
+    if o == "load_centroid":
+        if w_load is None or not (w_load > 0).any():
+            raise ValueError(f"{where or (mesh or {}).get('part')}: origin_mm load_centroid: the load patch selects no node of the part, so it has no centroid; "
+                             f"load patch: {json.dumps(setup['load'])}")
+        return np.average(mesh["points"][w_load > 0], axis=0, weights=w_load[w_load > 0]).tolist()
+    return point_of(ctx, o).tolist()
 
 
 def setup_notes(setup):
@@ -422,7 +708,7 @@ def _cent_area(mesh):
 
 
 def _one_patch(ctx, mesh, spec):
-    """(predicate(c, v) for LL().select_patch_weights, mask over surface triangles, per-mating-part triangle masks)."""
+    """(predicate(c, v) for LL().select_patch_weights, mask over surface triangles, per-mating-part triangle masks, hole selection per mate)."""
     cent, _ = _cent_area(mesh)
     if "contact" in spec:
         g = float(spec["gap_mm"])
@@ -431,13 +717,13 @@ def _one_patch(ctx, mesh, spec):
         mask = np.logical_or.reduce(list(near.values()))
         trees = [_surface_points(ctx, n) for n in spec["contact"]]
         pred = lambda c, v: np.logical_or.reduce([t.query(np.asarray(c))[0] <= g for t in trees])  # noqa: E731
-        return pred, mask, near
+        return pred, mask, near, {}
     if "holes" in spec:
         hs = spec["holes"]
-        src = hs.get("of", mesh["part"])
-        per, near = [], {}
-        for m in hs["mate"]:       # per mating part: its own holes (a hole next to two parts counts for both)
-            sel = holes_near(ctx, src, [m], float(hs["gap_mm"]), float(hs.get("r_max_mm", 5.0)), float(hs.get("r_min_mm", 0.0)), _axis_filter(hs))
+        per, near, det = [], {}, {}
+        groups = [(m, None) for m in hs.get("mate") or []] if not hs.get("screws") else [(", ".join(hs["screws"]), None)]
+        for m, _ in groups:       # per mating part: its declared screw holes (a hole next to two parts counts for both)
+            sel, d_ = select_holes(ctx, mesh["part"], None if hs.get("screws") else m, hs)
             mk = np.zeros(len(cent), bool)
             for h in sel:
                 d = cent - h["centre"]
@@ -445,8 +731,9 @@ def _one_patch(ctx, mesh, spec):
                 rad = np.linalg.norm(d - np.outer(along, h["axis"]), axis=1)
                 mk |= (rad <= h["r"] + float(hs.get("rim_mm", 2.0))) & (np.abs(along) <= h["half_len"] + 0.5)
             near[f"{m} ({len(sel)} hole faces)"] = mk
+            det[m] = d_
             per.append(mk)
-        return None, np.logical_or.reduce(per), near
+        return None, np.logical_or.reduce(per), near, det
     if "axis_band" in spec:
         # follows the joint and the mating part: surface within r_mm of the joint axis, on one side of the mating part's centre along it
         ab = spec["axis_band"]
@@ -458,15 +745,15 @@ def _one_patch(ctx, mesh, spec):
         mb = ctx.solid(ab["mate"])[0].bounds
         mid = (((mb[0] + mb[1]) / 2 - o) @ ax)
         mask = (rad >= ab["r_mm"][0]) & (rad <= ab["r_mm"][1]) & ((along < mid) if ab["side"] == "low" else (along >= mid))
-        return None, mask, {ab["mate"] + f" ({ab['side']} side)": mask}
+        return None, mask, {ab["mate"] + f" ({ab['side']} side)": mask}, {}
     if "box" in spec or "capsules" in spec:
         pp = point_pred(spec)
         pred = lambda c, v: pp(c)  # noqa: E731
-        return pred, pred(cent, None), {}
+        return pred, pred(cent, None), {}, {}
     if "spheres" in spec:
         sp = spec["spheres"]
         pred = lambda c, v: np.logical_or.reduce([np.linalg.norm(np.asarray(c) - np.asarray(p), axis=1) <= sp["radius_mm"] for p in sp["centres"]])  # noqa: E731
-        return pred, pred(cent, None), {}
+        return pred, pred(cent, None), {}, {}
     if "cylinder_shells" in spec:
         cs = spec["cylinder_shells"]
         ax = AX[cs["axis"]]; o1, o2 = [i for i in range(3) if i != ax]
@@ -474,7 +761,7 @@ def _one_patch(ctx, mesh, spec):
             c = np.asarray(c)
             ring = np.logical_or.reduce([np.abs(np.hypot(c[:, o1] - u, c[:, o2] - w) - cs["radius_mm"]) <= cs["tol_mm"] for u, w in cs["centres"]])
             return ring & (np.abs(c[:, ax] - cs["along_mid_mm"]) <= cs["along_half_mm"])
-        return pred, pred(cent, None), {}
+        return pred, pred(cent, None), {}, {}
     r = spec["rings"]
     a, b = r["axes"]
     cond = lambda c: np.ones(len(c), bool)  # noqa: E731
@@ -483,7 +770,7 @@ def _one_patch(ctx, mesh, spec):
         ax = AX[w["axis"]]
         cond = lambda c: (c[:, ax] >= w.get("min", -1e9)) & (c[:, ax] <= w.get("max", 1e9))  # noqa: E731
     pred = lambda c, v: np.logical_or.reduce([(c[:, a] - u) ** 2 + (c[:, b] - vv) ** 2 <= r["radius_mm"] ** 2 for u, vv in r["sites"]]) & cond(c)  # noqa: E731
-    return pred, pred(cent, None), {}
+    return pred, pred(cent, None), {}, {}
 
 
 def _halves(mesh, cent, area, mask):
@@ -496,15 +783,44 @@ def _halves(mesh, cent, area, mask):
     return dict(axis="xyz"[ax], mid_mm=round(float(mid), 1), low_mm2=round(float(area[lo].sum()), 1), high_mm2=round(float(area[mask & ~lo].sum()), 1))
 
 
+def sites_of(mesh, cent, area, mask, keep=20):
+    """The patch's sites: connected pieces of the selected surface triangles (sharing a node), largest first, each with its area-weighted centroid,
+    area, nodes and triangles. A patch over two bolt sites reads as two sites, not as one centroid between them. Returns (rows[:keep], count)."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    idx = np.flatnonzero(mask)
+    if not len(idx):
+        return [], 0
+    T = mesh["tri"][idx]
+    nn = len(mesh["points"])
+    G = coo_matrix((np.ones(2 * len(T)), (np.concatenate([T[:, 0], T[:, 1]]), np.concatenate([T[:, 1], T[:, 2]]))), shape=(nn, nn))
+    lab = connected_components(G, directed=False)[1][T[:, 0]]
+    rows = []
+    for k in np.unique(lab):
+        s = lab == k
+        a = area[idx[s]]
+        rows.append(dict(area_mm2=round(float(a.sum()), 1), nodes=int(len(np.unique(T[s]))), triangles=int(s.sum()),
+                         centroid_mm=np.round(np.average(cent[idx[s]], axis=0, weights=a if a.sum() > 0 else None), 2).tolist()))
+    rows.sort(key=lambda r: -r["area_mm2"])
+    return rows[:keep], len(rows)
+
+
 def patch(ctx, mesh, spec):
-    """Nodal area weights of a patch and what it selected."""
+    """Nodal area weights of a patch and what it selected. A PATCH dict with "within": {"centre_mm": POINT, "radius_mm": r} keeps only the surface
+    within r of the point (POINT = [x, y, z] or {"joint": J, "offset_mm": [..]}): the load site held fixed to compare geometries."""
     specs = spec if isinstance(spec, list) else [spec]
-    preds, masks, near = [], [], {}
-    for s in specs:
-        p, m, nr = _one_patch(ctx, mesh, s)
-        preds.append(p); masks.append(m); near.update(nr)
-    mask = np.logical_or.reduce(masks)
+    preds, masks, near, holes = [], [], {}, {}
     cent, area = _cent_area(mesh)
+    for s in specs:
+        p, m, nr, det = _one_patch(ctx, mesh, s)
+        if isinstance(s, dict) and s.get("within"):
+            c0, rw = point_of(ctx, s["within"]["centre_mm"]), float(s["within"]["radius_mm"])
+            keep = np.linalg.norm(cent - c0, axis=1) <= rw
+            m, nr = m & keep, {k: v & keep for k, v in nr.items()}
+            if p is not None:
+                p = (lambda p0: lambda c, v: p0(c, v) & (np.linalg.norm(np.asarray(c) - c0, axis=1) <= rw))(p)
+        preds.append(p); masks.append(m); near.update(nr); holes.update(det)
+    mask = np.logical_or.reduce(masks)
     if any(p is None for p in preds):      # mask-defined patches: lumped nodal area weights of the selected triangles
         w = np.bincount(mesh["tri"][mask].ravel(), weights=np.repeat(area[mask] / 3.0, 3), minlength=len(mesh["points"]))
     else:
@@ -515,6 +831,9 @@ def patch(ctx, mesh, spec):
                 by_half=_halves(mesh, cent, area, mask),
                 follows_part=all(("contact" in s or "axis_band" in s or "holes" in s) for s in specs),
                 by_mating_part={n: dict(area_mm2=round(float(area[m].sum()), 1), triangles=int(m.sum())) for n, m in near.items()})
+    info["sites"], info["site_count"] = sites_of(mesh, cent, area, mask)
+    if holes:
+        info["hole_selection"] = holes
     return w, info, mask
 
 
@@ -628,9 +947,10 @@ def solve(mesh, w_supports, w_load, origin, wrenches, material, ln_axis, bonded=
     fixed = (3 * fixed_nodes[:, None] + np.arange(3)[None, :]).ravel()
     bonded = bonded or {}
     used = set(np.unique(mat_ids).tolist())
-    if (0 in used and "metal" not in bonded) or (2 in used and "steel" not in bonded):
+    code_label = {c: lab for lab, c in LABEL_CODE.items()}
+    if any(c != 1 and code_label.get(c) not in bonded for c in used):
         raise ValueError("mesh has bonded companions whose material the setup does not name")
-    Ds = [hooke(bonded.get("metal", material), ln_axis, material), hooke(material, ln_axis), hooke(bonded.get("steel", material), ln_axis, material)]
+    Ds = [hooke(material, ln_axis) if c == 1 else hooke(bonded.get(code_label[c], material), ln_axis, material) for c in range(max(max(used), 2) + 1)]
     t0 = time.time()
     K, vol, B, _ = ll.assemble_chunked(points, tet, Ds, mat_ids)
     say(f"{material}, layer normal {'xyz'[ln_axis]}: stiffness assembled ({len(points)} nodes, {len(tet)} tets) in {time.time() - t0:.0f} s")
