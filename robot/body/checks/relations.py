@@ -48,7 +48,7 @@ class Relations:
             self.claims = DEF.load().claims(list(self.raw))
         except Exception:  # noqa: BLE001  without readable definitions: role table and geometry
             self.claims = {}
-        self._src, self._owner, self._mirror, self._jm = {}, {}, None, None
+        self._src, self._owner, self._mirror, self._jm, self._kd = {}, {}, None, None, {}
 
     # ------------------------------------------------------------------------------------------ what a part is
     def role(self, n):
@@ -111,31 +111,62 @@ class Relations:
         return self._owner[s]
 
     def _touching_owner(self, s):
+        """Geometry search, cached by content: the sleeve mesh's and every candidate mesh's sha256 (core.sha) and their
+        boxes. A renamed or unchanged body reuses it; the answer is stored as the winner's mesh sha, never its name."""
         from scipy.spatial import cKDTree
+        import hashlib
+        from checks import cachefs
+        from checks.core import sha
         P, body = self.body.parts, self.body
         if s not in P:
             return None
         sb = np.array(P[s]["bounds_mm"], float)
-        try:
-            sm = body.mesh(s)
-        except Exception:  # noqa: BLE001
-            return None
-        pts = _sample(sm, 4000, 1) if len(sm.faces) else np.asarray(sm.vertices)
-        best, score = None, 0.0
+        cands = []
         for c, p in P.items():
             if c == s or p["owning_link"] != P[s]["owning_link"] or self.is_hardware(c):
                 continue
             cb = np.array(p["bounds_mm"], float)
             if np.any(cb[0] > sb[1] + 1) or np.any(cb[1] < sb[0] - 1):
                 continue
-            try:
-                cm = body.mesh(c)
-            except Exception:  # noqa: BLE001
+            cands.append(c)
+        if not cands:
+            return None
+        try:
+            from checks import bodylib as BL
+            hs = {c: sha(BL.src(P[c]["mesh"])) for c in cands + [s]}
+        except Exception:  # noqa: BLE001
+            hs = None
+        key = None
+        if hs:
+            k = json.dumps([GEO["touch_mm"], hs[s], P[s]["bounds_mm"], sorted([hs[c], P[c]["bounds_mm"]] for c in cands)])
+            key = cachefs.work() / "cad-speed/cache/relations" / f"owner-{hashlib.sha256(k.encode()).hexdigest()[:24]}.json"
+            got = cachefs.read_json(key, None) if key.exists() else None
+            if got is not None:
+                w = [c for c in cands if hs[c] == got.get("winner")]
+                if len(w) == 1 or got.get("winner") is None:
+                    return w[0] if w else None
+        try:
+            sm = body.mesh(s)
+        except Exception:  # noqa: BLE001
+            return None
+        pts = _sample(sm, 4000, 1) if len(sm.faces) else np.asarray(sm.vertices)
+        best, score = None, 0.0
+        for c in cands:
+            if c not in self._kd:
+                try:
+                    cm = body.mesh(c)
+                except Exception:  # noqa: BLE001
+                    self._kd[c] = None
+                    continue
+                self._kd[c] = cKDTree(_sample(cm, 60000, 2) if len(cm.faces) else cm.vertices)
+            if self._kd[c] is None:
                 continue
-            d, _ = cKDTree(_sample(cm, 60000, 2) if len(cm.faces) else cm.vertices).query(pts, distance_upper_bound=GEO["touch_mm"])
+            d, _ = self._kd[c].query(pts, distance_upper_bound=GEO["touch_mm"])
             f = float(np.mean(np.isfinite(d)))
             if f > score:
                 best, score = c, f
+        if key is not None:
+            cachefs.write_text(key, json.dumps(dict(winner=hs[best] if best else None, share=round(score, 4))))
         return best
 
     def sleeve_sets_of(self, n):

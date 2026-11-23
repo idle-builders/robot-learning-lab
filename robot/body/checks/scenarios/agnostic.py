@@ -207,5 +207,5 @@ def s_steer(sid):
     a = run_tool(sid + "-as-is", args)
     b = run_tool(sid + "-steered", args, env=dict(os.environ, LAB_DEFINITIONS_ROOT=str(d)))
     ra, rb = results_of(a["report"]), results_of(b["report"])
-    return dict(rc=[a["rc"], b["rc"]], material=[before, proc["material"]], changed=sorted(c for c in ra if ra.get(c) != rb.get(c)),
-                unchanged=sorted(c for c in ra if ra.get(c) == rb.get(c)))
+    return dict(rc=[a["rc"], b["rc"]], material=[before, proc["material"]], changed=sorted(c for c in ra if _diff(ra.get(c), rb.get(c))),
+                unchanged=sorted(c for c in ra if not _diff(ra.get(c), rb.get(c))))   # timing fields (cpu_s, seconds) left out
