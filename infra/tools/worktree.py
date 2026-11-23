@@ -8,6 +8,7 @@ worktrees work"; what a worktree is for is the agent's choice: a task, a body se
   python3 infra/tools/worktree.py land [NAME] [--keep]    # bring a finished worktree into main (below)
   python3 infra/tools/worktree.py remove NAME [--force]   # delete a worktree (and its branch once merged)
   python3 infra/tools/worktree.py prune [--yes]           # worktrees whose branch is merged and that hold nothing uncommitted
+  python3 infra/tools/worktree.py adopt NAME PATH...      # move main's uncommitted edits in PATHs into a new worktree NAME
 
 add: ../robot-learning-lab.worktrees/NAME on a new branch NAME; .venv, data, .tools and .artifact-store are links to the
 main checkout's (artifacts/ holds 229k links into .artifact-store); artifacts/ (Git-ignored: manifests, STEPs, meshes) is
@@ -26,7 +27,13 @@ land, run by the worktree's own agent when its work is committed (owner 2026-11-
      are reused; only what main changed meanwhile runs), then the BOM, the bom check and the BOM findings that changed;
      scores, never a gate;
   5. removes the worktree and its branch (--keep keeps them), and runs the generator cache gc.
-Main stays open for small edits (docs, Idle bookkeeping); work that runs builders or checks belongs in a worktree."""
+Main stays open for small edits (docs, Idle bookkeeping); work that runs builders or checks belongs in a worktree.
+
+adopt (owner 2026-11-23: "push other sessions into worktrees"): work in progress that sits uncommitted in main blocks
+everyone (merges refuse, builders in main read it). adopt makes worktree NAME from main's HEAD, carries the uncommitted
+changes of the given files / folders there (tracked edits as a patch, untracked files copied), keeps a backup in
+main's .bookkeeping/worktree-adopt/<time>-NAME/ (the patch and the untracked files), and only then restores those paths
+in main (tracked files to HEAD, untracked ones removed). The session that owned the edits continues in the worktree."""
 from __future__ import annotations
 
 import argparse
@@ -256,6 +263,51 @@ def prune(yes):
     return gc()
 
 
+def adopt(name, paths):
+    """Move main's uncommitted changes in paths into a new worktree NAME (see the module docstring)."""
+    paths = [p.rstrip("/") for p in paths]
+    rows = [l for l in dirty(MAIN) if any(l[3:].split(" -> ")[-1] == p or l[3:].startswith(p + "/") for p in paths)]
+    if not rows:
+        sys.exit(f"main has no uncommitted changes in {', '.join(paths)}")
+    tracked = sorted({l[3:].split(" -> ")[-1] for l in rows if not l.startswith("??")})
+    untracked = []
+    for l in rows:
+        if l.startswith("??"):
+            q = MAIN / l[3:].rstrip("/")
+            untracked += [str(f.relative_to(MAIN)) for f in ([q] if q.is_file() else sorted(x for x in q.rglob("*") if x.is_file()))]
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    bk = MAIN / ".bookkeeping" / "worktree-adopt" / f"{stamp}-{name}"
+    bk.mkdir(parents=True, exist_ok=True)
+    patch = subprocess.run(["git", "diff", "--binary", "HEAD", "--", *tracked], cwd=MAIN, capture_output=True).stdout if tracked else b""
+    (bk / "tracked.patch").write_bytes(patch)
+    import shutil
+    for f in untracked:
+        (bk / "untracked" / f).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(MAIN / f, bk / "untracked" / f)
+    add(name, "HEAD")
+    dest = WT_DIR / name
+    if patch:
+        r = subprocess.run(["git", "apply", "--binary", "-"], cwd=dest, input=patch, capture_output=True)
+        if r.returncode:
+            sys.exit(f"the patch did not apply in {dest} ({r.stderr.decode().strip()}); main is unchanged, backup in {bk}")
+    for f in untracked:
+        (dest / f).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(MAIN / f, dest / f)
+    moved = subprocess.run(["git", "diff", "--binary", "HEAD", "--", *tracked], cwd=dest, capture_output=True).stdout if tracked else b""
+    if moved != patch:
+        sys.exit(f"{dest} does not hold the same changes as main; main is unchanged, backup in {bk}")
+    in_head = set(git("ls-tree", "-r", "--name-only", "HEAD", "--", *tracked, cwd=MAIN).splitlines()) if tracked else set()
+    if in_head:
+        git("checkout", "HEAD", "--", *sorted(in_head), cwd=MAIN)
+    for f in sorted(set(tracked) - in_head):               # staged as new: not in HEAD, so drop from the index and the disk
+        git("rm", "-q", "-f", "--", f, cwd=MAIN)
+    for f in untracked:
+        (MAIN / f).unlink()
+    print(f"moved {len(tracked)} edited and {len(untracked)} untracked file(s) from main into {dest} (branch {name}); "
+          f"main restored for them; backup {bk.relative_to(MAIN)}")
+    print(f"the session that made them continues in {dest}: commit there, then `python3 infra/tools/worktree.py land`")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -264,6 +316,7 @@ def main():
     a_land = sub.add_parser("land"); a_land.add_argument("name", nargs="?"); a_land.add_argument("--keep", action="store_true")
     a_rm = sub.add_parser("remove"); a_rm.add_argument("name"); a_rm.add_argument("--force", action="store_true")
     a_pr = sub.add_parser("prune"); a_pr.add_argument("--yes", action="store_true")
+    a_ad = sub.add_parser("adopt"); a_ad.add_argument("name"); a_ad.add_argument("paths", nargs="+")
     a = ap.parse_args()
     if a.cmd == "add":
         add(a.name, a.rev)
@@ -277,6 +330,8 @@ def main():
         gc()
     elif a.cmd == "prune":
         return prune(a.yes)
+    elif a.cmd == "adopt":
+        adopt(a.name, a.paths)
     return 0
 
 
