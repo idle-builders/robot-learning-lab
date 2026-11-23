@@ -70,9 +70,9 @@ def apply_joint_ranges(manifest, defs=None, strict=True):
         n = rec.get("name")
         if n in J:
             cur = rec.get("range_deg")
-            if cur is None or [float(x) for x in cur] != J[n]["range_deg"]:   # numerically equal: left as written
+            if cur is None or [float(x) for x in cur] != J[n]["range_deg"]:
                 log.append(f"{n}: range_deg {cur} -> {J[n]['range_deg']} ({J[n]['file']} {J[n]['entry']})")
-                rec["range_deg"] = list(J[n]["range_deg"])
+            rec["range_deg"] = list(J[n]["range_deg"])      # always the declared value (floats), key position kept
         elif not (rec.get("driven_by") or rec.get("coupled_to")):
             missing.append(n)
     if missing and strict:
