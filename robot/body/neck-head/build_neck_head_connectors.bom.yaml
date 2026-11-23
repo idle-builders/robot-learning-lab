@@ -1509,10 +1509,20 @@ assembly:
       neck pitch-to-head cradle''s tongue from its front face (cradle alone, the iron''s path free; back the tongue with a flat block of 8 mm
       or less, a 10 mm block meets the bridge; trim the melt ridge on the rear face flush, it is the carrier''s seat), the head carrier (its camera / mic inserts
       set on the bench before) is lowered onto the cradle between the tongue and the bridge, and the 2 ISO 7380-1 M3x6 are driven from the
-      carrier''s rear face (hex key 2). The pair then goes onto the pitch case as one part (neck_head:p007).'
+      carrier''s rear face (hex key 2). Then the head internals go onto the carrier on the bench (T-sns4zt), all from behind except the
+      mic: mic board (+x from inside) and its screw, ROCK4D and its 2 M2.5 x 12, thermal tape, heatsink, socket header, the two fan-bridge
+      standoffs, the heatsink guard, the fan unit (neck_head_fan_bench) and the 2 M2.5 x 25 from the carrier front. The whole head unit then
+      goes onto the pitch case as one part (neck_head:p007); the two cameras go on the carrier front after that, on the neck.'
     base:
     - combined__neck_pitch_to_head_cradle
     - combined__neck_pitch_to_head_cradle_steel_sleeves
+  - name: neck_head_fan_bench
+    doc: 'Fan unit on the bench (T-sns4zt), built before neck_head_bench:p013 and not present at the start of any other subassembly: the fan
+      with its formed leads onto the back of the fan bridge plate, its 2 M3 x 16 from the plate front (their heads end up between the plate
+      and the board, so they cannot be reached once the plate is on the head), the leads laid into the lead guide and the guide''s M3 x 16.'
+    base:
+    - fan_bridge_plate
+    - fan_bridge_plate_steel_sleeves
   steps:
   - id: neck_head_bench:p001
     subassembly: neck_head_bench
@@ -1603,9 +1613,11 @@ assembly:
     - upper__neck_pitch_horn_M2x5_3
     direction: screw axis
     after:
-    - neck_head:p004
-    status: seeded
-    derived: 4 screw(s) whose joined parts are all placed after upper__neck_pitch_front_horn; driver path vs placed parts
+    - neck_head:p006
+    status: designer
+    derived: 'T-sns4zt: 4 M2x5 from outside the link arm (hex key 1.5, driver along +x toward the servo) through the link into the pitch horn,
+      once the pitch servo with its horn is on (neck_head:p006); before, they were driven with the servo not there yet. Before the head unit
+      (neck_head:p007).'
   - id: neck_head:p007
     subassembly: neck_head
     part:
@@ -1613,22 +1625,51 @@ assembly:
     - combined__neck_pitch_to_head_cradle_steel_sleeves
     - combined__head_sensor_compute_carrier
     - combined__head_sensor_compute_carrier_steel_sleeves
+    - microphone_6049_v23
+    - ROCK4D_official
+    - TIM_3M8810_cut
+    - Radian_INL25001_bare
+    - Wuerth_61304021821_official
+    - fan_bridge_standoff_0
+    - fan_bridge_standoff_1
+    - heatsink_nonpreloaded_guard
+    - fan_bridge_plate
+    - fan_bridge_plate_steel_sleeves
+    - SameSky_4010_fan
+    - fan_black_formed_lead
+    - fan_red_formed_lead
+    - fan_yellow_formed_lead
+    - fan_tach_insulating_cap
+    - fan_lead_guide_r16
     with:
     - head_root_M3x6_0
     - head_root_M3x6_1
+    - mic_side_M2x*_0
+    - compute_M2p5x12_*
+    - compute_M2p5x25_*
+    - compute_M2p5_washer_*
+    - compute_FF4_spacer_*
+    - compute_rear_nut_*
+    - compute_rear_washer_*
+    - fan_bridge_nut_*
+    - fan_plate_M3x16_*
+    - fan_M3x16_guide
+    - fan_nut_*
+    - fan_washer_*
+    - fan_guide_front_washer
     direction:
     - -1.0
     - 0.0
     - 0.0
     after:
-    - neck_head:p014
+    - neck_head:s005
     status: designer
-    derived: 'T-9wjdqc: the cradle and the head carrier, joined on the bench (neck_head_bench), go onto the pitch case as one part, slid on
-      from the +x side (the U opens toward -x): the cradle''s rear plate along the case''s rear face (its 4 M2 sleeves onto the case''s rear
-      holes), its tongue in front of the case, its bridge ends beside the case''s +x face (x 3.25 vs 3.0), the carrier in front of and above the
-      case (y < 5.64, z >= 409); then the cradle''s M2x5 are driven from behind the case (neck_head:s008). After the fan leads, thermal pad,
-      connector and fan cap (neck_head:p009..p014), which went in before the carrier as before: with the carrier on first the thermal pad (p012,
-      +y) met it 13.1 mm out (68.6 mm3), and lowered from above (-z) after them the pair met the thermal pad 56 mm out (213 mm3, nr-v1-asm).'
+    derived: 'T-9wjdqc / T-sns4zt: the head unit built on the bench (neck_head_bench: cradle, carrier and every head internal but the two
+      cameras) goes onto the pitch case as one part, slid on from the +x side (the U opens toward -x): the cradle''s rear plate along the
+      case''s rear face (its 4 M2 sleeves onto the case''s rear holes), its tongue in front of the case, its bridge ends beside the case''s +x
+      face (x 3.25 vs 3.0), the carrier and the internals in front of and above the case (y < 5.64, z >= 409); then the cradle''s M2x5 are
+      driven from behind the case (neck_head:s008). Lowered from above (-z) is free as well. Before, the fan leads, thermal pad, header and fan
+      cap went in on the neck before the carrier and the board they belong to, and the rest of the internals after it on the neck.'
   - id: neck_head:s008
     subassembly: neck_head
     screw:
@@ -1641,26 +1682,25 @@ assembly:
     - neck_head:p007
     status: seeded
     derived: 4 screw(s) whose joined parts are all placed after combined__neck_pitch_to_head_cradle; driver path vs placed parts
-  - id: neck_head:s030
-    subassembly: neck_head
+  - id: neck_head_bench:s006
+    subassembly: neck_head_bench
     screw:
     - compute_M2p5x12_2
     - compute_M2p5x12_3
     with:
     - compute_M2p5_washer_2
     - compute_M2p5_washer_3
-    - compute_FF4_spacer_2
-    - compute_FF4_spacer_3
     - compute_rear_nut_2
     - compute_rear_nut_3
     - compute_rear_washer_2
     - compute_rear_washer_3
     direction: screw axis
     after:
-    - neck_head:s029
-    status: seeded
-    derived: 2 screw(s) whose joined parts are all placed after ROCK4D_official; driver path vs placed parts; moved after s028 (its part ROCK4D_official
-      blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+    - neck_head_bench:p005
+    status: designer
+    derived: 'T-sns4zt: the 2 M2.5 x 12 (pushed in with their front washers and the round spacers at neck_head_bench:p005) tightened from
+      the carrier front (hex key 2) through the carrier, the spacers and the board into ROCK4D''s rear nuts and washers, on the bench right
+      after the board; the B0410 camera (on the neck, later) covers their heads.'
   - id: neck_head:s033
     subassembly: neck_head
     screw:
@@ -1675,34 +1715,34 @@ assembly:
     derived: 'T-5bqc3m: the B0410 board rests on its 4 printed columns; ISO 4762 M2x8 from the board front (hex key 1.5) into the heat-set
       inserts pressed on the bench before the carrier goes onto the cradle (neck_head_bench:p001; they travel with the carrier''s sleeve part). Replaces the plate M2x4 screws and the
       F-F standoffs.'
-  - id: neck_head:s034
-    subassembly: neck_head
+  - id: neck_head_bench:s014
+    subassembly: neck_head_bench
     screw: compute_M2p5x25_0
     with:
     - compute_M2p5_washer_0
     - fan_bridge_nut_0
     direction: screw axis
     after:
-    - neck_head:s033
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after fan_bridge_standoff_0; driver path vs placed parts; moved after s028 (its part
-      ROCK4D_official blocked that screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path,
-      11.298 mm3)
+    - neck_head_bench:p013
+    status: designer
+    derived: 'T-sns4zt: the lower M2.5 x 25 from the carrier front (hex key 2) through the carrier column, the board, the standoff and the fan bridge
+      plate into the nut behind the plate, on the bench once the fan unit is on (neck_head_bench:p013); the B0196 camera (on the neck, later)
+      covers the head.'
     notes: 'Torque 0.15-0.2 N m with medium-strength threadlocker on the thread (reviewer value, T-9wjdqc): the screw clamps the printed
       column (counterbore floor 3.07 mm of plastic under the ISO 7092 washer) and the fan bridge stack into the supplier nut.'
-  - id: neck_head:s035
-    subassembly: neck_head
+  - id: neck_head_bench:s015
+    subassembly: neck_head_bench
     screw: compute_M2p5x25_1
     with:
     - compute_M2p5_washer_1
     - fan_bridge_nut_1
     direction: screw axis
     after:
-    - neck_head:s034
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after heatsink_nonpreloaded_guard; driver path vs placed parts; moved after s026 (its
-      part heatsink_nonpreloaded_guard blocked that screw's driver path, 136.949 mm3); moved after s028 (its part ROCK4D_official blocked that
-      screw's driver path, 42.175 mm3); moved after s031 (its part ROCK4D_official blocked that screw's driver path, 11.298 mm3)
+    - neck_head_bench:s014
+    status: designer
+    derived: 'T-sns4zt: the upper M2.5 x 25 from the carrier front (hex key 2) through the carrier column, the board, the standoff and the fan bridge
+      plate into the nut behind the plate, on the bench once the fan unit is on (neck_head_bench:p013); the B0196 camera (on the neck, later)
+      covers the head.'
     notes: 'Torque 0.15-0.2 N m with medium-strength threadlocker on the thread (reviewer value, T-9wjdqc): the screw clamps the printed
       column (counterbore floor 3.07 mm of plastic under the ISO 7092 washer) and the fan bridge stack into the supplier nut.'
   - id: neck_head:s038
