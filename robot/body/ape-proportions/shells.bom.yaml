@@ -146,7 +146,7 @@ assembly:
     after:
     - right_leg:p060
     status: seeded
-    notes: 'T-6c2e93: heel cap of the boot, slides on from behind along -y and butts against the toe part at the 0.2 mm seam.'
+    notes: 'T-6c2e93: heel cap of the boot, slides on from behind along -y and butts against the toe part at the 0.4 mm seam (0.2 until review rv-jh7fcm: each half is located by its own screw tab, so the seam takes the FDM length error of the monocoque and both halves).'
   - id: left_leg:p060
     subassembly: left_leg
     part: L_foot_boot_shell

@@ -24,7 +24,7 @@ the toe part ({s}_foot_boot_shell, slides on from the toe along +y) and the heel
 from behind along -y). Both go on last, after the foot screws are driven; detached voxel crumbs are dropped.
 
 Boot retention (Idle T-jh7fcm): each half is held by one PA2x8 along its slide direction at its far end (toe tip, heel), its
-head on an ISO 7089 washer in a counterbore under the skin, through a plain clearance hole in an inward tab that seats on a
+head on an ISO 7089 washer in a counterbore under the skin (countersunk mouth at the toe), through a plain clearance hole in an inward tab that seats on a
 monocoque boss (BOOT_* site constants below; catalogue hardware only, no sleeve). The bosses join the boot's static keep-out here;
 foot_screws.py builds them on the monocoque from manifest.shell_pass.boot.screws. Washer and screw rows are added to the manifest
 ({s}_foot_boot_{toe|heel}_M2_washer, {s}_foot_boot_{toe|heel}_PA2x8).
@@ -51,7 +51,10 @@ BOOT_STATIC_CLEARANCE = 1.0   # mm keep-out round the foot's own parts (a cover,
 BOOT_SPLIT_Y = 15.5           # mm, manifest frame: toe part (y < split) slides on along +y, heel cap along -y (T-6c2e93);
                               # measured 2026-11-23 on the selected body: both halves free along their paths for a split between
                               # y 14.8 and 16.3 (below it the heel cap meets the ankle coupler, above it the toe part the monocoque)
-BOOT_SPLIT_GAP = 0.2          # mm seam between the two halves (butt joint, FDM tolerance)
+BOOT_SPLIT_GAP = 0.4          # mm seam between the two halves (butt joint). Each half is located by its own screw tab at the far end
+                              # (toe face y -63.25, heel face y 44.35), so the seam takes the length error of the monocoque between the
+                              # boss faces (107.6 mm) and of both halves (78.7 + 28.8 mm): about +-0.3 mm in FDM (review rv-jh7fcm); 0.2
+                              # could close before a tab seats, 0.4 keeps both halves' ends inside the split window above
 BOOT_MIN_BODY_MM3 = 200.0     # bodies smaller than this left over by the voxel cuts are loose crumbs, dropped
 SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of a face unsampled, so the fill closes
 # Boot retention (Idle T-jh7fcm): each half is held by ONE PA2x8 ISO 7380-1 (the shin back cover's screw, one BOM line) along its
@@ -81,8 +84,21 @@ BOOT_TAB_TOL = 0.2              # FDM tolerance on the tab thickness the stack i
 BOOT_CB_D = 5.4                 # washer counterbore: d2 5.0 + 2 x 0.2 radial clearance (as the head carrier's washer counterbores)
 BOOT_SITES = (dict(half="toe", x=52.0, z=9.7, dir=1.0, face_y=-63.25),
               dict(half="heel", x=50.5, z=8.0, dir=-1.0, face_y=44.35))
-BOOT_TAB_HW, BOOT_TAB_HH = 4.0, 4.0   # tab and boss half width (x) / tab depth below the axis (z): counterbore r 2.7 + 1.3 wall
-BOOT_TAB_TOP = None             # tab top above the axis; None = up to the skin above (fills the toe tip / heel over the tab)
+BOOT_BOSS_HW = 4.0              # boss half width (x)
+BOOT_TAB_HW, BOOT_TAB_HH = 4.6, 4.0   # tab half width (x): counterbore r 2.7 + 1.9 wall, wider than the boss so the countersink keeps
+                                      # its side walls (at 4.0 the walls beside a 0.8-1.1 toe countersink came to 0.7-1.0 mm); tab depth below the axis (z):
+                                      # r 2.7 + 1.3 wall; the tab runs up to the skin above it (fills the toe tip / heel, no slot)
+# Countersink at the counterbore mouth (review rv-jh7fcm): the toe skin slopes back over the bore (about 50 deg in the x = axis section),
+# so the plain dia 5.4 bore left a feather edge at the top of its rim (2.7 / 4.2 mm2 under one 0.62 mm line R / L, down to
+# 0.003 mm). A 90 deg countersink whose axis is the normal of the skin round the rim (plane fitted to the skin crossings at the
+# counterbore radius) meets the skin at 135 deg all round and the bore at an obtuse angle; it stays BOOT_CSK_SEAT_KEEP outward of the
+# washer seat, so seat and stack do not change. Measured 2026-11-23 on the pre-tab halves (reviewer's local ray-cast, rim within
+# r 6 mm): chamfer 0.5 / 0.7 / 0.9 / 1.0 / 1.1 -> thinnest rim wall R 0.61 / 0.80 / 1.02 / 0.98 / 0.90, L 0.48 / 0.68 / 0.82 / 0.92 /
+# 1.03 mm (tab half width 4.6); the rest under 2 lines is the roof between the bore top and the skin above it, which rises at about
+# 50 deg. Heels: nothing under one line without it, and a countersink adds nothing measurable there (left plain).
+BOOT_CSK_HALF_ANGLE = 45.0      # deg from the countersink axis (90 deg included)
+BOOT_CSK_W = dict(toe=1.0, heel=0.0)   # mm of chamfer in the skin plane beyond the bore's long axis there (dia ~8 at the skin); 0 = none
+BOOT_CSK_SEAT_KEEP = 0.3        # mm the countersink stays outward of the washer seat
 BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = 7.5, 2.6, 2.0   # boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
 BOOT_PILOT = (1.7, 6.0)         # pilot dia (85 % of the PA2 major) and depth from the boss face (1.5 mm of boss behind it)
 BOOT_SKIN_SINK = 0.4            # the tab starts this far under the outer skin (no outward change)
@@ -96,7 +112,7 @@ def boot_site_geometry(st, sx=1.0):
     head_top = head_seat - d * BOOT_SCREW["head_h"]
     yb = (st["face_y"], st["face_y"] + d * BOOT_BOSS_LEN)
     x = sx * st["x"]
-    boss = ([x - BOOT_TAB_HW, min(yb), BOOT_BOSS_Z0], [x + BOOT_TAB_HW, max(yb), st["z"] + BOOT_BOSS_TOP])
+    boss = ([x - BOOT_BOSS_HW, min(yb), BOOT_BOSS_Z0], [x + BOOT_BOSS_HW, max(yb), st["z"] + BOOT_BOSS_TOP])
     return dict(x=x, z=st["z"], dir=d, face_y=st["face_y"], seat_y=seat, head_seat_y=head_seat, head_top_y=head_top, boss_lo=boss[0],
                 boss_hi=boss[1], tip_y=head_seat + d * BOOT_SCREW["length"])
 
@@ -114,8 +130,8 @@ def boot_stack():
 
 
 def bearing_mm2():
-    """Plastic ring the clamp load bears on (mm2) and its width (mm): washer d2 (or the head) over the clearance hole."""
-    ro = min(BOOT_WASHER["d2"] if BOOT_WASHER else BOOT_SCREW["head_d"], BOOT_CB_D) / 2
+    """Plastic ring the clamp load bears on (mm2) and its width (mm): washer d2 over the clearance hole."""
+    ro = min(BOOT_WASHER["d2"], BOOT_CB_D) / 2
     ri = BOOT_HOLE_D / 2
     return round(float(np.pi * (ro ** 2 - ri ** 2)), 2), round(ro - ri, 3)
 
@@ -181,41 +197,89 @@ def _outside(m, axis, ga, gb, p_in, out, sink):
     return _mf(tm)
 
 
+def _countersink(half, g):
+    """Countersink cutter at the counterbore mouth (manifold) and its record: a cone of half angle BOOT_CSK_HALF_ANGLE about the
+    normal of the plane fitted to the outer skin crossings at the counterbore radius (pre-tab half), through the point where the
+    screw axis meets that plane, BOOT_CSK_W wider than the bore's section in that plane; cut back to BOOT_CSK_SEAT_KEEP outward of
+    the washer seat."""
+    import manifold3d as mf
+    x, z, d, fy = g["x"], g["z"], g["dir"], g["face_y"]
+    R = BOOT_CB_D / 2
+    P = []
+    for a in np.linspace(0, 2 * np.pi, 24, endpoint=False):
+        y = _skin_y(half, x + R * np.cos(a), z + R * np.sin(a), fy, d)
+        if np.isfinite(y):
+            P.append([x + R * np.cos(a), y, z + R * np.sin(a)])
+    P = np.array(P); c = P.mean(0)
+    n = np.linalg.svd(P - c)[2][2]
+    n = n if n[1] * d < 0 else -n                                  # outward: against the screw direction
+    C = np.array([x, c[1] + ((c - [x, c[1], z]) @ n) / n[1], z])   # screw axis meets the fitted plane
+    tilt = float(np.degrees(np.arccos(abs(n[1]))))
+    rc = R / abs(n[1]) + BOOT_CSK_W[g["half"]]                     # bore section in that plane: ellipse, long semi-axis R / cos(tilt)
+    ta = np.tan(np.radians(BOOT_CSK_HALF_ANGLE))
+    h = rc / ta + 4.0                                               # apex .. 4 mm outside the skin plane
+    zax = np.array([0.0, 0.0, 1.0]); v = np.cross(zax, n); sn = np.linalg.norm(v)
+    K = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    Rm = np.eye(3) + K + K @ K * ((1 - zax @ n) / sn ** 2) if sn > 1e-9 else np.eye(3) * np.sign(zax @ n)
+    A = C - n * (rc / ta)
+    cone = mf.Manifold.cylinder(h, 0.0, h * ta, 96).transform(np.hstack([Rm, A[:, None]]).tolist())
+    lim = g["seat_y"] - d * BOOT_CSK_SEAT_KEEP
+    keep = mf.Manifold.cube([60.0, 60.0, 60.0]).translate([x - 30.0, lim - 60.0 if d > 0 else lim, z - 30.0])
+    rec = dict(countersink_axis_tilt_deg=round(tilt, 1), countersink_dia_at_skin_mm=round(2 * rc, 2),
+               countersink_half_angle_deg=BOOT_CSK_HALF_ANGLE, countersink_chamfer_mm=BOOT_CSK_W[g["half"]],
+               countersink_skin_point_y=round(float(C[1]), 2), countersink_apex_y=round(float(A[1]), 2))
+    return cone ^ keep, rec
+
+
+def _mouth_y(m, x, z, y_in, d, r):
+    """Outermost material y round the bore mouth: per clock position at radius r (just outside the counterbore), the skin or
+    countersink crossing seen from y_in outward."""
+    v = [_skin_y(m, x + r * np.cos(a), z + r * np.sin(a), y_in, d) for a in np.linspace(0, 2 * np.pi, 24, endpoint=False)]
+    return np.array([q for q in v if np.isfinite(q)])
+
+
 def boot_mount(half, st, sx):
-    """Inward tab, clearance hole and washer counterbore on one boot half (mesh); returns the half, its washer and the site record."""
+    """Inward tab, clearance hole, washer counterbore and countersink on one boot half (mesh); returns the half, its washer and the
+    site record."""
     import manifold3d as mf
     g = boot_site_geometry(st, sx)
     x, z, d, fy = g["x"], g["z"], g["dir"], g["face_y"]
     far = fy - d * 14.0
-    top = BOOT_TAB_TOP if BOOT_TAB_TOP is not None else 14.0
-    z0, z1 = z - BOOT_TAB_HH, z + top
+    z0, z1 = z - BOOT_TAB_HH, z + 14.0
     tab = mf.Manifold.cube([2 * BOOT_TAB_HW, abs(fy - far), z1 - z0]).translate([x - BOOT_TAB_HW, min(fy, far), z0])
     gx = np.linspace(x - BOOT_TAB_HW - 0.5, x + BOOT_TAB_HW + 0.5, 19)
     gz = np.linspace(z0 - 0.5, z1 + 0.5, max(15, int(np.ceil((z1 - z0 + 1.0) / 0.5)) + 1))
+    gy = np.linspace(min(fy, far) - 0.5, max(fy, far) + 0.5, 31)
     tab = tab - _outside(half, 1, gx, gz, fy, -d, BOOT_SKIN_SINK)                 # the toe / heel skin out along the screw axis
-    if BOOT_TAB_TOP is None:                                                         # and the skin above the tab
-        gy = np.linspace(min(fy, far) - 0.5, max(fy, far) + 0.5, 31)
-        tab = tab - _outside(half, 2, gx, gy, z, 1.0, BOOT_SKIN_SINK)
+    tab = tab - _outside(half, 2, gx, gy, z, 1.0, BOOT_SKIN_SINK)                 # and the skin above the tab
     # head under the skin: the skin's innermost crossing within the counterbore radius vs the head top
     rim = [_skin_y(half, x + r * np.cos(a), z + r * np.sin(a), fy, d) for r in (0.0, BOOT_CB_D / 2) for a in np.linspace(0, 2 * np.pi, 16, endpoint=False)]
     rim = np.array([v for v in rim if np.isfinite(v)])
     head_under_skin = float(np.min(d * (g["head_top_y"] - rim)))   # >= 0: the head top lies inward of every skin point round it
+    csk, csk_rec = _countersink(half, dict(g, half=st["half"])) if BOOT_CSK_W[st["half"]] > 0 else (None, {})
     m = _mf(half) + tab
     m = m - _cyl_y(g["seat_y"] - d * 0.01, fy + d * 1.0, x, z, BOOT_HOLE_D)   # no teardrop roof: the 2.4 / 5.4 bores bridge
     m = m - _cyl_y(g["seat_y"], g["seat_y"] - d * 12.0, x, z, BOOT_CB_D)
+    if csk is not None:
+        m = m - csk
     out = _tm(m)
     bodies = sorted(out.split(only_watertight=False), key=lambda q: -(q.volume if q.is_watertight else 0.0))
     out = trimesh.util.concatenate([bodies[0]] + [q for q in bodies[1:] if q.is_watertight and q.volume >= BOOT_MIN_BODY_MM3])
+    # where the countersink meets the counterbore: the innermost mouth crossing just outside the bore vs the head top (< 0: the head's
+    # top edge stands that far out of the plain bore into the countersink, still inward of the skin round it)
+    mouth = _mouth_y(out, x, z, g["seat_y"], d, BOOT_CB_D / 2 + 0.05)
     w = BOOT_WASHER
     washer = _tm(_cyl_y(g["seat_y"], g["head_seat_y"], x, z, w["d2"]) - _cyl_y(g["seat_y"] + d, g["head_seat_y"] - d, x, z, w["d1"]))
     area, ring = bearing_mm2()
+    stack = boot_stack()
     below = z - BOOT_CB_D / 2 - (z - BOOT_TAB_HH)
     rec = dict(g, side="R" if sx > 0 else "L", half=st["half"], tab_wall_below_counterbore_mm=round(below, 2),
                tab_wall_x_counterbore_mm=round(BOOT_TAB_HW - BOOT_CB_D / 2, 2), tab_wall_round_hole_mm=round(BOOT_TAB_HH - BOOT_HOLE_D / 2, 2),
                head_under_skin_min_mm=round(head_under_skin, 2), skin_crossings_round_counterbore=[round(float(rim.min()), 2), round(float(rim.max()), 2)],
+               head_below_countersink_edge_min_mm=round(float(np.min(d * (g["head_top_y"] - mouth))), 2), **csk_rec,
                screw=BOOT_SCREW["label"], washer=f"{w['standard']} {w['label']}", hole_dia_mm=BOOT_HOLE_D, counterbore_dia_mm=BOOT_CB_D,
-               bearing_area_mm2=area, bearing_ring_mm=ring, pilot_dia_mm=BOOT_PILOT[0], pilot_depth_mm=BOOT_PILOT[1], stack=boot_stack(),
-               thread_engagement_mm=boot_stack()["engagement_mm"], tab_volume_mm3=round(float(out.volume - half.volume), 1))
+               bearing_area_mm2=area, bearing_ring_mm=ring, pilot_dia_mm=BOOT_PILOT[0], pilot_depth_mm=BOOT_PILOT[1], stack=stack,
+               thread_engagement_mm=stack["engagement_mm"], tab_volume_mm3=round(float(out.volume - half.volume), 1))
     rec = {k: ([round(float(u), 3) for u in v] if isinstance(v, (list, tuple)) and v and isinstance(v[0], (float, int, np.floating)) else
                (round(float(v), 3) if isinstance(v, (float, np.floating)) else v)) for k, v in rec.items()}
     return out, washer, rec
