@@ -33,6 +33,18 @@ def _moving_poses(body, scope, poses):
     return sum(1 for _, _, q in poses if any(not np.allclose(body.link_T(lk, q), T0[lk], atol=1e-9) for lk in links))
 
 
+def _twin(rel, n):
+    """n's mirror twin: the mirror relation; a sleeve set: the sleeve set of its owner's twin; a part on the mirror plane: itself."""
+    m = rel.mirror_of(n)
+    if m:
+        return m
+    if rel.is_sleeve_set(n):
+        o = rel.mirror_of(rel.sleeve_owner(n) or "")
+        ss = rel.sleeve_sets_of(o) if o else []
+        return ss[0] if ss else None
+    return n
+
+
 @scenario("mirror-leg-twin", "truth", "clearance on two right-leg parts and on their left mirror twins: the left leg moves as the "
           "right does, each mirrored pair measures what its right twin measures")
 def s_twin(sid):
@@ -51,7 +63,7 @@ def s_twin(sid):
                          min_distance_mm=min((w["min_distance_mm"] for w in pairs.values()), default=None))
     matched, unmatched = [], []
     for (a, m), w in by["left"].items():
-        ra, rm = rel.mirror_of(a), rel.mirror_of(m)
+        ra, rm = _twin(rel, a), _twin(rel, m)
         t = by["right"].get((ra, rm))
         if t is None:
             unmatched.append(f"{a} x {m}")
@@ -61,7 +73,7 @@ def s_twin(sid):
                             d_min_distance_mm=round(w["min_distance_mm"] - t["min_distance_mm"], 3)))
     worst = sorted(matched, key=lambda x: -max(abs(x["d_new_overlap_mm3"]), abs(x["d_min_distance_mm"])))
     return dict(out, matched_pairs=len(matched), right_pairs_without_left_twin=len(set(by["right"]) - {
-                    (rel.mirror_of(a), rel.mirror_of(m)) for a, m in by["left"]}),
+                    (_twin(rel, a), _twin(rel, m)) for a, m in by["left"]}),
                 left_pairs_without_right_twin=unmatched[:10],
                 max_abs_d_new_overlap_mm3=max((abs(x["d_new_overlap_mm3"]) for x in matched), default=None),
                 max_abs_d_min_distance_mm=max((abs(x["d_min_distance_mm"]) for x in matched), default=None),
