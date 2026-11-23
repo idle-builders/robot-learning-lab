@@ -3,7 +3,8 @@
 For each screw (the screws whose shank or head seat lies in a scoped part or its steel sleeves, as in the connectivity graph)
 the tool path is a cylinder of the driver's blade diameter along the screw axis from the head top outward, long enough to
 clear the body (data/tools.json: drive and blade per head type and thread, with sources; assumptions are labelled; the head
-type from the screw's head standard: screw_plan, else its body definition's spec). Measured against every other
+type from the screw's head standard: screw_plan, else its body definition's spec; a screw whose thread neither declares is
+listed as not measured). Measured against every other
 non-hardware part and steel sleeve at standing (coarse screening solids, screwlib.screen): obstruction volume (mm3) over the
 whole path and over the first 40 mm the blade and hand need, the share of the path volume it fills, and the first
 obstructing part with its distance along the path from the head top. Body shells go on last (the assembly check's
@@ -21,9 +22,6 @@ from checks import screwlib as SL
 from checks.core import tick
 from checks.registry import register
 
-SHELL_ROLE = "body_shell"     # the body shells go on last (the assembly check: covered_later_by): their obstruction is reported apart
-
-
 def measure_screw(ctx, name, info, T, nodes, WB, box, tdata):
     MC = SL.mount_check()
     p = ctx.body.parts[name]
@@ -32,14 +30,15 @@ def measure_screw(ctx, name, info, T, nodes, WB, box, tdata):
     R_, t_ = Ts[:3, :3], Ts[:3, 3]
     head = R_ @ np.asarray(g["_head"]) + t_
     out = -(R_ @ np.asarray(g["_d"]))
-    spec = MC.screw_spec(p)          # screw_plan, else the body definition's spec, else the name
-    thread = spec.get("thread") or MC.nominal(name).get("thread")
-    ht = SL.head_type(name, g, thread, tdata, spec.get("head_standard"))
-    tl = SL.tool_for(ht, thread, tdata)
+    spec = MC.screw_spec(p)          # screw_plan, else the body definition's spec; {} when neither declares it
+    thread = spec.get("thread")
+    ht = SL.head_type(g, thread, tdata, spec.get("head_standard"))
+    tl = SL.tool_for(ht, thread, tdata) if thread else None
     row = dict(thread=thread, head_standard=spec.get("head_standard"), spec_source=spec.get("spec_source"), head_type=ht,
                head_world_mm=np.round(head, 2).tolist(), out_axis=np.round(out, 3).tolist(), touches=info["touched"])
     if tl is None:
-        row["error"] = f"no tool in data/tools.json for {ht} {thread}"
+        row["error"] = (f"no tool in data/tools.json for {ht} {thread}" if thread else
+                        "thread declared nowhere (no screw_plan, no definition spec): the driver size is unknown")
         return row
     size, blade, kind, src = tl
     pc = tdata["path"]
@@ -62,7 +61,7 @@ def measure_screw(ctx, name, info, T, nodes, WB, box, tdata):
     solids, shells = {}, {}
     for n, Tn in cand.items():
         mf = SL.screen(ctx, n)[2]           # the coarse screening solid: an unscoped run must not tessellate every supplier STEP at 0.03 mm
-        (shells if ctx.body.parts[n].get("role") == SHELL_ROLE else solids)[n] = mf.transform(Tn[:3, :4])
+        (shells if ctx.rel.is_shell(n) else solids)[n] = mf.transform(Tn[:3, :4])     # shells go on last (assembly: covered_later_by)
     res = SL.driver_path(head, out, radius, length, solids, pc["start_offset_mm"])
     near = SL.driver_path(head, out, radius, min(length, pc["min_length_mm"]), solids, pc["start_offset_mm"])   # the blade and the hand behind it
     sh = SL.driver_path(head, out, radius, length, shells, pc["start_offset_mm"])
