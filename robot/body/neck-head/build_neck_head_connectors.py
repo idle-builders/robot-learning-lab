@@ -109,6 +109,12 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
             if grp.get("no_sleeve"):
                 # T-5bqc3m K2: plain clearance hole through the plate (and the printed column of a compute post), no sleeve
                 pt = np.asarray(pt, float)
+                if stage_key == "stage1_neck_root_cradle":
+                    # torso anchor (T-jxshhv): clearance hole through the spine plate; the ISO 7380-1 head on the rear face keeps a ring
+                    # of head_clear_r free behind the plate (head, hex key)
+                    cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, h + 2.0))
+                    keep_out.append(cyl_along(pt + h * n, n, float(grp["head_clear_r"]), 6.0))
+                    continue
                 if role_key == "support":        # neck root: ISO 7380-1 head on the rear face, a clearance cut for it through the dorsal ribs
                     cut_tools.append(cyl_along(pt - 1.0 * n, n, ro, h + 2.0))
                     w = max(float(grp["rib_window_half"]), float(grp["head_clear_r"]))
@@ -147,8 +153,6 @@ def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:
                 # The sleeve is as long as the plate is thick (flush, no counterbore, M-evmrv6): ribs and walls that rise above the
                 # plate keep a ring of 0.75 mm around the sleeve clear for the head, the driver and the heated press tool.
                 keep_out.append(cyl_along(pt + h * n, n, ro + 0.75, 5.0))
-            if stage_key == "stage1_neck_root_cradle" and role_key == "support":
-                cut_tools.append(cyl_along(pt + (h - 0.2) * n, n, 1.70, 9.0))
         if "rocker_center" in grp:
             rc = grp["rocker_center"]
             rr = float(grp["rocker_r"]) + 0.15
@@ -185,6 +189,9 @@ def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
         for k, (pt, n_raw) in enumerate(zip(centres, normals)):
             n = np.asarray(n_raw, dtype=float) / np.linalg.norm(n_raw)
             if grp.get("no_sleeve"):        # plain holes: the head / washer seat, the counterbore, the column
+                if stage_key == "stage1_neck_root_cradle":      # torso anchor: the plate's hole and the head seat round it
+                    cyls.append((pt, n, float(grp["head_clear_r"]) + margin, h))
+                    continue
                 if role_key == "support":
                     cyls.append((pt, n, max(float(grp["rib_window_half"]), float(grp["head_clear_r"])) * 1.42 + margin, h + 6.0))
                 else:
@@ -224,16 +231,21 @@ def _skip_near_stage_bores(stage_key: str, margin: float = 0.75):
 # STAGE 1: `stage1_neck_root_cradle` (on `torso`)
 # ==============================================================================
 def build_stage1(family: str) -> Solid:
-    """Build Stage 1 (`neck_root_cradle`): connects the 2x M3 torso spine anchor bolts
-    (`(-29, 25, 347.5)` & `(-21, 25, 347.5)`) through the `X in [-26.6, -20.3]` riser column
-    onto the `Z = 359.0` shelf and wraps around the `-X` cheek and `+Y` rear face (`4x M2`)
-    of `upper__neck_yaw_case_XM335`.
+    """Build Stage 1 (`neck_root_cradle`): connects the 2x M3 torso anchor screws (neck_anchor.json: x -30 / -17, z 347.5, either side
+    of the `X in [-26.6, -20.3]` riser column; T-jxshhv) through the riser column onto the `Z = 359.0` shelf and wraps around the `-X`
+    cheek and `+Y` rear face (`4x M2`) of `upper__neck_yaw_case_XM335`. The spine plate (y face_y .. plate_rear_y of neck_anchor.json,
+    x / z from its cradle_plate box) lies flat on the chassis pad; its 2 holes are plain clearance holes (no sleeves).
     """
     case_face_y = _seat("neck_root_cradle", "yaw_case_rear")    # the yaw case's rear face; the sleeves are 2.5 mm long
+    from common import neck_anchor
+    na = neck_anchor()
+    (px0, px1), (pz0, pz1) = na["cradle_plate"]["x_mm"], na["cradle_plate"]["z_mm"]
+    py0, py1 = float(na["face_y_mm"]), float(na["plate_rear_y_mm"])
+    plate_c, plate_wh = ((px0 + px1) / 2.0, (pz0 + pz1) / 2.0), (px1 - px0, pz1 - pz0)
     if family == "truss_box":
-        # 1. Lower spine wing plate in XZ plane (Y in [25.0, 28.0], X in [-32.8, -17.2], Z in [343.6, 350.5])
-        f_spine = fillet_2d_face(Pos(-25.0, 347.05) * Rectangle(15.6, 6.9), r_default=1.5, r_inner=1.9)
-        s_spine_plate = extrude_xy_to_y(f_spine, 25.0, 28.0)
+        # 1. Lower spine wing plate in XZ plane (neck_anchor.json cradle_plate box, y face .. plate rear; T-jxshhv)
+        f_spine = fillet_2d_face(Pos(*plate_c) * Rectangle(*plate_wh), r_default=1.5, r_inner=1.9)
+        s_spine_plate = extrude_xy_to_y(f_spine, py0, py1)
 
         # 2. Pure vertical riser column in XZ plane (Y in [25.0, 33.50], X in [-26.6, -20.3], Z in [343.6, 365.6])
         # Strictly X <= -20.3 so it clears Common_power_carrier_mounting_r33 (X >= -20.0) with 0.0000 mm^3 overlap
@@ -276,8 +288,8 @@ def build_stage1(family: str) -> Solid:
 
     else:
         # Family 2 (`topopt`): Organic SIMP arch with twin-lobe motor yoke & sculpted teardrop window
-        f_spine = fillet_2d_face(Pos(-25.0, 347.05) * Rectangle(15.6, 6.9), r_default=1.6, r_inner=2.0)
-        s_spine_plate = extrude_xy_to_y(f_spine, 25.0, 28.0)
+        f_spine = fillet_2d_face(Pos(*plate_c) * Rectangle(*plate_wh), r_default=1.6, r_inner=2.0)
+        s_spine_plate = extrude_xy_to_y(f_spine, py0, py1)
 
         f_riser = fillet_2d_face(
             Pos(-23.45, 354.60) * Rectangle(6.3, 22.0),
