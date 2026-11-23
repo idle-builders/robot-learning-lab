@@ -241,7 +241,7 @@ def s_cold(sid):
     return dict(cold=basics(c), shared=basics(w))
 
 
-TIMING = {"seconds", "peak_gib", "tree_peak_gib", "exact_seconds", "cached", "mesh_seconds"}
+TIMING = {"seconds", "cpu_s", "peak_gib", "tree_peak_gib", "exact_seconds", "cached", "mesh_seconds", "mesh_cached"}
 
 
 def strip_timing(x):
