@@ -2146,10 +2146,11 @@ assembly:
     - 1.0
     - 0.0
     after:
-    - right_leg:s041
+    - right_leg:p039
     status: seeded
     derived: 'graph order, fastened distance 54 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case),
       snapped to the nearest axis'
+    notes: 'T-6c2e93: right after the foot-roll case, so the monocoque (p043) and then its case screws (s040, s041) follow'
   - id: right_leg:p044
     subassembly: right_leg
     part: R_heel_lateral_backing
@@ -2158,10 +2159,11 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - right_leg:p043
+    - right_leg:s041
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (R_foot_monocoque_combined), snapped to the nearest axis'
+    notes: 'T-6c2e93: after the monocoque case screws (s040, s041), which moved after the monocoque'
   - id: right_leg:p045
     subassembly: right_leg
     part: R_heel_lateral_bond
@@ -2218,10 +2220,11 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - right_leg:p049
+    - right_leg:p048
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via R_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (R_foot_monocoque_combined, R_mid_medial_backing), snapped to the nearest axis'
+    notes: 'T-6c2e93: the boot shell (was p049) moved to the end of the leg as two halves (p060, p061)'
   - id: right_leg:p051
     subassembly: right_leg
     part: R_sole_pad_bond_v19
@@ -2409,10 +2412,11 @@ assembly:
     - 1.0
     - 0.0
     after:
-    - left_leg:s041
+    - left_leg:p039
     status: seeded
     derived: 'mirror of right_leg p40 (R_ <-> L_, x negated): graph order, fastened distance 54 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (R_B13_C047_foot_roll_case), snapped to the nearest axis'
+    notes: 'T-6c2e93: right after the foot-roll case, so the monocoque (p043) and then its case screws (s040, s041) follow'
   - id: left_leg:p044
     subassembly: left_leg
     part: L_heel_lateral_backing
@@ -2421,10 +2425,11 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - left_leg:p043
+    - left_leg:s041
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (L_foot_monocoque_combined), snapped to the nearest axis'
+    notes: 'T-6c2e93: after the monocoque case screws (s040, s041), which moved after the monocoque'
   - id: left_leg:p045
     subassembly: left_leg
     part: L_heel_lateral_bond
@@ -2481,10 +2486,11 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - left_leg:p049
+    - left_leg:p048
     status: seeded
     derived: 'graph order, fastened distance 45 from what is present (via L_foot_monocoque_combined); direction: toward the centroid of placed
       neighbours (L_foot_monocoque_combined, L_mid_medial_backing), snapped to the nearest axis'
+    notes: 'T-6c2e93: the boot shell (was p049) moved to the end of the leg as two halves (p060, p061)'
   - id: left_leg:p051
     subassembly: left_leg
     part: L_sole_pad_bond_v19

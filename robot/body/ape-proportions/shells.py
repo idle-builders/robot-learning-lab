@@ -15,6 +15,13 @@ Method (voxel sweep; mesh-union sweeps fragment into millions of triangles on ne
     point as swept;
   - the swept mask is smoothed and turned into one surface (marching cubes), which is subtracted from each shell once.
 Shells stay mesh-defined until the CAD pass.
+
+Boot shells (Idle T-6c2e93): the boot came from a closed skin whose floor and lower rim sat inside the foot monocoque's
+sole plate (about 10.6 cm3 per side at standing) and dipped into the foot-roll servo case, so no order or direction could
+put it on. The same subtraction therefore also takes the foot link's own parts (screws included, body shells left out)
+grown by BOOT_STATIC_CLEARANCE, and the boot is then split at y = BOOT_SPLIT_Y (the rear edge of the ankle collar) into
+the toe part ({s}_foot_boot_shell, slides on from the toe along +y) and the heel cap ({s}_foot_boot_heel_shell, slides on
+from behind along -y). Both go on last, after the foot screws are driven; detached voxel crumbs are dropped.
 """
 from __future__ import annotations
 
@@ -33,6 +40,13 @@ TORSO_SHELLS = ("center_front_shell", "center_back_shell")
 ANKLE = dict(pitch=np.arange(-35.0, 27.6, 2.5), roll=np.arange(-25.0, 25.1, 5.0))
 ANKLE_LINKS = ("shin", "ankle_pitch")
 SKIP = ("cut_material", "adhesive_allocation", "authored_harness")
+BOOT_STATIC_CLEARANCE = 1.0   # mm between the boot and the foot's own parts (a cover, not a fit: FDM tolerance plus margin)
+BOOT_SPLIT_Y = 15.5           # mm, manifest frame: toe part (y < split) slides on along +y, heel cap along -y (T-6c2e93);
+                              # measured 2026-11-23 on the selected body: both halves free along their paths for a split between
+                              # y 14.8 and 16.3 (below it the heel cap meets the ankle coupler, above it the toe part the monocoque)
+BOOT_SPLIT_GAP = 0.2          # mm seam between the two halves (butt joint, FDM tolerance)
+BOOT_MIN_BODY_MM3 = 200.0     # bodies smaller than this left over by the voxel cuts are loose crumbs, dropped
+SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of a face unsampled, so the fill closes
 
 
 def _mf(m):
@@ -45,11 +59,13 @@ def _tm(x):
     return trimesh.Trimesh(np.asarray(r.vert_properties)[:, :3], np.asarray(r.tri_verts), process=True)
 
 
-def _solid_voxels(m, lo, shape):
+def _solid_voxels(m, lo, shape, spacing=0.4 * PITCH):
     """Voxels of a closed mesh on the grid (lo, shape): dense surface samples, then the enclosed cells filled.
-    (trimesh's voxelizer subdivides detailed meshes down to the voxel size and needs several GB.)"""
+    (trimesh's voxelizer subdivides detailed meshes down to the voxel size and needs several GB.)
+    At the default spacing a large flat face keeps a few unsampled voxels, through which the fill leaks (the solid stays a
+    hollow skin one voxel thick); the boot keep-out passes spacing=SEALED_SPACING (about 40 samples per voxel face)."""
     from scipy.ndimage import binary_fill_holes
-    n = int(min(4e6, max(2e4, m.area / (0.4 * PITCH) ** 2)))
+    n = int(min(4e6, max(2e4, m.area / spacing ** 2)))
     pts = np.vstack([trimesh.sample.sample_surface(m, n, seed=0)[0], m.vertices])  # seeded: the same voxels every run
     idx = np.round((pts - lo) / PITCH).astype(np.int32)
     a = np.maximum(idx.min(0) - 1, 0); b = np.minimum(idx.max(0) + 2, shape)
@@ -62,25 +78,27 @@ def _solid_voxels(m, lo, shape):
 
 
 class LinkGrid:
-    """A link's parts as an occupancy grid in its neutral frame, grown by CLEARANCE."""
-    def __init__(self, body, F, link):
+    """A link's parts as an occupancy grid in its neutral frame, grown by `clearance` (default CLEARANCE).
+    fasteners=True keeps the screws and sleeves in (a static keep-out: their heads stand proud); skip adds roles to leave out;
+    spacing is the surface sample spacing of the fill (_solid_voxels)."""
+    def __init__(self, body, F, link, clearance=CLEARANCE, fasteners=False, skip=(), spacing=0.4 * PITCH):
         from scipy.ndimage import distance_transform_edt
         meshes = []
         for n, p in body.parts.items():
-            if p["owning_link"] != link or F.is_fastener(n, p) or p.get("role") in SKIP:
+            if p["owning_link"] != link or (F.is_fastener(n, p) and not fasteners) or p.get("role") in SKIP + tuple(skip):
                 continue
             m = body.mesh(n)
             meshes.append(m if m.is_watertight else m.convex_hull)
         self.empty = not meshes
         if self.empty:
             return
-        pad = CLEARANCE + 3 * PITCH
+        pad = clearance + 3 * PITCH
         lo = np.min([m.bounds[0] for m in meshes], 0) - pad; hi = np.max([m.bounds[1] for m in meshes], 0) + pad
         shape = np.ceil((hi - lo) / PITCH).astype(int) + 1
         occ = np.zeros(shape, bool)
         for m in meshes:
-            occ |= _solid_voxels(m, lo, shape)
-        self.hit = distance_transform_edt(~occ) * PITCH <= CLEARANCE
+            occ |= _solid_voxels(m, lo, shape, spacing)
+        self.hit = distance_transform_edt(~occ) * PITCH <= clearance
         self.lo, self.shape = lo, shape
         self.corners = np.array(list(itertools.product(*zip(lo, lo + (shape - 1) * PITCH))))
 
@@ -154,7 +172,7 @@ def apply(new, h):
         P[shell]["mesh_note"] = "leg openings cut by the legs swept over the target hip ranges (shells.py, voxel sweep)"
         notes.append(f"{shell}: {sm.volume:.0f} -> {out.volume:.0f} mm3")
         log.append((shell, "leg openings cut by the swept hips"))
-    # boot shells minus the swept shin and ankle, in the foot's own frame
+    # boot shells minus the swept shin and ankle and minus the foot's own parts, in the foot's own frame; then split in two
     for s in "RL":
         boot = P[f"{s}_foot_boot_shell"]
         bm = F.load_mesh(boot["mesh"])
@@ -167,16 +185,36 @@ def apply(new, h):
             Tf = body.link_T(f"{s}_foot", q)
             for lk, g in grids.items():
                 sw.add(g, np.linalg.inv(body.link_T(f"{s}_{lk}", q)) @ Tf)
+        # the foot's own parts (monocoque sole plate, roll servo case, screws) as a static keep-out (T-6c2e93)
+        sw.add(LinkGrid(body, F, f"{s}_foot", clearance=BOOT_STATIC_CLEARANCE, fasteners=True, skip=("body_shell",),
+                       spacing=SEALED_SPACING), np.eye(4))
         if not sw.mask.any():
             notes.append(f"{boot['name']}: nothing swept"); continue
-        out = _subtract(bm, sw.surface())
-        boot.update(h["save_mesh"](boot["name"], out))
-        boot["mesh_note"] = "boot collar cut by the shin and ankle swept over the target ankle ranges (shells.py, voxel sweep)"
-        notes.append(f"{boot['name']}: {bm.volume:.0f} -> {out.volume:.0f} mm3")
-        log.append((boot["name"], "collar cut by the swept ankle"))
+        cut = _subtract(bm, sw.surface())
+        heel_name = f"{s}_foot_boot_heel_shell"
+        heel = dict(boot, name=heel_name)
+        g = BOOT_SPLIT_GAP / 2.0
+        for part, normal, off in ((boot, (0.0, -1.0, 0.0), -(BOOT_SPLIT_Y - g)), (heel, (0.0, 1.0, 0.0), BOOT_SPLIT_Y + g)):
+            half = _tm(_mf(cut).trim_by_plane(normal, off))
+            bodies = sorted(half.split(only_watertight=False), key=lambda q: -(q.volume if q.is_watertight else 0.0))
+            keep = [q for q in bodies[:1]] + [q for q in bodies[1:] if q.is_watertight and q.volume >= BOOT_MIN_BODY_MM3]
+            dropped = sum(q.volume for q in bodies if not any(q is k for k in keep) and q.is_watertight)
+            half = trimesh.util.concatenate(keep)
+            part.update(h["save_mesh"](part["name"], half))
+            part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts kept "
+                                 f"{BOOT_STATIC_CLEARANCE:g} mm clear, split at y = {BOOT_SPLIT_Y:g} mm ({BOOT_SPLIT_GAP:g} mm seam) into toe part and heel cap "
+                                 "(shells.py, voxel sweep, T-6c2e93)")
+            notes.append(f"{part['name']}: {half.volume:.0f} mm3 ({len(keep)} bodies, {dropped:.0f} mm3 of crumbs dropped)")
+        if heel_name not in P:
+            new["parts"].insert(new["parts"].index(boot) + 1, heel); P[heel_name] = heel
+        notes.append(f"{boot['name']}: {bm.volume:.0f} -> {cut.volume:.0f} mm3 before the split")
+        log.append((boot["name"], "collar cut by the swept ankle, foot parts kept clear, split into toe part and heel cap"))
+        log.append((heel_name, "heel cap split off the boot shell at y = %g mm" % BOOT_SPLIT_Y))
     new["shell_pass"] = dict(hip_targets_deg=dict(pitch=[HIP_FLEX, 40], roll=[-45, 25], yaw=[-40, 40]),
                              ankle_targets_deg=dict(pitch=[-35, 27.5], roll=[-25, 25]), clearance_mm=CLEARANCE,
-                             voxel_mm=PITCH, method="voxel sweep + marching cubes, one subtraction per shell")
+                             voxel_mm=PITCH, method="voxel sweep + marching cubes, one subtraction per shell",
+                             boot=dict(static_clearance_mm=BOOT_STATIC_CLEARANCE, split_y_mm=BOOT_SPLIT_Y, split_gap_mm=BOOT_SPLIT_GAP,
+                                       idle_task="T-6c2e93"))
     return notes
 
 

@@ -46,34 +46,67 @@ parts:
   make_buy: make
   quantity: 1
   section: Ankle / foot
+- match: R_foot_boot_heel_shell
+  kind: printed
+  line: print:R_foot_boot_heel_shell
+  name: R_foot_boot_heel_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws.'
+- match: L_foot_boot_heel_shell
+  kind: printed
+  line: print:L_foot_boot_heel_shell
+  name: L_foot_boot_heel_shell
+  make_buy: make
+  quantity: 1
+  section: Ankle / foot
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws.'
 assembly:
   steps:
-  - id: right_leg:p049
+  - id: right_leg:p060
     subassembly: right_leg
     part: R_foot_boot_shell
     direction:
     - 0.0
-    - 0.0
     - 1.0
+    - 0.0
     after:
-    - right_leg:p048
+    - right_leg:p059
     status: seeded
-    derived: 'graph order, fastened distance 63 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_B13_C047_foot_roll_case,
-      R_foot_monocoque_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0, -1.0]): path contact 60.0
-      -> 38.5 mm out, seat released True -> True, max overlap 8439.9 -> 12986.6 mm3; moved before R_sensor_pocket_pad_v19 (it touched R_sensor_pocket_pad_v19
-      38.5 mm out, 12986.622 mm3); moved before R_mid_medial_sensor (it touched R_mid_medial_sensor 35.5 mm out, 10560.735 mm3)'
-  - id: left_leg:p049
+    notes: 'T-6c2e93: toe part of the boot (split at y = 15.5 mm), the last thing on the foot: slides on from the toe along +y over the
+      finished foot, after the monocoque case screws (s040, s041) and the foot-roll horn screws (s038) are driven. Was p049 along +z, which
+      no direction allowed (the closed boot sat 10.8 cm3 inside the monocoque sole plate and the roll servo case at standing).'
+  - id: right_leg:p061
+    subassembly: right_leg
+    part: R_foot_boot_heel_shell
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - right_leg:p060
+    status: seeded
+    notes: 'T-6c2e93: heel cap of the boot, slides on from behind along -y and butts against the toe part at the 0.2 mm seam.'
+  - id: left_leg:p060
     subassembly: left_leg
     part: L_foot_boot_shell
     direction:
     - 0.0
-    - 0.0
     - 1.0
+    - 0.0
     after:
-    - left_leg:p048
+    - left_leg:p059
     status: seeded
-    derived: 'mirror of right_leg p42 (R_ <-> L_, x negated): graph order, fastened distance 63 from the base; direction: no screw to placed parts:
-      toward the centroid of placed neighbours (R_B13_C047_foot_roll_case, R_foot_monocoque_combined), snapped to the nearest axis; direction
-      searched (six axes vs the seeded [-0.0, 0.0, -1.0]): path contact 60.0 -> 38.5 mm out, seat released True -> True, max overlap 8945.1 ->
-      13392.6 mm3; moved before L_sensor_pocket_pad_v19 (it touched L_sensor_pocket_pad_v19 38.5 mm out, 13392.561 mm3); moved before L_mid_medial_sensor
-      (it touched L_mid_medial_sensor 35.5 mm out, 10728.712 mm3)'
+    notes: 'T-6c2e93: mirror of right_leg:p060 (toe part of the boot, slides on from the toe along +y, last on the foot).'
+  - id: left_leg:p061
+    subassembly: left_leg
+    part: L_foot_boot_heel_shell
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - left_leg:p060
+    status: seeded
+    notes: 'T-6c2e93: mirror of right_leg:p061 (heel cap, slides on from behind along -y).'

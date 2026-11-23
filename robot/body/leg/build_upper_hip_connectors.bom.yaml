@@ -1481,6 +1481,7 @@ defects:
   - center_front_shell
   - center_back_shell
   - '*_foot_boot_shell'
+  - '*_foot_boot_heel_shell'
   - '*_foot_sole_shell'
   - '*_thigh_shell_front'
   - '*_thigh_shell_back'

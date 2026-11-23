@@ -790,9 +790,10 @@ assembly:
     - R_B13_front_PA2x6_1
     direction: screw axis
     after:
-    - right_leg:p039
+    - right_leg:p043
     status: seeded
     derived: 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case; driver path vs placed parts
+    notes: 'T-6c2e93: driven after the foot monocoque (p043) they fasten, which the seeded order placed after them; before the boot shell halves (p060, p061)'
   - id: right_leg:s041
     subassembly: right_leg
     screw:
@@ -1008,10 +1009,11 @@ assembly:
     - L_B13_front_PA2x6_1
     direction: screw axis
     after:
-    - left_leg:p039
+    - left_leg:p043
     status: seeded
     derived: 'mirror of right_leg s38 (R_ <-> L_, x negated): 2 screw(s) whose touched chain parts are all placed after R_B13_C047_foot_roll_case;
       driver path vs placed parts'
+    notes: 'T-6c2e93: driven after the foot monocoque (p043) they fasten, which the seeded order placed after them; before the boot shell halves (p060, p061)'
   - id: left_leg:s041
     subassembly: left_leg
     screw:
