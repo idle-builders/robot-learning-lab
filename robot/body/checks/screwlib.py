@@ -3,7 +3,6 @@ points around a shank, the driver data (data/tools.json) and the driver path obs
 from __future__ import annotations
 
 import json
-import re
 import sys
 
 import numpy as np
@@ -48,10 +47,10 @@ def screen(ctx, n):
 
 
 def solid_nodes(ctx):
-    """Non-hardware parts plus the steel sleeves (they are parts of the printed part they sit in)."""
+    """Parts that are no fastener (mount_check.kind None: checks.relations), the sleeve sets among them (they are parts of the
+    printed part they are pressed into)."""
     kind = mount_check().kind
-    return [n for n, p in ctx.body.parts.items()
-            if kind(p) is None and (not BL.is_fastener(n, p) or p.get("role") == "compression_limit_sleeves")]
+    return [n for n, p in ctx.body.parts.items() if kind(p) is None]
 
 
 def ring_points(g, ring_mm=RING_MM):
@@ -95,8 +94,7 @@ def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
     targets = {}
     for n in ctx.scope:
         targets[n] = n
-        s = f"{n}_steel_sleeves"
-        if s in parts:
+        for s in ctx.rel.sleeve_sets_of(n):          # the sleeve sets pressed into it (definition, else the surface they touch)
             targets[s] = n
     WB = {t: world_bounds(ctx, T, t) for t in targets}
     out = {}
@@ -132,21 +130,24 @@ def tools():
     return json.loads((DATA / "tools.json").read_text())
 
 
-def head_type(name, g, thread, data=None, head_standard=None):
+def hardware():
+    return json.loads((DATA / "hardware.json").read_text())
+
+
+def head_type(g, thread, data=None, head_standard=None):
     """Head type of a screw (data/tools.json head_types): the type whose standards list its head standard (screw_plan or
-    body definition, mount_check.screw_spec); without one, from its name, thread family and mesh."""
+    body definition, mount_check.screw_spec); without one, a thread-forming family (data/hardware.json self_tapping) is a pan
+    head, else from its mesh: button below 0.7 x the thread's major diameter (hardware.json threads; the shank's without a
+    thread) of head height, else socket cap."""
+    data = data or tools()
     if head_standard:
-        data = data or tools()
         ht = next((k for k, v in data["head_types"].items() if head_standard in v.get("standards", [])), None)
         if ht:
             return ht
-    if re.search(r"_CS\d+|countersunk", name, re.I):
-        return "countersunk"
-    if thread and thread.startswith("PA"):
+    hw = hardware()
+    if thread in hw["self_tapping"]:
         return "pan_phillips"
-    if "NBK" in name:
-        return "flange_button"
-    d = {"M2": 2.0, "M2.5": 2.5, "M3": 3.0, "M4": 4.0}.get(thread, 2 * g["r_shank_mm"])
+    d = hw["threads"].get(thread, 2 * g["r_shank_mm"])
     return "button" if g["head_height_mm"] < 0.7 * d else "socket_cap"
 
 
@@ -157,8 +158,9 @@ def tool_for(head, thread, data=None):
     t = data["tools"][kind]
     sizes = t["by_head_type_and_thread"].get(head, {})
     size = sizes.get(thread)
-    if size is None and thread and thread.startswith("PA"):
-        size = sizes.get("M" + thread[2:])    # a thread-forming PA screw with a metric head standard: the drive of that head and diameter
+    hw = hardware()
+    if size is None and thread in hw["self_tapping"]:      # a thread-forming screw with a metric head standard: the drive of that head and diameter
+        size = next((sizes[t] for t in sizes if t not in hw["self_tapping"] and hw["threads"].get(t) == hw["threads"][thread]), None)
     if size is None:
         return None
     if kind == "hex_key":

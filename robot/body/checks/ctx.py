@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import time
 
 import numpy as np
@@ -9,13 +10,18 @@ import numpy as np
 from checks import bodylib as BL
 from checks.core import DATA, ROOT, R, kit, load_body, pose_set, screen_solid, sha, tick
 
-FASTENER_KEEP = "compression_limit_sleeves"
 # Body shells are voxel-filled closed meshes of several 100k faces: too heavy to screen as neighbours by default
 # (fast_check assumption A-01 left them out too). --include-shells brings them in; a shell in the scope is still checked.
-SHELL_ROLE = "body_shell"
 
 
 SETTING_BLOCKS = ("process", "expected_hardware", "fit_classes", "covers", "exact_fit", "loadpath_slices", "geometry_thresholds", "fem", "edges", "heat_source")
+
+
+def part_settings_file():
+    """data/part_settings.json, or LAB_PART_SETTINGS=<file> (with LAB_DEFINITIONS_ROOT: the settings of an alternate body)."""
+    import os
+    alt = os.environ.get("LAB_PART_SETTINGS")
+    return Path(alt) if alt else DATA / "part_settings.json"
 
 
 def overlay_definitions(part_settings, manifest):
@@ -55,6 +61,10 @@ class Ctx:
         self.include_shells = include_shells
         self.manifest = manifest
         self.body = load_body(manifest)
+        from checks import bodylib as _BL
+        from checks.relations import Relations
+        self.rel = Relations(self.body, manifest)      # what each part is: definition, role table, geometry (never names)
+        _BL.RELATIONS = self.rel
         self.scope = list(scope)
         self.poses_name = poses
         self.search_mm = search_mm
@@ -64,7 +74,7 @@ class Ctx:
         self.sol, self.mf = {}, {}
         self._poses = {}
         self._nb = None
-        S = json.loads((DATA / "part_settings.json").read_text())
+        S = json.loads(part_settings_file().read_text())
         self._settings, self.settings_source, self.definition_of = overlay_definitions(S, self.manifest)
         self.process_override = {}      # run.py --process KEY=VALUE: applied to the process of every printed part (cross-evaluation)
 
@@ -122,9 +132,10 @@ class Ctx:
         Fasteners are not neighbours (their sleeves are). Conservative: oriented bounds corners -> world AABB."""
         body = self.body
         scope = list(scope)
+        rel = self.rel
         cand = {n: p for n, p in body.parts.items() if n not in scope
-                and (self.include_shells or p.get("role") != SHELL_ROLE)
-                and not (BL.is_fastener(n, p) and p.get("role") != FASTENER_KEEP)}
+                and (self.include_shells or not rel.is_shell(n))
+                and not (rel.is_fastener(n) and not rel.is_sleeve_set(n))}
 
         def corners(p):
             b = np.array(p["bounds_mm"], float)

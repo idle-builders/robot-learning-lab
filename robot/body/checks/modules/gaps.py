@@ -9,12 +9,14 @@ from pathlib import Path
 
 import numpy as np
 
-from checks import bodylib as BL
 from checks.core import ROOT, R, kit, screen_solid, step_mesh, tick
 from checks.registry import register
 
 
 def check_gaps(body, changed, sol, mf):
+    """Fasteners are left out, their sleeve sets kept (process.relations: definition, role class sleeve_set)."""
+    from checks import process as P
+    rel = P.relations(body)
     t0 = time.time()
     q = body.standing
     out, memo = {}, {}
@@ -22,7 +24,7 @@ def check_gaps(body, changed, sol, mf):
         Ta = body.link_T(body.parts[a]["owning_link"], q)[:3, :4]
         ga = mf[a].transform(Ta); ba = np.array(ga.bounding_box()).reshape(2, 3)
         for n, p in body.parts.items():
-            if n == a or BL.is_fastener(n, p) and p.get("role") != "compression_limit_sleeves":
+            if n == a or rel.is_fastener(n) and not rel.is_sleeve_set(n):
                 continue
             b = np.array(p["bounds_mm"], float)
             Tn = body.link_T(p["owning_link"], q)

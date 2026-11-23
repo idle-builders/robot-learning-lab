@@ -47,7 +47,8 @@ def run(ctx):
                               what="printability checks cannot run: no " + ", ".join(miss)))
     cases.sort(key=lambda c: -c["value"])
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
-                notes="printed = process.printed, else the role is in part_settings _printed.roles. Values resolve run override > "
+                notes="printed = process.printed, else the kind the part's body definition declares, else its role's kind in "
+                      "data/roles.json (process.is_printed). Values resolve run override > "
                       "part setting > material default (nozzle) > printer default by nozzle (layer height, line width); "
                       "'seeded' values were derived from old free text / FEM axes and await the designer's confirmation "
                       "(remove `seeded` from the part's process when confirmed).")

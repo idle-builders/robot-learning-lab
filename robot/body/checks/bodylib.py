@@ -25,6 +25,8 @@ def src(path) -> Path:
     return ensure(ROOT / path)
 
 
+RELATIONS = None      # the run's checks.relations.Relations (set by checks.ctx.Ctx): what a part is, from its definition
+# kept for the builders that import them (motor-refit/fit_check.py); the checks no longer decide anything from them
 FASTENER_ROLES = {"fastener", "standard_fastener_reference", "nominal_fastener", "fastener_proxy", "standard_nominal",
                   "nominal_hardware", "compression_limit_sleeves", "spacer", "case_mount_spacer"}
 FASTENER_NAME = re.compile(r"(screw|bolt|nut|sleeve|M[23]p?\d*x|washer|spacer|PA2x)", re.I)
@@ -60,20 +62,12 @@ class Body:
         return self._mesh[name]
 
     def limb_of(self) -> dict:
-        """{link: limb root joint} for the links of a limb: the subtree of an R_ / L_ joint whose parent link is not itself on a sided
-        joint (the two legs and two arms; pelvis, torso and head are on no limb). Parts on two different limbs can be posed apart."""
+        """{link: limb root joint}: the subtree under the first mirrored joint on the way out from the root (the two legs and
+        two arms; pelvis, torso and head are on no limb), from the joint table (checks.relations.limbs), not joint names.
+        Parts on two different limbs can be posed apart."""
         if getattr(self, "_limb", None) is None:
-            sided = lambda jn: jn[:2] in ("R_", "L_")  # noqa: E731
-            kids = {}
-            for j in self.joints.values():
-                kids.setdefault(j["parent"], []).append(j["child"])
-            self._limb = {}
-            for jn, j in self.joints.items():
-                pj = self.child_joint.get(j["parent"])
-                if sided(jn) and not (pj and sided(pj["name"])):
-                    stack = [j["child"]]
-                    while stack:
-                        lk = stack.pop(); self._limb[lk] = jn; stack.extend(kids.get(lk, []))
+            from checks.relations import limbs
+            self._limb = limbs(self.joints, {p["owning_link"] for p in self.parts.values()})
         return self._limb
 
     def link_T(self, link, q: dict) -> np.ndarray:
@@ -113,7 +107,12 @@ def apply(T, pts):
 
 
 def is_fastener(name, p):
-    return p.get("role") in FASTENER_ROLES or bool(FASTENER_NAME.search(name))
+    """Hardware that sits in or passes through a part by design (screws, nuts, washers, spacers, sleeve sets): the part's body
+    definition (kind), else the role table (checks/data/roles.json). Never the name (it called 16 parts hardware on a regex)."""
+    if RELATIONS is not None and name in RELATIONS.raw:
+        return RELATIONS.is_fastener(name)
+    from checks.relations import ROLES
+    return ROLES["kind"].get(p.get("role")) == "hardware" and p.get("role") not in ROLES["classes"]["solid_hardware"]["roles"]
 
 
 def measure(new_mf, new_pts, new_bounds, T_rel, part: Prepped, margin):

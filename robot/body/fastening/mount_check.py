@@ -44,9 +44,14 @@ import fit_check as F  # noqa: E402  (Body, load_mesh, src)
 import interfaces as I  # noqa: E402  (standard-part instances and their defined holes)
 
 DEFAULT_MANIFEST = ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
-HARDWARE_ROLES = {"fastener", "fastener_proxy", "nominal_fastener", "nominal_hardware", "standard_fastener_reference",
-                  "standard_nominal", "spacer"}   # spacer: the B0196 / B0410 / compute M2 / M2.5 F-F standoffs
-SCREW_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)x(\d+(?:p\d+)?)|_CS\d+|countersunk", re.I)
+CHECKS_DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or ROOT / "robot/body/checks/data")
+
+
+def _roles_class(c):
+    """The manifest roles of role class c in data/roles.json (the checks' role vocabulary)."""
+    return json.loads((CHECKS_DATA / "roles.json").read_text())["classes"].get(c, {}).get("roles", [])
+HARDWARE = json.loads((CHECKS_DATA / "hardware.json").read_text())
+FASTENER_KINDS = ("screw", "washer", "nut", "spacer")
 NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I)
 DT = 0.25            # radial probe step along the axis (mm)
 N_DIR = 24           # radial rays per depth
@@ -58,56 +63,101 @@ RAY_CLEAR_MM = 0.1   # axial layer rays keep this far from the bore / recess wal
 
 
 # ------------------------------------------------------------------------------------------------ classification
-_DEFS: list | None = None
-_SPEC: dict = {}
+_REL = None
+
+
+def use_relations(body, manifest_path):
+    """Answer what each part is with checks.relations.Relations of this body and manifest (body definitions, role table,
+    geometry; never names); also for checks.bodylib when it has none, so its is_fastener agrees in this process."""
+    global _REL
+    from checks import bodylib as BL
+    from checks.relations import Relations
+    _REL = Relations(body, manifest_path)
+    if BL.RELATIONS is None:          # inside a checks run the run's own Relations stays
+        BL.RELATIONS = _REL
+    return _REL
+
+
+def relations():
+    """The Relations of this process: set by use_relations (mount_check's own runs), else the checks run's (checks.bodylib),
+    else the selected body's (robot/design.json body_manifest)."""
+    if _REL is not None:
+        return _REL
+    rel = getattr(sys.modules.get("checks.bodylib"), "RELATIONS", None)
+    if rel is None:                   # a script that set none (propose_specs): the selected body's
+        rel = use_relations(F.Body(json.loads(DEFAULT_MANIFEST.read_text())), DEFAULT_MANIFEST)
+    return rel
 
 
 def definition_spec(name: str) -> dict:
     """The hardware spec (kind, thread, family, length_mm, standard ...) that the body definition claiming part `name`
-    declares (robot/**/<builder>.bom.yaml via robot/body/bom/definitions.py, first claim wins as in its claims()); {}
-    when no definition claims it as hardware or the definitions cannot be read."""
-    global _DEFS
-    if name in _SPEC:
-        return _SPEC[name]
-    if _DEFS is None:
+    declares (robot/**/<builder>.bom.yaml via checks.relations: the definitions' claims); {} when no definition claims it as
+    hardware or the definitions cannot be read."""
+    e = relations().claims.get(name) or {}
+    return (e.get("spec") or {}) if e.get("kind") == "hardware" else {}
+
+
+_GEO_KIND: dict = {}
+
+
+def hardware_shape(m: trimesh.Trimesh) -> dict:
+    """Shape numbers of a hardware mesh: axis_open (rays along its revolution axis, at 0 and 0.15 mm off it, all pass: a
+    hole on the axis), length_over_dia (extent along the axis / largest diameter about it), end_radius_ratio (largest radius
+    within 20 % of either end, wide end / narrow end: a head)."""
+    a, c = revolution_axis(m)
+    v = m.vertices
+    t = (v - c) @ a
+    r = np.linalg.norm((v - c) - np.outer(t, a), axis=1)
+    L = float(t.max() - t.min())
+    u, w = basis(a)
+    org = np.array([c + (t.min() - 1.0) * a + o for o in (0 * u, 0.15 * u, -0.15 * u, 0.15 * w, -0.15 * w)])
+    hits = rays_for(m).intersects_any(org, np.repeat(a[None], len(org), 0))
+    lo, hi = r[t <= t.min() + 0.2 * L].max(), r[t >= t.max() - 0.2 * L].max()
+    return dict(axis_open=bool(not hits.any()), length_over_dia=L / (2 * float(r.max())),
+                end_radius_ratio=float(max(lo, hi) / max(min(lo, hi), 1e-6)))
+
+
+def geometry_kind(p) -> str | None:
+    """screw / washer from the mesh of a hardware part that neither its definition nor a screw_plan names, where the declared
+    hardware separates (data/hardware.json geometry_kinds, measured on the declared parts); None where it does not (nuts and
+    spacers overlap in shape) or without a mesh."""
+    n = p["name"]
+    if n not in _GEO_KIND:
+        g = HARDWARE["geometry_kinds"]
+        k = None
         try:
-            sys.path.insert(0, str(ROOT / "robot/body/bom"))
-            import definitions as DEF
-            _DEFS = [(DEF.names_of(e["match"]), e) for e in DEF.load().entries]
-        except Exception:  # noqa: BLE001  (no definitions readable: the screw_plan and the name alone)
-            _DEFS = []
-    import fnmatch
-    e = next((e for pats, e in _DEFS if any(fnmatch.fnmatchcase(name, p) for p in pats)), None)
-    _SPEC[name] = (e.get("spec") or {}) if e and e.get("kind") == "hardware" else {}
-    return _SPEC[name]
+            f = hardware_shape(F.load_mesh(p["mesh"]))
+            if not f["axis_open"] and f["end_radius_ratio"] >= g["screw"]["end_radius_ratio_min"]:
+                k = "screw"
+            elif f["axis_open"] and f["length_over_dia"] <= g["washer"]["length_over_dia_max"]:
+                k = "washer"
+        except Exception:  # noqa: BLE001  (no mesh: the kind stays unknown)
+            k = None
+        _GEO_KIND[n] = k
+    return _GEO_KIND[n]
 
 
 def kind(p) -> str | None:
-    """screw / washer / nut / spacer / other_hardware / None (not hardware). Hardware by role; which hardware: the kind
-    its body definition declares, else a screw_plan (a builder placed it as a screw), else the name (a thread token, with
-    or without length, or a `screw` token make a screw)."""
-    if p["role"] not in HARDWARE_ROLES:
+    """screw / washer / nut / spacer / other_hardware / unknown / None (not a fastener). A fastener as checks.relations says
+    (the body definition's kind, else the role table; solid hardware such as bearings and the sleeve sets, which are measured
+    as part of the part they are pressed into, are not). Which one: the definition's spec.kind (other_hardware for a declared
+    kind outside the four), else a screw_plan (a builder placed it as a screw), else its geometry (geometry_kind), else
+    unknown (to declare in its definition). Never the name."""
+    rel = relations()
+    n = p["name"]
+    if not rel.is_fastener(n) or rel.is_sleeve_set(n):
         return None
-    sk = definition_spec(p["name"]).get("kind")
+    sk = rel.hardware_kind(n)
     if sk:
-        return sk if sk in ("screw", "washer", "nut", "spacer") else "other_hardware"
+        return sk if sk in FASTENER_KINDS else "other_hardware"
     if p.get("screw_plan"):
         return "screw"
-    n = p["name"].lower()
-    if "washer" in n:
-        return "washer"
-    if "nut" in n and "nbk" not in n:
-        return "nut"
-    if "spacer" in n or "standoff" in n:
-        return "spacer"
-    if SCREW_RE.search(p["name"]) or nominal(p["name"]).get("thread") or re.search(r"(^|_)screw(_|\d|$)", n):
-        return "screw"
-    return "other_hardware"
+    return geometry_kind(p) or "unknown"
 
 
 def nominal(name: str) -> dict:
-    """Thread family and nominal length from a name such as R_knee_ST3025_PA2x8_0 or compute_M2p5_CS30_1 (the name
-    token only; screw_spec() says what the screw is)."""
+    """Thread family and nominal length from a name token such as R_knee_ST3025_PA2x8_0. Not used by the checks here (a name
+    says nothing to them; screw_spec reads the screw_plan and the definition); kept for older callers."""
     m = NOMINAL_RE.search(name)
     if not m:
         return {}
@@ -121,25 +171,29 @@ def nominal(name: str) -> dict:
 
 def screw_spec(p) -> dict:
     """Thread family (M2 / M2.5 / M3 / PA2 ...), nominal length and head standard of a screw part: its screw_plan (written by
-    the builder that placed it), else the spec of its body definition, else the name token (names can carry stale
-    lengths). spec_source says which; name_length_mm is the name's length where it differs."""
+    the builder that placed it), else the spec of its body definition; spec_source says which. {} when neither declares a
+    thread: the screw's thread and length come from nowhere (screws_without_spec in the report: declare them)."""
     pl = p.get("screw_plan") or {}
     sp = definition_spec(p["name"])
-    nm = nominal(p["name"])
     if pl.get("thread_label"):
         out = dict(thread=pl["thread_label"], nominal_length_mm=pl.get("length_mm"), head_standard=pl.get("head_standard"), spec_source="screw_plan")
     elif sp.get("kind") == "screw" and sp.get("thread"):
         th = ("PA" + sp["thread"].lstrip("M")) if sp.get("family") == "PA" else sp["thread"]
         out = dict(thread=th, nominal_length_mm=sp.get("length_mm"), head_standard=sp.get("standard"), spec_source="definition")
-    elif nm:
-        return dict(nm, spec_source="name")
     else:
         return {}
     if out["nominal_length_mm"] is None:
         out.pop("nominal_length_mm")
-    if nm.get("nominal_length_mm") is not None and nm["nominal_length_mm"] != out.get("nominal_length_mm"):
-        out["name_length_mm"] = nm["nominal_length_mm"]
     return out
+
+
+def same_thread_family(screw: str | None, hole: str | None, material: str | None) -> bool:
+    """The screw fits the hole's thread: the same family, or a thread-forming family (data/hardware.json self_tapping) of the
+    same major diameter (hardware.json threads) forming its thread in a plastic hole (PA2 into an M2 tap in a plastic case)."""
+    if screw == hole:
+        return True
+    th = HARDWARE["threads"]
+    return material == "plastic" and screw in HARDWARE["self_tapping"] and th.get(screw) is not None and th.get(screw) == th.get(hole)
 
 
 # ------------------------------------------------------------------------------------------------ screw geometry
@@ -377,8 +431,12 @@ def path_obstruction(head, d, radius, length, scene, exclude, n_ring=3, n_ang=12
 
 
 # ------------------------------------------------------------------------------------------------ one screw
-PRINTED = ("printed_structural_connector", "printed_structural_carrier", "body_shell")
-DRIVER_L = 40.0     # mm of straight access behind the head for a screwdriver / hex key
+DRIVER_L = json.loads((CHECKS_DATA / "tools.json").read_text())["path"]["min_length_mm"]   # straight access behind the head for a driver
+
+
+def printed(n) -> bool:
+    """A printed part (checks.relations: its definition's kind, else the role table)."""
+    return relations().is_printed(n)
 
 
 def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, scenes):
@@ -447,7 +505,7 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                     axis_offset_mm=parts[c].get("axis_offset_mm"))
     elif thr:
         e, c = max(thr)
-        mat = "plastic" if body.parts[c]["role"] in PRINTED else "unknown"
+        mat = "plastic" if printed(c) else "unknown"
         term = dict(kind="thread_in_part", part=c, engagement_mm=e, axis_offset_mm=parts[c].get("axis_offset_mm"),
                     reference_engagement_mm=round(2.0 * 2 * rs, 2) if mat == "plastic" else None,
                     motor_part_without_definition=body.parts[c]["role"] in I.MOTOR_ROLES)
@@ -472,8 +530,8 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
         win[tpart] = (t0 - 1.0, t0 + 1.0)
     levels, level_of = [], {}
     for c in sorted(clamped, key=lambda c: parts[c]["t_range_mm"][0]):
-        host = next((lv for lv in levels if parts[c]["role"] == "compression_limit_sleeves" and any(
-            body.parts[h]["role"] in PRINTED and parts[h]["t_range_mm"][0] - 0.3 <= parts[c]["t_range_mm"][0]
+        host = next((lv for lv in levels if relations().is_sleeve_set(c) and any(
+            printed(h) and parts[h]["t_range_mm"][0] - 0.3 <= parts[c]["t_range_mm"][0]
             and parts[c]["t_range_mm"][1] <= parts[h]["t_range_mm"][1] + 0.3 for h in lv)), None)
         if host is None:
             host = []; levels.append(host)
@@ -543,10 +601,10 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     # sleeves: every clamped printed part should carry one where the screw passes
     sleeves = []
     for c in clamped:
-        if body.parts[c]["role"] not in PRINTED:
+        if not printed(c):
             continue
         t0, t1 = parts[c]["t_range_mm"]
-        sl = [s for s in stack if parts[s]["role"] == "compression_limit_sleeves"
+        sl = [s for s in stack if relations().is_sleeve_set(s)
               and parts[s]["t_range_mm"][0] < t1 - 0.1 and parts[s]["t_range_mm"][1] > t0 + 0.1]
         row = dict(printed_part=c, printed_role=body.parts[c]["role"], printed_hole_dia_mm=parts[c].get("hole_dia_mm"),
                    clamped_len_mm=round(t1 - t0, 2), sleeve=sl[0] if sl else None)
@@ -567,8 +625,7 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     if term and term.get("hole"):
         hole_thr, scr = term["hole"]["thread"], nom.get("thread")
         thread_match = dict(screw=scr, hole=hole_thr, terminal_material=term["hole"]["terminal_material"],
-                            same_family=(scr == hole_thr) or (scr == "PA2" and hole_thr == "M2"
-                                                                and term["hole"]["terminal_material"] == "plastic"))
+                            same_family=same_thread_family(scr, hole_thr, term["hole"]["terminal_material"]))
     clamped_holes = [dict(part=c, hole_dia_mm=parts[c].get("hole_dia_mm"), axis_offset_mm=parts[c].get("axis_offset_mm"),
                           radial_clearance_mm=parts[c].get("radial_clearance_mm"), axis_tilt_deg=parts[c].get("axis_tilt_deg"))
                      for c in clamped]
@@ -672,6 +729,7 @@ def run(manifest_path: Path, only: str | None, out: Path, part: str | None = Non
     if part is None and not only:
         man = json.loads(manifest_path.read_text())
         body = F.Body(man)
+        use_relations(body, manifest_path)
         n = sum(1 for nm, p in body.parts.items() if kind(p) == "screw")
         rows = []
         for a in range(0, n, chunk):
@@ -708,6 +766,7 @@ def run_screws(manifest_path: Path, only: str | None, out: Path, part: str | Non
     t0 = time.time()
     man = json.loads(manifest_path.read_text())
     body = F.Body(man)
+    rel = use_relations(body, manifest_path)
     defs = json.loads(I.DEFS.read_text())
     fam = defs["screw_families"]
     kinds = {n: kind(p) for n, p in body.parts.items()}
@@ -716,7 +775,7 @@ def run_screws(manifest_path: Path, only: str | None, out: Path, part: str | Non
     if part:
         a, b = map(int, part.split(":"))
         screws = screws[a:b]
-    skip_roles = {"battery_cell", "battery_insulator", "battery_heatsink_fin", "authored_harness", "adhesive_allocation"}
+    skip_roles = set(_roles_class("not_probed"))             # role class (data/roles.json): parts no screw is probed against
     meshes = {}
 
     class LazyRays(dict):
@@ -743,7 +802,7 @@ def run_screws(manifest_path: Path, only: str | None, out: Path, part: str | Non
     for c in tool:
         mesh(c)
     scenes = {"all": BodyScene(tool, meshes),             # one access-ray scene per chunk (embree leaks per scene)
-              "no_shells": BodyScene([n for n in tool if body.parts[n]["role"] != "body_shell"], meshes)}
+              "no_shells": BodyScene([n for n in tool if not rel.is_shell(n)], meshes)}
     print(f"registered {iface['summary']['instances']} standard-part instances ({round(time.time() - t0)} s)")
     rows = []
     for s in screws:
@@ -764,6 +823,8 @@ def run_screws(manifest_path: Path, only: str | None, out: Path, part: str | Non
             rows.append(dict(name=s, error=repr(e), findings=[dict(kind="check_error", value=repr(e))]))
     rep = dict(manifest=str(manifest_path.relative_to(ROOT)), definitions=str(I.DEFS.relative_to(ROOT)),
                screws=len(rows), seconds=round(time.time() - t0, 1), references=REF,
+               hardware_kind_unknown=sorted(n for n, k in kinds.items() if k == "unknown"),
+               screws_without_spec=sorted(r["name"] for r in rows if "error" not in r and not r.get("spec_source")),
                instances=iface["instances"], undefined_parts=iface["summary"]["undefined"],
                rows=rows, by_connector=by_connector(rows, body))
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -779,7 +840,7 @@ def by_connector(rows, body):
         if "error" in r:
             key = "(check error)"
         else:
-            pr = [c for c in r["clamped"] if body.parts[c]["role"] in PRINTED]
+            pr = [c for c in r["clamped"] if printed(c)]
             key = pr[0] if pr else (r["terminal"]["part"] if r["terminal"] else "(no part)")
         g = groups.setdefault(key, dict(part=key, screws=0, screws_with_findings=0, findings=0, kinds={}, worst={}))
         g["screws"] += 1
@@ -812,7 +873,7 @@ def reverse_view(body, rows, iface, mesh):
     axes = [(np.array(r["head_mm"]), np.array(r["axis"]), r["length_mm"], r["name"]) for r in rows if "error" not in r]
     sleeves = []
     for n, p in body.parts.items():
-        if p["role"] != "compression_limit_sleeves":
+        if not relations().is_sleeve_set(n):
             continue
         for i, (c, a, length, od, idd) in enumerate(tubes(mesh(n))):
             best = None

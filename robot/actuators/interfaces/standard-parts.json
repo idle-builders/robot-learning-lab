@@ -871,6 +871,10 @@
      0.0,
      1.0
     ]
+   ],
+   "identified_by": [
+    "ST3025",
+    "ST-3025"
    ]
   },
   "ST3215": {
@@ -1445,6 +1449,13 @@
      1.0,
      0.0
     ]
+   ],
+   "identified_by": [
+    "ST3215",
+    "ST-3215"
+   ],
+   "shares_case_cad_with": [
+    "STS3250"
    ]
   },
   "STS3250": {
@@ -2058,6 +2069,13 @@
      1.0,
      0.0
     ]
+   ],
+   "identified_by": [
+    "STS3250",
+    "ST-3250"
+   ],
+   "shares_case_cad_with": [
+    "ST3215"
    ]
   },
   "XM335": {
@@ -2850,7 +2868,11 @@
      0.0,
      1.0
     ]
+   ],
+   "identified_by": [
+    "XM335"
    ]
   }
- }
+ },
+ "identity_note": "identified_by: tokens of a servo part's body definition (part_number, spec) or manifest motor text that name this standard part (fastening/interfaces.py model_of; exactly one standard part must match). shares_case_cad_with: standard parts with the same case frame and hole pattern, so a body may model one with the other's CAD (the registration tries both). Added by hand 2026-11-23: standard_parts.py does not write them yet."
 }

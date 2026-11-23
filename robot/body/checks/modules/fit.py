@@ -12,7 +12,7 @@ from checks.core import R, tick
 from checks.registry import register
 
 NEAR_MM = 4.0   # distance is exact below this, the box gap above (as in roll_flip_checks)
-PAIR_BUDGET_S = 120.0   # exact OCC seconds per pair before it stops (run.py --fit-pair-budget-s); one OCC call is not interrupted
+PAIR_BUDGET_S = 120.0   # exact OCC seconds per pair before it stops (run.py --fit-pair-budget-s); each call runs forked and is stopped at the budget (brep.bounded)
 
 
 def _shape(ctx, n, cache):
@@ -21,9 +21,9 @@ def _shape(ctx, n, cache):
         if not (p.get("native_step") or p.get("native_step_unmodified")):
             cache[n] = None
         else:
-            turned = str(p.get("roll_flip", "")).startswith("turned")
-            try:
-                sh = R.brep(n, ctx.parts, turned=turned, keep_case_solids=bool((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3")))
+            turned = str(p.get("roll_flip", "")).startswith("turned")     # the manifest's roll-flip turn of the case
+            try:   # exact_fit.min_solid_mm3 (part settings / body definition): only STEP solids of at least this volume
+                sh = R.brep(n, ctx.parts, turned=turned, min_solid_mm3=float((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3") or 0.0))
                 if getattr(sh, "_wrapped", None) is None or not sh.solids():
                     raise ValueError("STEP gave an empty shape")
                 cache[n] = sh
@@ -77,8 +77,16 @@ def exact_pairs(ctx):
                     t1 = time.time()
                     moved = L.transform_shape(shapes[b], Trel)
                     gap = L.aabb_gap(L.aabb(shapes[a]), L.aabb(moved))
-                    v = L.common_volume_mm3(shapes[a], moved) if gap <= 0.05 else 0.0
-                    d = L.min_distance_mm(shapes[a], moved) if gap < NEAR_MM else round(gap, 3)
+                    try:        # each exact call in a forked process stopped at what is left of the pair's budget
+                        v = L.bounded(lambda: L.common_volume_mm3(shapes[a], moved), budget - w["exact_seconds"]) if gap <= 0.05 else 0.0
+                        d = (L.bounded(lambda: L.min_distance_mm(shapes[a], moved), budget - w["exact_seconds"] - (time.time() - t1))
+                             if gap < NEAR_MM else round(gap, 3))
+                    except L.CallTimeout as e:
+                        w["exact_seconds"] = round(w["exact_seconds"] + time.time() - t1, 2)
+                        w["timed_out"], w["stopped_in_call"] = True, f"pose {pname}: {e}"
+                        print(f"fit: pair {a} x {b}: one exact call at pose {pname} {e}, over its {budget:g} s budget after {w['poses']} poses",
+                              file=sys.stderr, flush=True)
+                        continue
                     cache[key] = (v, d)
                     exact += 1
                     w["exact_seconds"] = round(w["exact_seconds"] + time.time() - t1, 2)
@@ -125,7 +133,7 @@ def run(ctx):
                                 pairs_timed_out=sum(1 for w in worst.values() if w["timed_out"]),
                                 steps_unreadable=len(getattr(ctx, "fit_unreadable_steps", {}))),
                 steps_unreadable=getattr(ctx, "fit_unreadable_steps", {}),
-                pairs_timed_out={f"{a} x {b}": dict(poses_reached=w["poses"], of_poses=len(ctx.poses), exact_seconds=w["exact_seconds"])
+                pairs_timed_out={f"{a} x {b}": dict(poses_reached=w["poses"], of_poses=len(ctx.poses), exact_seconds=w["exact_seconds"], stopped_in_call=w.get("stopped_in_call"))
                                  for (a, b), w in worst.items() if w["timed_out"]},
                 evidence=[], notes=f"{len(ctx.poses)} poses ({ctx.poses_name}); a pair over {getattr(ctx, 'fit_pair_budget_s', None) or PAIR_BUDGET_S:g} s of exact work stops (pairs_timed_out: poses reached); exact OpenCascade common volume and BRepExtrema distance on native STEP; "
                                    f"distance exact below {NEAR_MM} mm, box gap above; parts without native STEP not measured: {no_step[:8]}")

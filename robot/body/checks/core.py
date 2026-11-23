@@ -18,11 +18,12 @@ import roll_flip_checks as R  # noqa: E402  (sets up kit, leg_motion, motor-refi
 from checks import bodylib as BL
 from checks import cachefs
 from checks import resultcache
+from checks.relations import ROLES as _ROLES   # data/roles.json (or LAB_CHECKS_DATA's): kinds and role classes
 
 kit = R.kit
 WORK = ROOT / ".cache/work/cad-speed"          # reports: this checkout's own
 CACHE = cachefs.work() / "cad-speed/cache"     # content-addressed caches: shared with the worktrees (checks/cachefs.py)
-DATA = HERE / "data"
+DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or HERE / "data")   # LAB_CHECKS_DATA: another set of check tables
 T = {}
 
 
@@ -139,12 +140,47 @@ def _failed(key=None, why=None):
     return cachefs.read_json(_FAILED_FILE, {}) or {}
 
 
-STEP_ROLES = {"printed_structural_connector": 0.0, "printed_structural_carrier": 0.0,
-              "purchased_servo_case_family_reference": 4000.0, "motor": 4000.0}   # min solid volume kept (mm3)
-# (ST3025 "motor" STEPs hold the housing as 11 pieces, only one over 4000 mm3: screen_solid then retries with every solid)
+# Which parts are screened with their STEP when not in scope, and the smallest STEP solid kept: pose_sets.json screening_solids,
+# over the role table's kinds and classes (data/roles.json; a part's body definition wins on kind and exact_fit), never names.
+SCREENING = json.loads((DATA / "pose_sets.json").read_text())["screening_solids"]
 
 
-SOLID_VERSION = "v3"   # 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
+def _role_classes(role):
+    return {c for c, v in _ROLES["classes"].items() if role in v["roles"]}
+
+
+def _takes_step(kind, role):
+    cls = _role_classes(role)
+    return (kind in SCREENING["step_kinds"] or bool(cls & set(SCREENING["step_classes"]))) and not cls & set(SCREENING["except_classes"])
+
+
+def takes_step(n, p):
+    """Is part n screened with its native STEP when not in scope? Its kind (body definition, else role table) or role class."""
+    rel = BL.RELATIONS
+    kind = rel.kind(n) if rel is not None and n in rel.raw else _ROLES["kind"].get(p.get("role"))
+    return _takes_step(kind, p.get("role"))
+
+
+def min_solid_mm3(n, p):
+    """Smallest STEP solid kept in part n's screening solid (mm3): its body definition's exact_fit.min_solid_mm3, else its role
+    class's class_min_solid_mm3 (a servo case: the housing without its internal gears), else 0."""
+    rel = BL.RELATIONS
+    ef = ((rel.claims.get(n) or {}).get("exact_fit") if rel is not None else None) or {}
+    if isinstance(ef, dict) and ef.get("min_solid_mm3") is not None:
+        return float(ef["min_solid_mm3"])
+    return max([float(SCREENING["class_min_solid_mm3"].get(c, 0.0)) for c in _role_classes(p.get("role"))] or [0.0])
+
+
+# roles whose parts take the STEP when not in scope (by the role table alone), with their class's min solid: run.py reads it
+STEP_ROLES = {r: max([float(SCREENING["class_min_solid_mm3"].get(c, 0.0)) for c in _role_classes(r)] or [0.0])
+              for r in set(_ROLES["kind"]) | {x for v in _ROLES["classes"].values() for x in v["roles"]}
+              if _takes_step(_ROLES["kind"].get(r), r)}
+
+
+SOLID_VERSION = "v4"   # 2026-11-23: a rejection is keyed by what the screening solid is made from (STEP sha, tolerance, offset, the
+                       # roll-flip turn, the manifest box, the min solid), not the part's name: a renamed body read the rejection a
+                       # wrongly turned case had left under its opaque id, and a moved part kept its old one. v3 entries are ignored.
+                       # v3 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
                        # had been remembered as an unusable STEP); v2 entries are ignored.
                        # v2 (2026-11-19): the part's own closed mesh before any voxel fill; STEP retried with all solids and
                        # coarser on a fresh import. Older not-usable entries were written by v1 and are ignored.
@@ -176,32 +212,35 @@ def screen_solid(body, n, changed):
     step = p.get("native_step")
     if step and not BL.src(step).exists():          # a STEP reference that resolves nowhere (R_toe_lateral_sensor): the mesh
         step = None
-    role = p.get("role")
-    # a scoped part gets the fine STEP tessellation, except a bought part (role outside STEP_ROLES) with a big STEP:
-    # supplier boards hold thousands of component solids (power supervisor 78 MB, ROCK4D 44, B0196 26, B0410 22) and
+    stepped = takes_step(n, p)
+    # a scoped part gets the fine STEP tessellation, except a bought part (not screened by its STEP when unscoped) with a big
+    # STEP: supplier boards hold thousands of component solids (power supervisor 78 MB, ROCK4D 44, B0196 26, B0410 22) and
     # an unscoped run scopes every part, so it never finished (T-c4sy9d, 2026-11-20); those take the coarse path
-    fine = n in changed and not (step and role not in STEP_ROLES and _mb(step) > FINE_STEP_MAX_MB)
+    fine = n in changed and not (step and not stepped and _mb(step) > FINE_STEP_MAX_MB)
     tol = 0.03 if fine else 0.1                     # unchanged parts: coarser screening mesh, faster sweep
     step_why = None                                 # why the STEP is not the screening solid: named in the solid's `how`
-    if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
-        fail_key = f"{SOLID_VERSION}:{n}:{sha(BL.src(step))[:16]}:{tol}"
+    b = np.array(p["bounds_mm"], float)
+    turn = R.turn_T_at(0.5 * (b[0][0] + b[1][0])) if str(p.get("roll_flip", "")).startswith("turned") else None  # the roll-flip case:
+    if step and not p.get("placement_offset_mm") and (fine or stepped):                           # turned about the roll axis, on its side
+        made_of = json.dumps(dict(offset=p.get("native_step_offset_mm"), turn=None if turn is None else np.round(turn, 6).tolist(),
+                                  box=np.round(b, 3).tolist(), min_solid=min_solid_mm3(n, p)))
+        fail_key = f"{SOLID_VERSION}:{sha(BL.src(step))[:16]}:{tol}:{hashlib.sha256(made_of.encode()).hexdigest()[:16]}"
         failed = _failed()
         if fail_key in failed and n not in changed:
             step, step_why = None, failed[fail_key]
-    if step and not p.get("placement_offset_mm") and (fine or role in STEP_ROLES):
-        b = np.array(p["bounds_mm"], float)
+    if step and not p.get("placement_offset_mm") and (fine or stepped):
         why = None
         # a servo STEP may hold its housing as several small solids (ST3025: 11 pieces, one over 4000 mm3): when the
         # housing filter leaves a solid that does not span the manifest bounds, take every solid
-        for mins in dict.fromkeys((STEP_ROLES.get(role, 0.0), 0.0)):
+        for mins in dict.fromkeys((min_solid_mm3(n, p), 0.0)):
             try:
                 m = step_mesh(BL.src(step), p.get("native_step_offset_mm"), tol=tol, ang=0.2 if tol < 0.05 else 0.5,
                               min_solid_mm3=mins)
             except Exception as exc:  # noqa: BLE001
                 why = f"{type(exc).__name__}: {exc}"
                 break
-            if str(p.get("roll_flip", "")).startswith("turned"):   # the roll-flip case: turned about the roll axis
-                m = m.copy(); m.apply_transform(R.turn_T(n[0]))
+            if turn is not None:
+                m = m.copy(); m.apply_transform(turn)
             if m is None or len(m.faces) == 0:
                 why = "empty tessellation"
                 break
@@ -256,32 +295,96 @@ def region_poses(body, which, links):
     return P
 
 
+def fit_poses():
+    """[(name, {joint: deg})] of the exact-fit list, pose_sets.json fit_poses: standing, each sweep's joint alone at each of its
+    angles, then the combined poses."""
+    fp = json.loads((DATA / "pose_sets.json").read_text())["fit_poses"]
+    P = [("standing", {})]
+    for sw in fp["sweeps"]:
+        P += [(sw["name"].format(deg=a), {sw["joint"]: float(a)}) for a in sw["deg"]]
+    return P + [(nm, {j: float(a) for j, a in q.items()}) for nm, q in fp["combined"]]
+
+
+def _leg_sources(spec):
+    """[(name, family, {joint: deg})] of a set's leg-motion sources (pose_sets.json: leg_motion KEY / library / GRID on
+    leg_motion.joints, fit_poses, range_ends), each the joints it sets, before standing is filled in."""
+    from leg_motion import GRID, KEY, library_poses
+    J = json.loads((DATA / "pose_sets.json").read_text())["leg_motion"]["joints"]
+
+    def q4(p):
+        return dict(zip(J, map(float, p)))
+    P = []
+    if spec.get("leg_motion_key"):
+        P += [(f"key: {k}", "key", q4(v)) for k, v in KEY.items()]
+    if spec.get("fit_poses"):       # the exact-fit list (single joints over wide ranges + combined crouches)
+        P += [(f"fit: {nm}", "fit poses", cmd) for nm, cmd in fit_poses()]
+    if spec.get("fit_extremes"):
+        P += [(f"fit: {nm}", "fit extremes", cmd) for nm, cmd in fit_poses()[-spec["fit_extremes"]:]]
+    P += [(f"range end: {j} {a:+g}", "range ends", {j: float(a)}) for j, a in spec.get("range_ends", [])]
+    if spec.get("leg_motion_library"):
+        P += [(f"{fam} {np.round(p, 1).tolist()}", fam, q4(p)) for fam, p, _ in library_poses()]
+    if spec.get("leg_motion_grid"):
+        P += [(f"all combinations {list(g)}", "all combinations", q4(g)) for g in GRID]
+    return P
+
+
+def joint_mirrors(body):
+    """{joint: (mirror joint, angle sign)}: the joint table's (checks.relations.joint_mirrors: origin and axis mirrored), plus the
+    mirrors pose_sets.json joint_mirrors declares, both ways. Cached on the body."""
+    if getattr(body, "_joint_mirrors", None) is None:
+        from checks.relations import joint_mirrors as derived
+        jm = derived(body.joints)
+        for a, (b, s) in ((k, v) for k, v in json.loads((DATA / "pose_sets.json").read_text())["joint_mirrors"].items() if not k.startswith("_")):
+            if a in body.joints and b in body.joints:
+                jm[a], jm[b] = (b, float(s)), (a, float(s))
+        body._joint_mirrors = jm
+    return body._joint_mirrors
+
+
+def leg_sides(body, joints, links):
+    """(as named, mirrored): which side(s) the leg-motion sources, which set `joints`, are given for scoped parts on `links`.
+    Limbs and mirror joints come from the joint table (checks.relations.limbs / joint_mirrors), not names: mirrored when a
+    scoped link is on the mirror limb of a limb the sources move; as named when a scoped link is on a limb they move, on no
+    limb (torso: it meets both legs), or when nothing is scoped or no mirror applies."""
+    from checks.relations import limbs
+    lim = limbs(body.joints, {p["owning_link"] for p in body.parts.values()})
+    jm = joint_mirrors(body)
+    src = {lim.get(body.joints[j]["child"]) for j in joints if j in body.joints} - {None}
+    mirror = {jm[r][0] for r in src if r in jm}
+    scoped = {lim.get(lk) for lk in links}
+    mirrored = bool(scoped & mirror)
+    return (not mirrored or bool(scoped & src) or None in scoped), mirrored
+
+
+def mirror_cmd(body, cmd):
+    """cmd's angles moved onto the mirror joints (angle x sign, joint_mirrors); a joint without a mirror keeps its own."""
+    jm = joint_mirrors(body)
+    return {jm.get(j, (j, 1.0))[0]: jm.get(j, (j, 1.0))[1] * a for j, a in cmd.items()}
+
+
 def pose_set(body, which, links=()):
     """[(name, family, {joint: deg})] of a named set in data/pose_sets.json. links: owning links of the scoped parts; the parts on an arm,
     neck or torso link get that region's poses (region_poses) in place of the leg-motion poses; leg parts and mixed scopes keep the leg set
-    (mixed: plus the region poses)."""
-    from leg_motion import GRID, J, KEY, library_poses
+    (mixed: plus the region poses). The leg set names one leg's joints; scoped parts on the other leg get it mirrored onto that leg
+    (leg_sides, mirror_cmd: '(mirror)' after the pose name, a range end named by its own joint), a scope on both legs gets both."""
     spec = json.loads((DATA / "pose_sets.json").read_text())[which]
     st = body.standing
     reg = region_poses(body, which, links) if links else []
     in_region = {lk for v in json.loads((DATA / "pose_sets.json").read_text())["region_poses"]["regions"].values() for lk in v["links"]}
     if reg and set(links) <= in_region:
         return [("standing", "standing", dict(st))] + reg
-
-    def q4(p):
-        return {**st, **dict(zip(J, map(float, p)))}
-    P = []
-    if spec.get("standing"):
-        P.append(("standing", "standing", dict(st)))
-    if spec.get("leg_motion_key"):
-        P += [(f"key: {k}", "key", q4(v)) for k, v in KEY.items()]
-    if spec.get("fit_poses"):       # roll_flip_checks.fit_poses(): the exact-fit list (single joints over wide ranges + combined crouches)
-        P += [(f"fit: {nm}", "fit poses", {**st, **cmd}) for nm, cmd in R.fit_poses()]
-    if spec.get("fit_extremes"):
-        P += [(f"fit: {nm}", "fit extremes", {**st, **cmd}) for nm, cmd in R.fit_poses()[-spec["fit_extremes"]:]]
-    P += [(f"range end: {j} {a:+g}", "range ends", {**st, j: float(a)}) for j, a in spec.get("range_ends", [])]
-    if spec.get("leg_motion_library"):
-        P += [(f"{fam} {np.round(p, 1).tolist()}", fam, q4(p)) for fam, p, _ in library_poses()]
-    if spec.get("leg_motion_grid"):
-        P += [(f"all combinations {list(g)}", "all combinations", q4(g)) for g in GRID]
+    src = _leg_sources(spec)
+    as_named, mirrored = leg_sides(body, {j for _, _, c in src for j in c}, links)
+    P = [("standing", "standing", dict(st))] if spec.get("standing") else []
+    if as_named:
+        P += [(nm, fam, {**st, **cmd}) for nm, fam, cmd in src]
+    if mirrored:
+        for nm, fam, cmd in src:
+            m = mirror_cmd(body, cmd)
+            if fam == "range ends":
+                (j, a), = m.items()
+                nm = f"range end: {j} {a:+g}"
+            else:
+                nm = f"{nm} (mirror)"
+            P.append((nm, fam, {**st, **m}))
     return P + reg

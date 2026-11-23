@@ -1,0 +1,112 @@
+{
+ "_doc": "What the checks may conclude from a manifest role (robot/body/checks/relations.py), only where the part's body definition (robot/**/<builder>.bom.yaml) does not say it: kind and spec.kind of a definition always win. Roles are the manifest's vocabulary, written by the builders; no part names. kind: printed | purchased | hardware | included | made | other (as the definition schema). classes: sets of roles the checks treat alike.",
+ "kind": {
+  "printed_structural_connector": "printed",
+  "printed_structural_carrier": "printed",
+  "body_shell": "printed",
+  "produced_backing": "printed",
+  "produced_holder": "printed",
+  "manufactured": "printed",
+  "insulating_mount_spacer": "printed",
+  "fastener": "hardware",
+  "fastener_proxy": "hardware",
+  "nominal_fastener": "hardware",
+  "nominal_hardware": "hardware",
+  "standard_fastener_reference": "hardware",
+  "standard_nominal": "hardware",
+  "spacer": "hardware",
+  "case_mount_spacer": "hardware",
+  "threaded_sleeve": "hardware",
+  "compression_limit_sleeves": "hardware",
+  "bearing": "hardware",
+  "motor": "purchased",
+  "actuator": "purchased",
+  "purchased_servo_case_family_reference": "purchased",
+  "purchased_module": "purchased",
+  "supplier_native": "purchased",
+  "source_power_board": "purchased",
+  "battery_cell": "purchased",
+  "candidate_sensor": "purchased",
+  "output": "included",
+  "output_horn": "included",
+  "horn": "included",
+  "purchased_servo_output_family_reference": "included",
+  "battery_heatsink_fin": "made",
+  "cut_stock": "made",
+  "authored_harness": "made",
+  "battery_insulator": "other",
+  "adhesive_allocation": "other",
+  "cut_material": "other"
+ },
+ "classes": {
+  "sleeve_set": {
+   "roles": [
+    "compression_limit_sleeves"
+   ],
+   "_doc": "steel sleeves pressed into a printed part: hardware, but measured as part of that part (neighbours, bores, press)"
+  },
+  "shell": {
+   "roles": [
+    "body_shell"
+   ],
+   "_doc": "body shells / covers: go on last; screened as neighbours only on request; their obstruction is reported apart"
+  },
+  "servo_case": {
+   "roles": [
+    "motor",
+    "actuator",
+    "purchased_servo_case_family_reference"
+   ],
+   "_doc": "a servo's case (on the joint's parent link)"
+  },
+  "servo_output": {
+   "roles": [
+    "output",
+    "output_horn",
+    "horn",
+    "purchased_servo_output_family_reference"
+   ],
+   "_doc": "a servo's output wheel / horn / idler (on the joint's child link)"
+  },
+  "no_collision": {
+   "roles": [
+    "cut_material",
+    "adhesive_allocation",
+    "authored_harness",
+    "candidate_sensor",
+    "produced_backing"
+   ],
+   "_doc": "geometry that does not collide as a rigid body (glue, harness, sensor stack layers): left out of the motion sweeps"
+  },
+  "audit_skip": {
+   "roles": [
+    "cut_material",
+    "adhesive_allocation",
+    "authored_harness"
+   ],
+   "_doc": "left out of the standing overlap audit"
+  },
+  "solid_hardware": {
+   "roles": [
+    "bearing"
+   ],
+   "_doc": "hardware in the BOM, but measured as a solid part (neighbour, overlaps), not as a fastener"
+  },
+  "not_probed": {
+   "roles": [
+    "battery_cell",
+    "battery_insulator",
+    "battery_heatsink_fin",
+    "authored_harness",
+    "adhesive_allocation"
+   ],
+   "_doc": "parts mount_check does not probe a screw against (no screw mates with a cell, its insulation or fins, a harness or glue)"
+  }
+ },
+ "geometry": {
+  "_doc": "Thresholds of the derived relations (relations.py). touch_mm: a sleeve surface point counts as touching a part within this distance; mirror_tol_mm: largest box-face difference of an x-mirrored part pair.",
+  "touch_mm": 0.4,
+  "mirror_tol_mm": 1.0,
+  "mirror_plane_x_mm": 0.0
+ }
+}

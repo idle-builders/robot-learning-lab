@@ -28,7 +28,7 @@ import trimesh
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-HARDWARE = ROOT / "robot/body/checks/data/hardware.json"
+HARDWARE = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or ROOT / "robot/body/checks/data") / "hardware.json"
 CONNECTORS = HERE / "connector_screws.json"
 RING_MM = (1.9, 2.3, 2.7)       # radii of the axial rays that find the clamped parts' outer face around the hole
 REACH_MM = 40.0

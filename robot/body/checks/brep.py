@@ -1,8 +1,6 @@
 """B-rep helpers of the exact checks: multi-solid common volume and minimum distance of OCC shapes, shape transforms
-by link transforms, memoised optimal bounding boxes. Moved from the lower-leg study's fit_check.py without changing the maths."""
+(by the body's link_T), memoised optimal bounding boxes. Moved from the lower-leg study's fit_check.py without changing the maths."""
 from __future__ import annotations
-
-import math
 
 import numpy as np
 from build123d import Compound
@@ -12,30 +10,6 @@ from OCP.BRepExtrema import BRepExtrema_DistShapeShape
 from OCP.BRepGProp import BRepGProp
 from OCP.GProp import GProp_GProps
 from OCP.gp import gp_Trsf
-
-
-def rotation_matrix(j: dict, angle_deg: float) -> np.ndarray:
-    axis = np.array(j["axis_world_neutral"], dtype=float)
-    axis /= np.linalg.norm(axis)
-    a = math.radians(angle_deg)
-    K = np.array([[0, -axis[2], axis[1]], [axis[2], 0, -axis[0]], [-axis[1], axis[0], 0]])
-    R = np.eye(3) + math.sin(a) * K + (1.0 - math.cos(a)) * (K @ K)
-    T = np.eye(4)
-    T[:3, :3] = R
-    o = np.array(j["origin_world_mm"], dtype=float)
-    T[:3, 3] = o - R @ o
-    return T
-
-
-def link_transforms(joints: list[dict], commands: dict[str, float]) -> dict[str, np.ndarray]:
-    pending = list(joints)
-    result = {"pelvis": np.eye(4)}
-    while pending:
-        for j in pending[:]:
-            if j["parent"] in result:
-                result[j["child"]] = result[j["parent"]] @ rotation_matrix(j, commands.get(j["name"], 0.0))
-                pending.remove(j)
-    return result
 
 
 _MOVED: dict[int, list] = {}   # hash(moved TopoDS_Shape) -> [(moved, source shape, T)] for aabb_bound
@@ -93,6 +67,58 @@ def aabb(shape) -> np.ndarray:
 
 def aabb_gap(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.linalg.norm(np.maximum(0.0, np.maximum(a[0] - b[1], b[0] - a[1]))))
+
+
+class CallTimeout(Exception):
+    """An exact OCC call did not finish within its time; its forked process was stopped."""
+
+
+def bounded(fn, timeout_s):
+    """fn() in a forked copy of this process, stopped after timeout_s (CallTimeout). One OCC boolean or distance cannot be
+    interrupted from Python (OCP exposes no progress indicator to subclass), so a per-pair budget only holds when the
+    call runs where it can be killed (T-6rr3sa: one collar x neck pitch common ran 1476 s past a 120 s budget). Costs
+    about 10 ms per call (measured 2026-11-23: 47 -> 57 ms on a sphere pair, same volume). Without fork: fn() directly."""
+    import os
+    import pickle
+    import select
+    import signal
+    if not hasattr(os, "fork") or timeout_s is None:
+        return fn()
+    if timeout_s <= 0:
+        raise CallTimeout("no time left")
+    r, w = os.pipe()
+    pid = os.fork()
+    if pid == 0:                                        # child: compute, send, leave without cleanup handlers
+        try:
+            os.close(r)
+            try:
+                out = pickle.dumps((True, fn()))
+            except BaseException as e:  # noqa: BLE001
+                out = pickle.dumps((False, repr(e)))
+            os.write(w, out)
+        finally:
+            os._exit(0)
+    os.close(w)
+    try:
+        ready, _, _ = select.select([r], [], [], timeout_s)
+        if not ready:
+            os.kill(pid, signal.SIGKILL)
+            raise CallTimeout(f"stopped after {timeout_s:.0f} s")
+        data = b""
+        while True:
+            chunk = os.read(r, 1 << 16)
+            if not chunk:
+                break
+            data += chunk
+    finally:
+        os.close(r)
+        os.waitpid(pid, 0)
+    if not data:
+        raise RuntimeError("the forked exact call died without a result")
+    ok, v = pickle.loads(data)
+    if not ok:
+        raise RuntimeError(v)
+    return v
 
 
 def common_volume_mm3(s1, s2) -> float:
