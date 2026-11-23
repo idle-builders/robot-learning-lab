@@ -55,9 +55,10 @@ def _seat(connector: str, group: str) -> float:
     return float(np.mean(xs))
 
 
-def teardrop_along(pt, direction, r: float, length: float, apex_dir):
+def teardrop_along(pt, direction, r: float, length: float, apex_dir, flat_at: float | None = None):
     """A cylinder of radius r along `direction` from `pt` with a 45 deg teardrop point toward `apex_dir` (perpendicular to the axis): the
-    horizontal hole / boss profile FDM prints without support (apex up for a hole, down for a boss)."""
+    horizontal hole / boss profile FDM prints without support (apex up for a hole, down for a boss). flat_at: the point cut flat at that
+    distance from the axis (a boss's apex would otherwise stand as a knife edge past the circle)."""
     from build123d import Plane
     d = np.asarray(direction, float); d = d / np.linalg.norm(d)
     a = np.asarray(apex_dir, float); a = a - np.dot(a, d) * d; a = a / np.linalg.norm(a)
@@ -65,6 +66,8 @@ def teardrop_along(pt, direction, r: float, length: float, apex_dir):
     q = r / np.sqrt(2.0)
     tri = Polygon((q, -q), (r * np.sqrt(2.0), 0.0), (q, q), align=None)
     face = (Circle(r) + tri).faces()[0]
+    if flat_at is not None and flat_at < r * np.sqrt(2.0):
+        face = (face - Pos(flat_at + r, 0.0) * Rectangle(2 * r, 4 * r)).faces()[0]
     return Solid.extrude(pl.location * face, tuple(float(x) * length for x in d))
 
 
@@ -509,6 +512,12 @@ def build_stage4(family: str) -> Solid:
                     r_ear = max(r_ear, float(g["column"]["base_ro"]))
             else:
                 r_ear = max(float(g["sleeve_ro"]) + 0.7, float(g["column"]["ro"]))
+            # an ear arc passing within 0.3 mm of an outline corner left a sliver face and micro-edges (compute post 2 by the corner
+            # (-44, 427.5), rv3-5bqc3m): grow it past the corner
+            for (px, pz) in pts_main:
+                dv = float(np.hypot(px - float(c[0]), pz - float(c[2])))
+                if abs(dv - r_ear) < 0.3:
+                    r_ear = dv + 0.3
             ear = Pos(float(c[0]), float(c[2])) * Circle(r_ear)
             if (ear - f_main).area > 0.05:
                 f_main = (f_main + ear).faces()[0]
@@ -555,7 +564,7 @@ def build_stage4(family: str) -> Solid:
     boss_end = float(gm["sleeve_starts"][0]) + float(gm["sleeve_lens"][0])      # the insert's rear end is flush with the boss end
     # horizontal boss: its underside a 45 deg teardrop pointing down in the print direction (prints without support, T-5bqc3m review)
     s_boss = teardrop_along(np.array([xf, c_mic[1], c_mic[2]]), np.array([1.0, 0.0, 0.0]), float(gm["boss"]["ro"]), boss_end - xf,
-                            np.asarray(gm["boss"]["teardrop_down"], float))
+                            np.asarray(gm["boss"]["teardrop_down"], float), flat_at=float(gm["boss"]["ro"]))
     pin = gm["pin"]
     s_pin = cyl_along(np.array([xf, pin["centre"][1], pin["centre"][2]]), np.array([-1.0, 0.0, 0.0]), float(pin["dia"]) / 2.0, float(pin["length"]))
     port = gm["port"]
