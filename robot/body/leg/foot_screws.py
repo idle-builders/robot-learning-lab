@@ -15,7 +15,9 @@ takes every hole position from the standard-part definition of the registered ca
   floor     the stack plane is the head seat: a pocket around each head removes the printed wall above the plane (driver path).
   ears      the part's back face under the sleeves was partly recessed from the case face: a printed ear (press_lib ANVIL_D annulus)
             reaches the case face (0.00 contact), the flat counter face the anvil rests on.
-The boot shell (a body shell) is not edited.
+  bosses    two blocks for the boot halves' retention screws (T-jh7fcm; sites from manifest.shell_pass.boot.screws, shells.py):
+            toe tip and heel, each with a dia 1.7 PA2 pilot from its face.
+The boot shell (a body shell) is not edited here.
 
   recreate:  .venv/bin/python -B robot/body/leg/foot_screws.py build   (parts + records.json in OUT)
              .venv/bin/python -B robot/body/leg/foot_screws.py apply   (patch the roll-flip variant manifest)
@@ -56,6 +58,27 @@ def bbox(s):
     from OCP.BRepBndLib import BRepBndLib
     b = Bnd_Box(); BRepBndLib.Add_s(s, b)
     return np.array(b.Get(), float)
+
+
+def boot_bosses(P, man):
+    """The two retention bosses of the boot halves (Idle T-jh7fcm): a block on the plate at the toe tip and at the heel, each with
+    a PA2 pilot along the screw axis from its face. Sites, block and pilot come from the shell pass that cut the boot
+    (manifest.shell_pass.boot.screws, written by robot/body/ape-proportions/shells.py; right foot, the left is the mirror)."""
+    sites = (man.get("shell_pass", {}).get("boot", {}) or {}).get("screws") or []
+    if not sites:
+        print("WARNING foot: the shell-pass manifest names no boot retention screws, no bosses built", flush=True)
+        return P, []
+    v0 = C.volume(P)
+    P = C.fuse(P, *[C.box(st["boss_lo"], st["boss_hi"]) for st in sites])
+    pilots = []
+    for st in sites:
+        x, z, d, fy = st["x"], st["z"], st["dir"], st["face_y"]
+        pilots.append(C.cylinder((x, fy - d * 0.5, z), (x, fy + d * st["pilot_depth_mm"], z), st["pilot_dia_mm"] / 2))
+    P = C.largest_solid(C.cut_many(P, pilots))
+    rec = [dict(half=st["half"], boss_lo=st["boss_lo"], boss_hi=st["boss_hi"], face_y=st["face_y"], pilot_dia_mm=st["pilot_dia_mm"],
+                pilot_depth_mm=st["pilot_depth_mm"]) for st in sites]
+    print(f"boot retention bosses: {len(sites)}, volume {v0:.0f} -> {C.volume(P):.0f} mm3", flush=True)
+    return P, rec
 
 
 def build_right():
@@ -100,9 +123,10 @@ def build_right():
     keep_out = [load("R_" + n) for n in (CASE, "B13_C047_foot_roll_rear_idler")]   # the ears stop at the servo (standing contact, no overlap)
     ears = [C.cut(e, *keep_out) for e in ears]
     P = C.largest_solid(C.cut_many(C.fuse(P, *ears), pockets))
+    P, boot = boot_bosses(P, man)
     assert C.valid(P), "edited foot is not a valid solid"
     print(f"printed volume {v0:.0f} -> {C.volume(P):.0f} mm3, solids {C.n_solids(P)}", flush=True)
-    return dict(part=P, sleeves=MR.compound(sleeves), plan=dict(holes=plan, pocket_r_mm=POCKET_R, ear_r_mm=EAR_R, sleeve_od_mm=od, sleeve_id_mm=idia,
+    return dict(part=P, sleeves=MR.compound(sleeves), plan=dict(holes=plan, boot_bosses=boot, pocket_r_mm=POCKET_R, ear_r_mm=EAR_R, sleeve_od_mm=od, sleeve_id_mm=idia,
                                                               volume_before_mm3=v0, volume_after_mm3=C.volume(P)))
 
 
