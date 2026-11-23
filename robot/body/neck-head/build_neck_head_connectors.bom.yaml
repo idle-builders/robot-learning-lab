@@ -1704,10 +1704,15 @@ assembly:
     status: designer
     derived: 'T-acpw7j: 4 ISO 7380-1 M2x5, each through an ISO 7089 M2 washer (put the washer on the screw first), from behind the case (-y
       along the axis) through the cradle rear plate''s plain 2.4 mm holes into the case''s M2 taps, right after the head unit is on
-      (neck_head:p007). Engagement 1.8 mm at all four (the blind taps .1 / .3 are 1.8 deep, tip at their bottom; the through taps .2 / .4 are
-      capped at the drawing''s 2.0, tip 0.2 short).'
-    notes: 'Snug by hand with a short key: the taps are in the servo''s plastic case and the washer bears on the printed plate (no torque
-      value in the repo for M2 into the XM335 case).'
+      (neck_head:p007). The taps are DP2 (2.0 mm deep from the case face, all four alike); the 2.5 mm plate ends the full thread 0.3 mm
+      short of the tap bottom (pitch_case_joint.json tip_allowance_mm, review rv-acpw7j): 1.5 mm of full thread engaged below the 0.2 mm
+      mouth chamfer, the 0.5 mm point in the drill cone, 0.2 mm clear of it; with the washer forgotten the thread would end at the tap
+      bottom.'
+    notes: 'Hand check before driving: with the washer and the cradle plate on the screw, the thread stands out no more than 2.2 mm past the
+      plate''s case face (design 2.2; at 2.5 the full thread reaches the 2.0 mm tap bottom, so more than about 2.4 means a longer screw, a
+      missing washer or a thin plate). Snug by hand with a
+      short key: the taps are in the servo''s plastic case and the washer bears on the printed plate (no torque value in the repo for M2
+      into the XM335 case).'
   - id: neck_head_bench:s006
     subassembly: neck_head_bench
     screw:

@@ -543,7 +543,8 @@ def cyl_along(pt, direction, r: float, length: float):
 # outside the opening, so a 2.5 mm sleeve took M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep,
 # reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6).
 # The pitch-case cradle has no sleeves since T-acpw7j: plain holes, an ISO 7089 washer under the head, the plate as thick as
-# pitch_case_joint() derives (2.2 mm with M2x5: the same 1.8 mm engagement, the head top where it was).
+# pitch_case_joint() derives (2.5 mm with M2x5: the full thread ends 0.3 mm short of the 2.0 mm tap bottom, 1.5 mm engaged below the
+# 0.2 mm mouth chamfer; review rv-acpw7j).
 # Head-skin taper cut of the microphone wing's top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it
 MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
 
@@ -555,23 +556,27 @@ def neck_anchor() -> dict:
 
 def pitch_case_joint() -> dict:
     """The cradle-to-pitch-case joint (T-acpw7j): robot/body/neck-head/pitch_case_joint.json plus what follows from the case's taps
-    (defined_holes.seat_sites): the target engagement (the shallowest tap, capped at the drawing's max tap depth and at the reference),
-    the seat offset, and the ISO 7380-1 M2 length and plate thickness: plate_t = L - point - target - seat_offset - washer h for the
-    shortest standard length whose plate is at least plate_min_mm."""
+    (defined_holes.seat_sites): the tap depth from the case face (the defined depth below the opening + the 0.2 mm mouth chamfer that
+    seat_offset measures, capped at the drawing's DP2; the shallowest of the four), the seat offset, and the ISO 7380-1 M2 length and
+    plate thickness that end the full thread tip_allowance_mm short of the tap bottom (review rv-acpw7j):
+    plate_t = L - point - (tap - tip_allowance) - washer h for the shortest standard length whose plate is at least plate_min_mm.
+    engagement_mm = the full thread inside the tapped bore below the opening (tap - tip_allowance - seat)."""
     import defined_holes as DH
     pj = json.loads((Path(__file__).resolve().parent / "pitch_case_joint.json").read_text())
     st = json.loads((ROOT / "robot/body/checks/data/hardware.json").read_text())["screw_standards"]
     sites = [x for x in DH.seat_sites("neck_pitch_to_head_cradle") if x["group"] == "pitch_case_rear"]
-    taps = [min(float(x["depth_mm"]), float(x["drawing_max_tap_depth_mm"] or x["depth_mm"]), float(x["reference_engagement_mm"])) for x in sites]
-    target = min(taps)
+    taps = [min(float(x["depth_mm"]) + float(x["seat_offset_mm"]), float(x["drawing_max_tap_depth_mm"] or 1e9)) for x in sites]
+    tap = min(taps)
     seat = float(np.mean([x["seat_offset_mm"] for x in sites]))
+    allow = float(pj["tip_allowance_mm"])
     g = DH.connectors()["neck_pitch_to_head_cradle"]["groups"]["pitch_case_rear"]
     head = st["head_types"][g["head"]][sites[0]["thread"]]
     pt, wh = float(st["point_mm"]), float(pj["washer"]["h"])
-    rows = [(float(L), round(float(L) - pt - target - seat - wh, 3)) for L in sorted(head["lengths"])]
+    rows = [(float(L), round(float(L) - pt - (tap - allow) - wh, 3)) for L in sorted(head["lengths"])]
     L, t = next((L, t) for L, t in rows if t >= float(pj["plate_min_mm"]) - 1e-9)
-    pj.update(screw_length_mm=L, plate_t_mm=t, target_engagement_mm=round(target, 3), seat_offset_mm=round(seat, 3), head_dk_mm=float(head["dk"]),
-              length_rows=rows)
+    pj.update(screw_length_mm=L, plate_t_mm=t, tap_depth_from_face_mm=round(tap, 3), engagement_mm=round(tap - allow - seat, 3),
+              reference_engagement_mm=float(sites[0]["reference_engagement_mm"]), seat_offset_mm=round(seat, 3),
+              head_dk_mm=float(head["dk"]), length_rows=rows)
     return pj
 
 
