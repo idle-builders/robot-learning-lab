@@ -576,6 +576,22 @@ driver 0 mm3, connectivity by screw, fem_setup patches (bore 108 mm2, ridge 34 m
 (472 s of exact work, no overlap seen; distance 0.32 mm in clearance); link own findings unchanged by this work (press support 69-76 % on its 8 other sleeves, 171 mm2 overhang beyond 70 deg, skin overlap 2.05 mm3 at yaw -60 pitch -30, two 0.29 mm edges at z 378).
 Renders: .cache/work/collar-renders/collar-single-screw-before-after.png, collar-ridge-groove-section-z396.6.png.
 
+Neck collar round 3 (T-6rr3sa, 23 Nov; `neck_collar.py build` / `sweep`; replaces the edge, bed, thin-feature, wall, FEM and BOM numbers of round 2). Round 2's free sharp edges (84), bed corners (5) and thin features (7 under one line) came from the
+measured head cut: its knots are noisy (second difference up to 0.8 mm), so no fillet rolled along the rim. Now the head cut and the notch floor are smooth periodic curves that only ever lie below the measurement (the rim comes down 0.3 - 0.7 mm at
+theta 168-176), the ring section (bed edges, 0.8 mm wider vertical foot, flange cone) is a revolved profile rounded by construction, the ring ends are cut radially with plan arcs (PLAN_R 1.7, mouth corners 1.3 / 1.5, ends 0.7 mm off the axis) and
+every cut edge is rounded at 0.25 - 0.07 mm (OCC rolls a corner cluster at a time, not all at once; the tab is rounded on its own, the plan cuts come last). Load sites: the FEM load is the rim surface within 2 mm of the head skin; round 2 had
+two sites (theta 8, x +28, and theta 172, x -30), the smoothed rim leaves only the theta-8 site (load patch 9.3 mm2, centroid (27.4, 6.8, 406.2)), which then takes the whole 5 / 10 N through the whole ring: the same part scored PAHT-CF 5 N / 10 N
+1.13 / 1.69 on that patch (round 2 on its two sites 2.11 / 3.25; my rebuild of round 2 2.16 / 3.26). The peak stress is at the back arch, in the 0.9 mm band under the neck pitch notch floor (theta 100-125, z 395.1), not at the load: the notch
+floor cannot rise (the pitch cradle and servo case sweep to 0.5 mm under it), so the band is reinforced where it has room. Steps, PAHT-CF 5 N / 10 N on that patch (one change each): clean smoothed build 1.13 / 1.69; foot 0.6 mm lower (bed z 394.2 ->
+393.6, band 1.5 mm) 1.78 / 2.58; inner wall 1.4 mm further in all round (r 26.4 -> 25.0) with the foot 0.6 lower 2.48 / 3.69, but `sweep` cannot clear it (the cradle and case reach into the wall at theta 106-132, up to 1 mm3 of overlap at pitch 20 - 30);
+the inward growth therefore stays out of theta 106-132 (cradle, case) and 140-215 (link plate: 11.5 mm3 of overlap at standing without it) and the foot is 1.2 mm lower in total (bed z 393.0, band 2.1 mm): 2.57 / 3.30 (PETG-CF 5 N 1.72, side 2.21; 20 N 0.64 / 0.43 as before
+a hard press, not a target). The peak is now at (-8.4, 27.4, 395.2) (round 2: (-16.0, 24.3, 394.8)). The outside changes only by the foot hanging 1.2 mm lower (bed z 394.2 -> 393.0) and the soft rim. A load-patch override diagnostic of round 2
+(theta-8 site only) was skipped: `fem` takes no patch override without editing the setup or tool code. Before (round 2, rebuilt) -> after, head_neck_collar: free sharp edges 84 -> 1 (the 0.31 mm concave edge where the apex round meets the channel floor, (-29.1, 9.0, 402.26)),
+bed corners 5 -> 1 (one island, 565 mm2 contact), thin features under one / two lines 7 / 8 -> 0 / 6, walls under one / two lines 0 / 7.0 mm2 -> 0 / 0.5 mm2, overhang 0 -> 0, press 98.3 -> 98.6 %, engagement 4.25 -> 4.25, collision_sweep 0 -> 0 mm3 (clearance 0.37 mm case,
+0.78 mm cradle, 0.045 mm skin, 0.054 mm link; closest approach 0.63 mm case, 1.08 mm cradle; back shell gap 2.07 mm), slicer support 0 g (2.02 -> 2.56 g, 8.4 -> 10.5 min), BOM findings naming the collar 0 -> 0 (323 -> 323 in all). Still non-zero: one 0.31 mm concave edge; the
+6 thin features under two lines are single-layer rim tips (28.6, 6.5, 406.7), (-30.3, 4.4, 405.9), (-28.7, 9.0, 406.3) and the 0.8 mm tips of the notch floor ledge; the bed has one 92 deg outline corner at the tab. `fit` for the collar x neck pitch pair not run (tooling).
+Render: .cache/work/collar-renders/collar-round3-before-after.png.
+
 Torso stage interface sleeves (T-bv7bwe; cradle, stage 3, stage 4 rows above): not an obvious screw fix. The stage-1
 `aux_bores` (torso/common.py) pair end to end with the carrier sleeves along y, both plain clearance sleeves (bore 2.1 /
 2.6 mm, no thread). Past the stage-1 end there is no room for a nut: at the front pairs (cradle x +-17, z 271.5; stage 3
