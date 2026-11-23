@@ -225,8 +225,9 @@ TAB_R = 1.0                                        # plan radius of the tab's tw
 PLAN_SKEW = 0.0                                    # mm: the channel mouth arcs are tangent to the foot and flank this far inside them (they cross the real faces at about 10 deg: a tangent boolean there left slivers that no fillet rolled)
 END_OFF = 0.7                                     # mm, see _round_bed_plan
 PLAN_R_MOUTH = 1.3                                 # the channel mouth's upper corner: its arc ends where the floor corner's 0.4 mm round starts (1.7 left a 0.12 mm2 sliver of the flank)
-PLAN_R_MOUTH_LOW = 1.5                             # the channel mouth's lower corner (1.7 leaves edges no fillet rolls along, 1.5 and 2.1 build)
+PLAN_R_MOUTH_LOW = 1.8                             # the channel mouth's lower corner (1.7 leaves edges no fillet rolls along, 1.5 and 2.1 build)
 PLAN_R = 1.7                                       # plan radius of the foot's end and channel-mouth corners (the bed outline keeps 1.3 mm after the 0.4 mm bed rounding; 1.6 and 1.8 leave edges OCC cannot roll)
+PLAN_R_INNER = 2.6                                # plan radius of the inner ring-end bed corners: they sit hidden behind the mouth corner, a larger round leaves no sharp bed corner
 BED_ROUND = 0.4                                    # rounding of the ring's two bed edges (elephant foot), in the section
 
 
@@ -391,7 +392,7 @@ def _round_bed_plan(col):
     for y, nin in ((CHANNEL_Y[0], (0.0, -1.0)), (CHANNEL_Y[1], (0.0, 1.0))):
         corners.append((("ell", ro - PLAN_SKEW, True), ("line", np.array([-33.0, y]) + np.array(nin) * PLAN_SKEW, np.array([1.0, 0.0]), np.array(nin)), np.array([-32.5, y])))
     for ca, cb, hint in corners:
-        c, T1, T2, M, sg, n2 = _fillet_corner(ca, cb, (PLAN_R_MOUTH if hint[1] > 10.0 else PLAN_R_MOUTH_LOW) if abs(hint[0] + 32.5) < 1e-6 else PLAN_R, hint)
+        c, T1, T2, M, sg, n2 = _fillet_corner(ca, cb, (PLAN_R_MOUTH if hint[1] > 10.0 else PLAN_R_MOUTH_LOW) if abs(hint[0] + 32.5) < 1e-6 else (PLAN_R if ca[2] else PLAN_R_INNER), hint)
         nin = cb[3]
         W1 = T1 - nin * 3.0
         W2 = T2 - sg * n2 * 3.0                                       # away from the material
@@ -739,6 +740,25 @@ def _round_apex(col, radii=(0.2, 0.25, 0.3)):
     raise AssertionError("roof apex rounding failed")
 
 
+def _round_floor_bore(col, radii=(0.1, 0.15, 0.07)):
+    """Round the teardrop opening in the channel floor, head side only (the edges of the planar face at x == FLOOR_X, normal -x, within 1.5 sleeve radii of the
+    screw axis; the tab-face press disc stays sharp): the apex round of _round_apex meets the floor in a 0.31 mm edge that the edges check reads as sharp."""
+    from build123d import Solid
+    sol = Solid(col)
+    y, z = SCREW_YZ[0]
+    fs = [f for f in sol.faces() if f.geom_type.name == "PLANE" and abs(f.center().X - FLOOR_X) < 1e-3 and f.normal_at().X < -0.99]
+    es = [e for f in fs for e in f.edges() if abs(e.center().X - FLOOR_X) < 1e-3 and ((e.center().Y - y) ** 2 + (e.center().Z - z) ** 2) ** 0.5 <= 1.5 * SLEEVE_OD / 2]
+    assert es, "floor bore: no edges"
+    for r in radii:
+        try:
+            t = sol.fillet(r, es)
+        except ValueError:
+            continue
+        if t.is_valid and len(t.solids()) == 1:
+            return t.wrapped
+    raise AssertionError("floor bore rounding failed")
+
+
 def _tab_box(face_x, x0):
     """The tab's block (plate face back to x0): its two vertical edges at the plate face rounded in plan (bed outline corners), then its face-side bed edges."""
     from build123d import Solid
@@ -780,6 +800,7 @@ def build_collar(face_x):
     col, v_ring = collar_solid(face_x)
     col = _round_sharp(col, keep=lambda e: _left_alone(e, face_x))
     col = _round_apex(col)
+    col = _round_floor_bore(col)
     col = _round_plan_cuts(_round_bed_plan(col), keep=lambda e: _left_alone(e, face_x))    # the plan cuts last (before the tab a cut leaves the tab's rim edges un-rollable)
     assert C.valid(col) and C.n_solids(col) == 1, "collar is not one valid solid"
     rec = MR.save(COLLAR, col, "printed")
