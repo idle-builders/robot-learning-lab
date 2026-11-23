@@ -22,6 +22,11 @@ put it on. The same subtraction therefore also takes the foot link's own parts (
 grown by BOOT_STATIC_CLEARANCE, and the boot is then split at y = BOOT_SPLIT_Y (the rear edge of the ankle collar) into
 the toe part ({s}_foot_boot_shell, slides on from the toe along +y) and the heel cap ({s}_foot_boot_heel_shell, slides on
 from behind along -y). Both go on last, after the foot screws are driven; detached voxel crumbs are dropped.
+
+Boot retention (Idle T-jh7fcm): each half is held by one PA2x8 along its slide direction at its far end (toe tip, heel), its
+head in a counterbore under the skin, on a steel sleeve through an inward tab that seats on a monocoque boss (BOOT_* site
+constants below). The bosses join the boot's static keep-out here; foot_screws.py builds them on the monocoque from
+manifest.shell_pass.boot.screws. Sleeve and screw rows are added to the manifest ({half}_steel_sleeves, {s}_foot_boot_{toe|heel}_PA2x8).
 """
 from __future__ import annotations
 
@@ -48,6 +53,134 @@ BOOT_SPLIT_Y = 15.5           # mm, manifest frame: toe part (y < split) slides 
 BOOT_SPLIT_GAP = 0.2          # mm seam between the two halves (butt joint, FDM tolerance)
 BOOT_MIN_BODY_MM3 = 200.0     # bodies smaller than this left over by the voxel cuts are loose crumbs, dropped
 SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of a face unsampled, so the fill closes
+# Boot retention (Idle T-jh7fcm): each half is held by ONE PA2x8 ISO 7380-1 (the shin back cover's screw, one BOM line) along its
+# slide direction, at its far end: the toe part at the toe tip (screw +y, driven from the front), the heel cap at the heel
+# (screw -y, driven from behind). The head sits in a dia BOOT_CB_D counterbore under the skin (nothing stands out), on a 304
+# sleeve 3.6 / 2.2 x 3.5 (line sleeve:3.6x2.2x3.5, as the neck collar; owner 2026-11-18: every clamped printed hole sleeved)
+# pressed through an inward tab that grows from the skin to the boss face (clamped faces meet at 0.00); the screw threads into a
+# dia 1.7 pilot in a small boss on the foot monocoque's plate (robot/body/leg/foot_screws.py builds it from
+# manifest.shell_pass.boot.screws). Engagement 8 - 3.5 - 0.6 point = 3.9 (reference 4.0). Sites: right foot, manifest frame,
+# left = mirror x. face_y = the boss face, set so the head stays under the skin of both boots (measured 2026-11-23 on the
+# selected body: toe outer skin y -71.1..-68.74 within r 2.2 of the axis, heel 49.7..51.1); the heel face is the plate's
+# rear edge (y 44.35), the toe face 3.7 mm behind the plate's front edge (-67.45). The toe screw sits at x 52, not on the toe's
+# frontmost point (x 54-55): there its boss stood in the driver path (blade dia 3) of the roll-case screw R_B13_rear_PA2x6_1
+# (axis x 58.7, 8.0 mm3 at 33.5 mm from the head, driver_access 2026-11-23); at x 52 the boss ends 1.3 mm short of that path.
+BOOT_SCREW = dict(label="PA2 x 8 ISO 7380-1", length=8.0, head_d=3.5, head_h=1.3, shank_d=2.0, point=0.6)
+BOOT_SLEEVE = (3.6, 2.2, 3.5)   # OD, ID, length (mm)
+BOOT_SITES = (dict(half="toe", x=52.0, z=9.0, dir=1.0, face_y=-63.75),
+              dict(half="heel", x=50.5, z=8.0, dir=-1.0, face_y=44.35))
+BOOT_TAB_HW, BOOT_TAB_HH = 3.9, 3.1   # tab and boss half width (x) / tab half height (z) about the axis: sleeve r 1.8 + 1.3 wall in z
+BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = 7.0, 2.6, 2.0   # boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
+BOOT_PILOT = (1.7, 5.0)         # pilot dia (85 % of the PA2 major) and depth from the boss face (tip 4.5 in, 0.5 mm margin)
+BOOT_CB_D = 4.4                 # head counterbore (head dia 3.5 + 0.9)
+BOOT_SKIN_SINK = 0.4            # the tab starts this far under the outer skin (no outward change)
+
+
+def boot_site_geometry(st, sx=1.0):
+    """Derived site numbers (manifest frame; sx = -1 mirrors to the left foot)."""
+    d = st["dir"]; L = BOOT_SLEEVE[2]
+    seat = st["face_y"] - d * L
+    head_top = seat - d * BOOT_SCREW["head_h"]
+    yb = (st["face_y"], st["face_y"] + d * BOOT_BOSS_LEN)
+    x = sx * st["x"]
+    boss = ([x - BOOT_TAB_HW, min(yb), BOOT_BOSS_Z0], [x + BOOT_TAB_HW, max(yb), st["z"] + BOOT_BOSS_TOP])
+    return dict(x=x, z=st["z"], dir=d, face_y=st["face_y"], seat_y=seat, head_top_y=head_top, boss_lo=boss[0], boss_hi=boss[1],
+                tip_y=head_top + d * (BOOT_SCREW["head_h"] + BOOT_SCREW["length"]))
+
+
+def _cyl_y(y0, y1, x, z, dia):
+    """Cylinder along y (manifold)."""
+    import manifold3d as mf
+    a, b = min(y0, y1), max(y0, y1)
+    return mf.Manifold.cylinder(b - a, dia / 2, dia / 2, 64).rotate([-90.0, 0.0, 0.0]).translate([x, a, z])
+
+
+def _skin_y(m, x, z, y_in, d):
+    """Outer skin y of mesh m on the line (x, z) || y: the farthest crossing out from y_in against d (the screw direction)."""
+    loc, _, _ = m.ray.intersects_location([[x, y_in, z]], [[0.0, -d, 0.0]])
+    if not len(loc):
+        return np.nan
+    t = d * (y_in - loc[:, 1])
+    t = t[(t > 0) & (t < 20.0)]
+    return y_in - d * t.max() if len(t) else np.nan
+
+
+def _outside(m, gx, gz, y_in, d, sink):
+    """Closed solid outboard of m's outer skin (moved `sink` inward) over the grid gx x gz: cut from a tab, the tab starts just
+    under the skin, whatever its slope."""
+    Y = np.array([[_skin_y(m, a, b, y_in, d) for b in gz] for a in gx])
+    if np.isnan(Y).all():
+        raise ValueError("no skin found over the boot tab")
+    if np.isnan(Y).any():
+        from scipy.ndimage import distance_transform_edt
+        Y = Y[tuple(distance_transform_edt(np.isnan(Y), return_distances=False, return_indices=True))]
+    Y = Y + d * sink
+    far = (Y.min() - 6.0) if d > 0 else (Y.max() + 6.0)
+    n, k = len(gx), len(gz)
+    V = [[gx[i], (Y[i, j] if s == 0 else far), gz[j]] for s in (0, 1) for i in range(n) for j in range(k)]
+    idx = lambda s, i, j: s * n * k + i * k + j  # noqa: E731
+    F = []
+    for s in (0, 1):
+        for i in range(n - 1):
+            for j in range(k - 1):
+                q = [idx(s, i, j), idx(s, i + 1, j), idx(s, i + 1, j + 1), idx(s, i, j + 1)]
+                F += [[q[0], q[1], q[2]], [q[0], q[2], q[3]]] if s == 0 else [[q[0], q[2], q[1]], [q[0], q[3], q[2]]]
+    rim = [(i, 0) for i in range(n - 1)] + [(n - 1, j) for j in range(k - 1)] + [(i, k - 1) for i in range(n - 1, 0, -1)] + \
+          [(0, j) for j in range(k - 1, 0, -1)]
+    for t in range(len(rim)):
+        (i0, j0), (i1, j1) = rim[t], rim[(t + 1) % len(rim)]
+        F += [[idx(0, i0, j0), idx(1, i1, j1), idx(0, i1, j1)], [idx(0, i0, j0), idx(1, i0, j0), idx(1, i1, j1)]]
+    tm = trimesh.Trimesh(np.array(V, float), np.array(F), process=True)
+    if tm.volume < 0:
+        tm.invert()
+    return _mf(tm)
+
+
+def boot_mount(half, st, sx):
+    """Inward tab, sleeve bore and head counterbore on one boot half (mesh); returns the half, its sleeve and the site record."""
+    import manifold3d as mf
+    g = boot_site_geometry(st, sx)
+    x, z, d, fy = g["x"], g["z"], g["dir"], g["face_y"]
+    far = fy - d * 14.0
+    tab = mf.Manifold.cube([2 * BOOT_TAB_HW, abs(fy - far), 2 * BOOT_TAB_HH]).translate([x - BOOT_TAB_HW, min(fy, far), z - BOOT_TAB_HH])
+    gx = np.linspace(x - BOOT_TAB_HW - 0.5, x + BOOT_TAB_HW + 0.5, 19); gz = np.linspace(z - BOOT_TAB_HH - 0.5, z + BOOT_TAB_HH + 0.5, 15)
+    tab = tab - _outside(half, gx, gz, fy, d, BOOT_SKIN_SINK)
+    od, idia, L = BOOT_SLEEVE
+    # head under the skin: the skin's innermost crossing within the counterbore radius vs the head top
+    rim = [_skin_y(half, x + r * np.cos(a), z + r * np.sin(a), fy, d) for r in (0.0, BOOT_CB_D / 2) for a in np.linspace(0, 2 * np.pi, 16, endpoint=False)]
+    rim = np.array([v for v in rim if np.isfinite(v)])
+    head_under_skin = float(np.min(d * (g["head_top_y"] - rim)))   # >= 0: the head top lies inward of every skin point round it
+    m = _mf(half) + tab
+    m = m - _cyl_y(g["seat_y"] - d * 0.01, fy + d * 1.0, x, z, od)   # no teardrop roof: a 45 deg roof left 0.55 mm of tab over the bore; the 3.6 / 4.4 bores bridge
+    m = m - _cyl_y(g["seat_y"], g["seat_y"] - d * 12.0, x, z, BOOT_CB_D)
+    out = _tm(m)
+    bodies = sorted(out.split(only_watertight=False), key=lambda q: -(q.volume if q.is_watertight else 0.0))
+    out = trimesh.util.concatenate([bodies[0]] + [q for q in bodies[1:] if q.is_watertight and q.volume >= BOOT_MIN_BODY_MM3])
+    sleeve = _tm(_cyl_y(g["seat_y"], fy, x, z, od) - _cyl_y(g["seat_y"] - d, fy + d, x, z, idia))
+    # tab wall round the sleeve bore (z: top / bottom of the tab), and the tab's length from the skin to the boss face
+    rec = dict(g, side="R" if sx > 0 else "L", half=st["half"], tab_wall_z_mm=round(BOOT_TAB_HH - od / 2, 2), tab_wall_x_mm=round(BOOT_TAB_HW - od / 2, 2),
+               head_under_skin_min_mm=round(head_under_skin, 2), skin_crossings_round_head=[round(float(rim.min()), 2), round(float(rim.max()), 2)],
+               sleeve_mm=list(BOOT_SLEEVE), screw=BOOT_SCREW["label"], pilot_dia_mm=BOOT_PILOT[0], pilot_depth_mm=BOOT_PILOT[1],
+               thread_engagement_mm=round(BOOT_SCREW["length"] - L - BOOT_SCREW["point"], 2),
+               tab_volume_mm3=round(float(out.volume - half.volume), 1))
+    rec = {k: ([round(float(u), 3) for u in v] if isinstance(v, (list, tuple)) and v and isinstance(v[0], (float, int, np.floating)) else
+               (round(float(v), 3) if isinstance(v, (float, np.floating)) else v)) for k, v in rec.items()}
+    return out, sleeve, rec
+
+
+def boot_screw_mesh(g):
+    """PA2x8 proxy (PA2 family envelope as the shin back cover's: head dia 3.5 x 1.3, shank dia 2, 0.6 mm point), axis d*y."""
+    s = BOOT_SCREW
+    prof = [(0.0, 0.0), (s["head_d"] / 2, 0.0), (s["head_d"] / 2, s["head_h"]), (s["shank_d"] / 2, s["head_h"]),
+            (s["shank_d"] / 2, s["head_h"] + s["length"] - s["point"]), (0.0, s["head_h"] + s["length"])]
+    m = trimesh.creation.revolve(np.array(prof), sections=48)
+    d = g["dir"]
+    T = np.eye(4); T[:3, :3] = [[1, 0, 0], [0, 0, d], [0, -d, 0]]      # axis z -> d y
+    T[:3, 3] = [g["x"], g["head_top_y"], g["z"]]
+    m.apply_transform(T)
+    if m.volume < 0:
+        m.invert()
+    return m
 
 
 def _mf(m):
@@ -128,6 +261,18 @@ class Sweep:
         hit = np.zeros(len(ii), bool); hit[ok] = g.hit[tuple(j[ok].T)]
         self.mask[tuple(ii[hit].T)] = True
 
+    def add_box(self, lo, hi, grow=0.0):
+        """Mark the grid points within `grow` of the axis-aligned box lo..hi (target frame)."""
+        lo, hi = np.asarray(lo, float), np.asarray(hi, float)
+        a = np.clip(np.floor((lo - grow - self.lo) / PITCH).astype(int), 0, self.shape)
+        b = np.clip(np.ceil((hi + grow - self.lo) / PITCH).astype(int) + 1, 0, self.shape)
+        if np.any(b <= a):
+            return
+        ii = np.stack(np.meshgrid(*[np.arange(a[k], b[k]) for k in range(3)], indexing="ij"), -1).reshape(-1, 3)
+        p = self.lo + ii * PITCH
+        hit = np.linalg.norm(np.maximum(np.maximum(lo - p, p - hi), 0.0), axis=1) <= grow
+        self.mask[tuple(ii[hit].T)] = True
+
     def surface(self):
         """The swept region as one closed, smoothed mesh."""
         from scipy.ndimage import gaussian_filter
@@ -174,6 +319,7 @@ def apply(new, h):
         notes.append(f"{shell}: {sm.volume:.0f} -> {out.volume:.0f} mm3")
         log.append((shell, "leg openings cut by the swept hips"))
     # boot shells minus the swept shin and ankle and minus the foot's own parts, in the foot's own frame; then split in two
+    screws, extra = [], []
     for s in "RL":
         boot = P[f"{s}_foot_boot_shell"]
         bm = F.load_mesh(boot["mesh"])
@@ -189,6 +335,11 @@ def apply(new, h):
         # the foot's own parts (monocoque sole plate, roll servo case, screws) as a static keep-out (T-6c2e93)
         sw.add(LinkGrid(body, F, f"{s}_foot", clearance=BOOT_STATIC_CLEARANCE, fasteners=True, skip=("body_shell",),
                        spacing=SEALED_SPACING), np.eye(4))
+        # the monocoque bosses of the retention screws (built later by foot_screws.py) as part of the same keep-out (T-jh7fcm)
+        sx = 1.0 if s == "R" else -1.0
+        for st in BOOT_SITES:
+            g = boot_site_geometry(st, sx)
+            sw.add_box(g["boss_lo"], g["boss_hi"], BOOT_STATIC_CLEARANCE)
         if not sw.mask.any():
             notes.append(f"{boot['name']}: nothing swept"); continue
         cut = _subtract(bm, sw.surface())
@@ -202,6 +353,27 @@ def apply(new, h):
             dropped = sum(abs(q.volume) for q in bodies if not any(q is k for k in keep))
             assert bodies[0].is_watertight, f"{part['name']}: the main body of the boot half is not watertight"
             half = trimesh.util.concatenate(keep)
+            st = next(q for q in BOOT_SITES if q["half"] == ("heel" if part is heel else "toe"))
+            half, sleeve, rec = boot_mount(half, st, sx)
+            screws.append(rec)
+            sn = f"{part['name']}_steel_sleeves"
+            extra.append(dict(name=sn, owning_link=boot["owning_link"], role="compression_limit_sleeves", **h["save_mesh"](sn, sleeve),
+                              volume_mm3=round(float(sleeve.volume), 3), mass_kg=round(float(sleeve.volume) * 7.85e-6, 7),
+                              color=[215, 222, 230, 255], mass_basis="304 SS sleeve, mesh volume x 7.85 g/cm3",
+                              material=(f"304 stainless tube dia {BOOT_SLEEVE[0]:g} / {BOOT_SLEEVE[1]:g} x {BOOT_SLEEVE[2]:g}, pressed into the boot "
+                                        "tab from the head counterbore floor to the tab face; the PA2 head bears on it, its far end on the "
+                                        "monocoque boss (shells.py, T-jh7fcm)")))
+            cn = f"{s}_foot_boot_{st['half']}_PA2x8"
+            sm = boot_screw_mesh(rec)
+            extra.append(dict(name=cn, physical_part_id=cn, bom_group=cn, owning_link=boot["owning_link"], role="fastener_proxy",
+                              **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * 7.85e-6, 7),
+                              material=(f"PA2x8 self-tapping, ISO 7380-1 button head, through the {st['half']} of the boot (sleeve) into a "
+                                        f"dia {BOOT_PILOT[0]:g} pilot in the foot monocoque's boss (PA2 family envelope: head dia 3.5 x 1.3, "
+                                        "shank dia 2, 0.6 mm point)"),
+                              color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
+                              overlay_id="actuators_and_hardware", parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"),
+                              inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3"))
+            notes.append(f"{part['name']}: retention tab {rec['tab_volume_mm3']} mm3, head under skin {rec['head_under_skin_min_mm']} mm")
             part.update(h["save_mesh"](part["name"], half))
             part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts cut out with a "
                                  f"{BOOT_STATIC_CLEARANCE:g} mm keep-out (voxel; measured clearance down to about 0.13 mm), split at y = {BOOT_SPLIT_Y:g} mm ({BOOT_SPLIT_GAP:g} mm seam) into toe part and heel cap "
@@ -212,11 +384,18 @@ def apply(new, h):
         notes.append(f"{boot['name']}: {bm.volume:.0f} -> {cut.volume:.0f} mm3 before the split")
         log.append((boot["name"], "collar cut by the swept ankle, foot parts kept clear, split into toe part and heel cap"))
         log.append((heel_name, "heel cap split off the boot shell at y = %g mm" % BOOT_SPLIT_Y))
+    names = {r["name"] for r in extra}
+    new["parts"] = [p for p in new["parts"] if p["name"] not in names] + extra
     new["shell_pass"] = dict(hip_targets_deg=dict(pitch=[HIP_FLEX, 40], roll=[-45, 25], yaw=[-40, 40]),
                              ankle_targets_deg=dict(pitch=[-35, 27.5], roll=[-25, 25]), clearance_mm=CLEARANCE,
                              voxel_mm=PITCH, method="voxel sweep + marching cubes, one subtraction per shell",
                              boot=dict(static_clearance_mm=BOOT_STATIC_CLEARANCE, split_y_mm=BOOT_SPLIT_Y, split_gap_mm=BOOT_SPLIT_GAP,
-                                       idle_task="T-6c2e93"))
+                                       idle_task="T-6c2e93",
+                                       screws=[r for r in screws if r["side"] == "R"],
+                                       screws_doc=("retention screws of the two boot halves (T-jh7fcm), right foot, manifest frame (left = "
+                                                   "mirror x): foot_screws.py builds the monocoque boss boss_lo..boss_hi with a pilot "
+                                                   "pilot_dia_mm x pilot_depth_mm from face_y along dir"),
+                                       screws_both_sides=screws))
     return notes
 
 

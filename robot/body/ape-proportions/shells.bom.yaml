@@ -38,7 +38,7 @@ parts:
   name: R_foot_boot_shell
   make_buy: make
   quantity: 1
-  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is R_foot_boot_heel_shell. Not held on yet (follow-up).
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is R_foot_boot_heel_shell. Held by R_foot_boot_toe_PA2x8 (T-jh7fcm).
   section: Ankle / foot
 - match: L_foot_boot_shell
   kind: printed
@@ -46,7 +46,7 @@ parts:
   name: L_foot_boot_shell
   make_buy: make
   quantity: 1
-  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is L_foot_boot_heel_shell. Not held on yet (follow-up).
+  notes: Toe part of the split boot (T-6c2e93), y < BOOT_SPLIT_Y in shells.py; the heel cap is L_foot_boot_heel_shell. Held by L_foot_boot_toe_PA2x8 (T-jh7fcm).
   section: Ankle / foot
 - match: R_foot_boot_heel_shell
   kind: printed
@@ -55,7 +55,7 @@ parts:
   make_buy: make
   quantity: 1
   section: Ankle / foot
-  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws.'
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws. Held by R_foot_boot_heel_PA2x8 (T-jh7fcm).'
 - match: L_foot_boot_heel_shell
   kind: printed
   line: print:L_foot_boot_heel_shell
@@ -63,12 +63,133 @@ parts:
   make_buy: make
   quantity: 1
   section: Ankle / foot
-  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws.'
+  notes: 'Heel cap of the boot shell, split off at y = 15.5 mm by shells.py (T-6c2e93) so the boot can go on after the foot screws. Held by L_foot_boot_heel_PA2x8 (T-jh7fcm).'
+- match: R_foot_boot_shell_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the retention screw's head (T-jh7fcm, shells.py BOOT_SLEEVE), pressed into the boot tab from the counterbore floor to the
+    tab face, which seats on the foot monocoque's boss.
+  generator: shell-pass
+  section: Ankle / foot
+- match: R_foot_boot_heel_shell_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the retention screw's head (T-jh7fcm, shells.py BOOT_SLEEVE), pressed into the boot tab from the counterbore floor to the
+    tab face, which seats on the foot monocoque's boss.
+  generator: shell-pass
+  section: Ankle / foot
+- match: L_foot_boot_shell_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the retention screw's head (T-jh7fcm, shells.py BOOT_SLEEVE), pressed into the boot tab from the counterbore floor to the
+    tab face, which seats on the foot monocoque's boss.
+  generator: shell-pass
+  section: Ankle / foot
+- match: L_foot_boot_heel_shell_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  contains:
+  - line: sleeve:3.6x2.2x3.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 3.5 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 3.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the retention screw's head (T-jh7fcm, shells.py BOOT_SLEEVE), pressed into the boot tab from the counterbore floor to the
+    tab face, which seats on the foot monocoque's boss.
+  generator: shell-pass
+  section: Ankle / foot
+- match:
+  - R_foot_boot_toe_PA2x8
+  - R_foot_boot_heel_PA2x8
+  - L_foot_boot_toe_PA2x8
+  - L_foot_boot_heel_PA2x8
+  kind: hardware
+  line: hw:PA2-x-8-ISO-7380-1
+  name: PA2 x 8 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 8.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 8 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 8 ISO 7380-1
+  material: 'PA2x8 self-tapping, through a boot half''s tab (sleeve) into a dia 1.7 pilot in the foot monocoque''s boss (PA2 family envelope:
+    head dia 3.5 x 1.3, shank dia 2, 0.6 mm point)'
+  notes: 'Boot retention (T-jh7fcm): one per boot half along its slide direction, the toe part''s at the toe tip (+y), the heel cap''s at the
+    heel (-y); same screw as the shin back cover (one BOM line). Supplier: no repo source (unknown).'
+  generator: shell-pass
+  section: Ankle / foot
 assembly:
   steps:
   - id: right_leg:p060
     subassembly: right_leg
-    part: R_foot_boot_shell
+    part:
+    - R_foot_boot_shell
+    - R_foot_boot_shell_steel_sleeves
     direction:
     - 0.0
     - 1.0
@@ -81,7 +202,9 @@ assembly:
       no direction allowed (the closed boot sat 10.8 cm3 inside the monocoque sole plate and the roll servo case at standing).'
   - id: right_leg:p061
     subassembly: right_leg
-    part: R_foot_boot_heel_shell
+    part:
+    - R_foot_boot_heel_shell
+    - R_foot_boot_heel_shell_steel_sleeves
     direction:
     - 0.0
     - -1.0
@@ -92,7 +215,9 @@ assembly:
     notes: 'T-6c2e93: heel cap of the boot, slides on from behind along -y and butts against the toe part at the 0.2 mm seam.'
   - id: left_leg:p060
     subassembly: left_leg
-    part: L_foot_boot_shell
+    part:
+    - L_foot_boot_shell
+    - L_foot_boot_shell_steel_sleeves
     direction:
     - 0.0
     - 1.0
@@ -103,7 +228,9 @@ assembly:
     notes: 'T-6c2e93: mirror of right_leg:p060 (toe part of the boot, slides on from the toe along +y, last on the foot).'
   - id: left_leg:p061
     subassembly: left_leg
-    part: L_foot_boot_heel_shell
+    part:
+    - L_foot_boot_heel_shell
+    - L_foot_boot_heel_shell_steel_sleeves
     direction:
     - 0.0
     - -1.0
@@ -112,3 +239,37 @@ assembly:
     - left_leg:p060
     status: seeded
     notes: 'T-6c2e93: mirror of right_leg:p061 (heel cap, slides on from behind along -y).'
+  - id: right_leg:s062
+    subassembly: right_leg
+    screw: R_foot_boot_toe_PA2x8
+    direction: screw axis
+    after:
+    - right_leg:p060
+    status: designer
+    notes: 'T-jh7fcm: the toe part''s retention screw, driven from the front along +y through its sleeve into the monocoque''s toe boss
+      (hex key, head in the counterbore at the toe tip).'
+  - id: right_leg:s063
+    subassembly: right_leg
+    screw: R_foot_boot_heel_PA2x8
+    direction: screw axis
+    after:
+    - right_leg:p061
+    status: designer
+    notes: 'T-jh7fcm: the heel cap''s retention screw, driven from behind along -y through its sleeve into the monocoque''s heel boss.'
+  - id: left_leg:s062
+    subassembly: left_leg
+    screw: L_foot_boot_toe_PA2x8
+    direction: screw axis
+    after:
+    - left_leg:p060
+    status: designer
+    notes: 'T-jh7fcm: the toe part''s retention screw, driven from the front along +y through its sleeve into the monocoque''s toe boss
+      (hex key, head in the counterbore at the toe tip).'
+  - id: left_leg:s063
+    subassembly: left_leg
+    screw: L_foot_boot_heel_PA2x8
+    direction: screw axis
+    after:
+    - left_leg:p061
+    status: designer
+    notes: 'T-jh7fcm: the heel cap''s retention screw, driven from behind along -y through its sleeve into the monocoque''s heel boss.'
