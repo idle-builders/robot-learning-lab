@@ -459,7 +459,7 @@ def _end(r, which):
 
 def _region_list(body, v, which):
     """[(name, {joint: deg})] of one region (pose_sets.json region_poses.regions[k]), every angle a declared range end (declare_ranges):
-    `ends` = each joint alone at both ends; `combinations` = {joint: lo | hi} together (optional `name`); with library / all, `corners`
+    `ends` = each joint alone at both ends; `steps` = {joint: n}: n angles evenly inside its declared range, alone (mid-range contacts); `combinations` = {joint: lo | hi} together (optional `name`); with library / all, `corners`
     = every combination of ends of the listed groups (the joints of a group take the same end). A joint the body lacks is left out of
     a pose; a pose naming a joint without a range is left out and the joint listed (body.unranged_in_poses)."""
     rng = _ranges(body)
@@ -481,6 +481,16 @@ def _region_list(body, v, which):
             q = pose({j: e})
             if q:
                 P.append((f"{j} {q[j]:+g}", q))
+    for j, n in (v.get("steps") or {}).items():          # interior samples: n angles evenly inside the declared range, each joint alone
+        if j not in body.joints:
+            continue
+        if j not in rng:
+            unranged.add(j)
+            continue
+        lo, hi = _end(rng[j], "lo"), _end(rng[j], "hi")
+        for k in range(1, int(n) + 1):
+            a = round(lo + k * (hi - lo) / (int(n) + 1), 2)
+            P.append((f"{j} {a:+g} (mid)", {j: a}))
     for c in v.get("combinations", []):
         q = pose(c["ends"])
         if q:

@@ -131,9 +131,9 @@ def add(name, rev):
         have = [h for h in have if h not in LINKS]
         excl.write_text("\n".join(have) + "\n")
     with excl.open("a") as fh:                              # the links are not ignored by the directory patterns of .gitignore
-        for n in LINKS:
-            if n not in have:
-                fh.write(n + "\n")
+        for n in LINKS:                                     # anchored at the root: a bare `data` would ignore robot/body/checks/data
+            if "/" + n not in have:
+                fh.write("/" + n + "\n")
     secs, how = clone_tree(MAIN / "artifacts", dest / "artifacts")
     print(f"{dest}: branch {name} from {rev}; links {', '.join(LINKS)}; artifacts cloned in {secs:.0f} s ({how}); "
           f"check and generator caches shared with {MAIN.name}")

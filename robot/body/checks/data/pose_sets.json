@@ -382,7 +382,10 @@
        "neck_pitch"
       ]
      ]
-    ]
+    ],
+    "steps": {
+     "neck_pitch": 12
+    }
    },
    "torso": {
     "links": [
