@@ -498,7 +498,7 @@ def main(argv=None):
     ap.add_argument("--search-mm", type=float, default=5.0)
     ap.add_argument("--render-timeout", type=float, default=240.0)
     ap.add_argument("--include-shells", action="store_true", help="also screen body shells as neighbours (heavy)")
-    ap.add_argument("--fem-variant", help="named variant of the per-part FEM setups (e.g. legacy_coordinates)")
+    ap.add_argument("--fem-variant", help="named variant of the per-part FEM setups (e.g. studied_axes)")
     ap.add_argument("--fem-mesh-h", type=float, help="mesh size h (mm) replacing mesh_h_mm of every FEM setup (mesh convergence)")
     ap.add_argument("--fem-rigid-load", action="store_true", help="make the load patch of every FEM setup rigid (comparison run)")
     ap.add_argument("--process", action="append", default=[], help="KEY=VALUE replacing the print setup of every printed part in scope "

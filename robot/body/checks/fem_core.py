@@ -10,7 +10,6 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
                    the first distinct material is mesh id 2, a second distinct one mesh id 0; solve reads these names
   origin_mm        [x, y, z] | {"joint": J | "joints": [A, B] (midpoint), "offset_mm": [dx, dy, dz]} | "load_centroid"   body point the wrenches are given about (manifest frame);
                    the joint form follows the joint when the part moves; load_centroid = the load patch's nodal-weight centroid
-                   optional "step_offset_mm" per companion replaces the manifest's native_step_offset_mm (legacy reproduction only)
   open_difference  text: known difference to the old study (echoed into the fem and fem_setup reports)
   supports         {"name": PATCH, ...} clamped (all nodes of every support patch fixed)
   load             PATCH                 the wrench is distributed over it (minimum-weight, 6 components)
@@ -31,7 +30,7 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
                                                                                                  does not name keeps the region's material and is counted as assumed
                                                                                                  (report: bore_collars.by_material, assumed_sleeves, declared_quantity)
                           | {"contact_band": {"parts": [mating parts], "dist_mm": d}}                  within d of the named mating parts' surfaces (follows them)
-                          | {"capsules": ...} | {"box": ...}                                           legacy hand-typed sites (see point_pred)
+                          | {"box": ...}                                                               axis-aligned slabs (see point_pred)
   variants         {"name": {...keys above replaced...}}   e.g. the old hand-typed patches, run with --fem-variant
 
   PATCH = {"contact": [mating part names], "gap_mm": g}     surface of the part within g of the named parts (follows them)
@@ -47,8 +46,6 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
                                                             around the screw are).
                                                             "screws": [screw part names] takes the holes around those screws instead (mate and g unused): a fixed,
                                                             declared set of sites, e.g. to compare geometries at the same screws.
-                                                            "select": "any_cylinder" = the old selection (every cylindrical face in range whose axis centre or end lies
-                                                            within g of the mate), only to reproduce old numbers.
                                                             "of": <sleeve part> takes the hole faces from that companion instead of the part (the pressed-in sleeves
                                                             sit exactly at the bolt sites; their faces need not be concave): the part's surface within the sleeve radius
                                                             + rim, along the sleeve + 0.5 mm.
@@ -57,12 +54,7 @@ part_settings[part]["fem"] (ctx.settings: definition over part_settings.json and
                                                             The report (patch info hole_selection, per mate): mode, joining screws, faces per screw, the faces taken and
                                                             the faces left out with the reason
         | {"axis_band": {...}}                              surface within r_mm of a joint axis on one side of a mating part (clamp cheeks)
-        | {"box": {"y": [min|null, max|null], ...}}         axis-aligned half-spaces / slabs (legacy)
-        | {"spheres": {"centres": [[x, y, z]], "radius_mm": r}} | {"cylinder_shells": {"axis": "y", "centres": [[u, w]], "radius_mm": r,
-                                                            "tol_mm": t, "along_mid_mm": m, "along_half_mm": h}}      legacy (pelvis cradle)
-        | {"capsules": {"sites": [[x, y, z]], "normals": [[..]], "proj_mm": [lo, hi], "r_mm": r}}   legacy hand-typed bolt sites (see point_pred)
-        | {"rings": {"axes": [a, b], "sites": [[u, v], ..], "radius_mm": r, "where": {"axis": "y", "max": -8.0}}}
-                                                            legacy hand-typed coordinates (kept only to reproduce old numbers)
+        | {"box": {"y": [min|null, max|null], ...}}         axis-aligned half-spaces / slabs
         | [PATCH, PATCH]                                    union
   Any PATCH dict can carry "within": {"centre_mm": POINT, "radius_mm": r}: only its surface within r of the point is kept (POINT = [x, y, z] or
   {"joint": J | "joints": [A, B], "offset_mm": [..]}). With origin_mm a POINT instead of load_centroid, this holds the load site and the wrench origin
@@ -224,12 +216,11 @@ def setup_materials(ctx, part, setup):
 
 
 # ------------------------------------------------------------------------------------------------ geometry in the manifest frame
-def frame_step(ctx, name, offset_mm=None):
-    """Native STEP of a manifest part in the manifest frame (a STEP offset is applied once and cached);
-    offset_mm replaces the manifest's native_step_offset_mm (used to reproduce an old study that ignored it)."""
+def frame_step(ctx, name):
+    """Native STEP of a manifest part in the manifest frame (its native_step_offset_mm applied once and cached)."""
     p = ctx.parts[name]
     src = BL.src(p["native_step"])
-    off = p.get("native_step_offset_mm") if offset_mm is None else offset_mm
+    off = p.get("native_step_offset_mm")
     if not off or not any(abs(v) > 1e-9 for v in off):
         return src
     dst = WORK / "fem-steps" / f"{sha(src)[:16]}-{'_'.join(f'{v:g}' for v in off)}.step"
@@ -279,30 +270,14 @@ def slot_materials(setup):
 
 
 def point_pred(spec):
-    """Predicate over points (n, 3) for the legacy patch kinds capsules / box (also used for material regions).
-    capsules: {"sites": [[x, y, z]..], "normals": [[..]..] (one per site, or one for all), "proj_mm": [lo, hi], "r_mm": r}: points whose projection on
-    the site's normal is within [lo, hi] and whose distance from the site's normal line is at most r (the arm / neck-head bolt-site patches)."""
-    if "box" in spec:
-        bx = spec["box"]
-        def pred(c):
-            c = np.asarray(c); ok = np.ones(len(c), bool)
-            for k, (lo, hi) in bx.items():
-                ok &= (c[:, AX[k]] >= (-1e9 if lo is None else lo)) & (c[:, AX[k]] <= (1e9 if hi is None else hi))
-            return ok
-        return pred
-    cs = spec["capsules"]
-    sites = np.asarray(cs["sites"], float)
-    norms = np.asarray(cs["normals"], float)
-    norms = np.repeat(norms.reshape(-1, 3), len(sites), axis=0) if len(norms.reshape(-1, 3)) == 1 else norms
-    lo, hi = cs["proj_mm"]
+    """Predicate over points (n, 3) for a box patch (also used for material regions): {"box": {"y": [min|null, max|null], ...}}."""
+    bx = spec["box"]
+
     def pred(c):
-        c = np.asarray(c)
-        ms = []
-        for pt, d in zip(sites, norms):
-            rel = c - pt[None, :]; proj = rel @ d
-            perp = np.linalg.norm(rel - proj[:, None] * d[None, :], axis=1)
-            ms.append((proj >= lo) & (proj <= hi) & (perp <= cs["r_mm"]))
-        return np.logical_or.reduce(ms)
+        c = np.asarray(c); ok = np.ones(len(c), bool)
+        for k, (lo, hi) in bx.items():
+            ok &= (c[:, AX[k]] >= (-1e9 if lo is None else lo)) & (c[:, AX[k]] <= (1e9 if hi is None else hi))
+        return ok
     return pred
 
 
@@ -425,7 +400,7 @@ MESH_RETRY_FACTOR = 0.85     # gmsh failed on the STEP as built and cleaned: one
 
 def get_mesh(ctx, part, setup):
     """gmsh tets of the part (+ bonded companions) in the manifest frame, cached by the STEP files' sha256 and h."""
-    steps = [("polymer", frame_step(ctx, part))] + [(lab, frame_step(ctx, b["part"], b.get("step_offset_mm"))) for (_, lab, _), b in zip(bonded_slots(setup), setup.get("bonded", []))]
+    steps = [("polymer", frame_step(ctx, part))] + [(lab, frame_step(ctx, b["part"])) for (_, lab, _), b in zip(bonded_slots(setup), setup.get("bonded", []))]
     h = float(setup.get("mesh_h_mm", 2.2))
     key = "-".join(f"{lab}{sha(p)[:12]}" for lab, p in steps) + f"-h{h:g}"
     f = CACHE / "fem-mesh" / f"{key}.npz"
@@ -605,8 +580,7 @@ def select_holes(ctx, part, mate, hs):
     (joining_screws: the screw is the joint, so gap_mm is not applied), or of the screws the patch names ("screws": [...]); r_min_mm..r_max_mm,
     concave for the part's own faces; a screw whose bores are all wider than r_max_mm keeps its narrowest one (bore_above_r_max).
     A mate no screw joins (the screws are not in the manifest) falls back to the part's bores within gap_mm of the mate: concave faces of one radius
-    on one axis spanning at least min_arc_deg (default 270) in all. A concave round or fillet is never a hole. "select": "any_cylinder" restores the old selection (every
-    cylindrical face in range near the mate) for reproducing old numbers."""
+    on one axis spanning at least min_arc_deg (default 270) in all. A concave round or fillet is never a hole."""
     src = hs.get("of", part)
     own = src == part
     r_max, r_min, gap = float(hs.get("r_max_mm", 5.0)), float(hs.get("r_min_mm", 0.0)), float(hs["gap_mm"])
@@ -618,9 +592,7 @@ def select_holes(ctx, part, mate, hs):
     def near(h):           # axis centre or either end within gap of the mate's surface
         pts = np.array([h["centre"] + t * h["half_len"] * h["axis"] for t in (-1.0, 0.0, 1.0)])
         return tree is not None and float(tree.query(pts)[0].min()) <= gap
-    legacy = [h for h in faces if r_min <= h["r"] <= r_max and near(h)]     # what every cylindrical face near the mate gave before
-    if hs.get("select") == "any_cylinder":
-        return legacy, dict(mode="any_cylinder: every cylindrical face in range near the mate (old selection)", faces=len(legacy))
+    in_range = [h for h in faces if r_min <= h["r"] <= r_max and near(h)]     # every cylindrical face in range near the mate
     named = hs.get("screws")
     if named:
         screws, mode = [(k, screw_geometry(ctx, k)) for k in named], "named screws (setup)"
@@ -641,8 +613,8 @@ def select_holes(ctx, part, mate, hs):
             picked += [h for h in sel if not any(h is x for x in picked)]
     else:
         mode = "bores: no screw in the manifest joins the part and the mate"
-        picked = [h for h in legacy if not own or (h["concave"] and _bore_arc(h, faces) >= float(hs.get("min_arc_deg", MIN_BORE_ARC_DEG)))]
-    dropped = [h for h in legacy if not any(h is x for x in picked)]
+        picked = [h for h in in_range if not own or (h["concave"] and _bore_arc(h, faces) >= float(hs.get("min_arc_deg", MIN_BORE_ARC_DEG)))]
+    dropped = [h for h in in_range if not any(h is x for x in picked)]
     fil = [h for h in dropped if own and not (h["concave"] and _bore_arc(h, faces) >= float(hs.get("min_arc_deg", MIN_BORE_ARC_DEG)))]
     det = dict(mode=mode, faces=len(picked), screws=list(per_screw), hole_faces_per_screw=per_screw, screws_without_bore=[k for k, v in per_screw.items() if not v],
                bore_above_r_max=above, named_screws_not_found=missing,
@@ -746,31 +718,11 @@ def _one_patch(ctx, mesh, spec):
         mid = (((mb[0] + mb[1]) / 2 - o) @ ax)
         mask = (rad >= ab["r_mm"][0]) & (rad <= ab["r_mm"][1]) & ((along < mid) if ab["side"] == "low" else (along >= mid))
         return None, mask, {ab["mate"] + f" ({ab['side']} side)": mask}, {}
-    if "box" in spec or "capsules" in spec:
+    if "box" in spec:
         pp = point_pred(spec)
         pred = lambda c, v: pp(c)  # noqa: E731
         return pred, pred(cent, None), {}, {}
-    if "spheres" in spec:
-        sp = spec["spheres"]
-        pred = lambda c, v: np.logical_or.reduce([np.linalg.norm(np.asarray(c) - np.asarray(p), axis=1) <= sp["radius_mm"] for p in sp["centres"]])  # noqa: E731
-        return pred, pred(cent, None), {}, {}
-    if "cylinder_shells" in spec:
-        cs = spec["cylinder_shells"]
-        ax = AX[cs["axis"]]; o1, o2 = [i for i in range(3) if i != ax]
-        def pred(c, v):
-            c = np.asarray(c)
-            ring = np.logical_or.reduce([np.abs(np.hypot(c[:, o1] - u, c[:, o2] - w) - cs["radius_mm"]) <= cs["tol_mm"] for u, w in cs["centres"]])
-            return ring & (np.abs(c[:, ax] - cs["along_mid_mm"]) <= cs["along_half_mm"])
-        return pred, pred(cent, None), {}, {}
-    r = spec["rings"]
-    a, b = r["axes"]
-    cond = lambda c: np.ones(len(c), bool)  # noqa: E731
-    w = r.get("where")
-    if w:
-        ax = AX[w["axis"]]
-        cond = lambda c: (c[:, ax] >= w.get("min", -1e9)) & (c[:, ax] <= w.get("max", 1e9))  # noqa: E731
-    pred = lambda c, v: np.logical_or.reduce([(c[:, a] - u) ** 2 + (c[:, b] - vv) ** 2 <= r["radius_mm"] ** 2 for u, vv in r["sites"]]) & cond(c)  # noqa: E731
-    return pred, pred(cent, None), {}, {}
+    raise ValueError(f"unknown patch kind {sorted(spec)} (kinds: see the fem_core docstring)")
 
 
 def _halves(mesh, cent, area, mask):

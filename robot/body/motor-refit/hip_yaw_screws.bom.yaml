@@ -57,8 +57,6 @@ parts:
       - 18.65
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PETG_CF
     supports:
       yaw_horn_screws:
         contact:
@@ -113,83 +111,6 @@ parts:
           joint: R_hip_pitch
           torque_Nmm: 3922.7
     variants:
-      legacy_coordinates:
-        materials:
-        - legacy_fdm_PAHT_CF_dry
-        - legacy_fdm_PETG_CF
-        origin_mm:
-        - 57.3
-        - 2.0
-        - 237.65
-        supports:
-          main:
-            rings:
-              axes:
-              - 0
-              - 1
-              sites:
-              - - 52.0
-                - 2.0
-              - - 66.0
-                - 2.0
-              - - 59.0
-                - -5.0
-              - - 59.0
-                - 9.0
-              radius_mm: 4.2
-              where:
-                axis: z
-                min: 263.0
-        load:
-          rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - 5.68
-              - 246.17
-            - - -1.6800000000000002
-              - 246.17
-            - - 9.17
-              - 242.68
-            - - -5.17
-              - 242.68
-            - - 10.0
-              - 247.0
-            - - -6.0
-              - 247.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              min: 55.5
-              max: 60.5
-      stored_load_legacy_supports:
-        materials:
-        - legacy_fdm_PAHT_CF_dry
-        - legacy_fdm_PETG_CF
-        supports:
-          main:
-            rings:
-              axes:
-              - 0
-              - 1
-              sites:
-              - - 52.0
-                - 2.0
-              - - 66.0
-                - 2.0
-              - - 59.0
-                - -5.0
-              - - 59.0
-                - 9.0
-              radius_mm: 4.2
-              where:
-                axis: z
-                min: 263.0
-        origin_mm:
-        - 57.3
-        - 2.0
-        - 237.65
       loose_load:
         load:
           holes:
@@ -198,20 +119,6 @@ parts:
             gap_mm: 0.5
             r_max_mm: 1.6
             rim_mm: 2.0
-    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the hip pitch servo
-      case: all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction + applied
-      wrench = 0.001 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 0.9 (variant loose_load; all cases
-      x materials): p99 -17..+8 %, peak -11..+20 %, displacement -52..-41 %; recovery PAHT-CF p99 54.7 -> 46.2 MPa, displacement 4.65 -> 2.25
-      mm. Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.6 p99 -0.7..+4.5 %, disp +6.0..+7.4 %; 1.6->1.2
-      p99 +1.8..+6.8 %, disp +4.9..+11.1 %; 1.2->0.9 p99 -0.1..+6.2 %, disp -0.5..+9.4 %; 0.9->0.7 p99 +0.9..+4.0 %, disp +4.6..+6.1 %. Lowest
-      case is heavy_6kg_1p5g: ratio 1.27 at h 0.9 (1.23 at h 0.7); the steps are not settling (p99 still +4 % per step), so the true value may
-      be 5-10 % lower. Stored h 0.9: 0.9: p99 +0.9..+4.0 % and displacement +4.6..+6.1 % to the next finer level h 0.7. At the stored h, recovery
-      PAHT-CF (layer normal x): p99 46.169 MPa, peak 411.61, displacement 2.249 mm, ratio 1.91 (33723 nodes). The loose-load setup that produced
-      the numbers below stays as variant loose_load (history). Earlier notes: legacy_coordinates reproduces the old run on p99 and displacement
-      (p99 -0.1..+1.2 %, disp -0.8..+0.3 %, peak +6..+28 %). Stored differs: p99 -22..+9 %, peak +42..+203 %, disp +4..+38 %. One-change solve
-      (stored load + legacy supports): p99 -10..+9 %, peak -46..-4 %, disp +39..+52 %, so the hole-based load patch (610 mm2 vs 470, 593 mm2 on
-      the low-z side only) drives displacement and the screw-contact supports (1901 mm2 vs 1790, halves 1177 / 724 vs 901 / 889) the peak. Not
-      chased further.'
     convergence:
       manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
         except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'

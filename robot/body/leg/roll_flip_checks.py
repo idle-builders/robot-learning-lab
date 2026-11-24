@@ -630,7 +630,7 @@ def run_press(which):
 
 def run_fem(only=None):
     """Static FEM of the parts of the given report keys (checks `fem`, per-part setups); report.fem[KEY] in the shape the
-    publication reads: by_layer_normal -> material (PAHT_CF_dry, PAHT_CF_wet, PETG_CF) -> load case -> measurements."""
+    publication reads: by_layer_normal -> material (the setup's declared materials, data/materials.json names) -> load case -> measurements."""
     rep = json.loads(REPORT.read_text()).get("fem", {}) if REPORT.exists() else {}
     for key, (part, man) in FEM_KEYS.items():
         if only and key not in only:
@@ -647,8 +647,7 @@ def run_fem(only=None):
         if p is None:
             print(f"{key}: part {part} has no FEM setup or no native STEP in {man.name}", flush=True)
             continue
-        bl = {ln: {m.replace("legacy_fdm_", ""): rows for m, rows in by_m.items() if m.startswith("legacy_fdm_")}
-              for ln, by_m in p["by_layer_normal"].items()}
+        bl = p["by_layer_normal"]          # layer normal -> declared material (data/materials.json name) -> load case -> measurements
         rep[key] = dict(nodes=p["nodes"], tets=p["tets"], origin_mm=p["origin_mm"], wrenches_N_Nmm=p["wrenches_N_Nmm"], by_layer_normal=bl,
                         patches=p["patches"], seconds=p["seconds"], manifest=str(man.relative_to(ROOT)), source="robot/body/checks fem")
         merge("fem", dict(rep, method="robot/body/checks fem: gmsh P1 tets, orthotropic FDM polymer with bonded sleeves, per-part setup "

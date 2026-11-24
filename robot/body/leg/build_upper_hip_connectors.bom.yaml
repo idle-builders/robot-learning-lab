@@ -62,8 +62,6 @@ parts:
       - -42.0
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PETG_CF
     supports:
       knee_cheek_low:
         axis_band:
@@ -127,148 +125,6 @@ parts:
           joint: R_knee
           torque_Nmm: 3922.7
     variants:
-      legacy_coordinates:
-        supports:
-          main:
-            rings:
-              axes:
-              - 1
-              - 2
-              sites:
-              - - 4.0
-                - 116.0
-              - - 4.0
-                - 130.0
-              - - -3.0
-                - 123.0
-              - - 11.0
-                - 123.0
-              radius_mm: 4.2
-              where:
-                axis: x
-                min: 89.0
-          idler:
-            rings:
-              axes:
-              - 1
-              - 2
-              sites:
-              - - 4.0
-                - 116.0
-              - - 4.0
-                - 130.0
-              - - -3.0
-                - 123.0
-              - - 11.0
-                - 123.0
-              radius_mm: 4.2
-              where:
-                axis: x
-                max: 39.5
-        load:
-        - rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - 7.68
-              - 88.17
-            - - 0.32
-              - 88.17
-            - - 11.17
-              - 84.68
-            - - -3.17
-              - 84.68
-            - - 12.0
-              - 89.0
-            - - -4.0
-              - 89.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              max: 44.0
-        - rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - 7.68
-              - 88.17
-            - - 0.32
-              - 88.17
-            - - 11.17
-              - 84.68
-            - - -3.17
-              - 84.68
-            - - 12.0
-              - 89.0
-            - - -4.0
-              - 89.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              min: 83.0
-      band_supports_legacy_load:
-        supports:
-          knee_cheek_low:
-            axis_band:
-              joint: R_knee
-              r_mm:
-              - 2.8
-              - 11.2
-              mate: R_knee_ST3025_output
-              side: low
-          knee_cheek_high:
-            axis_band:
-              joint: R_knee
-              r_mm:
-              - 2.8
-              - 11.2
-              mate: R_knee_ST3025_output
-              side: high
-        load:
-        - rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - 7.68
-              - 88.17
-            - - 0.32
-              - 88.17
-            - - 11.17
-              - 84.68
-            - - -3.17
-              - 84.68
-            - - 12.0
-              - 89.0
-            - - -4.0
-              - 89.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              max: 44.0
-        - rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - 7.68
-              - 88.17
-            - - 0.32
-              - 88.17
-            - - 11.17
-              - 84.68
-            - - -3.17
-              - 84.68
-            - - 12.0
-              - 89.0
-            - - -4.0
-              - 89.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              min: 83.0
       case_contact_load:
         load:
           contact:
@@ -282,21 +138,6 @@ parts:
             gap_mm: 2.0
             r_max_mm: 2.0
             rim_mm: 2.3
-    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the ankle pitch servo
-      case (8 sleeve holes): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction
-      + applied wrench = 0.0003 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 2.2 (variant loose_load,
-      new shin STEP; all cases x materials): p99 -25..-16 %, peak -28..-15 %, displacement -51..-39 %; recovery PAHT-CF p99 4.84 -> 3.70 MPa,
-      displacement 0.228 -> 0.118 mm. Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.9 p99 -0.0..+1.6
-      %, disp -0.1..+0.3 %. Stored h 2.2: 2.2: p99 -0.0..+1.6 % and displacement -0.1..+0.3 % to the next finer level h 1.9. At the stored h,
-      recovery PAHT-CF (layer normal z): p99 3.702 MPa, peak 9.11, displacement 0.118 mm, ratio 23.77 (73478 nodes). The loose-load setup that
-      produced the numbers below stays as variant loose_load (history). Earlier notes: Load = the shin''s own bolt holes next to the ankle case
-      (gap 2 mm, r<=2 mm, rim 2.3 mm; 1098 mm2 vs old rings 1425, case-side halves 250 / 848 vs 577 / 848 because only 2 of the 6 old idler-side
-      sites have holes in the manifest shin). Vs the old motor-refit run (PAHT dry / PETG): p99 +10.6..+18.2 %, peak +13.2..+22.7 %, displacement
-      +8.6..+14.4 %. One-change solves: the both-cheek supports alone give p99 -3.7..-2.8 %, peak -7.3..-0.2 %, displacement -13.6..-12.1 %; the
-      smaller idler-side load patch accounts for the rest. Not chased further. Shin STEP: roll-flip/parts/R_shin_combined.step (6f314a22, offset
-      0; the pilot holes dia 1.7 of the back-cover screws are not on the ankle case: the load selects the 8 sleeve holes r 1.2; fem_setup on that
-      STEP: supports 884.7 + 959.3 mm2, load 1109.2 mm2 (old STEP 1098.4), 0 shared nodes). The h 1.9 run that timed out before (3211 s, spsolve-era
-      loose load) now takes 120 s with the rigid Schur path.'
     convergence:
       manifest: 'artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 df7d03a5e2610e97 (parts unchanged vs 068f643641fe3695
         except the shin: R_thigh_roll_flip, hip pitch, yaw, ankle, foot keep their STEP shas)'
@@ -430,9 +271,6 @@ parts:
       - 18.65
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PAHT_CF_wet
-    - legacy_fdm_PETG_CF
     supports:
       case_front_screws:
         contact:
@@ -494,65 +332,6 @@ parts:
           joint: R_hip_roll
           torque_Nmm: 4900.0
     variants:
-      legacy_coordinates:
-        supports:
-          main:
-            rings:
-              axes:
-              - 0
-              - 2
-              sites:
-              - - 66.25
-                - 161.0
-              - - 45.75
-                - 161.0
-              - - 66.25
-                - 181.7
-              - - 45.75
-                - 181.7
-              radius_mm: 3.8
-              where:
-                axis: y
-                max: -8.0
-          idler:
-            rings:
-              axes:
-              - 0
-              - 2
-              sites:
-              - - 66.25
-                - 157.25
-              - - 45.75
-                - 157.25
-              - - 66.25
-                - 181.7
-              - - 45.75
-                - 181.7
-              radius_mm: 3.8
-              where:
-                axis: y
-                min: 22.5
-        load:
-          rings:
-            axes:
-            - 1
-            - 2
-            sites:
-            - - -4.0
-              - 151.0
-            - - 12.0
-              - 151.0
-            - - 4.0
-              - 150.0
-            - - -3.0
-              - 143.0
-            - - 11.0
-              - 143.0
-            radius_mm: 3.5
-            where:
-              axis: x
-              min: 29.0
-              max: 34.0
       loose_load:
         load:
           contact:
@@ -590,16 +369,6 @@ parts:
         max_displacement_mm: 0.3843
         p99_strength_ratio: 7.38
       reaction_plus_wrench_pct_max: 0.0005
-    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the knee servo case
-      (5 screw sites): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction check: clamped-node reaction
-      + applied wrench = 0.0005 % of the wrench at the stored h (all cases). rigid load vs the previous loose load at h 1.2 (variant loose_load;
-      all cases x materials): p99 -31..-24 %, peak -2..+33 %, displacement -54..-39 %; recovery PAHT-CF p99 16.7 -> 11.9 MPa, displacement 0.75
-      -> 0.38 mm (at the old stored h 2.2 the same comparison gave p99 -32..-24 %, displacement -53..-41 %). Mesh convergence (rigid, change to
-      the next finer level, all cases x materials): 2.2->1.6 p99 +2.2..+8.8 %, disp +8.0..+13.0 %; 1.6->1.2 p99 +2.3..+6.2 %, disp +7.0..+13.2
-      %. Worst case is roll stall: p99 strength ratio 2.08 at h 1.2 (2.31 / 2.21 / 2.08 at h 2.2 / 1.6 / 1.2, still falling), next to the recovery
-      ratio 7.4. Stored h 1.2: NOT converged within the memory cap: finest level that runs h 1.2 (peak < 6 GB); last step h 1.6 -> 1.2 p99 +2.3..+6.2
-      %, displacement +7.0..+13.2 %. At the stored h, recovery PAHT-CF (layer normal x): p99 11.926 MPa, peak 97.9, displacement 0.3843 mm, ratio
-      7.38 (97552 nodes). The loose-load setup that produced the numbers below stays as variant loose_load (history). Earlier notes: '
   section: Hip
 - match: R_thigh_roll_flip_steel_sleeves
   kind: hardware
@@ -716,9 +485,6 @@ parts:
       - 18.65
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PAHT_CF_wet
-    - legacy_fdm_PETG_CF
     supports:
       case_front_screws:
         contact:
@@ -779,7 +545,6 @@ parts:
         stall:
           joint: L_hip_roll
           torque_Nmm: 4900.0
-    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
   section: Hip
 - match: L_thigh_roll_flip_steel_sleeves
   kind: hardware
@@ -907,9 +672,6 @@ parts:
       - 0.0
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PAHT_CF_wet
-    - legacy_fdm_PETG_CF
     supports:
       pitch_horn_screws:
         contact:
@@ -971,61 +733,6 @@ parts:
           joint: R_hip_pitch
           torque_Nmm: 3922.7
     variants:
-      legacy_coordinates:
-        supports:
-          main:
-            rings:
-              axes:
-              - 1
-              - 2
-              sites:
-              - - 2.0
-                - 212.0
-              - - 2.0
-                - 226.0
-              - - -5.0
-                - 219.0
-              - - 9.0
-                - 219.0
-              radius_mm: 4.2
-              where:
-                axis: x
-                min: 62.5
-        load:
-        - rings:
-            axes:
-            - 0
-            - 2
-            sites:
-            - - 49.0
-              - 190.0
-            - - 63.0
-              - 190.0
-            - - 56.0
-              - 183.0
-            - - 56.0
-              - 197.0
-            radius_mm: 4.2
-            where:
-              axis: y
-              max: -11.5
-        - rings:
-            axes:
-            - 0
-            - 2
-            sites:
-            - - 49.0
-              - 190.0
-            - - 63.0
-              - 190.0
-            - - 56.0
-              - 183.0
-            - - 56.0
-              - 197.0
-            radius_mm: 4.2
-            where:
-              axis: y
-              min: 24.8
       loose_load:
         load:
           contact:
@@ -1060,15 +767,6 @@ parts:
         max_displacement_mm: 0.9767
         p99_strength_ratio: 5.62
       reaction_plus_wrench_pct_max: 0.0006
-    open_difference: 'Re-proved on the manifest roll-flip df7d03a5e2610e97; load patch RIGID (M-chnfz7) because the mate is the hip roll horn
-      plus idler screws (8 screw sites on two faces): all its nodes follow one rigid-body motion, the support is fixed (already rigid). Reaction
-      check: clamped-node reaction + applied wrench = 0.0006 % of the wrench at the stored h (all cases). rigid load vs the previous loose load
-      at h 2.2 (variant loose_load; all cases x materials): p99 -69..+4 %, peak -79..+8 %, displacement -90..-6 %; recovery PAHT-CF p99 22.37
-      -> 15.66 MPa, displacement 1.76 -> 0.98 mm (the -69 / -90 % are the pitch-stall case: the roll horn / idler load is carried by all 8 screw
-      sites together). Mesh convergence (rigid, change to the next finer level, all cases x materials): 2.2->1.6 p99 -1.0..+2.6 %, disp +1.3..+2.6
-      %. Stored h 2.2: 2.2: p99 -1.0..+2.6 % and displacement +1.3..+2.6 % to the next finer level h 1.6. At the stored h, recovery PAHT-CF (layer
-      normal z): p99 15.657 MPa, peak 48.37, displacement 0.9767 mm, ratio 5.62 (24900 nodes). The loose-load setup that produced the numbers
-      below stays as variant loose_load (history). Earlier notes: '
   section: Hip
 - match: R_hip_pitch_to_roll_roll_flip_steel_sleeves
   kind: hardware
@@ -1142,9 +840,6 @@ parts:
       - 0.0
     materials:
     - Bambu PAHT-CF
-    - legacy_fdm_PAHT_CF_dry
-    - legacy_fdm_PAHT_CF_wet
-    - legacy_fdm_PETG_CF
     supports:
       pitch_horn_screws:
         contact:
@@ -1205,7 +900,6 @@ parts:
         stall:
           joint: L_hip_pitch
           torque_Nmm: 3922.7
-    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part (see its open_difference).'
   section: Hip
 - match: L_hip_pitch_to_roll_roll_flip_steel_sleeves
   kind: hardware

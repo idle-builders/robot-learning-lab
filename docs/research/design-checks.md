@@ -71,7 +71,7 @@ What this means for the checks [inferred]:
 - Heat: PETG-CF softens at about 68-74 °C, and the Feetech STS3215 turns its torque off above 70 °C internal temperature
   (STS3250 rated -20..60 °C ambient) [S8]. A PETG-CF part clamped to a hot servo case is at risk; PAHT-CF is not.
 - **Density mismatch:** the old `fast_check.py` and the manifest use 1.22 g/cm3 for PAHT-CF; Bambu's sheet says
-  1.06 g/cm3. The shared `mass` check uses the data-sheet value and still reports the legacy one; PAHT-CF masses from
+  1.06 g/cm3. The shared `mass` check uses the data-sheet value only (the legacy comparison was removed 2026-11-24); PAHT-CF masses from
   1.22 read about 15 % high (open question below).
 - Printer data in the manifest is prose today: in the selected `motor-refit` manifest 36 of 63 printed parts carry a `print_orientation` string and 12 a
   `manufacturing` string, and materials are free text such as "PAHT-CF ... or PETG-CF" [repo]. Most printability checks

@@ -13,14 +13,6 @@ import numpy as np
 from checks.core import ROOT, R, kit, screen_solid, step_mesh, tick
 from checks.registry import register
 
-LEGACY_MATERIAL = "legacy_paht_cf_fast_check"   # data/materials.json: reproduces the old fast_check mass numbers; only the labelled comparison
-
-
-def legacy_density():
-    """g/mm3 of the legacy fast_check material (data/materials.json LEGACY_MATERIAL), for the labelled comparison only."""
-    import json
-    from checks.core import DATA
-    return json.loads((DATA / "materials.json").read_text())[LEGACY_MATERIAL]["density_g_cm3"] * 1e-3
 
 
 def declared_density(n, p):
@@ -70,7 +62,7 @@ def check_mass(body, changed, sol, density=None):
 
 @register("mass", lambda ctx: bool(ctx.scope))
 def run(ctx):
-    """Solid volume x density of the part's declared material vs manifest mass; also the labelled legacy fast_check density; owning link mass
+    """Solid volume x density of the part's declared material vs manifest mass; owning link mass
     and COM. Printed parts only (process.is_printed: process.printed, else the definition's kind, else the role table); the density is the
     one data/materials.json gives the part's resolved material (process.effective: run override, else the definition's process block,
     else part_settings.json), named per part in density_source."""
@@ -91,7 +83,6 @@ def run(ctx):
     for n in list(raw["parts"]):
         if n not in printed:
             del raw["parts"][n]   # volume x density is for printed parts only
-    legacy = legacy_density()
     for n, r in raw["parts"].items():
         m, how = eff[n]["material"], eff[n]["source"]["material"]
         where = (ctx.settings_source.get(n) or {}).get("process", "part_settings.json") if how in ("part setting", "seeded") else how
@@ -100,7 +91,6 @@ def run(ctx):
         r["density_source"] = dict(table="data/materials.json density_g_cm3" if r["density_g_cm3"] else
                                    (f"none: material {m!r} has no density in data/materials.json" if m else "none: no material declared"),
                                    material_from=how, definition=where)      # definition: where the material is declared
-        r["mass_legacy_density_g"] = round(float(ctx.sol[n][0].volume) * legacy, 2)
         if r["mass_from_volume_g"] is not None and r["manifest_mass_g"]:
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=r["centroid_mm"], unit="g (volume - manifest)",
                               value=round(r["mass_from_volume_g"] - r["manifest_mass_g"], 2), what=f"mass from solid volume ({r['material']}) vs manifest"))
@@ -109,5 +99,4 @@ def run(ctx):
                 bad_events=dict(printed_parts_without_material=sum(1 for r in raw["parts"].values() if r["material"] is None),
                                 printed_parts_without_density=sum(1 for r in raw["parts"].values() if r["density_g_cm3"] is None)),
                 evidence=[], notes="density from data/materials.json by the part's resolved material (checks/process.py effective: --process override, else the "
-                                   "part's body definition process block, else part_settings.json; density_source per part); mass_legacy_density_g = the labelled "
-                                   f"legacy comparison only ({LEGACY_MATERIAL}, {legacy * 1e3:g} g/cm3, the old fast_check value)")
+                                   "part's body definition process block, else part_settings.json; density_source per part)")
