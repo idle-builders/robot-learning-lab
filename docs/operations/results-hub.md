@@ -92,7 +92,7 @@ Mechanical CAD belongs in the [design dashboard](http://127.0.0.1:8805/design/),
 
 ## Remote read-only view
 
-The owner's remote host (named in the gitignored `.credentials/remote-dashboard.md`, with its HTTP basic-auth login) serves the current learning and design views, read-only. The login is never committed or kept in Keychain. The local dashboard stays the only place that writes; selections, reviews, BOM edits, earlier versions and the Archive view are local only.
+The owner's remote host (named in the gitignored `.credentials/remote-dashboard.md`, with its HTTP basic-auth login) serves the current learning and design views, read-only. The login is never committed or kept in Keychain. After one login a device stays signed in through a 180-day session cookie, renewed on every visit; a new password signs every device out (owner, 2026-11-24). The local dashboard stays the only place that writes; selections, reviews, BOM edits, earlier versions and the Archive view are local only.
 
 The remote view is the current state, about fifty files: the selected study of each robot section (`selected` in `robot/design.json`) with its GLB models, and the newest version of each learning skill with one clip. Its web-files bucket (separate from the private archive) is laid out as:
 
