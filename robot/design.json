@@ -4,7 +4,7 @@
   "status": "selected_complete_body",
   "scope": "The selected robot: the complete 3D-printed FDM body with its connectors, the integrated electronics and the selected actuators. Selection does not qualify physical behaviour.",
   "body": "robot/body/motor-refit",
-  "body_manifest": "artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json",
+  "body_manifest": "artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json",
   "electronics": "robot/electronics/selection.json",
   "actuators": "robot/actuators/tier-pick",
   "look_reference": "robot/shell/sketch",

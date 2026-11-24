@@ -713,30 +713,6 @@ parts:
     supplier: unknown
     part_number: unknown
   section: Shoulder
-- match: R_upper_arm_hard_cover
-  kind: printed
-  line: print:R_upper_arm_hard_cover
-  name: R_upper_arm_hard_cover
-  make_buy: make
-  quantity: 1
-  process:
-    material: Bambu PETG-CF
-    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
-      from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
-      designer.'
-  section: Shoulder
-- match: L_upper_arm_hard_cover
-  kind: printed
-  line: print:L_upper_arm_hard_cover
-  name: L_upper_arm_hard_cover
-  make_buy: make
-  quantity: 1
-  process:
-    material: Bambu PETG-CF
-    seeded: 'material only (T-zfejzf, 2026-11-22): no designer setting existed (print_setup: no material, so walls had no line width); PETG-CF
-      from the manifest material text ''PA12 / PETG'', as the thigh and shin back shells were seeded. Print direction left open for the shell''s
-      designer.'
-  section: Shoulder
 - match:
   - L_upper_arm_shell_front_M3x8
   - R_upper_arm_shell_front_M3x8
@@ -822,40 +798,6 @@ assembly:
     derived: 'graph order, fastened distance 3 from what is present (via upper__R_roll_C047_case); direction: mean screw direction of 5 screw(s)
       joining it to placed parts (R_shoulder_u_roll_case_ny_screw, R_shoulder_u_roll_case_py_screw, upper__R_yaw_case_PA2x7), head to tip when
       the part carries the head, else reversed'
-  - id: right_arm:p034
-    subassembly: right_arm
-    part: R_upper_arm_hard_cover
-    direction:
-    - -1.0
-    - 0.0
-    - 0.0
-    after:
-    - right_arm:p033
-    status: seeded
-    derived: 'graph order, fastened distance 4 from what is present (via R_shoulder_roll_to_yaw_combined); direction: mean screw direction of
-      2 screw(s) joining it to placed parts (R_upper_arm_shell_front_M3x8, R_upper_arm_shell_rear_M3x6), head to tip when the part carries the
-      head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 59.5 -> 41.5 mm out, seat released True
-      -> True, max overlap 2264.3 -> 2402.8 mm3'
-  - id: right_arm:s035
-    subassembly: right_arm
-    screw: R_upper_arm_shell_front_M3x8
-    with:
-    - R_upper_arm_shell_front_M3_nut
-    direction: screw axis
-    after:
-    - right_arm:p034
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
-  - id: right_arm:s036
-    subassembly: right_arm
-    screw: R_upper_arm_shell_rear_M3x6
-    with:
-    - R_upper_arm_shell_rear_M3_nut
-    direction: screw axis
-    after:
-    - right_arm:s035
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
   - id: left_arm:p007
     subassembly: left_arm
     part:
@@ -871,40 +813,6 @@ assembly:
     derived: 'graph order, fastened distance 3 from what is present (via upper__L_roll_C047_case); direction: mean screw direction of 5 screw(s)
       joining it to placed parts (L_shoulder_u_roll_case_ny_screw, L_shoulder_u_roll_case_py_screw, upper__L_yaw_case_PA2x7), head to tip when
       the part carries the head, else reversed'
-  - id: left_arm:p034
-    subassembly: left_arm
-    part: L_upper_arm_hard_cover
-    direction:
-    - 1.0
-    - 0.0
-    - 0.0
-    after:
-    - left_arm:p033
-    status: seeded
-    derived: 'graph order, fastened distance 4 from what is present (via L_shoulder_roll_to_yaw_combined); direction: mean screw direction of
-      2 screw(s) joining it to placed parts (L_upper_arm_shell_front_M3x8, L_upper_arm_shell_rear_M3x6), head to tip when the part carries the
-      head, else reversed; direction searched (six axes vs the seeded [-0.0, 1.0, 0.0]): path contact 59.5 -> 41.5 mm out, seat released True
-      -> True, max overlap 2255.9 -> 2432.3 mm3'
-  - id: left_arm:s035
-    subassembly: left_arm
-    screw: L_upper_arm_shell_front_M3x8
-    with:
-    - L_upper_arm_shell_front_M3_nut
-    direction: screw axis
-    after:
-    - left_arm:p034
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
-  - id: left_arm:s036
-    subassembly: left_arm
-    screw: L_upper_arm_shell_rear_M3x6
-    with:
-    - L_upper_arm_shell_rear_M3_nut
-    direction: screw axis
-    after:
-    - left_arm:s035
-    status: seeded
-    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
   - id: final_body:p003
     subassembly: final_body
     part: center_back_shell
@@ -939,7 +847,6 @@ defects:
 - id: step-dropped-by-morph
   kind: no_scripted_step
   parts:
-  - '*_upper_arm_hard_cover'
   - '*_shin_back_hard_cover'
   - combined__stage2_lower_pelvis_battery_cradle
   state: 'An upstream STEP exists (artifacts/robot/body/assembly/parts), but robot/body/ape-proportions/build.py stretches the mesh and records
@@ -951,44 +858,58 @@ defects:
 # moved verbatim from publish_shoulder_shells.py record() (T-zmmdkm, 2026-11-22); the owning session keeps it current.
 study:
   study_id: shoulder-shells-parametric
-  title: Shoulder · parametric shells around the U connectors
+  title: Arm shell · one parametric surface from shoulder to wrist
   robot_sections:
   - Shoulder
   - Torso / shell
   workspace: Body
-  summary: Smooth parametric upper-arm cover enclosing the green U, simple openings about the joint axes.
-  maturity: Exploratory CAD; physical behavior unmeasured
-  observation: 'The upper-arm cover is now a few gentle parametric functions (superellipse rings whose half-widths and exponents follow a handful
-    of spline control values along the arm; fit to today''s cover rms 0.71 mm) and encloses the green U: two smooth C2 swellings, max outward
-    growth 6.3 mm at the back-inboard corner below the roll servo, elsewhere <= 1.6 mm. Its top is trimmed by two planes about the roll axis (10
-    mm corner round); the torso shells get one round opening per side about the pitch axis (R 34.6 mm, 1.5 mm rounded edge). No opening follows
-    the motion sweep.'
-  measurements: 'Blue U to cover >= 4.3 mm over roll -15..95 (point sweep 4.54 mm); blue U to torso shells >= 4.1 mm over pitch -60..150; green
-    U, its sleeves and screws fully inside the cover (min 1.71 mm to the cover material); cover 12092 mm3 per side (today 15336); torso opening
-    removes about 2023 mm3 (front) and 2141 mm3 (back) per side. Cover mount: two bosses on the green U with a pressed sleeve and a captive M3
-    nut, heads seated, nut engagement 2.25 / 2.5 mm.'
-  limitations: 'At the roll -15 end the cover''s lower inboard wall still enters the torso side (95 + 23 mm3; today''s body 293 + 224 mm3): a
-    roll-limit or torso-shape question. The torso opening leaves about 4 mm of shell above it at the shoulder top. The trim shows the upper roll
-    servo (the blue U rolls over it at +95). Cover pads are clamped plastic without a sleeve. Mesh-defined shells, nothing printed.'
+  summary: The whole arm's covers as one continuous parametric surface (route D hood about the roll axis, arc blue U), cut into four covers
+    per arm; owner-approved 2026-11-24 (M-eb6cxz).
+  maturity: CAD with the shared checks (candidate, range sweep, screws, assembly, BOM); mesh-defined covers, nothing printed
+  observation: 'The arm is closed by one calm surface: superellipse sections (exponent 1.98-4.33) on natural cubic splines along a 224.6 mm
+    spine (min bend radius 32.8 mm), with route D''s hood about the shoulder roll axis over the arc-shaped blue U and a small cut-in for its
+    hub. Analytic seams cut it into the upper-arm hard cover (roll link), the upper-arm lower cover (yaw seam to elbow), and forearm front /
+    back covers, R and L mirrored. The lower cover hangs on a tab under the two elbow-case screws (now PA2x10, a pressed 3.6 / 2.2 sleeve
+    under each head); each forearm cover boss carries a pressed 4.5 / 3.2 sleeve under its M3x8 head. The torso shells keep the round
+    openings about the pitch axis of the earlier shoulder-shells pass.'
+  measurements: 'Covers per side: 20073 / 6851 / 4900 / 6532 mm3 (upper hard / lower / forearm front / back), 48.0 g PETG-CF. Range sweep
+    inside the declared ranges: pitch -60..150, yaw -60..60 and elbow 0..95 without contact; roll: first contact at the -15 end, lower cover
+    x back shell 12.5 mm3 and x front shell 5.3 mm3. Library poses (arm 14 corners): closest own-limb approaches 1.41 mm (blue U x upper
+    cover, roll -15), 1.49 mm (forearm front cover x lower cover, elbow 95), 1.50 mm (upper x lower cover); standing overlap lower cover x
+    upper-arm connector 0.91 mm3. Elbow-case PA2x10 engage 3.3 mm of the 3.0 mm reference. Margins of the build (arm_shell.py report):
+    hood to the arc U sweep -0.0 mm on 2 of 20028 points.'
+  limitations: 'Roll -15 end: the lower cover touches the torso shells (12.5 + 5.3 mm3). Corner pose pitch 150 / roll -15 / yaw -60 /
+    elbow 95 puts the forearm front cover into the head (head carrier 103 mm3, compute board 87, microphone 71): a hand-in-head pose for
+    the controller''s self-collision limits. Assembly: the seeded straight insertion of the upper-arm hard cover meets the green U (2466
+    mm3 along the path, first contact 46 mm out) and of the lower cover the upper-arm connector (880 mm3): the order / direction of these
+    two covers is open. The forearm connector''s own M3 holes carry no sleeve. No print direction chosen for the covers (print checks not
+    run on them); mesh-only covers (B-rep audit and hole checks not run). The elbow crook window stays open (owner did not ask to close it).'
   scope:
     definitions:
     - shoulder-shells
+    - arm-shell
   statements:
   - text: Idle T-tph7xb
-  - text: 'owner decisions 2026-11-22: cover over the green U, no sweep-following openings, gentle parametric functions'
+  - text: 'owner 2026-11-24 (M-eb6cxz): "well done that is a beautiful design" (candidate arm-shell-3)'
+  - text: 'owner decisions 2026-11-22 / 23: cover over the green U, gentle parametric functions, route D top with a small cut-in, one
+      continuous calm arm (M-mt72k3, M-ad69hc, M-f5gs7k)'
   evidence:
-  - label: Shell build report (growth, openings, clearances)
+  - label: Arm shell build report (stations, seams, margins, smoothness, growth)
+    path: artifacts/robot/body/arm/arm-shell/report.json
+  - label: Shape parameters (STATIONS, CAP, SEAM, ELB, FORE_SPLIT, WALL, RUN_CLEAR)
+    path: robot/body/arm/arm_shell.py
+  - label: Shoulder shells build report (torso openings)
     path: artifacts/robot/body/arm/shoulder-clevis/shells/report.json
-  - label: Shape parameter tables (COVER, CAP, BUMPS, TRIM, TORSO_OPENING, WALL, GAP)
-    path: robot/body/arm/shoulder_shells.py
   renders:
-  - label: shoulder shells before after
-    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-before-after.png
-  - label: shoulder shells range poses
-    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-range-poses.png
-  - label: shoulder shells cover mount
-    path: artifacts/robot/body/arm/shoulder-clevis/shells/renders/shoulder-shells-cover-mount.png
+  - label: arm shell standing
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-standing.png
+  - label: arm shell range ends
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-range-ends.png
+  - label: arm shell full body
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-full-body.png
+  - label: arm shell open area
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-open-area.png
   cad:
-    label: Complete body with the parametric shoulder shells
+    label: Complete body with the parametric arm shell
     show_shells: true
-    motion_note: Joint sliders are inspection commands over the manifest ranges, not qualified travel.
+    motion_note: Joint sliders are inspection commands over the declared ranges, not qualified travel.

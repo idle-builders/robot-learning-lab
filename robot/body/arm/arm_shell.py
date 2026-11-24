@@ -26,14 +26,19 @@ The joints are simple analytic seams, so the parts keep a constant gap when the 
   forearm         front / back halves split at the plane y = FORE_SPLIT (as today's covers, screwed to the forearm)
 
 Parts (R; L = exact mirror x -> -x): R_upper_arm_hard_cover (roll link: shoulder to the yaw seam, green U mount wells),
-R_upper_arm_lower_cover (upper arm: yaw seam to the elbow, held under the two elbow-case PA2x7 heads),
-R_fore_front_hard_cover / R_fore_back_hard_cover (forearm: M3x8 into the forearm nuts, as today).
+R_upper_arm_lower_cover (upper arm: yaw seam to the elbow; a tab with a pressed 304 sleeve under each of the two elbow-case
+screws, which become PA2x10: the tab adds LOWER_TAB to their stack), R_fore_front_hard_cover / R_fore_back_hard_cover
+(forearm: M3x8 into the forearm nuts, as today, through a pressed 304 sleeve dia 4.5 / 3.2 in each boss, owner 2026-11-18:
+every clamped printed hole carries one), and the sleeve sets R_upper_arm_lower_cover_steel_sleeves,
+R_fore_{front,back}_hard_cover_steel_sleeves.
 
   .venv/bin/python -B robot/body/arm/arm_shell.py margins     # requirement margins per region (fast, no meshes)
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/arm/arm_shell.py apply
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/arm/arm_shell.py views
-Reads and writes the shoulder-shells candidate (shoulder_shells.CANDIDATE, after `shoulder_shells.py apply`): only the
-eight cover rows change. Measurements only; nothing accepts or rejects.
+`apply` is the generator arm-shell (robot/body/arm/arm_shell.bom.yaml, after shoulder-shells): it reads the shoulder-shells
+body (shoulder_shells.CANDIDATE) and writes its own body, MANIFEST_OUT (the selected body, robot/design.json body_manifest):
+the eight cover rows, the four elbow-case screws and six sleeve-set rows change. Joint ranges come from the body
+definitions (robot/body/bom/bom_config.py). Measurements only; nothing accepts or rejects.
 """
 from __future__ import annotations
 
@@ -49,17 +54,33 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "robot/body"))
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
 from checks import bodylib as F  # noqa: E402
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges and part materials: the body definitions)
 import shoulder_clevis as SC  # noqa: E402
 import shoulder_shells as SS  # noqa: E402
 
-CANDIDATE = SS.CANDIDATE
-PARTS = SS.OUT / "arm-shell"
-VIEWS = SC.VIEWS
+SOURCE = SS.CANDIDATE                            # input: the shoulder-shells body (only read)
+OUT = ROOT / "artifacts/robot/body/arm/arm-shell"
+PARTS = OUT / "parts"
+MANIFEST_OUT = OUT / "assembly-parts-arm-shell.json"   # output: the selected body
+REPORT = OUT / "report.json"
+CANDIDATE = SOURCE                               # fit / margins / fit-rim read the parts the covers must hold (covers excluded)
+VIEWS = OUT / "renders"                          # views: owner renders of the arm shell (derived; recreated by `views`)
 YAW = SS.YAW_AXIS
 YAW_O = np.array([127.0, -10.0, 306.0])          # shoulder-yaw origin (manifest)
 ELBOW = np.array([138.0, -3.0, 219.7638])        # elbow origin; axis along x
 COVERS = ("R_upper_arm_hard_cover", "R_upper_arm_lower_cover", "R_fore_front_hard_cover", "R_fore_back_hard_cover")
+
+
+def jrange(j):
+    """Declared range (deg) of joint j (robot/body/arm/build_arm_connectors.bom.yaml joints:)."""
+    return BOM_CONFIG.joint_range(j)
+
+
+def jsteps(j, step):
+    lo, hi = jrange(j)
+    return np.unique(np.r_[np.arange(lo, hi, step), hi])
 
 
 def yaw_point(s):
@@ -264,12 +285,12 @@ def requirements(body):
     out["hard cover: roll link (static)"] = (roll[s(roll) > SEAM["s"] + 0.5], GAP + WALL)
     pa2 = [k for k in body.parts if k.startswith("upper__R_elbow_case_PA2x7_")]
     up = _link_pts(body, "R_upper_arm", exclude=set(pa2))
-    sw = np.vstack([trimesh.transform_points(up, body.link_T("R_upper_arm", {"R_shoulder_yaw": q})) for q in np.arange(-60, 61, 10)])
-    out["hard cover: upper arm turning in it (yaw +-60)"] = (sw[s(sw) > SEAM["s"] - 1.0], RUN_CLEAR + WALL)
+    sw = np.vstack([trimesh.transform_points(up, body.link_T("R_upper_arm", {"R_shoulder_yaw": q})) for q in jsteps("R_shoulder_yaw", 10.0)])
+    out["hard cover: upper arm turning in it (yaw range)"] = (sw[s(sw) > SEAM["s"] - 1.0], RUN_CLEAR + WALL)
     ax = SS._roll_axis_xz(body)
     bl = SS.blue_roll_sweep(body, step=2.0, n=8000)
     _, rho = SS.roll_polar(bl, ax)
-    out["hood: blue U arc envelope (roll -15..95)"] = (SS._thin(bl[rho <= SC.ARC_R + SC.ARC_T + 0.3], 1.0), RUN_CLEAR + WALL + HOOD_MARGIN)
+    out["hood: blue U arc envelope (roll range)"] = (SS._thin(bl[rho <= SC.ARC_R + SC.ARC_T + 0.3], 1.0), RUN_CLEAR + WALL + HOOD_MARGIN)
     up_lo = up[(s(up) < SEAM["s"] - SEAM["gap"]) & (up[:, 2] > ELBOW[2] - 12.0)]
     out["lower cover: upper arm (static)"] = (up_lo, GAP + WALL)
     out["lower cover: PA2x7 heads in their wells"] = (SS._pts(body, pa2, n=3000), 0.3)
@@ -279,24 +300,25 @@ def requirements(body):
         return np.degrees(np.arctan2(-d[:, 0], -d[:, 1])), np.hypot(d[:, 0], d[:, 1])
     fo_all = _link_pts(body, "R_forearm")
     fo_all = fo_all[np.linalg.norm(fo_all - ELBOW, axis=1) < 60.0]
-    sw = np.vstack([trimesh.transform_points(fo_all, body.link_T("R_forearm", {"R_elbow": q})) for q in np.arange(0, 96, 5)])
+    sw = np.vstack([trimesh.transform_points(fo_all, body.link_T("R_forearm", {"R_elbow": q})) for q in jsteps("R_elbow", 5.0)])
     ph, rr = phi_rho(sw)
     keep = ((ph >= ELB["phi_u"] - 5.0) | (ph <= -85.0)) & (rr >= ELB["R_s"] - 2.0) & (sw @ YAW < SEAM["s"])
-    out["lower cover: forearm turning under it (elbow 0..95)"] = (sw[keep], RUN_CLEAR + WALL)
+    out["lower cover: forearm turning under it (elbow range)"] = (sw[keep], RUN_CLEAR + WALL)
     up_e = up[np.linalg.norm(up - ELBOW, axis=1) < 60.0]
-    sw = np.vstack([trimesh.transform_points(up_e, np.linalg.inv(body.link_T("R_forearm", {"R_elbow": q}))) for q in np.arange(0, 96, 5)])
+    sw = np.vstack([trimesh.transform_points(up_e, np.linalg.inv(body.link_T("R_forearm", {"R_elbow": q}))) for q in jsteps("R_elbow", 5.0)])
     ph, rr = phi_rho(sw)
     keep = (((ph >= -95.0 + ELB["d_back"]) & (ph <= ELB["phi_f"] + 5.0)) | (rr <= ELB["R_d"] + 2.0)) & (sw[:, 2] < ELBOW[2] + 30.0)
-    out["forearm: upper arm turning over it (elbow 0..95)"] = (sw[keep], RUN_CLEAR + WALL)
+    out["forearm: upper arm turning over it (elbow range)"] = (sw[keep], RUN_CLEAR + WALL)
     tor = SS._pts(body, list(SS.TORSO_SHELLS), n=40000)
     tor = tor[tor[:, 0] > 50.0]
     ex = []
-    for qp in (-60.0, -30.0, 0.0, 30.0, 60.0, 90.0, 120.0, 150.0):
-        for qr in (-15.0, -10.0, -5.0):
+    r_lo = jrange("R_shoulder_roll")[0]
+    for qp in jsteps("R_shoulder_pitch", 30.0):
+        for qr in (r_lo, r_lo + 5.0, r_lo + 10.0):
             T = body.link_T("R_shoulder_roll_link", {"R_shoulder_pitch": qp, "R_shoulder_roll": qr})
             Q = trimesh.transform_points(tor, np.linalg.inv(T))
             ex.append(Q[(Q[:, 2] > ELBOW[2] + 22.0) & (np.abs(Q[:, 0] - 120.0) < 45.0)])
-    out["EXCLUDE torso shells beside the arm (roll -15..-5, pitch -60..150)"] = (SS._thin(np.vstack(ex), 1.0), RUN_CLEAR)
+    out["EXCLUDE torso shells beside the arm (roll low end + 10, pitch range)"] = (SS._thin(np.vstack(ex), 1.0), RUN_CLEAR)
     heads = [k for k in body.parts if k.startswith("R_fore_") and "_M3x8_" in k]
     fo = _link_pts(body, "R_forearm", exclude=set(heads))
     fo = fo[(fo[:, 2] > 141.0)]
@@ -361,21 +383,43 @@ def _boss(axis_pt, axis_dir, r, t0, t1):
     return _mf(trimesh.creation.cylinder(radius=r, segment=[a + t0 * d, a + t1 * d], sections=64))
 
 
-LOWER_TAB = 1.5     # lower-cover tab under each elbow-case PA2 head (on the washer); the screw must grow by this (open item)
+LOWER_TAB = 1.5     # lower-cover tab under each elbow-case screw head (on the washer): the screw's stack grows by this
+LOWER_SCREW = dict(src="upper__{S}_elbow_case_PA2x7_{k}", name="upper__{S}_elbow_case_PA2x10_{k}", thread="PA2", length_mm=10.0,
+                   head_dia_mm=3.5, head_height_mm=1.3, point_mm=0.5, standard="ISO 7380-1")
+# the elbow-case screw with the tab in its stack: today's PA2x7 engages 1.8 mm of the STS3250 case hole's reference 3.0
+# (aluminium, modelled depth 3.9 / 4.8); + LOWER_TAB the next standard M2 button-head length that reaches the reference is 10
+# (data/hardware.json: 4, 5, 6, 8, 10): 3.3 mm engaged, tip 0.6 mm or more short of the hole bottom (PA2x8 would engage 1.3)
+SLEEVE_PA2 = (3.6, 2.2)   # 304 sleeve (outer, bore) under a PA2 head (as the shin back cover's, thigh_shell.py SLV_D / SLV_BORE_D)
+SLEEVE_M3 = (4.5, 3.2)    # 304 sleeve under an M3 head (owner M-pxbsxq: 4.5 x 3.2 tubes; thigh_shell.py SLEEVE_R / SLEEVE_BORE_R)
 
 
 def lower_mounts(body):
-    """The two elbow-case PA2x7 (head outboard, +x). Between spacer and washer sits the connector's own ear, so the
-    cover's tab lies on the washer, LOWER_TAB thick, under the head: (y, z) axis, tab faces, head recess start. The
-    PA2x7 as placed does not reach through the tab (a PA2 LOWER_TAB longer is needed; hardware rows left unchanged)."""
+    """The two elbow-case screws (head outboard, +x). Between spacer and washer sits the connector's own ear, so the
+    cover's tab lies on the washer, LOWER_TAB thick, and the head on the tab: (y, z) axis, tab faces, head seat, the
+    sleeve (washer face to head seat; the tab starts 0.05 off the washer, the steel bears on it)."""
     out = []
     for k in ("2", "4"):
-        b = body.mesh(f"upper__R_elbow_case_PA2x7_{k}").bounds
-        sp = body.mesh(f"upper__R_elbow_case_spacer{k}").bounds; wa = body.mesh(f"upper__R_elbow_case_washer{k}").bounds
-        x0 = float(wa[1, 0]) + 0.05
-        out.append(dict(y=float(b[:, 1].mean()), z=float(b[:, 2].mean()), x_tab=(x0, x0 + LOWER_TAB),
-                        x_head=x0 + LOWER_TAB, head_r=float(b[1, 1] - b[0, 1]) / 2.0))
+        b = body.mesh(LOWER_SCREW["src"].format(S="R", k=k)).bounds
+        wa = body.mesh(f"upper__R_elbow_case_washer{k}").bounds
+        xw = float(wa[1, 0])
+        x0 = xw + 0.05
+        out.append(dict(k=k, y=float(b[:, 1].mean()), z=float(b[:, 2].mean()), x_tab=(x0, xw + LOWER_TAB),
+                        x_head=xw + LOWER_TAB, head_r=float(b[1, 1] - b[0, 1]) / 2.0,
+                        sleeve_x=(xw, xw + LOWER_TAB), sleeve_len_mm=LOWER_TAB))
     return out
+
+
+def lower_screw_mesh(m):
+    """The elbow-case screw of mount m: LOWER_SCREW's revolved envelope (screw_plan.screw_mesh), head underside on the tab."""
+    sys.path.insert(0, str(ROOT / "robot/body/fastening"))
+    import screw_plan
+    plan = dict(LOWER_SCREW, axis_out=[1.0, 0.0, 0.0], opening=[m["x_head"], m["y"], m["z"]], stack_mm=0.0)
+    return screw_plan.screw_mesh(plan)
+
+
+def _tube(a, d, t0, t1, od, bore):
+    """Sleeve solid on the axis a + t d, t0..t1 (manifold)."""
+    return _boss(a, d, od / 2.0, t0, t1) - _boss(a, d, bore / 2.0, t0 - 1.0, t1 + 1.0)
 
 
 def fore_mounts(body):
@@ -424,11 +468,13 @@ def build(body, st=None):
     lip_o = R - WALL - RUN_CLEAR - SEAM["lip_margin"]
     lo = lo + _tube_yaw(lip_o - WALL, lip_o, SEAM["s"] - SEAM["gap"] - 3.0, SEAM["s"] + SEAM["lip"])
     lo = lo + (_tube_yaw(lip_o - WALL, R - 0.3, SEAM["s"] - SEAM["gap"] - 3.0, SEAM["s"] - SEAM["gap"] - 1.2) ^ o_mf)
+    sleeves = {"R_upper_arm_lower_cover": [], "R_fore_front_hard_cover": [], "R_fore_back_hard_cover": []}
     for m in lower_mounts(body):
         ax = np.array([0.0, m["y"], m["z"]])
         tab = _boss(ax, [1, 0, 0], 3.6, m["x_tab"][0], 200.0) ^ o_mf
         lo = lo + tab
-        lo = lo - _boss(ax, [1, 0, 0], m["head_r"] + 0.45, m["x_head"], 200.0) - _boss(ax, [1, 0, 0], 1.15, m["x_tab"][0] - 1.0, 200.0)
+        lo = lo - _boss(ax, [1, 0, 0], m["head_r"] + 0.45, m["x_head"], 200.0) - _boss(ax, [1, 0, 0], SLEEVE_PA2[0] / 2.0, m["x_tab"][0] - 1.0, m["x_head"] + 0.01)
+        sleeves["R_upper_arm_lower_cover"].append(_tube(ax, np.array([1.0, 0.0, 0.0]), m["sleeve_x"][0], m["sleeve_x"][1], *SLEEVE_PA2))
     facts["lower_mounts"] = lower_mounts(body)
     # 3. forearm: the lower sector and the disc, split front / back, M3x8 bosses
     fore_sector = _mf(_wedge_x(-90.0 + ELB["d_back"], ELB["phi_f"])) + _mf(_cyl_x(ELB["R_d"]))
@@ -446,7 +492,9 @@ def build(body, st=None):
             ax = np.array([m["x"], 0.0, m["z"]]); d = np.array([0.0, m["h"], 0.0])
             boss = _boss(ax, d, 4.5, m["h"] * (m["face"]) + 0.1, 80.0) ^ o_mf
             part = part + boss
-            part = part - _boss(ax, d, 3.25, m["h"] * m["seat"], 80.0) - _boss(ax, d, 1.7, m["h"] * m["face"] - 1.0, 80.0)
+            part = part - _boss(ax, d, 3.25, m["h"] * m["seat"], 80.0) - _boss(ax, d, SLEEVE_M3[0] / 2.0, m["h"] * m["face"] - 1.0, m["h"] * m["seat"] + 0.01)
+            sleeves[f"R_fore_{half}_hard_cover"].append(_tube(ax, d, m["h"] * m["face"], m["h"] * m["seat"], *SLEEVE_M3))
+            m["sleeve_len_mm"] = round(abs(m["seat"] - m["face"]), 2)
         halves[half] = part
     out = {"R_upper_arm_hard_cover": _tm(hard), "R_upper_arm_lower_cover": _tm(lo),
            "R_fore_front_hard_cover": _tm(halves["front"]), "R_fore_back_hard_cover": _tm(halves["back"])}
@@ -454,6 +502,12 @@ def build(body, st=None):
         keep = [q for q in m.split(only_watertight=False) if abs(q.volume) > 50.0]
         out[k] = trimesh.util.concatenate(keep)
         facts[k] = dict(volume_mm3=round(float(out[k].volume), 1), watertight=bool(out[k].is_watertight), pieces=len(keep))
+    for k, ss in sleeves.items():
+        sm = ss[0]
+        for q in ss[1:]:
+            sm = sm + q
+        out[k + "_steel_sleeves"] = _tm(sm)
+    facts["sleeves"] = {k: dict(count=len(v), volume_mm3=round(float(out[k + "_steel_sleeves"].volume), 2)) for k, v in sleeves.items()}
     facts["seconds"] = round(time.time() - t0, 1)
     return out, outer, facts
 
@@ -507,42 +561,89 @@ def _mirror(m):
     return SS._mirror(m)
 
 
+STEEL_KG_MM3 = 7.85e-6     # 304 stainless (sleeve mass: mesh volume x density, as the other sleeve sets)
+SLEEVE_LINK = {"R_upper_arm_lower_cover": "R_upper_arm", "R_fore_front_hard_cover": "R_forearm", "R_fore_back_hard_cover": "R_forearm"}
+
+
+def _save(name, m):
+    f = PARTS / f"{name}.npz"
+    np.savez_compressed(f, vertices=np.asarray(m.vertices, float), faces=np.asarray(m.faces, np.int64))
+    return dict(mesh=SC._rel(f), mesh_sha256=SC._sha(f), mesh_units="mm", volume_mm3=round(float(m.volume), 3),
+                bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()])
+
+
 def apply():
     t0 = time.time()
-    man = json.loads(CANDIDATE.read_text()); body = F.Body(man)
+    man = json.loads(SOURCE.read_text()); body = F.Body(man)
     src = F.Body(json.loads(SC.MANIFEST.read_text()))
     margins = report_margins(body)
     meshes, outer, facts = build(body)
     print(json.dumps({k: v for k, v in facts.items() if k in COVERS}), f"({time.time() - t0:.0f} s)", flush=True)
     P = {p["name"]: p for p in man["parts"]}
-    srcP = {p["name"]: p for p in json.loads(SC.MANIFEST.read_text())["parts"]}
     PARTS.mkdir(parents=True, exist_ok=True)
+    for f in PARTS.glob("*.npz"):
+        f.unlink()
+    me = dict(source=SC._rel(__file__), sha256=SC._sha(__file__))
     for n in COVERS:
         for s in ("R_", "L_"):
             nm = n.replace("R_", s, 1)
             m = meshes[n] if s == "R_" else _mirror(meshes[n])
-            f = PARTS / f"{nm}.npz"
-            np.savez_compressed(f, vertices=np.asarray(m.vertices, float), faces=np.asarray(m.faces, np.int64))
-            q = P[nm]; sr = srcP[nm]
-            for k in ("native_step", "native_step_sha256"):
+            q = P[nm]
+            for k in ("native_step", "native_step_sha256", "native_step_unmorphed", "shoulder_shells"):
                 q.pop(k, None)
-            ratio = float(m.volume) / float(src.mesh(nm).volume)
-            q.update(mesh=SC._rel(f), mesh_sha256=SC._sha(f), mesh_units="mm", volume_mm3=round(float(m.volume), 2),
-                     bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
-                     mass_kg=round(float(sr.get("mass_kg", 0.0)) * ratio, 6),
-                     mass_basis=f"source mass x mesh volume ratio {ratio:.4f} (arm_shell.py)",
+            rho = BOM_CONFIG.density_kg_mm3(nm)
+            q.update(_save(nm, m), mass_kg=round(float(m.volume) * rho, 6),
+                     mass_basis=f"mesh volume x {rho * 1e6:g} g/cm3 ({BOM_CONFIG.material(nm)}, declared in robot/body/arm/arm_shell.bom.yaml)",
                      mesh_note="arm_shell.py: one parametric arm surface (superellipse sections, natural cubic splines along "
                                "the arm, route D hood) cut at the yaw seam and the elbow",
-                     arm_shell=dict(source=SC._rel(__file__), sha256=SC._sha(__file__), mirror_of=n if s == "L_" else None))
-            q.pop("shoulder_shells", None) if n != "R_upper_arm_hard_cover" else None
-    rep = dict(idle_task="T-tph7xb", decision="M-f5gs7k", stations=[dict(zip(("name", "centre") + COLS[3:], s)) for s in STATIONS],
+                     arm_shell=dict(me, mirror_of=n if s == "L_" else None))
+    # the elbow-case screws: LOWER_SCREW in place of the PA2x7 (the tab is in their stack), same axis
+    mounts = {m["k"]: m for m in lower_mounts(body)}
+    rows = []
+    for s in ("R", "L"):
+        for k0, m in mounts.items():
+            sm = lower_screw_mesh(m)
+            sm = sm if s == "R" else _mirror(sm)
+            # the L screws are numbered differently from their R mirrors: replace the one on the same axis (y, z)
+            olds = [LOWER_SCREW["src"].format(S=s, k=k) for k in mounts]
+            c = np.asarray(sm.bounds, float)[:, 1:].mean(axis=0)
+            src_nm = min(olds, key=lambda n: float(np.linalg.norm(np.asarray(P[n]["bounds_mm"], float)[:, 1:].mean(axis=0) - c)) if n in P else 1e9)
+            k = src_nm.rsplit("_", 1)[1]
+            old = P.pop(src_nm)
+            nm = LOWER_SCREW["name"].format(S=s, k=k)
+            r = {kk: v for kk, v in old.items() if kk not in ("name", "mesh", "mesh_sha256", "bounds_mm", "volume_mm3", "native_step",
+                                                               "native_step_sha256", "mass_kg", "mass_basis")}
+            r.update(name=nm, **_save(nm, sm), mass_kg=round(float(sm.volume) * STEEL_KG_MM3, 6),
+                     mass_basis="modelled envelope volume x 7.85 g/cm3 (data/hardware.json screw_standards density)",
+                     material=f"{LOWER_SCREW['standard']} {LOWER_SCREW['thread']}x{LOWER_SCREW['length_mm']:g} into the elbow STS3250 case "
+                              f"(through washer, the {LOWER_TAB:g} mm cover tab and its sleeve)",
+                     arm_shell=dict(me, replaces=old["name"], note=f"{LOWER_TAB} mm cover tab with a pressed sleeve under the head"))
+            rows.append(r)
+    # sleeve sets
+    for n, link in SLEEVE_LINK.items():
+        sm = meshes[n + "_steel_sleeves"]
+        for s in ("R_", "L_"):
+            nm = n.replace("R_", s, 1) + "_steel_sleeves"
+            ms = sm if s == "R_" else _mirror(sm)
+            od, bore = SLEEVE_PA2 if n == "R_upper_arm_lower_cover" else SLEEVE_M3
+            rows.append(dict(name=nm, owning_link=link.replace("R_", s, 1), role="compression_limit_sleeves", **_save(nm, ms),
+                             mass_kg=round(float(ms.volume) * STEEL_KG_MM3, 6), color=[215, 222, 230, 255],
+                             mass_basis="304 SS sleeves, mesh volume x 7.85 g/cm3",
+                             material=f"304 stainless tube dia {od:g} / {bore:g}, pressed into the {n.replace('R_', s, 1)} bosses from the "
+                                      "head seat to the boss end; the head bears on it, its far end on the part below",
+                             arm_shell=dict(me, mirror_of=nm.replace("L_", "R_", 1) if s == "L_" else None)))
+    man["parts"] = list(P.values()) + rows
+    src_sha = SC._sha(SOURCE)
+    rep = dict(idle_task="T-tph7xb", decision="M-eb6cxz", stations=[dict(zip(("name", "centre") + COLS[3:], s)) for s in STATIONS],
                cap=CAP, seam=SEAM, elbow=ELB, fore_split=FORE_SPLIT, wall_mm=WALL, gap_mm=GAP, run_clear_mm=RUN_CLEAR,
+               lower_tab_mm=LOWER_TAB, lower_screw=LOWER_SCREW, sleeves=dict(pa2=SLEEVE_PA2, m3=SLEEVE_M3),
                margins=margins, facts=facts, smoothness=spine_smoothness(), growth_vs_today=growth(src, outer))
-    man["arm_shell"] = dict(source=SC._rel(__file__), sha256=SC._sha(__file__), report=SC._rel(PARTS / "report.json"))
-    (PARTS / "report.json").write_text(json.dumps(rep, indent=1, default=float) + "\n")
-    CANDIDATE.write_text(json.dumps(man, indent=1) + "\n")
+    man["arm_shell"] = dict(me, input_manifest=SC._rel(SOURCE), input_manifest_sha256=src_sha, report=SC._rel(REPORT),
+                            replaced_screws=[r["arm_shell"]["replaces"] for r in rows if "replaces" in r["arm_shell"]])
+    REPORT.write_text(json.dumps(rep, indent=1, default=float) + "\n")
+    MANIFEST_OUT.write_text(json.dumps(man, indent=1) + "\n")
     print(json.dumps(rep["smoothness"]), json.dumps(rep["growth_vs_today"]), flush=True)
-    print(f"wrote {SC._rel(CANDIDATE)} ({time.time() - t0:.0f} s)")
+    print(f"wrote {SC._rel(MANIFEST_OUT)} ({time.time() - t0:.0f} s)")
 
 
 FIT = dict(n_max=3.4, n_min=2.2, n_pref=2.4, n_weight=0.5, w_min=12.0, w_max=48.0, smooth=400.0,
@@ -622,10 +723,8 @@ COL = dict(cover=(0.93, 0.90, 0.82), shell=(0.86, 0.86, 0.88), inner=(0.36, 0.36
            screw=(0.55, 0.57, 0.60))
 ARM_LINKS = ("torso", "R_shoulder_pitch_link", "R_shoulder_roll_link", "R_upper_arm", "R_forearm")
 ARM_LO, ARM_HI = np.array([40.0, -75.0, 92.0]), np.array([200.0, 80.0, 400.0])
-RANGE_POSES = (("shoulder pitch -60", {"R_shoulder_pitch": -60.0}), ("shoulder pitch 150", {"R_shoulder_pitch": 150.0}),
-               ("shoulder roll -15", {"R_shoulder_roll": -15.0}), ("shoulder roll 95", {"R_shoulder_roll": 95.0}),
-               ("shoulder yaw -60", {"R_shoulder_yaw": -60.0}), ("shoulder yaw 60", {"R_shoulder_yaw": 60.0}),
-               ("elbow 0", {"R_elbow": 0.0}), ("elbow 95", {"R_elbow": 95.0}))
+RANGE_POSES = tuple((f"{j.replace('R_', '').replace('_', ' ')} {v:g}", {j: float(v)})
+                    for j in ("R_shoulder_pitch", "R_shoulder_roll", "R_shoulder_yaw", "R_elbow") for v in jrange(j))
 CAMS = (("owner camera (front + outside, 49 deg above)",) + tuple(SS.OWNER_CAM), ("front (-y)", (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),
         ("side (+x)", (-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)), ("top (-z)", (0.0, 0.0, -1.0), (0.0, 1.0, 0.0)))
 
@@ -633,7 +732,7 @@ CAMS = (("owner camera (front + outside, 49 deg above)",) + tuple(SS.OWNER_CAM),
 def _cls(n, p):
     if p.get("role") == "body_shell" and not n.endswith("_nut"):
         return "cover" if n in COVERS else "shell"
-    if ("_M3x8_" in n and n.startswith("R_fore_")) or n.startswith("upper__R_elbow_case_PA2x7") or ("upper_arm_shell_" in n and "_M3x" in n):
+    if ("_M3x8_" in n and n.startswith("R_fore_")) or n.startswith("upper__R_elbow_case_PA2x") or ("upper_arm_shell_" in n and "_M3x" in n):
         return "screw"
     if n.startswith("R_palm") or "_hand" in n:
         return "hand"
@@ -708,7 +807,7 @@ def views(tag="arm-shell"):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
-    man = json.loads(CANDIDATE.read_text()); body = F.Body(man)
+    man = json.loads(MANIFEST_OUT.read_text()); body = F.Body(man)
     VIEWS.mkdir(parents=True, exist_ok=True)
     leg = [Patch(facecolor=COL["cover"], edgecolor="#444", label="arm covers (4 parts)"), Patch(facecolor=COL["shell"], edgecolor="#444", label="torso shells"),
            Patch(facecolor=COL["inner"], edgecolor="#444", label="mechanism"), Patch(facecolor=COL["hand"], edgecolor="#444", label="hand")]
