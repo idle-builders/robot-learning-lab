@@ -63,7 +63,7 @@ regenerate command, assembly step and direction, print setup, check worst cases,
 fix), the CAD panel's BOM table and the part card shown when a CAD part is clicked; `design.bom` is the same BOM for robot
 BOM & costs. Without `--publish` it writes `.cache/work/bom/<study_id>-record.json` (the rebuild copy does only this; it
 refuses `--publish` outside the main checkout). `--publish` packages the display GLB
-(`artifacts/robot/body/selected/assembly.glb`, one named node per manifest part) under memguard when the manifest changed,
+(`artifacts/robot/body/studies/<study_id>/assembly.glb`, one per study, one named node per manifest part) under memguard when the manifest changed,
 then runs `results_hub.py publish`; the record's sources (definitions, generator scripts, these tools, robot/design.json)
 must be committed: their last commit is the version. `--study ID` publishes another declared study (e.g.
 `shoulder-shells-parametric`, scoped to its own definition's parts); `--definitions F... --manifest M` builds from copies

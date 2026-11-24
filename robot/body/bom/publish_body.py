@@ -43,7 +43,13 @@ import definitions as DEF  # noqa: E402
 
 CHECKS = ROOT / ".cache/work/cad-speed/checks"
 OUT = ROOT / ".cache/work/bom"                     # default record file: OUT/<study_id>-record.json
-GLB = "artifacts/robot/body/selected/assembly.glb"   # display copy of the study's manifest (derived; recreated by `package`)
+GLB_DIR = "artifacts/robot/body/studies"   # display GLB per study (derived; recreated by `package`)
+
+
+def glb_path(study_id):
+    """The study's own display copy of its manifest. One path per study: studies that shared one file showed each
+    other's model on the remote dashboard, which maps files by path (T-8prn3q)."""
+    return f"{GLB_DIR}/{study_id}/assembly.glb"
 WORST_PER_CHECK = 3
 
 
@@ -244,10 +250,10 @@ def link_asset(x, kind_default):
     return dict(id="file-" + hashlib.sha256(p.encode()).hexdigest()[:12], title=x["label"], kind=x.get("kind") or kind_default, path=p)
 
 
-def glb_state(manifest_sha):
-    side = ROOT / (GLB + ".json")
+def glb_state(manifest_sha, glb):
+    side = ROOT / (glb + ".json")
     made = json.loads(side.read_text()).get("manifest_sha256") if side.exists() else None
-    return made if (ROOT / GLB).exists() else None, made == manifest_sha and (ROOT / GLB).exists()
+    return made if (ROOT / glb).exists() else None, made == manifest_sha and (ROOT / glb).exists()
 
 
 def record(study, D, manifest_path, checks_dir=CHECKS):
@@ -257,7 +263,8 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
     view = body_view(bom, D, study, reports, manifest_path)
     c, ac = bom["counts"], bom["assembly_sequence"]["counts"]
     sid = study["study_id"]
-    glb_made, glb_current = glb_state(bom["manifest_sha256"])
+    GLB = glb_path(sid)
+    glb_made, glb_current = glb_state(bom["manifest_sha256"], GLB)
     view["glb"] = dict(path=GLB, made_from_manifest_sha256=glb_made,
                        state="made from this manifest" if glb_current else "stale or missing: run publish_body.py package")
     overlay_ids = sorted({p.get("overlay_id") for p in man["parts"] if p.get("overlay_id")})
@@ -320,11 +327,12 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
 
 
 # ------------------------------------------------------------------ package / publish
-def package(manifest_path):
+def package(manifest_path, study_id):
     sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
     from package import scene  # one named node per manifest part, metres, decimated display copy
     raw = (ROOT / manifest_path).read_bytes()          # one read: the sidecar sha is the sha of what was packaged
     man = json.loads(raw)
+    GLB = glb_path(study_id)
     out = ROOT / GLB
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(".tmp.glb")
@@ -373,7 +381,7 @@ def main():
     study = pick_study(D, a.study)
     mp = a.manifest or study.get("manifest") or design()["body_manifest"]
     if a.action == "package":
-        return package(mp)
+        return package(mp, study["study_id"])
     if a.publish:
         if not main_checkout() or a.definitions:
             raise SystemExit("publish runs from the main checkout on its own definitions; this copy writes the record with --out only")
@@ -381,7 +389,7 @@ def main():
         # sessions stays out until they commit (the dashboard keeps its last committed state); never blocks the publish
         D, snap = committed_definitions(D, study)
         study = pick_study(D, a.study)
-        if not glb_state(sha_file(ROOT / mp))[1]:
+        if not glb_state(sha_file(ROOT / mp), glb_path(study["study_id"]))[1]:
             print("display GLB is stale: packaging it under memguard", flush=True)
             subprocess.run(["python3", "infra/tools/memguard.py", "--limit-gb", "6", "--timeout-s", "1800", "--",
                             sys.executable, "-B", rel(Path(__file__)), "package", "--study", study["study_id"], "--manifest", mp], cwd=ROOT, check=True)

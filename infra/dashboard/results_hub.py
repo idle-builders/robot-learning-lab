@@ -707,11 +707,11 @@ def registered_cold_asset_identity(db: sqlite3.Connection, result_id: str, asset
     if (relative.is_absolute() or ".." in relative.parts or not name.startswith(("artifacts/", "studies/", "robot/", "control/"))
             or not isinstance(sha, str) or re.fullmatch(r"[0-9a-f]{64}", sha) is None
             or type(size) is not int or size < 0):
-        raise ValueError("A complete unchanged cold asset identity is required")
+        raise ValueError(f"A complete unchanged cold asset identity is required: {name} (sha256 {sha!r}, bytes {size!r}); a file missing on disk needs its registered sha256 and bytes, or recreate the file")
     registered = db.execute("SELECT path,sha256,bytes FROM assets WHERE result_id=? AND id=?",
                             (result_id, asset["id"])).fetchone()
     if registered is None or tuple(registered) != (name, sha, size):
-        raise ValueError("Cold assets must already be registered with the same result, id, path and identity")
+        raise ValueError(f"Cold assets must already be registered with the same result, id, path and identity: {name} (asset {asset['id']!r} of {result_id})")
     logical = ROOT / relative
     target = ROOT / ".artifact-store" / "objects" / "sha256" / sha[:2] / sha[2:]
     if logical.parent.resolve() != logical.parent:
