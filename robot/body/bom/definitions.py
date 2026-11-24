@@ -27,10 +27,17 @@ def rel(p):
     return str(p.relative_to(ROOT)) if p.is_absolute() and p.is_relative_to(ROOT) else str(p)
 
 
-def discover(root=ROOT):
+def discover(root=None):
+    """Every <builder>.bom.yaml under robot/ (or, with LAB_DEFINITIONS_ROOT=<dir>, every one under <dir>: an alternate set of
+    definitions for the same tools, e.g. a body whose parts are renamed, or a copy with one setting changed)."""
+    alt = os.environ.get("LAB_DEFINITIONS_ROOT")
+    if root is None and alt:
+        root, tops = Path(alt).resolve(), [""]
+    else:
+        root, tops = (root or ROOT), SEARCH
     out = []
-    for top in SEARCH:
-        for d, dirs, files in os.walk(root / top):
+    for top in tops:
+        for d, dirs, files in os.walk(root / top if top else root):
             dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
             out += [Path(d) / f for f in sorted(files) if f.endswith(".bom.yaml")]
     return out
@@ -55,7 +62,10 @@ class Definitions:
         validator = jsonschema.Draft202012Validator(schema)
         self.files, self.findings = [], []
         self.generators, self.entries, self.steps, self.subassemblies = [], [], [], {}
+        self.contributions = []          # `compose` entries: edits of a manifest another generator composes (compose.py)
         self.studies = {}                # study_id -> dict(study block, file, definition): dashboard metadata (publish_body.py)
+        self.joints = {}                 # joint name -> dict(range_deg, doc, decision, file, definition): declared joint ranges
+        self.config = {}                 # definition id -> {NAME: dict(value, unit, doc, decision, file)}: configured values
         for rank, p in enumerate(paths if paths is not None else discover()):
             f = rel(p)
             if strip and f.startswith(strip):
@@ -73,6 +83,8 @@ class Definitions:
             gens = doc.get("generators", [])
             for g in gens:
                 self.generators.append(dict(g, file=f))
+            for c in doc.get("compose", []):
+                self.contributions.append(dict(c, file=f))
             for i, e in enumerate(doc.get("parts", [])):
                 if "generator" not in e and len(gens) == 1:
                     e = dict(e, generator=gens[0]["id"])
@@ -85,6 +97,18 @@ class Definitions:
                 self.subassemblies[sa["name"]] = dict(sa, file=f)
             for i, st in enumerate(asm.get("steps", [])):
                 self.steps.append(dict(st, file=f, index=i, rank=rank))
+            for i, jd in enumerate(doc.get("joints", [])):
+                lo, hi = jd["range_deg"]
+                for jn in names_of(jd["match"]):
+                    if jn in self.joints:
+                        self.find("joint_declared_twice", f, f"joints[{i}] {jn}", f"also declared in {self.joints[jn]['file']}", joint=jn)
+                        continue
+                    if not lo < hi:
+                        self.find("joint_range_empty", f, f"joints[{i}] {jn}", f"range_deg {jd['range_deg']}: lower must be below upper", joint=jn)
+                    self.joints[jn] = dict(range_deg=[float(lo), float(hi)], doc=jd.get("doc"), decision=jd.get("decision"),
+                                           file=f, definition=doc["definition"], entry=f"joints[{i}]")
+            if doc.get("config"):
+                self.config[doc["definition"]] = {k: dict(v, file=f) for k, v in doc["config"].items()}
             if doc.get("study"):
                 sid = doc["study"]["study_id"]
                 if sid in self.studies:
@@ -97,6 +121,11 @@ class Definitions:
                 self.find("generator_declared_twice", g["file"], g["id"], f"also in {seen[g['id']]}")
             seen.setdefault(g["id"], g["file"])
         seen = {}
+        for c in self.contributions:
+            if c["id"] in seen:
+                self.find("compose_declared_twice", c["file"], c["id"], f"also in {seen[c['id']]}")
+            seen.setdefault(c["id"], c["file"])
+        seen = {}
         for st in self.steps:
             if st["id"] in seen:
                 self.find("step_declared_twice", st["file"], st["id"], f"also in {seen[st['id']]}")
@@ -104,6 +133,34 @@ class Definitions:
 
     def find(self, kind, file, entry, what, **kw):
         self.findings.append(dict(kind=kind, file=file, entry=entry, what=what, **kw))
+
+    # ------------------------------------------------------------------ joints and configured values
+    def joint_findings(self, manifest):
+        """Findings of the declared joint ranges against a manifest dict: manifest joints (and controls) without a
+        declaration, declarations the manifest does not have, manifest ranges that differ from the declaration (a
+        manifest built before the declaration changed: rebuild it). Driven joints (driven_by / coupled_to) need none."""
+        out = []
+        mj = {j["name"]: j for j in manifest.get("joints", [])}
+        mc = {c["name"]: c for c in manifest.get("controls", []) if isinstance(c, dict) and c.get("name")}
+        driven = {n for n, j in mj.items() if j.get("driven_by") or j.get("coupled_to")}
+        for n in sorted(set(mj) | set(mc)):
+            d = self.joints.get(n)
+            if d is None:
+                if n not in driven:
+                    out.append(dict(kind="joint_range_undeclared", file=None, entry=None, joint=n,
+                                    what=f"{n}: no definition declares its range (joints: in the owning <builder>.bom.yaml); manifest has {(mj.get(n) or mc.get(n)).get('range_deg')}"))
+                continue
+            for where, rec in (("joints", mj.get(n)), ("controls", mc.get(n))):
+                r = (rec or {}).get("range_deg")
+                if rec is not None and (r is None or [round(float(x), 6) for x in r] != d["range_deg"]):
+                    out.append(dict(kind="joint_range_differs", file=d["file"], entry=f"{d['entry']} {n}", joint=n,
+                                    declared=d["range_deg"], manifest=r,
+                                    what=f"manifest {where}[{n}].range_deg {r} differs from the declared {d['range_deg']}: rebuild the manifest"))
+        for n, d in sorted(self.joints.items()):
+            if n not in mj and n not in mc:
+                out.append(dict(kind="joint_not_in_manifest", file=d["file"], entry=f"{d['entry']} {n}", joint=n,
+                                what=f"{n} is declared but the manifest has no such joint or control"))
+        return out
 
     # ------------------------------------------------------------------ parts
     def claims(self, names):
@@ -161,6 +218,14 @@ class Definitions:
         def covers(out, path):
             return path == out or path.startswith(out.rstrip("/") + "/")
         edges = {i: set(a for a in decl[i] if a in ids) for i in ids}          # i depends on these
+        for c in self.contributions:                                            # a composing generator after what its entries need
+            for g in gens:
+                if g.get("composes") == c["into"]:
+                    for n in c.get("needs", []):
+                        if n in ids and n != g["id"] and g["id"] not in clo[n]:
+                            edges[g["id"]].add(n)
+                        elif n not in ids and not self.generator(n):
+                            self.find("compose_needs_unknown", c["file"], c["id"], f"needs {n!r}: no generator has this id")
         for g in gens:
             for inp in g.get("inputs", []) + g.get("in_place_edits", []):
                 for h in gens:
@@ -183,6 +248,38 @@ class Definitions:
         for i in sorted(ids - set(out)):
             g = self.generator(i)
             self.find("generator_cycle", g["file"], i, f"in a dependency cycle with {sorted(edges[i] - set(out))}; declare `after` to break it")
+        return out
+
+    def composition(self, stage):
+        """The `compose` entries into stage in the order they apply: topological by `after`, ties by id. Findings: unknown
+        `after` ids, cycles, a stage no generator `composes`, a `call` whose script does not exist."""
+        mine = [c for c in self.contributions if c["into"] == stage]
+        ids = {c["id"] for c in mine}
+        allids = {c["id"] for c in self.contributions}
+        if mine and not any(g.get("composes") == stage for g in self.generators):
+            self.find("compose_stage_unknown", mine[0]["file"], mine[0]["id"], f"into {stage!r}: no generator declares composes: {stage}")
+        dep = {}
+        for c in mine:
+            dep[c["id"]] = [a for a in c.get("after", []) if a in ids]
+            for a in c.get("after", []):
+                if a not in allids:
+                    self.find("compose_after_unknown", c["file"], c["id"], f"after {a!r}: no compose entry has this id")
+            if not (ROOT / c["call"].split(":")[0]).is_file():
+                self.find("compose_call_missing", c["file"], c["id"], f"call {c['call']!r}: script not found")
+        by = {c["id"]: c for c in mine}
+        indeg = {i: len(d) for i, d in dep.items()}
+        users = {i: [j for j in dep if i in dep[j]] for i in dep}
+        pq = sorted(i for i in dep if indeg[i] == 0)
+        out = []
+        while pq:
+            i = pq.pop(0)
+            out.append(by[i])
+            for j in users[i]:
+                indeg[j] -= 1
+                if indeg[j] == 0:
+                    pq.append(j); pq.sort()
+        for i in sorted(set(dep) - {c["id"] for c in out}):
+            self.find("compose_cycle", by[i]["file"], i, "in an `after` cycle")
         return out
 
     @staticmethod
@@ -278,5 +375,16 @@ class Definitions:
         return out
 
 
+_LOADED: dict = {}
+
+
 def load(paths=None):
-    return Definitions(paths)
+    """The definitions, parsed once per process for the same files (path, size, mtime): a check run asked for them four
+    times or more per process at about 1.5 s each (2026-11-22). Each caller gets its own copy."""
+    import copy
+    files = [Path(p) for p in (paths if paths is not None else discover())]
+    key = tuple((str(p), p.stat().st_size, p.stat().st_mtime_ns) for p in files if p.exists()) + ((SCHEMA_FILE.stat().st_mtime_ns,) if SCHEMA_FILE.exists() else ())
+    if key not in _LOADED:
+        _LOADED.clear()
+        _LOADED[key] = Definitions(files)
+    return copy.deepcopy(_LOADED[key])

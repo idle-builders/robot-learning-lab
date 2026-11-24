@@ -330,11 +330,16 @@ def build(manifest_path, hardware_json=None, assembly_report_path=None, definiti
     for d in defects:
         if not d["matched"]:
             D.find("defect_matches_nothing", d["file"], d["id"], "defect names no part of the manifest (fixed or renamed?)")
+    for f in D.joint_findings(man):       # declared joint ranges (`joints:`) against the manifest's joints / controls
+        D.findings.append(f)
     flagged = sorted(n for n, r in rowmap.items() if {"file_missing", "file_in_bucket_not_indexed"} & set(r["flags"]))
     explained = {n for d in defects for n in d["matched"]}
     bom = dict(manifest=manifest_path, manifest_sha256=sha, definitions=[f["file"] for f in D.files], generators=gens,
                defects=dict(listed=defects, file_flagged=len(flagged), file_flagged_unexplained=[n for n in flagged if n not in explained]),
-               lines=out_lines, findings=D.findings)
+               lines=out_lines, findings=D.findings,
+               joints={n: dict(range_deg=d["range_deg"], file=d["file"], entry=d["entry"], doc=d.get("doc"), decision=d.get("decision"))
+                       for n, d in sorted(D.joints.items())},
+               config={k: {n: dict(v) for n, v in c.items()} for k, c in sorted(D.config.items())})
     bom["counts"] = counts(out_lines, rows, D.findings, claims, names, aidx)
     bom["assembly_sequence"] = assembly_sequence(bom, parts, order, assembly_report_path)
     return bom

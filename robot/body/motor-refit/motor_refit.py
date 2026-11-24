@@ -37,13 +37,14 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import cad_ops as C  # noqa: E402
 sys.path.insert(0, str(ROOT / "robot/body"))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
 from checks import bodylib as F  # noqa: E402
 import servo_placement as SP  # noqa: E402
 
 R1 = ROOT / "artifacts/robot/body/assembly"
 OUT = ROOT / "artifacts/robot/body/motor-refit"
 PARTS = OUT / "parts"
-PAHT_CF = 1.22e-6  # kg / mm^3
 
 HIP_SHIFT = 4.0
 DOWNSTREAM = ("pitch_link", "roll_link", "shin", "ankle_pitch", "foot")  # leg links below the hip pitch, per side
@@ -93,8 +94,7 @@ def save(name, shape, kind="printed"):
                 mesh_sha256=hashlib.sha256(npz.read_bytes()).hexdigest(),
                 bounds_mm=[v.min(0).round(3).tolist(), v.max(0).round(3).tolist()],
                 native_solid_count=len(sols), native_validity=[bool(C.valid(s)) for s in sols],
-                volume_mm3=round(vol, 2), **({"mass_kg": round(vol * PAHT_CF, 6),
-                                              "mass_basis": "Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)"} if kind == "printed" else {}))
+                volume_mm3=round(vol, 2), **(BOM_CONFIG.mass_record(name, vol, builder="motor-refit") if kind == "printed" else {}))
 
 
 def st3025_solids():
@@ -475,7 +475,7 @@ def fix_range_contacts(new):
     for target, tool, joints, step in RANGE_NOTCHES:
         grids = []
         for jn in joints:
-            r = J[jn].get("range_deg") or [-30, 30]
+            r = BOM_CONFIG.joint_range(jn)          # declared in the body definitions; undeclared raises (no invented range)
             grids.append(list(np.arange(r[0], r[1] + 1e-6, step)))
         res = results.get(target) or F.to_mf(B.mesh(target))
         tool_mf = F.to_mf(B.mesh(tool)); lt, lk = P[target]["owning_link"], P[tool]["owning_link"]

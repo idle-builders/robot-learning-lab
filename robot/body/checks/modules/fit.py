@@ -1,5 +1,8 @@
 """fit: exact B-rep fit of each scoped part against its neighbours (native STEP solids) over the pose set (use --poses fit for the
 roll_flip_checks pose list): overlap (mm3) and minimum distance (mm), worst pose of each. Same-link pairs are measured once, standing.
+Poses that set a joint beyond its declared range (body definitions `joints:`, core.declare_ranges: the fit list's stress angles, knee
+105-125, hip yaw 35-40, pitch to -90, roll to -45, and its combined extremes) are measured as the others and reported apart per pair
+(beyond_declared_range), not in per_part / worst_cases.
 Moved from roll_flip_checks.run_fit / fit_check_upper_hip (without their screw and driver rays, which belong to the screw checks)."""
 from __future__ import annotations
 
@@ -8,11 +11,11 @@ import time
 
 import numpy as np
 
-from checks.core import R, tick
+from checks.core import R, beyond_declared, range_report, tick
 from checks.registry import register
 
 NEAR_MM = 4.0   # distance is exact below this, the box gap above (as in roll_flip_checks)
-PAIR_BUDGET_S = 120.0   # exact OCC seconds per pair before it stops (run.py --fit-pair-budget-s); one OCC call is not interrupted
+PAIR_BUDGET_S = 120.0   # exact OCC seconds per pair before it stops (run.py --fit-pair-budget-s); each call runs forked and is stopped at the budget (brep.bounded)
 
 
 def _shape(ctx, n, cache):
@@ -21,9 +24,9 @@ def _shape(ctx, n, cache):
         if not (p.get("native_step") or p.get("native_step_unmodified")):
             cache[n] = None
         else:
-            turned = str(p.get("roll_flip", "")).startswith("turned")
-            try:
-                sh = R.brep(n, ctx.parts, turned=turned, keep_case_solids=bool((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3")))
+            turned = str(p.get("roll_flip", "")).startswith("turned")     # the manifest's roll-flip turn of the case
+            try:   # exact_fit.min_solid_mm3 (part settings / body definition): only STEP solids of at least this volume
+                sh = R.brep(n, ctx.parts, turned=turned, min_solid_mm3=float((ctx.settings(n).get("exact_fit") or {}).get("min_solid_mm3") or 0.0))
                 if getattr(sh, "_wrapped", None) is None or not sh.solids():
                     raise ValueError("STEP gave an empty shape")
                 cache[n] = sh
@@ -49,11 +52,14 @@ def exact_pairs(ctx):
             no_step.add(n)
     pairs = [(a, b) for a, b in pairs if a not in no_step and b not in no_step]
     budget = float(getattr(ctx, "fit_pair_budget_s", None) or PAIR_BUDGET_S)
-    worst, cache, standing, spent = {}, {}, {}, {}
+    worst, cache, standing, spent, apart, beyond_poses = {}, {}, {}, {}, {}, []
     n_pose = len(ctx.poses)
     print(f"fit: {len(pairs)} pairs x {n_pose} poses, {budget:g} s exact work per pair at most", file=sys.stderr, flush=True)
     for ip, (pname, fam, q) in enumerate(ctx.poses):
         T = {lk: ctx.body.link_T(lk, q) for lk in set(link.values())}
+        beyond = beyond_declared(ctx.body, q)
+        if beyond:
+            beyond_poses.append(dict(pose=pname, family=fam, joints=beyond))
         exact = 0
         for a, b in pairs:
             if link[a] == link[b] and standing.get((a, b)) is not None:
@@ -62,6 +68,9 @@ def exact_pairs(ctx):
                                               pose_of_min=None, poses_overlapping=0, poses=0, exact_seconds=0.0, timed_out=False))
             if w["timed_out"]:
                 continue
+            stress = bool(beyond) and link[a] != link[b]        # a stress pose: same measurement, kept apart from the design poses
+            tgt = apart.setdefault((a, b), dict(max_overlap_mm3=0.0, pose_of_max=None, joints_at_max=None, min_distance_mm=1e9,
+                                                pose_of_min=None, poses_overlapping=0, poses=0)) if stress else w
             Trel = np.linalg.inv(T[link[a]]) @ T[link[b]]
             key = (a, b, tuple(np.round(Trel[:3], 5).ravel()))
             if key in cache:
@@ -71,14 +80,22 @@ def exact_pairs(ctx):
                 bb = L.aabb(shapes[b])
                 c = np.array([[bb[i][0], bb[j][1], bb[k][2]] for i in (0, 1) for j in (0, 1) for k in (0, 1)]) @ Trel[:3, :3].T + Trel[:3, 3]
                 glo = L.aabb_gap(L.aabb(shapes[a]), np.array([c.min(0), c.max(0)]))
-                if glo >= NEAR_MM and glo >= w["min_distance_mm"]:
+                if glo >= NEAR_MM and glo >= tgt["min_distance_mm"]:
                     v, d = 0.0, float("inf")      # far, cannot lower this pair's minimum (not cached: depends on w)
                 else:
                     t1 = time.time()
                     moved = L.transform_shape(shapes[b], Trel)
                     gap = L.aabb_gap(L.aabb(shapes[a]), L.aabb(moved))
-                    v = L.common_volume_mm3(shapes[a], moved) if gap <= 0.05 else 0.0
-                    d = L.min_distance_mm(shapes[a], moved) if gap < NEAR_MM else round(gap, 3)
+                    try:        # each exact call in a forked process stopped at what is left of the pair's budget
+                        v = L.bounded(lambda: L.common_volume_mm3(shapes[a], moved), budget - w["exact_seconds"]) if gap <= 0.05 else 0.0
+                        d = (L.bounded(lambda: L.min_distance_mm(shapes[a], moved), budget - w["exact_seconds"] - (time.time() - t1))
+                             if gap < NEAR_MM else round(gap, 3))
+                    except L.CallTimeout as e:
+                        w["exact_seconds"] = round(w["exact_seconds"] + time.time() - t1, 2)
+                        w["timed_out"], w["stopped_in_call"] = True, f"pose {pname}: {e}"
+                        print(f"fit: pair {a} x {b}: one exact call at pose {pname} {e}, over its {budget:g} s budget after {w['poses']} poses",
+                              file=sys.stderr, flush=True)
+                        continue
                     cache[key] = (v, d)
                     exact += 1
                     w["exact_seconds"] = round(w["exact_seconds"] + time.time() - t1, 2)
@@ -88,6 +105,11 @@ def exact_pairs(ctx):
             if link[a] == link[b]:
                 standing[(a, b)] = True
             w["poses"] += 1
+            if stress:
+                w = tgt
+                w["poses"] += 1
+                if v > w["max_overlap_mm3"]:
+                    w["joints_at_max"] = beyond
             if v > 1e-3:
                 w["poses_overlapping"] += 1
             if v > w["max_overlap_mm3"]:
@@ -97,6 +119,8 @@ def exact_pairs(ctx):
         print(f"fit: pose {ip + 1}/{n_pose} {pname}: {exact} exact pair evaluations, {time.time() - t0:.0f} s", file=sys.stderr, flush=True)
     tick("fit (exact)", t0)
     ctx.fit_unreadable_steps = shapes.get("_unreadable", {})
+    ctx.fit_beyond = dict(poses=beyond_poses, contacts={f"{a} x {b}": dict(w, min_distance_mm=None if w["min_distance_mm"] >= 1e8 else w["min_distance_mm"])
+                                                        for (a, b), w in sorted(apart.items(), key=lambda t: (-t[1]["max_overlap_mm3"], t[1]["min_distance_mm"]))})
     return worst, sorted(no_step)
 
 
@@ -118,14 +142,19 @@ def run(ctx):
     cases.sort(key=lambda c: (c["unit"] != "mm3 overlap", -c["value"] if c["unit"].startswith("mm3") else c["value"]))
     for c in cases[:5]:
         c["location_mm"] = ctx.locate(c["part"], c["mating_part"], c["pose"])
-    return dict(per_part=per_part, worst_cases=cases[:20],
+    fb = getattr(ctx, "fit_beyond", dict(poses=[], contacts={}))
+    ranges, rcount, rfind = range_report(ctx.body, {j for _, _, q in ctx.poses for j in q})
+    return dict(per_part=per_part, worst_cases=cases[:20], beyond_declared_range=fb, joint_ranges=ranges, range_findings=rfind,
                 bad_events=dict(pairs_overlapping=sum(1 for w in worst.values() if w["max_overlap_mm3"] > 1e-3),
+                                beyond_declared_range_poses=len(fb["poses"]),
+                                beyond_declared_range_pairs_overlapping=sum(1 for w in fb["contacts"].values() if w["max_overlap_mm3"] > 1e-3),
+                                **rcount,
                                 pose_pair_overlaps=sum(w["poses_overlapping"] for w in worst.values()),
                                 neighbours_without_native_step=len(no_step),
                                 pairs_timed_out=sum(1 for w in worst.values() if w["timed_out"]),
                                 steps_unreadable=len(getattr(ctx, "fit_unreadable_steps", {}))),
                 steps_unreadable=getattr(ctx, "fit_unreadable_steps", {}),
-                pairs_timed_out={f"{a} x {b}": dict(poses_reached=w["poses"], of_poses=len(ctx.poses), exact_seconds=w["exact_seconds"])
+                pairs_timed_out={f"{a} x {b}": dict(poses_reached=w["poses"], of_poses=len(ctx.poses), exact_seconds=w["exact_seconds"], stopped_in_call=w.get("stopped_in_call"))
                                  for (a, b), w in worst.items() if w["timed_out"]},
-                evidence=[], notes=f"{len(ctx.poses)} poses ({ctx.poses_name}); a pair over {getattr(ctx, 'fit_pair_budget_s', None) or PAIR_BUDGET_S:g} s of exact work stops (pairs_timed_out: poses reached); exact OpenCascade common volume and BRepExtrema distance on native STEP; "
+                evidence=[], notes=f"{len(ctx.poses)} poses ({ctx.poses_name}), {len(fb['poses'])} of them beyond a declared range: measured, in beyond_declared_range, not in per_part / worst_cases; a pair over {getattr(ctx, 'fit_pair_budget_s', None) or PAIR_BUDGET_S:g} s of exact work stops (pairs_timed_out: poses reached); exact OpenCascade common volume and BRepExtrema distance on native STEP; "
                                    f"distance exact below {NEAR_MM} mm, box gap above; parts without native STEP not measured: {no_step[:8]}")

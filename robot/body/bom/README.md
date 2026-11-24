@@ -18,6 +18,39 @@ python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python
 .venv/bin/python -B robot/body/bom/publish_body.py --publish   # main checkout: the selected body's dashboard record (below)
 ```
 
+## Bring a checkout's body up to date (make.py)
+
+```bash
+.venv/bin/python -B robot/body/bom/make.py status     # per generator: reused or runs, and why; runs nothing
+.venv/bin/python -B robot/body/bom/make.py            # restore or run every declared generator in order, here
+.venv/bin/python -B robot/body/bom/make.py --report   # ... then build.py, the bom check and the findings that changed
+```
+
+Same in main and in every worktree (`infra/tools/worktree.py`). A generator's outputs are reused, from whatever checkout,
+branch or commit made them, when every file its run read still has the same content here; else it runs under memguard and
+its outputs go into the shared cache ([gencache.py](gencache.py): reads recorded while it runs by
+[gensite/sitecustomize.py](gensite/sitecustomize.py), including STEPs read inside OpenCascade; STEP / npz / STL compared by
+content, not header bytes). Folder listings count as inputs, except the definitions' search over `robot/`, which counts
+as the set of `*.bom.yaml` paths (untracked leftover folders in one checkout no longer stop reuse in another).
+`make.py --rerun ID[,ID]` runs those generators even when an entry could be reused (after a change to what make records),
+the ones after them reused when the outputs match. `make.py gc` deletes entries no live checkout holds after 3 days, and
+their blobs. Findings printed per run: a file read that a later generator writes, outputs outside the declared ones.
+
+## Composed manifests (compose.py)
+
+A builder that edits a manifest another generator composes declares it in its own definition; the composing generator
+declares `composes: STAGE` and calls `compose.apply(STAGE, manifest)`:
+
+```yaml
+compose:
+- id: torso-screws
+  into: roll-flip                      # the stage (roll_flip_checks.py manifest composes roll-flip)
+  call: robot/body/torso/torso_screws.py:swap_parts
+  takes: parts                         # parts: f(parts) -> parts | manifest: f(manifest) -> log lines
+  after: [ankle-coupler-screws]        # compose ids applied before it
+  needs: [torso-screws]                # generators it reads: they run before the composing generator
+```
+
 ## The dashboard record (publish_body.py)
 
 The design dashboard's view of the selected body is generated from the same source, so it cannot drift: `publish_body.py`
@@ -106,6 +139,36 @@ defects:                           # what is known to be wrong with these parts 
 - {id: foot-fsr-backings, parts: "*_backing", kind: no_scripted_step, fix: script the backing, task: T-54avce}
 ```
 
+## Configured values: joint ranges and builder values (single source)
+
+Owner 2026-11-23: every configured value (a joint range, a clearance, a count, a material choice) is set in the
+definitions, and the builders, the design checks and the design dashboard read it from there. No second copy in a
+script, a JSON side file or the dashboard, and no silent default: an undeclared value is an error or a finding.
+
+```yaml
+joints:                            # the joints this builder owns: each joint is declared in exactly one definition
+- match: [R_knee, L_knee]          # exact joint (or control) names of the body manifest; both sides may share one entry
+  range_deg: [0.0, 95.0]           # [lower, upper], manifest sign convention, lower < upper
+  doc: Knee flexion; the A-11 pose library reaches 95.
+  decision: owner 2026-11-23       # optional: who / which decision set it
+config:                            # this builder's other configured values, one key each
+  SHELL_GAP_MM: {value: 1.5, unit: mm, doc: running gap between the shell and the moving link}
+```
+
+Reading them: [bom_config.py](bom_config.py), `joint_ranges()`, `joint_range(name)` (raises naming where to declare
+it), `value(definition, NAME)`, `values(definition)`, `apply_joint_ranges(manifest)` (writes `joints[]` / `controls[]`
+`range_deg`; the assembler calls it, so every manifest after it carries the declared ranges). Under
+make.py the reads are recorded as the values asked for (`values:joints`, `values:config:<definition>`), not as every
+definition's bytes, so editing one definition reruns only the builders whose values changed. build.py exports them
+(`bom.json` `joints`, `config`), and publish_body.py puts the ranges in the dashboard record (`cad.joint_ranges`), which
+the CAD motion sliders use in place of the manifest copy.
+
+Where the joint ranges live today: legs `robot/body/leg/package_complete_leg_hip.bom.yaml`, arms
+`robot/body/arm/build_arm_connectors.bom.yaml`, neck `robot/body/neck-head/build_neck_head_connectors.bom.yaml`, hand
+opening `robot/body/assembly/assemble_complete_fdm_body.bom.yaml`. Findings: `joint_declared_twice`, `joint_range_empty`,
+`joint_range_undeclared` (an undriven manifest joint or control nobody declares), `joint_not_in_manifest`,
+`joint_range_differs` (a manifest built before the declaration changed: rebuild it with make.py).
+
 ## What the checks report (each finding names the file to fix)
 
 `bom` and `BOM.md`: manifest parts no definition claims; entries or globs that match nothing; parts claimed twice;
@@ -140,6 +203,9 @@ per step whether the measurement supports it.
 | `files.py` | how a manifest file resolves (disk, regenerable, blob index, path moves, bucket records) |
 | (moved) | standard hardware STEP / STL: `robot/body/standard-hardware/generate.py` (declared as a generator in its `generate.bom.yaml`); spec drafting aid `propose_specs.py` next to it |
 | `rebuild_chain.py` | isolated rebuild of the selected body from the declared generators, then the BOM steps |
+| `make.py`, `gencache.py`, `gensite/` | bring a checkout's body up to date from the declared generators, reusing unchanged outputs from the shared cache; gc |
+| `compose.py` | apply the declared `compose` entries of a composed manifest |
+| `bom_config.py` | read the declared joint ranges and configured values (`joints:`, `config:`) for builders, checks and the dashboard |
 | `publish_body.py` | the design-dashboard record of a declared study (default the selected body) from the definitions, the manifest and the rebuild outputs |
 
 ## State

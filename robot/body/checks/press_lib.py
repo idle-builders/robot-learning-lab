@@ -2,7 +2,7 @@
 
 Every sleeve needs (1) a flat support face on its counter (exit) side, so the part can rest on an anvil, and (2) a
 straight, unobstructed access path along its axis for the heated press element on the entry side. Scored on the bare
-part (that is how it is pressed), continuous values only:
+part (that is how it is pressed), continuous values only (tool sizes from data/press_tools.json; the numbers below are its values):
 
   tool path     heated tip  dia 8 mm over the first 15 mm beyond the sleeve's entry end, tool body dia 20 mm beyond
                 that, 60 mm long in total: part volume inside each (mm3)
@@ -27,14 +27,19 @@ part (that is how it is pressed), continuous values only:
 """
 from __future__ import annotations
 
+import json
 import math
+import os
+from pathlib import Path
 
 import numpy as np
 
-TIP_D, TIP_L, BODY_D, TOOL_L = 8.0, 15.0, 20.0, 60.0
-SPACER_CAP, RECESS_MAX = 40.0, 10.0
-ANVIL_D, ANVIL_PATH_D, ANVIL_L, FACE_TOL = 10.0, 20.0, 40.0, 0.2
-EDGE_SKIP = 0.15
+# the tool sizes are data: data/press_tools.json (LAB_CHECKS_DATA: another set of check tables)
+TOOLS = json.loads((Path(os.environ.get("LAB_CHECKS_DATA") or Path(__file__).resolve().parent / "data") / "press_tools.json").read_text())
+TIP_D, TIP_L, BODY_D, TOOL_L = TOOLS["tool_tip_dia_mm"], TOOLS["tool_tip_length_mm"], TOOLS["tool_body_dia_mm"], TOOLS["tool_total_length_mm"]
+SPACER_CAP, RECESS_MAX = TOOLS["spacer_free_depth_cap_mm"], TOOLS["spacer_recess_search_mm"]
+ANVIL_D, ANVIL_PATH_D, ANVIL_L, FACE_TOL = TOOLS["anvil_face_dia_mm"], TOOLS["anvil_path_dia_mm"], TOOLS["anvil_path_length_mm"], TOOLS["counter_face_tolerance_mm"]
+EDGE_SKIP = TOOLS["counter_face_edge_skip_mm"]
 ASSUMPTIONS = dict(tool_tip_dia_mm=TIP_D, tool_tip_length_mm=TIP_L, tool_body_dia_mm=BODY_D, tool_total_length_mm=TOOL_L,
                    anvil_face_dia_mm=ANVIL_D, anvil_path_dia_mm=ANVIL_PATH_D, anvil_path_length_mm=ANVIL_L,
                    counter_face_tolerance_mm=FACE_TOL, counter_face_annulus_mm=f'sleeve OD/2 + {EDGE_SKIP} .. {ANVIL_D / 2}', anvil_path_start_mm_beyond_exit_plane=0.2,

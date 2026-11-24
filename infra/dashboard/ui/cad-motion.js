@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Native manifests express joint pivots in the neutral world frame, and parts
 // retain neutral world coordinates. Parent transforms compose from root to tip.
-export function createJointRig(model, metadata, {scale = .001, limits = {}, controlNames = null} = {}) {
+export function createJointRig(model, metadata, {scale = .001, limits = {}, ranges = {}, controlNames = null} = {}) {
   const joints = (metadata.joints || []).filter(j =>
     Array.isArray(j.origin_world_mm || j.origin_mm) && Array.isArray(j.axis_world_neutral || j.axis));
   // A loop closure cannot be replaced by independently rotating its links.
@@ -21,7 +21,10 @@ export function createJointRig(model, metadata, {scale = .001, limits = {}, cont
   });
   const movableLinks = new Set(nodes.map(n => n.link));
   const ancestry = link => { const seen = new Set(); while (byChild.has(link) && !seen.has(link)) {seen.add(link); link = byChild.get(link).parent;} return seen; };
-  const scopedRange = (name, native) => {
+  // `ranges`: the joint ranges declared in the body definitions (record cad.joint_ranges, robot/body/bom/bom_config.py),
+  // the single source; they replace the manifest's copy. `limits` (a study's motion envelope) can only narrow them.
+  const scopedRange = (name, manifestRange) => {
+    const native=Array.isArray(ranges[name]) ? ranges[name] : manifestRange;
     const saved=limits[name];
     if(!Array.isArray(saved))return native;
     if(!Array.isArray(native))return saved;

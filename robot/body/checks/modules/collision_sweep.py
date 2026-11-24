@@ -4,6 +4,8 @@ max overlap (mm3, exact mesh boolean), minimum clearance (mm), poses overlapping
 two different limbs (the other leg, an arm) are left out, as in range_sweep: their contacts are WBC self-collision limits; counted per joint.
 Poses that are controller-limit corners (data/pose_sets.json controller_limit_corners, owner decision D-15: e.g. all three hip joints at
 their range ends at once) are measured too, but their contacts are reported apart (controller_limit_contacts), not as design overlaps.
+Ranges: the declared ones (body definitions `joints:`, core.declare_ranges; joint_ranges and range_findings in the result): every pose
+is inside them. A joint without a range is not swept (joints_without_range) and a neighbour without one is not posed.
 Moved from motor-refit/collision_sweep.py."""
 from __future__ import annotations
 
@@ -12,12 +14,11 @@ import time
 import numpy as np
 
 from checks import bodylib as BL
-from checks.core import R, tick
-from checks.modules.range_sweep import Prep, controller_limit, scope_joints
+from checks.core import R, range_report, tick
+from checks.modules.range_sweep import Prep, controller_limit, in_class, scope_joints
 from checks.registry import register
 
 F = BL
-SKIP_ROLES = {"cut_material", "adhesive_allocation", "authored_harness", "candidate_sensor", "produced_backing"}
 
 
 def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
@@ -27,7 +28,7 @@ def sweep_joint(ctx, jn, step, reach_mm=95.0, margin=3.0):
     o = np.array(body.joints[jn]["origin_world_mm"], float)
     names = []
     for n, p in body.parts.items():
-        if F.is_fastener(n, p) or p.get("role") in SKIP_ROLES:
+        if F.is_fastener(n, p) or in_class(body, n, "no_collision"):   # role class (data/roles.json): glue, harness, sensor layers
             continue
         b = np.array(p["bounds_mm"], float)
         if np.linalg.norm(0.5 * (b[0] + b[1]) - o) < reach_mm + 0.5 * np.linalg.norm(b[1] - b[0]):
@@ -99,7 +100,8 @@ def merge_pair_cases(cases):
 @register("collision_sweep", lambda ctx: bool(ctx.scope) and bool(getattr(ctx, "joints", None) or scope_joints(ctx)))
 def run(ctx):
     """Per joint that moves a scoped part: pair overlap (mm3) and clearance (mm) over the joint range and neighbouring-joint combinations."""
-    joints = getattr(ctx, "joints", None) or scope_joints(ctx)
+    asked = getattr(ctx, "joints", None) or scope_joints(ctx)
+    joints = [jn for jn in asked if ctx.body.joints[jn].get("range_deg")]      # a joint without a range is not swept, it is listed
     step = getattr(ctx, "step_deg", None) or 5.0
     per_joint, per_part, cases = {}, {}, []
     for jn in joints:
@@ -126,11 +128,13 @@ def run(ctx):
     # distinct pairs (a pair seen from several joints counts once), as the merged worst cases list them
     over = {frozenset((c["a"], c["b"])): c["same_link"] for r in per_joint.values() for c in r["contacts"] if c["max_overlap_mm3"] > 0.05}
     n_over = len(over)
+    ranges, rcount, rfind = range_report(ctx.body, list(asked) + [a for r in per_joint.values() for a in r["adjacent"]])
     return dict(per_part=per_part, per_joint=per_joint, worst_cases=cases[:20], controller_limit_contacts=limit,
-                bad_events=dict(joints_swept=len(joints), overlapping_pairs=n_over,
+                joint_ranges=ranges, range_findings=rfind,
+                bad_events=dict(joints_swept=len(joints), joints_not_swept_without_range=len(asked) - len(joints), **rcount, overlapping_pairs=n_over,
                                 overlapping_pairs_across_links=sum(1 for same in over.values() if not same),
                                 controller_limit_contact_pairs=len(limit),
                                 other_limb_pairs_left_out=sum(r["other_limb_pairs_left_out"] for r in per_joint.values())),
-                evidence=[], notes=f"step {step} deg; poses = joint range + neighbours' ranges + corners; pairs limited to those with a scoped part; pairs on two different limbs left out (WBC self-collision limits, as range_sweep; other_limb_pairs_left_out, summed over joints); "
+                evidence=[], notes=f"step {step} deg; poses = declared joint range + neighbours' declared ranges + corners (joint_ranges: range_source per joint); pairs limited to those with a scoped part; pairs on two different limbs left out (WBC self-collision limits, as range_sweep; other_limb_pairs_left_out, summed over joints); "
                                    "contacts at controller-limit corners (pose_sets.json controller_limit_corners, D-15) measured and listed apart in controller_limit_contacts, "
                                    "not in worst_cases or overlapping_pairs; contacts listed above 0.05 mm3 or below 1 mm clearance")

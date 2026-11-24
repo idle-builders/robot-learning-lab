@@ -3,7 +3,6 @@ points around a shank, the driver data (data/tools.json) and the driver path obs
 from __future__ import annotations
 
 import json
-import re
 import sys
 
 import numpy as np
@@ -48,10 +47,10 @@ def screen(ctx, n):
 
 
 def solid_nodes(ctx):
-    """Non-hardware parts plus the steel sleeves (they are parts of the printed part they sit in)."""
+    """Parts that are no fastener (mount_check.kind None: checks.relations), the sleeve sets among them (they are parts of the
+    printed part they are pressed into)."""
     kind = mount_check().kind
-    return [n for n, p in ctx.body.parts.items()
-            if kind(p) is None and (not BL.is_fastener(n, p) or p.get("role") == "compression_limit_sleeves")]
+    return [n for n, p in ctx.body.parts.items() if kind(p) is None]
 
 
 def ring_points(g, ring_mm=RING_MM):
@@ -65,6 +64,24 @@ def ring_points(g, ring_mm=RING_MM):
     pts = [h + t * d + (g["r_shank_mm"] + ring_mm) * r for t in ts for r in ring]
     pts += [h + (g["head_height_mm"] + 0.3) * d + (g["r_shank_mm"] + ring_mm + 0.5 * max(0.0, g["r_head_mm"] - g["r_shank_mm"] - ring_mm)) * r for r in ring]
     return np.array(pts)
+
+
+SELECT_STEP_MM = 0.5   # axial spacing of the selection rings: 8 stations over a 30 mm screw (3.7 mm apart) stepped over 2 mm plates
+
+
+def selection_points(g, ring_mm=NEAR_MM):
+    """Points that select a screw for a scope (screws_of_scope): rings of 8 points at r_shank + RING_MM and at r_shank +
+    ring_mm around the shank every SELECT_STEP_MM along it, the head ring of ring_points, and a ring just outside the head
+    (r_head + RING_MM) at its underside, where a countersunk head (head height 0) sits in the plate's countersink."""
+    d, h = np.asarray(g["_d"]), np.asarray(g["_head"])
+    u = np.cross(d, [1, 0, 0] if abs(d[0]) < 0.9 else [0, 1, 0]); u /= np.linalg.norm(u); w = np.cross(d, u)
+    ang = np.radians(np.arange(0, 360, 45))
+    ring = np.array([np.cos(a) * u + np.sin(a) * w for a in ang])
+    t0, t1 = g["head_height_mm"] + 0.2, g["length_mm"] - 0.2
+    ts = np.linspace(t0, t1, max(8, int(np.ceil((t1 - t0) / SELECT_STEP_MM)) + 1))
+    pts = [h + t * d + (g["r_shank_mm"] + rr) * r for rr in sorted({RING_MM, ring_mm}) for t in ts for r in ring]
+    pts += [h + (g["head_height_mm"] + 0.3) * d + (g["r_head_mm"] + RING_MM) * r for r in ring]
+    return np.vstack([np.array(pts), ring_points(g, ring_mm)[-len(ring):]])
 
 
 def standing_T(ctx):
@@ -86,17 +103,18 @@ def world_bounds(ctx, T, n):
 
 def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
     """{screw: dict(geometry, touched scoped parts, link transform)} of the screws that touch a scoped part or its steel sleeves:
-    >= 2 points of a ring r_shank + ring_mm (default 3 mm) around the shank, along it and under the head, lie inside that
-    part's solid at standing (the connectivity graph uses 0.8 mm; 3 mm is the window in which mount_check still reads a
-    hole as the screw's). A selection, not a measurement: mount_check's own stack says which parts a screw really passes."""
+    >= 2 selection_points (rings r_shank + 0.8 mm and r_shank + ring_mm, default 3 mm, every 0.5 mm along the shank, under
+    and around the head) lie inside that part's solid at standing (3 mm is the window in which mount_check still reads a
+    hole as the screw's; the 0.8 mm ring finds a screw ending in an insert in a thin boss, 0.5 mm steps find thin plates).
+    A selection, not a measurement: mount_check's own stack says which parts a screw really passes.
+    Every screw's geometry (neutral frame) is kept on ctx (_screw_geometry) for the reverse view."""
     MC = mount_check()
     T = T or standing_T(ctx)
     parts = ctx.body.parts
     targets = {}
     for n in ctx.scope:
         targets[n] = n
-        s = f"{n}_steel_sleeves"
-        if s in parts:
+        for s in ctx.rel.sleeve_sets_of(n):          # the sleeve sets pressed into it (definition, else the surface they touch)
             targets[s] = n
     WB = {t: world_bounds(ctx, T, t) for t in targets}
     out = {}
@@ -107,7 +125,8 @@ def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
             g = MC.screw_geometry(BL.load_mesh(p["mesh"]))
         except Exception:  # noqa: BLE001
             continue
-        pts = ring_points(g, ring_mm)
+        ctx.__dict__.setdefault("_screw_geometry", {})[k] = g
+        pts = selection_points(g, ring_mm)
         Ts = T[p["owning_link"]]
         pw = pts @ Ts[:3, :3].T + Ts[:3, 3]
         lo, hi = pw.min(0) - 0.5, pw.max(0) + 0.5
@@ -132,21 +151,24 @@ def tools():
     return json.loads((DATA / "tools.json").read_text())
 
 
-def head_type(name, g, thread, data=None, head_standard=None):
+def hardware():
+    return json.loads((DATA / "hardware.json").read_text())
+
+
+def head_type(g, thread, data=None, head_standard=None):
     """Head type of a screw (data/tools.json head_types): the type whose standards list its head standard (screw_plan or
-    body definition, mount_check.screw_spec); without one, from its name, thread family and mesh."""
+    body definition, mount_check.screw_spec); without one, a thread-forming family (data/hardware.json self_tapping) is a pan
+    head, else from its mesh: button below 0.7 x the thread's major diameter (hardware.json threads; the shank's without a
+    thread) of head height, else socket cap."""
+    data = data or tools()
     if head_standard:
-        data = data or tools()
         ht = next((k for k, v in data["head_types"].items() if head_standard in v.get("standards", [])), None)
         if ht:
             return ht
-    if re.search(r"_CS\d+|countersunk", name, re.I):
-        return "countersunk"
-    if thread and thread.startswith("PA"):
+    hw = hardware()
+    if thread in hw["self_tapping"]:
         return "pan_phillips"
-    if "NBK" in name:
-        return "flange_button"
-    d = {"M2": 2.0, "M2.5": 2.5, "M3": 3.0, "M4": 4.0}.get(thread, 2 * g["r_shank_mm"])
+    d = hw["threads"].get(thread, 2 * g["r_shank_mm"])
     return "button" if g["head_height_mm"] < 0.7 * d else "socket_cap"
 
 
@@ -157,8 +179,9 @@ def tool_for(head, thread, data=None):
     t = data["tools"][kind]
     sizes = t["by_head_type_and_thread"].get(head, {})
     size = sizes.get(thread)
-    if size is None and thread and thread.startswith("PA"):
-        size = sizes.get("M" + thread[2:])    # a thread-forming PA screw with a metric head standard: the drive of that head and diameter
+    hw = hardware()
+    if size is None and thread in hw["self_tapping"]:      # a thread-forming screw with a metric head standard: the drive of that head and diameter
+        size = next((sizes[t] for t in sizes if t not in hw["self_tapping"] and hw["threads"].get(t) == hw["threads"][thread]), None)
     if size is None:
         return None
     if kind == "hex_key":

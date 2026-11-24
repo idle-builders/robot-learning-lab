@@ -5,10 +5,9 @@ from __future__ import annotations
 import numpy as np
 
 from checks import fem_core as FC
+from checks import process as P
 from checks.core import R
 from checks.registry import register
-
-PRINTED = ("printed_structural_connector", "printed_structural_carrier", "body_shell")     # shells are printed too: a shell without a setup is a coverage gap
 
 
 def holes(ctx, name, r_max=5.0):
@@ -22,12 +21,13 @@ def run(ctx):
     variant = getattr(ctx, "fem_variant", None)
     per, cases, uncovered = {}, [], []
     empty = overlap = 0
+    hole_fallback = rounds_dropped = above_rmax = 0
     dirs = {}
     not_checked = {}
     for n in ctx.scope:
         s = FC.merged_setup(ctx, n, variant)
         if not s:
-            if ctx.parts[n].get("role") in PRINTED:
+            if P.is_printed(ctx, n):           # every printed part, shells too: one without a setup is a coverage gap
                 uncovered.append(n)
             continue
         if "native_step" not in ctx.parts[n]:
@@ -50,7 +50,7 @@ def run(ctx):
             rows[k] = info
             empty += info["nodes"] == 0
             cases.append(dict(part=n, mating_part=", ".join(info["mating_parts_without_contact"]) or None, pose=None, location_mm=info["centroid_mm"],
-                              unit="mm2", value=info["area_mm2"], what=f"{k} patch area ({info['nodes']} nodes, {info['holes_within_patch']} of {len(hs)} holes)"))
+                              unit="mm2", value=info["area_mm2"], what=f"{k} patch area ({info['nodes']} nodes, {info['site_count']} site(s), {info['holes_within_patch']} of {len(hs)} holes)"))
         # a support site that is also a load site clamps its own load: shared nodes / triangles / area between each support patch and the load patch
         ln_, lt_ = masks["load"]
         cent, area = FC._cent_area(mesh)
@@ -58,15 +58,23 @@ def run(ctx):
               for k, m in masks.items() if k.startswith("support_")}
         n_ov = sum(1 for v in ov.values() if v["shared_nodes"])
         overlap += n_ov
-        per[n] = dict(variant=variant, layer_direction=dirs[n], setup_notes=FC.setup_notes(s), patches=rows, support_load_overlap=ov, mesh_nodes=int(len(mesh["points"])), mesh_cached=mesh.get("cached"))
+        per[n] = dict(variant=variant, layer_direction=dirs[n], setup_notes=FC.setup_notes(s), patches=rows, support_load_overlap=ov, mesh_nodes=int(len(mesh["points"])), mesh_cached=mesh.get("cached"),
+                      **({"mesh_retry": mesh["mesh_retry"]} if mesh.get("mesh_retry") else {}), **({"bore_collars": mesh["bore_collars"]} if mesh.get("bore_collars") else {}))
+        for k, info in rows.items():
+            for d in (info.get("hole_selection") or {}).values():
+                hole_fallback += d["mode"].startswith("bores")
+                rounds_dropped += d.get("dropped_faces", {}).get("round_or_partial_arc", 0)
+                above_rmax += len(d.get("bore_above_r_max", []))
     cases.sort(key=lambda c: c["value"])
     # one layer direction for print setup and FEM: parts with a setup whose print direction is missing / seeded (unconfirmed) / not among the stored layer_normal_axes
     nodir = sorted(n for n, d in dirs.items() if d["up"] is None)
     seeded = sorted(n for n, d in dirs.items() if d["seeded"])
     disagree = {n: dict(print_direction=d["up"], stored_layer_normal_axes=d["stored"]) for n, d in sorted(dirs.items()) if d["disagrees"]}
-    return dict(per_part=per, worst_cases=cases, bad_events=dict(empty_patches=empty, support_patches_sharing_nodes_with_load=overlap, printed_parts_without_fem_setup=len(uncovered), setups_not_checked=len(not_checked),
+    return dict(per_part=per, worst_cases=cases, bad_events=dict(empty_patches=empty, support_patches_sharing_nodes_with_load=overlap,
+                                 hole_patch_mates_without_joining_screw=hole_fallback, round_or_partial_faces_left_out_of_hole_patches=rounds_dropped,
+                                 screw_bores_wider_than_r_max_taken=above_rmax, parts_meshed_at_retry_h=sum(1 for p in per.values() if p.get("mesh_retry")), printed_parts_without_fem_setup=len(uncovered), setups_not_checked=len(not_checked),
                                  fem_parts_without_print_direction=len(nodir), fem_parts_with_seeded_print_direction=len(seeded), fem_parts_print_direction_disagrees_with_layer_normal_axes=len(disagree)),
                 evidence=[], coverage=dict(printed_without_setup=uncovered, setup_not_checked=not_checked, print_direction_missing_fallback_to_stored_axes=nodir,
                                        print_direction_seeded=seeded, print_direction_disagrees=disagree),
-                notes="worst-first = smallest patch; coverage.printed_without_setup lists printed parts (connectors, carriers and body shells) in scope with no fem setup. "
+                notes="worst-first = smallest patch; coverage.printed_without_setup lists printed parts (process.is_printed: definition kind, else role table) in scope with no fem setup. "
                 + " | ".join(f"{n}: {p['setup_notes'].get('open_difference', '')}" for n, p in per.items() if p["setup_notes"].get("open_difference")))

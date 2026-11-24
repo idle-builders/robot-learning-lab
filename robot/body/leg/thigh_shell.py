@@ -10,18 +10,22 @@ Stage 4 posts), re-fitted:
     the roll case and Stage 4 at the top; each of the seven ring parameters is one natural cubic spline in z through 1-5
     control values (SURF, 25 values in all), fitted once as the surface closest to the 2026-11-18 skin that holds what the
     shell covers (Stage 4, the turned roll case, knee motor, the yellow arm hubs) + GAP + WALL and never widens toward the
-    knee below mid-thigh (fit-surface re-fits it when a covered part moves); constant wall;
+    knee below mid-thigh (fit-surface re-fits it when a covered part moves); constant wall; below the widest ring the
+    lower section (owner 2026-11-23) carries the sides straight down, flaring slightly, and brings the front in, to the shin
+    covers' top outline, so thigh and shin read as one continuous shell;
   - edges (owner 2026-11-17/18/20): the top edge is a low, calm periodic height around the shell (3 Fourier harmonics,
     peaks capped above its mean, dips capped below it, slope along the edge limited; edge_cut), below the moving
     neighbours: the green connector / hip-pitch motor rim region about the roll axis and the yellow pitch-to-roll part
-    swept over ROLL_RANGE (fabric covers what is above it); the knee edge clears every lower-leg part swept
-    over KNEE_RANGE about the knee axis (the shin hard covers slope in to clear it); the knee edge is one tilted plane, at
-    the front just above the knee hub, and below the Stage 4 bracket the back slopes in to hug the knee motor;
+    swept over ROLL_RANGE (fabric covers what is above it); the knee edge (owner 2026-11-23) is one smooth line in the side
+    view, level just above the shin front cover in front of the knee axis and rising behind it along the shin back cover's
+    radial top edge turned to full flexion: COVER_GAP from the shin covers and CLEAR from every other lower-leg part, both
+    swept over KNEE_RANGE about the knee axis;
   - holes with 90-deg countersinks (flat-head M3, flush with the outer skin, or sunk below it in a counterbore where no
     standard length gives a full nut with a tip margin; post_fit) at the Stage 4 posts, bosses from the post tips to the
     wall, a steel sleeve in each.
-shin-cover cuts the lower leg's back hard cover clear of all this over KNEE_RANGE and re-mounts it (its old top M3s are
-cut away): four PA2x8 per leg through bosses on its side wings into pilot holes drilled in the shin frame's STEP.
+shin-cover cuts the lower leg's back hard cover along a plane through the knee axis (COVER_CUT_DEG, under its old top
+M3 holes; clear of the thigh hardware over KNEE_RANGE) and re-mounts it: four PA2x8 per leg through bosses on its side
+wings into pilot holes drilled in the shin frame's STEP.
 Nothing in the build or the check uses the core torso shell (cut at z 271 and redesigned next, D-12).
 Mesh solid (manifold3d), mm, R_roll_link neutral frame; the left shell mirrors x.
 
@@ -48,6 +52,8 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parents[0] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges and this builder's config: robot/body/leg/thigh_shell.bom.yaml)
 import roll_flip_checks as R  # noqa: E402  (kit, closed(), library poses, manifest paths)
 import build_upper_hip_connectors as B  # noqa: E402
 
@@ -62,7 +68,8 @@ if os.environ.get("THIGH_SHELL_OUT"):
 GAP, WALL = 1.5, 2.1              # inner clearance to covered parts, wall thickness (today's covers: 2.1)
 Z0, TOP_Z = 116.0, 206.5          # tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
 WINDOW = 5.0                      # each station hulls the sections within +- WINDOW mm (no waviness)
-ROLL_RANGE, CLEAR = (-45.0, 25.0), 1.5
+ROLL_RANGE = tuple(BOM_CONFIG.value("thigh-shell", "ROLL_SWEEP_DEG"))   # design sweep of the Stage 5 slot, not the joint range
+CLEAR = 1.5
 NTH = 144
 CENTRE = np.array([55.0, 5.0])
 COVERED = ("R_thigh_roll_flip", "R_roll_servo_case_reference", "R_knee_ST3025_case",
@@ -165,10 +172,65 @@ def _spline_basis(zk, z, nu=0):
     return np.stack([CubicSpline(zk, np.eye(k)[i], bc_type="natural")(z, nu) for i in range(k)], -1)
 
 
-def surface(z, surf=None, nu=0):
-    """Ring parameters (cx, cy, a, b_front, b_back, n, n_back) of the outer skin at heights z (rows)."""
+# Lower section (owner 2026-11-23, front view of the left thigh: "the sides go in too much, this cannot lead to a continuous
+# design with the shin shell. The idea is that the leg looks like one continuous calm shell with the minimal joint exposed in
+# the middle"). The spline skin tapered the sides in below the widest ring (z ~172: x 20.5..84.8) to x 24.2..77.9 at the knee
+# while the shin covers' top is x 17.5..86.6 wide. Below the spline's widest ring each side extent (x min, x max) now runs,
+# with zero slope there (no waist), one smoothstep out to the shin covers' outer outline at their top (z 114: LOW_X);
+# the front depth b_front and front exponent n run as one quintic, C2 at LOW_FRONT_Z, to the same outline's superellipse
+# (LOW_FRONT; least squares on the front cover's outer section at z 112: cx 52.04, a 34.33, b_front 23.19, n 2.73, rms level
+# 0.013). Both reach their targets with zero slope and curvature at LOW_Z_BOT and stay constant below. The back half (b_back,
+# n_back) keeps the spline: the back's lower edge stays near z 150, where the shin back cover meets it at full flexion. The
+# approved upper skin (SURF, 25 values) is unchanged above z 171 (sides) / 166 (front); 5 values more for the lower section.
+LOW_Z_BOT = 113.0                  # the lower section reaches the shin outline here (constant below; the knee edge is >= 119)
+LOW_X = (17.8, 86.2)               # outer x extents at the bottom (shin covers' outer outline at z 114: 17.78 .. 86.16)
+LOW_FRONT_Z = 166.0                # front blend starts here (below the shell screw bosses, z 166.7 .. 176.3)
+LOW_FRONT = dict(b_front=23.19, n=2.73)
+LOW_Z_EXT = (160.0, 185.0)         # the spline's widest ring (x min / x max extremes) is searched in this band
+
+
+def _smoothstep(s):
+    return s ** 3 * (10.0 - 15.0 * s + 6.0 * s * s)
+
+
+def _quintic_to(p0, d1, d2, q, s):
+    """p(s) on s in [0, 1]: value p0, first and second derivative d1, d2 at 0; value q, zero slope and curvature at 1."""
+    c = np.linalg.solve(np.array([[1.0, 1, 1], [3, 4, 5], [6, 12, 20]]),
+                        np.array([q - p0 - d1 - d2 / 2, -d1 - d2, -d2]))
+    return p0 + d1 * s + d2 / 2 * s ** 2 + c[0] * s ** 3 + c[1] * s ** 4 + c[2] * s ** 5
+
+
+def _spline_rings(z, surf=None, nu=0):
     surf = surf or SURF
     return np.stack([_spline_basis(surf[k][0], z, nu) @ np.asarray(surf[k][1], float) for k in RING], -1)
+
+
+def lower_section(z, P, surf=None):
+    """Ring parameters P (rows at heights z, from the spline) with the lower section applied (see LOW_*)."""
+    z = np.asarray(z, float); P = P.copy()
+    ze = np.arange(LOW_Z_EXT[0], LOW_Z_EXT[1] + 1e-6, 0.05); E = _spline_rings(ze, surf)
+    for side, (val, ext) in enumerate(((E[:, 0] - E[:, 2], np.argmin), (E[:, 0] + E[:, 2], np.argmax))):
+        i = int(ext(val)); zs, x0 = ze[i], val[i]
+        s = np.clip((zs - z) / (zs - LOW_Z_BOT), 0.0, 1.0)
+        x = np.where(z < zs, x0 + (LOW_X[side] - x0) * _smoothstep(s), P[:, 0] + (P[:, 2] if side else -P[:, 2]))
+        if side == 0:
+            xl = x
+        else:
+            P[:, 0], P[:, 2] = (xl + x) / 2.0, (x - xl) / 2.0
+    zf = np.array([LOW_FRONT_Z]); h = LOW_Z_BOT - LOW_FRONT_Z
+    s = np.clip((z - LOW_FRONT_Z) / h, 0.0, 1.0)
+    for k in ("b_front", "n"):
+        i = RING.index(k)
+        p0, p1, p2 = (_spline_rings(zf, surf, nu)[0, i] for nu in (0, 1, 2))
+        P[:, i] = np.where(z < LOW_FRONT_Z, _quintic_to(p0, p1 * h, p2 * h * h, LOW_FRONT[k], s), P[:, i])
+    return P
+
+
+def surface(z, surf=None, nu=0, lower=True):
+    """Ring parameters (cx, cy, a, b_front, b_back, n, n_back) of the outer skin at heights z (rows); lower=False (or a
+    derivative, nu > 0) gives the spline alone."""
+    P = _spline_rings(z, surf, nu)
+    return lower_section(z, P, surf) if lower and nu == 0 else P
 
 
 def ring_params():
@@ -281,13 +343,13 @@ def fit_surface():
     BQ = {k: _spline_basis(SURF[k][0], Q[:, 2]) for k in RING}
     def lev(v, m):
         s = unpack(v); P = np.stack([BQ[k][m] @ s[k][1] for k in RING], -1)
-        return level(P, Q[m])
+        return level(lower_section(Q[m, 2], P, s), Q[m])
     zm = np.arange(SURF_Z[0], SURF_Z_MID + 0.1, 2.0)
     def mono(v):
         cx, cy, a, bf, bk = surface(zm, unpack(v), nu=1)[:, :5].T
         return 100.0 * np.concatenate([cx + a, a - cx, bf - cy, cy + bk])
-    def bounds(v):
-        P = surface(zz, unpack(v))
+    def bounds(v):            # on the spline: the lower section's own targets (LOW_*) are not fitted here
+        P = surface(zz, unpack(v), lower=False)
         return np.concatenate([P[:, 5:7].ravel() - SURF_N["min"], SURF_N["front_max"] - P[:, 5], SURF_N["back_max"] - P[:, 6],
                                SURF_N["round_max"] - P[zz <= SURF_Z_MID, 5], P[:, 1] - SURF_N["cy"][0], SURF_N["cy"][1] - P[:, 1]])
     def free(v):
@@ -477,7 +539,7 @@ def yellow_sweep(body):
 #     keeps both their distance rho from the roll axis and their y, so the pitch sweep gives the smallest rho per angle and y. Above the roll
 #     axis everything farther than that (minus CLEAR) is cut: a surface of revolution about the roll axis whose radius R(y)
 #     changes with y at most 1 mm per mm (front wall: the arc round the roll horn; back wall: a wider arc).
-KNEE_RANGE = (0.0, 110.0)         # knee flexion the shell leaves room for (owner 2026-11-18: 110; with the back sloped in, 80 would keep the knee edge level at z 136)
+KNEE_RANGE = tuple(BOM_CONFIG.joint_range("R_knee"))   # knee flexion the shell leaves room for: the declared joint range, no margin (owner 2026-11-23: shells close to about 1 mm at 95; was 110, owner 2026-11-18)
 PITCH_RANGE, ROLL_SWEEP = (-90.0, 45.0), (-50.0, 30.0)   # range limits -85..40 / -45..25 plus 5 deg
 KNEE_PARTS = ("R_shin_combined", "R_shin_back_hard_cover", "R_shin_front_hard_cover")
 TOP_PARTS = ("R_hip_yaw_to_pitch_combined", "R_hip_pitch_ST3025_case", "R_hip_pitch_ST3025_output")   # green parts above the thigh
@@ -603,9 +665,25 @@ TOP_PEAK_CAP = 4.5                # mm a hill may rise above the edge's mean hei
 TOP_DIP_CAP = 5.0                 # mm a valley may sink below it (the yellow-arm valleys: wide and shallow)
 TOP_SLOPE_MAX = 0.35              # mm of height per mm along the edge
 TOP_RING_Z = 190.0                # the arc length round the outer skin is taken at this height (the roll axis, mid-band)
-# owner 2026-11-18: no tongue down the front; the knee edge is one tilted plane (a straight line in the side view)
-Z_KNEE_EDGE_MIN = 135.0           # ... ending just above the knee hub (output horn top z 132.4)
+# Knee edge (owner 2026-11-23: "the shells can go as close together so that at the maximum knee they basically touch";
+# "same on the front, huge gap"; the leg one continuous calm shell, the minimal joint exposed). Was one tilted plane at
+# z 136.5 (front) .. 150.5 (back), ending above the knee hub, 17-26 mm from the shin covers. Now the edge is one smooth
+# line in the side view, a height z_e(y) the same at every x (the knee turns about x): a natural cubic spline through
+# KNEE_EDGE_KNOTS, non-decreasing toward the back, as low as a linear program allows with every shell point that comes
+# within COVER_GAP of the shin covers swept over KNEE_RANGE, or into the other lower-leg parts grown by CLEAR and swept
+# the same way, above it. In front of the knee axis it runs level just above the front cover's flat top (z 118); behind
+# it it rises along the shin back cover's radial top edge (COVER_CUT_DEG) turned to full flexion, so at 95 deg the back
+# seam is one even gap along its length; at standing the joint shows only as the V between the two radial edges at the
+# back of the knee.
 EDGE_NTH = 360
+COVER_GAP = 1.0                   # mm the shells keep from the shin covers over KNEE_RANGE (closest approach at the worst angle)
+COVER_STEP_DEG = 0.5              # knee step of the cover sweep (point clouds; chord 0.5 mm at 60 mm from the axis)
+KNEE_EDGE_KNOTS = (-20.0, -8.0, -2.0, 2.0, 6.0, 10.0, 16.0, 22.0, 28.0, 34.0, 40.0)   # y of the spline's control values
+                                  # (the shell's bottom spans y -18.8 .. 35; constant beyond the end knots)
+KNEE_EDGE_CURV = 0.12             # |d2z/dy2| <= this (1/mm): bends of at least ~8 mm radius in the side view, a calm line
+                                  # (0.25 hugged the requirement closer, median excess 0.71 vs 1.11 mm, with an S-wave about the hub)
+KNEE_EDGE_Z = (116.0, 166.0)      # height band of the shell wall the requirement is taken over
+KNEE_EDGE_DZ = 0.1                # ring spacing in z there (the requirement is the highest wall point closer than COVER_GAP)
 
 
 def shin_sweep(body):
@@ -693,17 +771,6 @@ def edge_shape(th, z, ring_z=TOP_RING_Z):
                 perimeter_mm=round(float(dsdth.sum() * h), 1), hills_valleys=ext), dsdth
 
 
-def plane_edge(req, xy, margin=1.0):
-    """Knee edge as one plane z = c + p x + q y, as low as the lower leg allows: on or above req (+ margin) at the outer
-    skin points xy of each angle (linear program, least shell given up)."""
-    from scipy.optimize import linprog
-    A = np.c_[np.ones(len(xy)), xy]
-    res = linprog(A.sum(0), A_ub=-A, b_ub=-(req + margin), bounds=[(None, None)] * 3, method="highs")
-    if not res.success:
-        raise RuntimeError(res.message)
-    return res.x, A @ res.x
-
-
 def plane_cutter(cpq, far=400.0):
     """Half-space below the plane z = c + p x + q y (a sheared box)."""
     import trimesh
@@ -763,6 +830,7 @@ def skin_point_normal(th, z):
     return P, nrm
 
 
+SPLIT_LAND_MM = 1.2              # level land on the back half's knee-edge corner at the split (blunts a knife edge)
 EDGE_OUT, EDGE_IN = 1.5, WALL + 1.0   # the edge faces run along the skin normal this far outside / inside the outer skin
 
 
@@ -795,57 +863,144 @@ def normal_edge_cutter(th, z_edge, top, far=400.0):
     return kit.mf(t), P[:, 2]
 
 
-def plane_on_skin(th, cpq, z0):
-    """Height per angle where the plane z = c + p x + q y meets the outer skin (fixed point from z0)."""
-    c, p, q = cpq
-    z = np.asarray(z0, float).copy()
-    for _ in range(30):
-        P, _ = skin_point_normal(th, z)
-        z = c + p * P[:, 0] + q * P[:, 1]
-    return z
+def knee_axis(body):
+    """(y, z) of the knee axis (along x) in the shin / thigh neutral frame."""
+    j = body.joints["R_knee"]
+    assert abs(abs(j["axis_world_neutral"][0]) - 1.0) < 1e-6, "knee axis not along x"
+    return float(j["origin_world_mm"][1]), float(j["origin_world_mm"][2])
 
 
-def edge_cut(body, tube, knee_ring):
-    """Top and bottom cutters for the tube, and a report of what set them. knee_ring = (angles, outer radius) of the skin
-    near the knee edge."""
+def back_cover_source(body):
+    """The shin back cover as it was before shin-cover trimmed it (its trim source), shin frame."""
+    import trimesh
+    p = body.parts[SHIN_COVER]
+    src = p.get("trim_source_mesh") or p["mesh"]
+    if src.endswith(".npz"):
+        d = np.load(R.ROOT / src)
+        return trimesh.Trimesh(d["vertices"], d["faces"], process=True)
+    return trimesh.load(R.ROOT / src)
+
+
+def cover_radial_plane(body):
+    """(c, q) of the shin back cover's top-back edge plane z = c + q y through the knee axis at COVER_CUT_DEG."""
+    ya, za = knee_axis(body)
+    q = float(np.tan(np.radians(COVER_CUT_DEG)))
+    return za - q * ya, q
+
+
+def swept_cover_tree(body, covers, box):
+    """KD-tree over surface points of the shin covers (shin frame meshes) turned over KNEE_RANGE in COVER_STEP_DEG steps
+    into the thigh frame, keeping the points inside box ((lo, hi), thigh frame)."""
+    import trimesh
+    from scipy.spatial import cKDTree
+    pts = []
+    for m in covers:
+        P = np.vstack([m.vertices, trimesh.sample.sample_surface_even(m, 120000, seed=4)[0]])
+        for k in np.arange(KNEE_RANGE[0], KNEE_RANGE[1] + 1e-6, COVER_STEP_DEG):
+            T = _rel(body, "R_shin", dict(R_knee=float(k)))
+            Q = P @ T[:3, :3].T + T[:3, 3]
+            pts.append(Q[np.all((Q >= box[0]) & (Q <= box[1]), axis=1)])
+    return cKDTree(np.vstack(pts))
+
+
+def knee_edge(body, tube, stations_, covers):
+    """Knee edge height z_e(y) (natural cubic spline through KNEE_EDGE_KNOTS) and what set it. Every point of the shell wall
+    (outer skin, mid wall, inner skin of the dense rings) within COVER_GAP of the swept shin covers, and every point of the
+    tube inside the other lower-leg parts grown by CLEAR and swept over KNEE_RANGE (shin_sweep), must lie below the edge:
+    z_e(y) >= its z. z_e is non-decreasing in y, bends no tighter than KNEE_EDGE_CURV; least shell given up (linear program)."""
+    import trimesh
+    from scipy.optimize import linprog
+    th, zz, ro, ri = stations_
+    zf = np.arange(KNEE_EDGE_Z[0], KNEE_EDGE_Z[1] + 1e-6, KNEE_EDGE_DZ)          # rings resampled finer in z
+    rof = np.stack([np.interp(zf, zz, ro[:, j]) for j in range(len(th))], -1)
+    rif = np.stack([np.interp(zf, zz, ri[:, j]) for j in range(len(th))], -1)
+    c_, s_ = np.cos(th)[None, :], np.sin(th)[None, :]
+    W = np.vstack([np.stack([CENTRE[0] + r * c_, CENTRE[1] + r * s_, np.broadcast_to(zf[:, None], r.shape)], -1).reshape(-1, 3)
+                   for r in (rof, 0.5 * (rof + rif), rif)])
+    box = (W.min(0) - COVER_GAP - 1.0, W.max(0) + COVER_GAP + 1.0)
+    tree = swept_cover_tree(body, covers, box)
+    d, _ = tree.query(W, distance_upper_bound=COVER_GAP + 0.5)
+    near_cover = W[d < COVER_GAP]
+    knee, names = shin_sweep(body)
+    hw = kit.tm(tube ^ knee)
+    in_hw = np.vstack([hw.vertices, trimesh.sample.sample_surface(hw, 200000, seed=2)[0]]) if len(hw.faces) else np.zeros((0, 3))
+    P = np.vstack([near_cover, in_hw])
+    # per 0.2 mm of y the highest point; on the bin's low edge (z_e is non-decreasing, so that is on the safe side)
+    yb = np.floor(P[:, 1] / 0.2).astype(int)
+    order = np.lexsort((P[:, 2], yb)); last = np.r_[yb[order][1:] != yb[order][:-1], True]
+    yc, zc = yb[order][last] * 0.2, P[order][last][:, 2] + KNEE_EDGE_DZ    # the next ring up is the first one clear
+    knots = np.asarray(KNEE_EDGE_KNOTS, float)
+    def basis(y, nu=0):
+        from scipy.interpolate import CubicSpline
+        yy = np.clip(y, knots[0], knots[-1])
+        return np.stack([CubicSpline(knots, np.eye(len(knots))[i], bc_type="natural")(yy, nu) for i in range(len(knots))], -1)
+    yg = np.arange(knots[0], knots[-1] + 1e-6, 0.25)
+    A_c, A_d, A_k = basis(yc), basis(yg, 1), basis(yg, 2)
+    res = linprog(basis(yg).sum(0), A_ub=np.vstack([-A_c, -A_d, A_k, -A_k]),
+                  b_ub=np.r_[-zc, np.zeros(len(yg)), np.full(2 * len(yg), KNEE_EDGE_CURV)],
+                  bounds=[(None, None)] * len(knots), method="highs")
+    if not res.success:
+        raise RuntimeError(res.message)
+    v = res.x
+    def z_e(y):
+        return basis(np.asarray(y, float)) @ v
+    zg = z_e(yg); slope = basis(yg, 1) @ v
+    excess = z_e(yc) - zc
+    src = np.r_[np.zeros(len(near_cover), bool), np.ones(len(in_hw), bool)][order][last]
+    info = dict(knots_y=list(map(float, knots)), knot_z=[round(float(x), 2) for x in v], cover_gap_mm=COVER_GAP,
+                knee_range_deg=list(KNEE_RANGE), cover_step_deg=COVER_STEP_DEG, lower_leg_parts=len(names),
+                z_at_y={f"{y:+.0f}": round(float(z_e(y)), 1) for y in (-20, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40)},
+                slope_mm_per_mm=dict(max=round(float(slope.max()), 3)),
+                curvature_abs_per_mm_max=round(float(np.abs(basis(yg, 2) @ v).max()), 4), curvature_limit_per_mm=KNEE_EDGE_CURV,
+                requirement=dict(y_bins=len(yc), from_covers=int((~src).sum()), from_other_lower_leg_parts=int(src.sum()),
+                                 excess_mm=dict(median=round(float(np.median(excess)), 2), p90=round(float(np.percentile(excess, 90)), 2)),
+                                 y_range=[round(float(yc.min()), 1), round(float(yc.max()), 1)]))
+    return z_e, info
+
+
+def edge_on_skin(th, z_e, lo=105.0, hi=175.0):
+    """Height per angle where the outer skin meets the knee edge z = z_e(y) (bisection on z - z_e(y_skin(theta, z)))."""
+    a, b = np.full(len(th), lo), np.full(len(th), hi)
+    for _ in range(40):
+        m = (a + b) / 2
+        P, _ = skin_point_normal(th, m)
+        f = m - z_e(P[:, 1])
+        a, b = np.where(f < 0, m, a), np.where(f < 0, b, m)
+    return (a + b) / 2
+
+
+def edge_cut(body, tube, stations_, covers):
+    """Top and bottom cutters for the tube, and a report of what set them. stations_ = (angles, heights, outer and inner
+    radius grids) of the skin; covers = the shin covers the knee edge keeps COVER_GAP from (shin frame meshes)."""
     # the green rim region is a surface of revolution about the roll axis built for the top; below TOP_FREE_Z0 (the yellow
     # arm hubs' bottom) it says nothing about the shell, so it is clipped there (the full check tests the real green parts)
     import trimesh
     clip = kit.mf(trimesh.creation.box(bounds=[[-100, -150, B.RF_AZ - B.RF_ROLL_HUB_R], [250, 150, 400]]))
     top_free = (green_rim(body)[0] ^ clip) + yellow_sweep(body)
-    knee, names = shin_sweep(body)
     req_t = _theta_extreme(tube ^ top_free, top=True)
-    req_b = _theta_extreme(tube ^ knee, top=False)
     req_t = np.where(np.isnan(req_t), TOP_Z, np.minimum(req_t, TOP_Z))
-    req_b = np.where(np.isnan(req_b), Z_KNEE_EDGE_MIN, np.maximum(req_b, Z_KNEE_EDGE_MIN))
     th0 = (np.arange(EDGE_NTH) + 0.5) / EDGE_NTH * 2 * np.pi - np.pi
     _, dsdth = edge_shape(th0, np.zeros(EDGE_NTH))
     th, zt, _ = fourier_edge(req_t, top=True, dsdth=dsdth, peak=TOP_PEAK_CAP, dip=TOP_DIP_CAP, slope=TOP_SLOPE_MAX)
-    tr, rr = knee_ring
-    r_at = np.interp(th % (2 * np.pi), np.r_[tr, tr[0] + 2 * np.pi], np.r_[rr, rr[0]])
-    xy = CENTRE + r_at[:, None] * np.c_[np.cos(th), np.sin(th)]
-    cpq, zb = plane_edge(req_b, xy)
+    z_e, kinfo = knee_edge(body, tube, stations_, covers)
+    zb = edge_on_skin(th, z_e)
     deg = np.degrees(th)
     def at(z):
         return {f"{d:+d}": round(float(np.interp(d, deg, z)), 1) for d in (-180, -135, -90, -45, 0, 45, 90, 135)}
     info = dict(harmonics=EDGE_K, top_edge_limits=dict(peak_above_mean_mm=TOP_PEAK_CAP, dip_below_mean_mm=TOP_DIP_CAP,
-                slope_mm_per_mm=TOP_SLOPE_MAX, arc_at_z=TOP_RING_Z), top_edge_shape=edge_shape(th, zt)[0], knee_edge_plane_c_p_q=[round(float(v), 4) for v in cpq], knee_edge_min_z=Z_KNEE_EDGE_MIN, knee_range_deg=list(KNEE_RANGE), lower_leg_parts=len(names),
-                top_edge_z=at(zt), top_required_z=at(req_t), bottom_edge_z=at(zb), bottom_required_z=at(req_b),
+                slope_mm_per_mm=TOP_SLOPE_MAX, arc_at_z=TOP_RING_Z), top_edge_shape=edge_shape(th, zt)[0],
+                knee_edge=kinfo, top_edge_z=at(zt), top_required_z=at(req_t), bottom_edge_z=at(zb),
                 top_edge_range_z=[round(float(zt.min()), 1), round(float(zt.max()), 1)],
                 bottom_edge_range_z=[round(float(zb.min()), 1), round(float(zb.max()), 1)],
                 top_shell_given_up_mm=round(float(np.mean(req_t - zt)), 2),
-                bottom_shell_given_up_mm=round(float(np.mean(zb - req_b)), 2),
                 angles="deg about the shell axis: 0 outboard (+x), -90 front (-y), +90 back (+y), 180 inboard")
-    # the knee edge stays the line where the plane meets the outer skin; the faces across the wall follow the skin normal
-    zb = plane_on_skin(th, cpq, zb)
-    info.update(bottom_edge_z=at(zb), bottom_edge_range_z=[round(float(zb.min()), 1), round(float(zb.max()), 1)],
-                bottom_shell_given_up_mm=round(float(np.mean(zb - req_b)), 2))
+    # the edges stay the lines on the outer skin; the faces across the wall follow the skin normal
     cut_t, zt_out = normal_edge_cutter(th, zt, True)
     cut_b, zb_out = normal_edge_cutter(th, zb, False)
     info["edge_faces"] = dict(along="outer skin normal", out_mm=EDGE_OUT, in_mm=EDGE_IN,
                               top_outer_edge_lowered_mm=round(float(np.max(zt - zt_out)), 3),
                               knee_outer_edge_raised_mm=round(float(np.max(zb_out - zb)), 3))
-    return cut_t + cut_b, info, dict(th=th, zt=zt, zb=zb, req_t=req_t, req_b=req_b)
+    return cut_t + cut_b, info, dict(th=th, zt=zt, zb=zb, req_t=req_t), z_e
 
 
 def relief_sweep(body):
@@ -871,7 +1026,10 @@ def build():
     th, zs, ro, ri, rings = stations(body)
     tube = kit.mf(skin(th, zs, ro, ri))
     # edges: smooth Fourier heights around the shell, on the safe side of the green / yellow (top) and lower-leg (knee) sweeps
-    cut, edge_info, edge_curves = edge_cut(body, tube, (th, ro[int(np.argmin(abs(zs - 142.0)))]))
+    c, q = cover_radial_plane(body)              # the shin back cover as shin-cover cuts it (its plane does not depend on this shell)
+    back = kit.tm(kit.mf(back_cover_source(body)) ^ plane_cutter((c, 0.0, q)))
+    covers = [body.mesh("R_shin_front_hard_cover"), back]
+    cut, edge_info, edge_curves, z_e = edge_cut(body, tube, (th, zs, ro, ri), covers)
     print("edges", json.dumps(edge_info), flush=True)
     shell = tube - cut
     np.savez(OUT / "thigh_shell_edges.npz", **edge_curves)
@@ -909,6 +1067,12 @@ def build():
     # halves, today's split (front y < 7.7, back y > 8.3) and today's knee cuts
     front = shell ^ kit.mf(trimesh.creation.box(bounds=[[-50, -100, Z0], [150, 7.7, 300]]))
     back = shell ^ kit.mf(trimesh.creation.box(bounds=[[-50, 8.3, Z0], [150, 100, 300]]))
+    # the knee edge rises steeply where the side walls meet the split (slope ~1.3 at y 8.3): the back half's corner there
+    # was a 37 deg knife (0.01 mm wall over 6 mm2); a level land SPLIT_LAND_MM above the edge's height at the split blunts it
+    yl = np.linspace(8.3, 20.0, 1171); z0 = float(z_e(np.array([8.3]))[0])
+    y1 = float(yl[np.argmax(z_e(yl) >= z0 + SPLIT_LAND_MM)])
+    back = back - kit.mf(trimesh.creation.box(bounds=[[-50, 8.3 - 1.0, Z0 - 10.0], [150, y1, z0 + SPLIT_LAND_MM]]))
+    edge_info["knee_edge"]["back_split_land"] = dict(z=round(z0 + SPLIT_LAND_MM, 2), y=[8.3, round(y1, 2)])
     out = {}
     for name, part in zip(NAMES, (front, back)):
         mm = kit.tm(part)
@@ -1193,14 +1357,19 @@ def _loft_solid(rings):
 
 
 # ------------------------------------------------------------------------------------------------ shin back cover
-# Owner 2026-11-18 (knee to 110 deg with the back of the thigh covered): the lower leg's back hard cover gives way instead.
-# Everything fixed to the thigh that reaches behind the knee (this shell, the knee motor, the Stage 4 bracket and its knee
-# screws), swept over KNEE_RANGE into the shin frame, is cleared from the cover by one plane along the knee axis
-# z = c + q y (shin frame): its top-back edge becomes a straight line rising toward the hinge. q is chosen for the least
-# cover removed; CLEAR along the plane normal.
+# Owner 2026-11-18 (knee to 110 deg with the back of the thigh covered): the lower leg's back hard cover gives way instead;
+# its top-back edge became one plane along the knee axis, z = c + q y (shin frame), set by everything fixed to the thigh
+# that reaches behind the knee (this shell included) swept over 0..110 (c 147.0, q -2.9: z 61.8 at the cover's back).
+# Owner 2026-11-23 (knee range 0..95, shells nearly touching at 95, the leg one continuous shell): the plane now runs
+# through the knee axis at COVER_CUT_DEG, just under the cover's two old M3 holes (counterbores down to z 98.8 at its back
+# face; at -49 deg 0.2-0.6 mm slivers of them stayed): z 94.8 at the back face, the side ears' tips (117.8) shaved 1.0. Its top-back edge is radial, so the thigh shell's
+# knee edge, fitted to it turned to 95 deg, closes on it as one even seam. The thigh hardware (knee motor, Stage 4
+# bracket, its knee screws; THIGH_SIDE) swept over KNEE_RANGE stays clear of the source cover by more than CLEAR (none of
+# it reaches the cover over 0..95); were it closer, the plane would be lowered to keep CLEAR along its normal. The shell is
+# no longer part of the cut: it is fitted to the cover (knee_edge), not the cover to it.
+COVER_CUT_DEG = -51.0
 SHIN_COVER = "R_shin_back_hard_cover"
-THIGH_SIDE = ("R_thigh_shell_front", "R_thigh_shell_back", "R_knee_ST3025_case", "R_thigh_roll_flip",
-              "R_knee_ST3025_PA2x8_0", "R_knee_ST3025_PA2x8_1", "R_knee_ST3025_PA2x8_lat0", "R_knee_ST3025_PA2x8_lat1")
+THIGH_SIDE = ("R_knee_ST3025_case", "R_thigh_roll_flip", "R_knee_ST3025_PA2x8_0", "R_knee_ST3025_PA2x8_1", "R_knee_ST3025_PA2x8_lat0", "R_knee_ST3025_PA2x8_lat1")
 
 # Owner 2026-11-18 ("move the mounting points elsewhere"): the cut takes the cover's two M3 screws (z 102, into nuts in the
 # frame's back plate). New mounts: the cover's side wings sit ~6 mm outboard of the shin frame's side walls, which are
@@ -1216,6 +1385,18 @@ PA2_ENG = 4.25                    # engagement in the frame wall the head seat i
 BOSS_BACK = 6.0                   # the side-mount boss runs this far toward +y past the screws (into the curving wing)
 BOSS_END_Y = 18.0                 # above this y the boss end is bevelled back to the wing (the frame wall face ends at y 17.5)
 BOSS_END_BEVEL_DEG = 67.5         # bevel turn (the bevel face runs 90 - this from the end face's +y direction)
+# Flat land for the sleeve press (owner 2026-11-23): the press check's spacer block bears on the exit plane over a dia 10
+# annulus (press_lib ANVIL_D) about each sleeve exit, but the dia 6.5 boss end gave it 68.9 % (recess 20.8 % beyond the boss
+# outline, open 10.3 % past the wings' front edge). The boss end grows to LAND_D about each exit, as part of the boss hull
+# (no step, no crevice to the wing), its end in the plane of the sleeve exit on the frame wall; it runs down to the print bed
+# (the wings' front edges, up +y), where its edge on the frame wall is chamfered LAND_BED_CHAMFER (elephant foot); it stays
+# LAND_RUN_CLEAR outside the ankle coupler's top arc (radius about the ankle pitch axis) where the coupler's x span comes
+# within LAND_RUN_CLEAR of the land's (medial: the coupler stands 0.32 mm proud of the frame wall face; lateral it is 0.65 mm
+# short of it: untrimmed, the lateral land ran 0.73 mm from the coupler, against 1.68 mm before the land).
+LAND_D = 10.4
+LAND_BED_CHAMFER = 0.3
+LAND_RUN_CLEAR = 1.0
+COUPLER, ANKLE_PITCH = "R_ankle_coupler_combined", "R_ankle_pitch"
 CB_CHAMFER_SINK = 0.9             # the counterbore's entry chamfer starts this far under the deepest rim point (+y side)
 CB_CHAMFER_LEN = 4.0              # length along the axis of the oblique chamfer cone (outward, past the skin)
 SLV_D, SLV_BORE_D = 3.6, 2.2      # 304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)
@@ -1280,9 +1461,18 @@ def cover_mounts(cov, c, q, body):
     sleeve solids. Per side the two bosses are one stadium (two discs 6.5 apart in z touched tangentially: a non-manifold
     seam and a 0.004 mm slit); its end face seats on the frame's flat side wall (no clamp gap)."""
     import manifold3d as M
+    import trimesh
     fr = body.mesh(FRAME)
     sites, sleeves = [], []
     m = kit.mf(cov)
+    y_bed = float(cov.bounds[0][1]) + BED_LAND           # print_trims' bed land (up +y): the land runs to just under it
+    cp, aj = body.mesh(COUPLER), body.joints[ANKLE_PITCH]
+    a_o = np.asarray(aj["origin_world_mm"], float)
+    assert abs(abs(aj["axis_world_neutral"][0]) - 1.0) < 1e-6, "ankle pitch axis not along x"
+    V = cp.vertices
+    rad = np.hypot(V[:, 1] - a_o[1], V[:, 2] - a_o[2])
+    ang = np.degrees(np.arctan2(V[:, 1] - a_o[1], V[:, 2] - a_o[2]))   # from +z toward +y
+    lo, hi = aj["range_deg"]
     for side, x0 in (("medial", 0.0), ("lateral", 120.0)):
         d = 1.0 if x0 < 50 else -1.0                          # screw direction, from the cover skin into the frame
         ss = []
@@ -1299,7 +1489,26 @@ def cover_mounts(cov, c, q, body):
         # convex hull of the two boss cylinders (a box between them met their sides tangentially: non-manifold edges), run
         # BOSS_BACK toward +y into the wing where it curves round to the back (its flat side met the wing's inner skin at 45
         # deg: a V-crevice that read as a 0.02-0.4 mm gap)
-        boss = M.Manifold.batch_hull([_cyl_x(xs0 - d * 3.0, end, s_["y"] + dy, s_["z"], BOSS_D) for s_ in ss for dy in (0.0, BOSS_BACK)])
+        old = [_cyl_x(xs0 - d * 3.0, end, s_["y"] + dy, s_["z"], BOSS_D) for s_ in ss for dy in (0.0, BOSS_BACK)]
+        boss = M.Manifold.batch_hull(old + [_cyl_x(xs0 - d * 3.0, end, s_["y"], s_["z"], LAND_D) for s_ in ss])
+        xa, xb = sorted((xs0 - d * 3.0, end))
+        boss = boss ^ kit.mf(trimesh.creation.box(bounds=[[xa - 1.0, y_bed - 0.5 * BED_LAND, 0.0], [xb + 1.0, 60.0, 200.0]]))
+        # land edge on the frame wall at the bed: 45 deg chamfer
+        zl = [min(s_["z"] for s_ in ss) - LAND_D, max(s_["z"] for s_ in ss) + LAND_D]
+        c_ = LAND_BED_CHAMFER + 0.5 * BED_LAND
+        boss = boss - kit.mf(trimesh.convex.convex_hull(np.array(
+            [[end + d * 1.0, y_bed - 1.0, zz] for zz in zl] + [[end - d * (c_ + 1.0), y_bed - 1.0, zz] for zz in zl]
+            + [[end + d * 1.0, y_bed + c_ + 1.0, zz] for zz in zl])))
+        # the ankle coupler's top arc (its vertices that turn into the land's angular sector over the ankle range), where its x
+        # span reaches into the land: the land stays LAND_RUN_CLEAR outside it (the dia 6.5 boss as before)
+        cx0, cx1 = float(cp.bounds[0][0]), float(cp.bounds[1][0])
+        coupler_keep = None
+        if cx0 < xb + LAND_RUN_CLEAR and cx1 > xa - LAND_RUN_CLEAR:
+            sa = [float(np.degrees(np.arctan2(s_["y"] - a_o[1], s_["z"] - a_o[2]))) for s_ in ss]
+            sel = (ang > min(sa) - 30.0 - hi) & (ang < max(sa) + 30.0 - lo) & (V[:, 0] > xa - 1.0) & (V[:, 0] < xb + 1.0)
+            coupler_keep = float(rad[sel].max()) + LAND_RUN_CLEAR
+            keep = M.Manifold.cylinder(xb - xa + 2.0, coupler_keep, coupler_keep, 192).rotate([0.0, 90.0, 0.0]).translate([xa - 1.0, a_o[1], a_o[2]])
+            boss = (boss - keep) + M.Manifold.batch_hull(old)
         for s_ in ss:
             boss = boss - s_["hf"]
         # the end face met the wing's inner skin (curving back at ~45 deg) in a 45 deg V that read as a 0.02 mm gap and a
@@ -1342,7 +1551,8 @@ def cover_mounts(cov, c, q, body):
                 h = np.array(_hits_x(fr, y + (PILOT_D / 2 + 1.0) * np.cos(a), z + (PILOT_D / 2 + 1.0) * np.sin(a), x0))
                 k = [(d * (h[i] - ff), d * (h[i + 1] - ff)) for i in range(0, len(h) - 1, 2)]
                 ring_wall.append(sum(max(0.0, min(b2, PILOT_DEPTH + 0.5) - max(a2, -0.1)) for a2, b2 in k))
-            sites.append(dict(y=y, z=z, side=side, dir=d, cover_outer_x=round(float(xo), 2),
+            sites.append(dict(y=y, z=z, side=side, dir=d, cover_outer_x=round(float(xo), 2), land_dia_mm=LAND_D,
+                              land_bed_y=round(y_bed, 3), land_coupler_keep_radius_mm=None if coupler_keep is None else round(coupler_keep, 3),
                               skin_slant_across_boss_mm=round(float(np.ptp([_hits_x(cov, y + BOSS_D / 2 * np.cos(a), z + BOSS_D / 2 * np.sin(a), x0)[0]
                                                                         for a in np.linspace(0, 2 * np.pi, 16)])), 2),
                               wall_thickness_along_x_min_mm=round(float(min(wall)), 2),
@@ -1595,22 +1805,27 @@ def shin_cover():
     d = np.load(R.ROOT / src) if src.endswith(".npz") else None
     cov_tm = trimesh.Trimesh(d["vertices"], d["faces"], process=True) if d is not None else trimesh.load(R.ROOT / src)
     cov = kit.mf(cov_tm)
-    side = M.Manifold.batch_boolean([kit.mf(body.mesh(n) if "shell" in n else R.closed(body, n)) for n in THIGH_SIDE
-                                     if n in body.parts], M.OpType.Add)
-    sweep = M.Manifold.batch_boolean([side.transform(np.linalg.inv(_rel(body, "R_shin", dict(R_knee=float(k))))[:3, :4])
-                                      for k in np.arange(KNEE_RANGE[0], KNEE_RANGE[1] + 0.1, 2.5)], M.OpType.Add)
+    side = M.Manifold.batch_boolean([kit.mf(R.closed(body, n)) for n in THIGH_SIDE if n in body.parts], M.OpType.Add)
+    poses = [np.linalg.inv(_rel(body, "R_shin", dict(R_knee=float(k)))) for k in np.arange(KNEE_RANGE[0], KNEE_RANGE[1] + 0.1, 2.5)]
+    sweep = M.Manifold.batch_boolean([side.transform(T[:3, :4]) for T in poses], M.OpType.Add)
     hit = cov ^ sweep
     before = hit.volume()
-    P = kit.tm(hit).vertices
-    print(f"thigh side swept into the shin frame ({time.time() - t0:.0f}s): {before:.0f} mm3 of the cover in the way", flush=True)
-    best = None
-    for q in np.arange(-3.0, 0.01, 0.1):
-        c = float(np.min(P[:, 2] - q * P[:, 1] - CLEAR * np.sqrt(1 + q * q)))
-        above = plane_cutter((c, 0.0, q))                       # half-space BELOW z = c + q y ...
-        kept = cov ^ above                                       # ... is what the cover keeps
-        if best is None or kept.volume() > best[2]:
-            best = (q, c, kept.volume(), kept)
-    q, c, vol, kept = best
+    # cover points in the hardware sweep or within CLEAR of it (surface samples of the swept hardware)
+    from scipy.spatial import cKDTree
+    hw = kit.tm(side)
+    S = np.vstack([hw.vertices, trimesh.sample.sample_surface_even(hw, 100000, seed=5)[0]])
+    fine = [np.linalg.inv(_rel(body, "R_shin", dict(R_knee=float(k)))) for k in np.arange(KNEE_RANGE[0], KNEE_RANGE[1] + 0.1, 1.0)]
+    tree = cKDTree(np.vstack([S @ T[:3, :3].T + T[:3, 3] for T in fine]))
+    Cp = np.vstack([cov_tm.vertices, trimesh.sample.sample_surface_even(cov_tm, 150000, seed=6)[0]])
+    dmin = tree.query(Cp, distance_upper_bound=10.0)[0]
+    P = np.vstack([kit.tm(hit).vertices.reshape(-1, 3), Cp[dmin < CLEAR]])
+    print(f"thigh hardware swept into the shin frame ({time.time() - t0:.0f}s): {before:.0f} mm3 of the cover in the way, "
+          f"closest {dmin.min():.2f} mm", flush=True)
+    c, q = cover_radial_plane(body)
+    c_radial = c
+    if len(P):
+        c = min(c, float(np.min(P[:, 2] - q * P[:, 1] - CLEAR * np.sqrt(1 + q * q))))
+    kept = cov ^ plane_cutter((c, 0.0, q))
     # lower edge: the source cover's lower lip is scalloped (teeth and bulbs z 46.5-50.5, necks of 0.2-0.5 mm that read as walls
     # under one line after cleaning); one straight edge at COVER_Z_LOW instead
     kept = kept ^ kit.mf(trimesh.creation.box(bounds=[[-50.0, -50.0, COVER_Z_LOW], [200.0, 100.0, 300.0]]))
@@ -1658,8 +1873,10 @@ def shin_cover():
                     and not p["name"][2:].startswith("shin_back_cover_PA2")
                     and p["name"][2:] != "shin_back_hard_cover_steel_sleeves"] + screw_rows
     R.VARIANT.write_text(json.dumps(man, indent=1) + "\n")
-    rep = dict(plane_shin_frame=dict(c=round(c, 2), q=round(q, 2), note="cover kept below z = c + q y (shin frame, mm)"),
+    rep = dict(plane_shin_frame=dict(c=round(c, 2), q=round(q, 2), radial_c=round(c_radial, 2), cut_deg=COVER_CUT_DEG,
+                                     note="cover kept below z = c + q y (shin frame, mm); radial_c: through the knee axis"),
                knee_range_deg=list(KNEE_RANGE), in_the_way_before_mm3=round(before, 1),
+               thigh_hardware_closest_mm=round(float(dmin.min()), 2),
                volume_before_mm3=round(cov.volume(), 1), volume_after_mm3=round(float(mm.volume), 1),
                voxel_clean=dict(pitch_mm=VOX_H, radius_mm=VOX_R, faces=VOX_FACES, volume_change_mm3=round(vol_clean - vol_trim, 2)),
                deburr=dict(edges_trimmed=n_deburr, width_mm=DEBURR_W, volume_removed_mm3=round(vol_mounted - vol_deburred, 2)),

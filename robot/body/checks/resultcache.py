@@ -36,7 +36,9 @@ ROOT = cachefs.ROOT
 STORE = cachefs.work() / "cad-speed/results"
 DEPSITE = Path(__file__).resolve().parent / "depsite"
 VERSION = 1
-SKIP = (".cache/", ".venv/", ".git/", ".bookkeeping/", ".tools/")
+# the checks' own caches and reports (content-addressed: never an input); scratch files elsewhere under .cache/work (an
+# iteration's manifest or STEP) are inputs like any other (T-vftxyn: a scratch STEP rebuilt in place returned the old result)
+SKIP = (".cache/work/cad-speed/", ".cache/work/mount-check/", ".cache/work/bom/", ".venv/", ".git/", ".bookkeeping/", ".tools/")
 # blob-store indexes: they only say where a missing file is restored from, and the file then read is recorded itself;
 # as inputs they would drop every stored result whenever any session uploads anything
 INDEXES = {"data/private-archive.json", "data/regenerable-artifacts.json", "infra/storage/path-moves.json"}
@@ -44,7 +46,10 @@ ROOT_S = str(ROOT) + os.sep
 
 
 def enabled():
-    return os.environ.get("CHECKS_RESULT_CACHE", "1") != "0"
+    """Off with CHECKS_RESULT_CACHE=0, and whenever the definitions or part settings come from an override folder / file
+    (LAB_DEFINITIONS_ROOT, LAB_PART_SETTINGS): those usually sit in .cache, whose reads are not recorded."""
+    return os.environ.get("CHECKS_RESULT_CACHE", "1") != "0" and not os.environ.get("LAB_DEFINITIONS_ROOT") \
+        and not os.environ.get("LAB_PART_SETTINGS") and not os.environ.get("LAB_CHECKS_DATA")
 
 
 def rel_or_none(p):

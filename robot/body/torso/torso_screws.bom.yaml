@@ -643,3 +643,11 @@ defects:
   why: 'recorded volume_mm3 643.45 is stale: the STEP (torso-screws/parts) holds 31 solids, 603.6 mm3, the mesh 598.6 mm3; no native_solid_count,
     so the checks report -7 % (found by the whole-body check triage (T-zfejzf), 2026-11-22)'
   fix: torso_screws.py writes volume_mm3 (and native_solid_count) from the STEP it writes
+compose:                           # edits of the manifest composed by roll_flip_checks.py manifest (robot/body/bom/compose.py)
+- id: torso-screws
+  into: roll-flip
+  call: robot/body/torso/torso_screws.py:swap_parts
+  takes: parts
+  after: [ankle-coupler-screws]
+  needs: [torso-screws]
+  notes: stage 1 / 3 / 4 carriers + sleeves rebuilt, stale torso_mate hardware dropped, stage 4 board screws generated (T-nh6ytf, T-htfaaz)

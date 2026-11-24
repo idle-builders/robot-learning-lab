@@ -8,13 +8,23 @@ PAHT-CF and PETG-CF), the bridge limit print.max_bridge_mm (40 / 30 mm). A downw
 layer (all of it below one layer height), or a flat one touching it, is printed on the bed, not overhang; so a fillet or chamfer
 at the bed edge is not a ceiling, and the bed supports an edge that lies within the first layer. A flat ceiling (angle > 80 deg) region's bridge span is twice the largest distance from a point of it to
 its nearest supported edge (see _span): the width of a true bridge, twice the depth of a one-sided ledge, and large for a
-plate that floats on a few posts. Measurements and counts only."""
+plate that floats on a few posts.
+
+Mating faces: a beyond-limit face counts as on a mating face where another part's surface lies within MATE_MM of it AND
+faces it (the neighbour's surface normal within MATE_FACING_DEG of opposite to the face's own): two faces seated on each
+other. The sleeve sets pressed into the part (relations: joined_to {how: pressed}, else the sleeves touching it) are not
+mating parts here: their bore floor / counterbore ring is the sleeve's seat, inside the part and pressed after printing
+(the press check measures it); that area is reported apart (beyond_limit_at_pressed_hardware_mm2, by part). A neighbour
+surface that is near but does not face the face (an edge or a cylinder passing by) is reported apart too
+(beyond_limit_near_unfacing_neighbour_mm2). The part itself on its full closed mesh where its screening solid is decimated (checks/print_solid.py);
+neighbours on their screening solids. Measurements and counts only."""
 from __future__ import annotations
 
 import time
 
 import numpy as np
 
+from checks import print_solid as PS
 from checks import process as P
 from checks.core import tick
 from checks.registry import register
@@ -22,6 +32,8 @@ from checks.registry import register
 BANDS = (0, 30, 45, 60, 70, 80, 90)      # deg from vertical
 FLAT_DEG = 80.0                           # ceiling faces for the bridge span
 MATE_MM = 0.3                             # beyond-limit surface closer than this to a neighbour at standing = mating face
+MATE_FACING_DEG = 45.0                    # ... when the neighbour's surface there faces it (normals within 45 deg of opposite)
+MATE_K = 8                                # nearest neighbour surface points looked at per face
 
 
 def _targets(ctx):
@@ -64,7 +76,8 @@ def _span(m, faces, res=0.2, layer=0.2):
     blen = np.linalg.norm(m.vertices[aedge[border]][:, 0, :2] - m.vertices[aedge[border]][:, 1, :2], axis=1)
     sup_frac = float(blen[sup].sum() / max(blen.sum(), 1e-9))
     x0, y0, x1, y1 = poly.bounds
-    xs = np.arange(x0 - res, x1 + 2 * res, res); ys = np.arange(y0 - res, y1 + 2 * res, res)
+    # raster on whole multiples of res from the print-frame origin: a part and its x-mirror get the mirrored raster
+    xs = np.arange(np.floor(x0 / res) - 1, np.ceil(x1 / res) + 2) * res; ys = np.arange(np.floor(y0 / res) - 1, np.ceil(y1 / res) + 2) * res
     X, Y = np.meshgrid(xs, ys)
     inside = contains_xy(poly, X, Y)
     if not inside.any():
@@ -90,29 +103,34 @@ _TREES = {}
 
 
 def _surface_tree(ctx, k, spacing=0.25, cap=600_000):
-    """KD-tree of points sampled evenly on part k's solid surface (its manifest frame), about `spacing` mm apart (memory-bounded;
-    distances read up to ~spacing/2 high)."""
+    """(KD-tree, unit normals) of points sampled evenly on part k's solid surface (its manifest frame), about `spacing` mm apart
+    (memory-bounded; distances read up to ~spacing/2 high), and its vertices (vertex normals)."""
     if k not in _TREES:
         import trimesh
         from scipy.spatial import cKDTree
         mk = ctx.solid(k)[0]
         cnt = int(min(cap, max(2000, mk.area / spacing ** 2)))
-        pts, _ = trimesh.sample.sample_surface(mk, cnt, seed=1)
-        _TREES[k] = cKDTree(np.vstack([pts, mk.vertices]))
+        pts, fi = trimesh.sample.sample_surface(mk, cnt, seed=1)
+        _TREES[k] = (cKDTree(np.vstack([pts, mk.vertices])), np.vstack([mk.face_normals[fi], mk.vertex_normals]))
     return _TREES[k]
 
 
-def _neighbour_distance(ctx, n, pts_part):
-    """Distance (mm) of points (part's manifest frame) to the nearest standing neighbour surface, and that neighbour's name."""
+def _neighbour_distance(ctx, n, pts_part, nrm_part, pressed=()):
+    """Per point (part's manifest frame, with the part's outward normal there): distance (mm) to the nearest standing neighbour
+    surface that faces it (normal within MATE_FACING_DEG of opposite) and that neighbour's name, the same for the parts in
+    `pressed` (hardware pressed into the part), and the distance to the nearest neighbour surface of any direction with its name."""
     body = ctx.body
     q = body.standing
     Ta = body.link_T(ctx.link(n), q)
     pw = pts_part @ Ta[:3, :3].T + Ta[:3, 3]
+    nw = nrm_part @ Ta[:3, :3].T
     lo, hi = pw.min(0) - 1.0, pw.max(0) + 1.0
+    cf = np.cos(np.radians(MATE_FACING_DEG))
     d = np.full(len(pw), np.inf); who = np.full(len(pw), None, dtype=object)
-    from checks import bodylib as BL
+    da = np.full(len(pw), np.inf); whoa = np.full(len(pw), None, dtype=object)
+    dp = np.full(len(pw), np.inf); whop = np.full(len(pw), None, dtype=object)
     for k, p in body.parts.items():
-        if k == n or (BL.is_fastener(k, p) and p.get("role") != "compression_limit_sleeves"):
+        if k == n or (ctx.rel.is_fastener(k) and not ctx.rel.is_sleeve_set(k)):
             continue
         Tk = body.link_T(p["owning_link"], q)
         b = np.array(p["bounds_mm"], float)
@@ -120,10 +138,22 @@ def _neighbour_distance(ctx, n, pts_part):
         if np.any(c.min(0) > hi) or np.any(c.max(0) < lo):
             continue
         loc = (pw - Tk[:3, 3]) @ Tk[:3, :3]                  # points in k's frame
-        dk = _surface_tree(ctx, k).query(loc, distance_upper_bound=2.0)[0]
-        better = dk < d
-        d[better] = dk[better]; who[better] = k
-    return d, who
+        nk = nw @ Tk[:3, :3]                                 # the part's normals in k's frame
+        tree, tn = _surface_tree(ctx, k)
+        dd, ii = tree.query(loc, k=MATE_K, distance_upper_bound=2.0)
+        ok = np.isfinite(dd)
+        facing = ok & (np.einsum("ijk,ik->ij", tn[np.minimum(ii, len(tn) - 1)], nk) < -cf)
+        dk = np.where(facing, dd, np.inf).min(1)
+        if k in pressed:
+            better = dk < dp
+            dp[better] = dk[better]; whop[better] = k
+        else:
+            better = dk < d
+            d[better] = dk[better]; who[better] = k
+        dka = dd[:, 0]
+        better = dka < da
+        da[better] = dka[better]; whoa[better] = k
+    return d, who, dp, whop, da, whoa
 
 
 def check_part(ctx, n):
@@ -133,7 +163,7 @@ def check_part(ctx, n):
     pr = (mats.get(e["material"]) or {}).get("print", {})
     lim, bridge_lim = pr.get("max_overhang_deg"), pr.get("max_bridge_mm")
     layer = e["layer_height_mm"] or 0.2
-    m, T = P.print_mesh(ctx, n, e, with_transform=True)
+    m, T = PS.print_mesh(ctx, n, e, with_transform=True)
     Tinv = np.linalg.inv(T)
     nz = m.face_normals[:, 2]
     zmin = m.vertices[m.faces].min(1)[:, 2]
@@ -169,19 +199,34 @@ def check_part(ctx, n):
     out["bridges_over_limit"] = sum(1 for r in regs if bridge_lim and r["span_mm"] > bridge_lim)
     out["floating_ceilings"] = sum(1 for r in regs if r["floats"])
     # beyond-limit surface on a mating face at standing
-    mate_area, mates = 0.0, {}
+    mate_area, mates, unf_area, unf, pr_area, prs = 0.0, {}, 0.0, {}, 0.0, {}
     bf = np.flatnonzero(beyond)
     if len(bf):
         cen = m.triangles_center[bf]
         cen_part = (cen - T[:3, 3]) @ T[:3, :3]            # print frame -> part manifest frame (T rows map part -> print)
-        d, who = _neighbour_distance(ctx, n, cen_part)
+        nrm_part = m.face_normals[bf] @ T[:3, :3]
+        pressed = set(ctx.rel.sleeve_sets_of(n) or ())
+        d, who, dp, whop, da, whoa = _neighbour_distance(ctx, n, cen_part, nrm_part, pressed)
         near = d < MATE_MM
-        mate_area = float(area[bf][near].sum())
+        nearp = (dp < MATE_MM) & ~near
+        nearu = (da < MATE_MM) & ~near & ~nearp
+        mate_area = float(area[bf][near].sum()); unf_area = float(area[bf][nearu].sum()); pr_area = float(area[bf][nearp].sum())
+        for w, a in zip(whop[nearp], area[bf][nearp]):
+            prs[w] = prs.get(w, 0.0) + float(a)
+        prs = {k: round(v, 1) for k, v in prs.items() if v >= 0.1}
         for w, a in zip(who[near], area[bf][near]):
             mates[w] = mates.get(w, 0.0) + float(a)
+        for w, a in zip(whoa[nearu], area[bf][nearu]):
+            unf[w] = unf.get(w, 0.0) + float(a)
         mates = {k: round(v, 1) for k, v in mates.items() if v >= 0.1}
+        unf = {k: round(v, 1) for k, v in unf.items() if v >= 0.1}
     out["beyond_limit_on_mating_faces_mm2"] = round(mate_area, 1)
     out["beyond_limit_on_mating_faces_by_part_mm2"] = dict(sorted(mates.items(), key=lambda t: -t[1]))
+    out["beyond_limit_at_pressed_hardware_mm2"] = round(pr_area, 1)
+    out["beyond_limit_at_pressed_hardware_by_part_mm2"] = dict(sorted(prs.items(), key=lambda t: -t[1]))
+    out["beyond_limit_near_unfacing_neighbour_mm2"] = round(unf_area, 1)
+    out["beyond_limit_near_unfacing_neighbour_by_part_mm2"] = dict(sorted(unf.items(), key=lambda t: -t[1]))
+    out["solid"] = PS.solid(ctx, n)[1]
     # worst beyond-limit region location
     big = sorted(((float(area[f].sum()), f) for f in _regions(m, beyond)), key=lambda t: -t[0])
     out["largest_beyond_limit_regions"] = [dict(area_mm2=round(a, 1), location_mm=np.round((Tinv @ np.r_[np.average(m.triangles_center[f], 0, area[f]), 1.0])[:3], 2).tolist())
@@ -224,4 +269,5 @@ def run(ctx):
                 notes=f"print frame from process.up; overhang angle from vertical (0 wall, 90 ceiling), limit = the material's print.max_overhang_deg "
                       f"(data sheets give no convention; beyond_45_mm2 shows the generic 45 deg rule); bed = downward faces wholly within the first layer (or flat and touching it), and the bed supports ceiling edges within it; "
                       f"bridge span = 2 x the largest distance inside each flat (> {FLAT_DEG:g} deg) ceiling region to its nearest supported edge (an edge whose neighbour face goes down towards the bed); mating = beyond-limit face centres "
-                      f"within {MATE_MM} mm of another part's surface at standing")
+                      f"within {MATE_MM} mm of another part's surface at standing that faces them (normals within {MATE_FACING_DEG:g} deg of opposite), sleeve sets pressed into the part "
+                      f"not mating parts (their seats in beyond_limit_at_pressed_hardware_mm2); near but not facing in beyond_limit_near_unfacing_neighbour_mm2")

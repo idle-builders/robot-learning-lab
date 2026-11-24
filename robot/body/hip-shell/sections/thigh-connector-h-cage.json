@@ -95,7 +95,7 @@
   ]
  },
  "head_faces": {},
- "body": "mass 15.11 g PAHT-CF + 8 steel sleeves 1.05 g (was 15.79 g + 1.05 g)\nprint up -z: bed 89 mm2, support 1.71 g, 40.9 min (was 1.95 g, 42.7)\nlateral cheek (owner 2026-11-22): outer face = head-seat plane x 74.33\n  (1.18 mm, heads on the face), 45 deg chamfer at z 147.5 to a 1.8 mm\n  band (x 76.13), 45 deg into the outboard wall at z 159; 0.28 mm\n  inside skin - 2.1 - 0.5 at its tightest\nscrews: 4 x M2x8 roll ears; 4 x M2x5 knee (y -3 / 11, z 143, stack 1.17)\ngaps: swept Stage 5 arm 1.45 mm; swept shin (knee 0..110) 1.25 mm;\n  thigh shells 0.80 mm (was 0.46)\nFEM 6 kg x 1.5 g, min p99 strength ratio (layer normal z):\n  PAHT-CF 8.92 (was 9.70), PETG-CF 6.84 (was 7.39); peak 50.7 MPa\n  at the cheek / bridge inner corner (x 73.1, z 153.2)",
+ "body": "mass 14.97 g PAHT-CF + 8 steel sleeves 1.05 g (was 15.79 g + 1.05 g)\nprint up -z: bed 89 mm2, support 1.71 g, 40.9 min (was 1.95 g, 42.7)\nlateral cheek (owner 2026-11-22): outer face = head-seat plane x 74.33\n  (1.18 mm, heads on the face), 45 deg chamfer at z 147.5 to a 1.8 mm\n  band (x 76.13), 45 deg into the outboard wall at z 159; 0.28 mm\n  inside skin - 2.1 - 0.5 at its tightest\nscrews: 4 x M2x8 roll ears; 4 x M2x5 knee (y -3 / 11, z 143, stack 1.17)\ngaps: swept Stage 5 arm 1.45 mm; swept shin (knee 0..110) 1.25 mm;\n  thigh shells 0.80 mm (was 0.46)\nFEM 6 kg x 1.5 g, min p99 strength ratio (layer normal z):\n  PAHT-CF 9.22 (was 9.70), PETG-CF 6.83 (was 7.39); peak 48.3 MPa\n  at the cheek / bridge inner corner\nrear key pocket reliefs up the side walls: ear boss wall min 1.33 mm",
  "callouts": {
   "secz": [
    {

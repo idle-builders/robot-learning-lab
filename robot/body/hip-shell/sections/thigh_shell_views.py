@@ -14,6 +14,10 @@ valleys show): from below-front, from the outboard side slightly low, and from t
 the front-inboard side slightly above, and the right leg from the back-inboard side; the thigh connector and the yellow arm
 hubs it covers are drawn light grey so what stands above the edge shows.
 
+  python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 240 -- .venv/bin/python -B robot/body/hip-shell/sections/thigh_shell_views.py knee thigh-shell-knee
+`knee NAME` draws the knee seam between the thigh shell and the shin covers (owner 2026-11-23: one continuous shell, the
+minimal joint exposed): the right leg from the front and from the back at standing, from the outboard side at knee 0, 45 and
+95, and from the inboard side at knee 95, cropped to the knee; the other joints at standing.
 `--manifest PATH` draws another body manifest (e.g. an earlier shell for a before / after pair) and `--out NAME` names the sheet.
 Writes drawing-sheets/roll-flip/thigh-shell-shaded.png or drawing-sheets/roll-flip/NAME.png (derived; recreate with this command).
 """
@@ -171,8 +175,40 @@ def top(name):
     fig.savefig(f, dpi=100, bbox_inches="tight"); print(f)
 
 
+# knee seam views: (title, direction toward the viewer, light, knee deg)
+KNEEVIEWS = (("front", (0.0, -1.0, 0.0), (0.4, -0.7, 0.6), 0.0), ("outboard side", (1.0, 0.0, 0.0), (0.6, -0.5, 0.6), 0.0),
+             ("outboard side", (1.0, 0.0, 0.0), (0.6, -0.5, 0.6), 45.0), ("outboard side", (1.0, 0.0, 0.0), (0.6, -0.5, 0.6), 95.0),
+             ("inboard side", (-1.0, 0.0, 0.0), (-0.6, -0.5, 0.6), 95.0), ("back", (0.0, 1.0, 0.0), (0.4, 0.7, 0.6), 0.0))
+
+
+def knee(name):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    body = R.kit.base(MANIFEST)
+    keep = SHELL + ("R_shin_front_hard_cover", "R_shin_back_hard_cover")
+    meshes = _meshes(body, keep=keep)
+    fig, axs = plt.subplots(1, len(KNEEVIEWS), figsize=(6 * len(KNEEVIEWS), 8.5))
+    for ax, (title, w, light, k) in zip(axs, KNEEVIEWS):
+        q = {**body.standing, **dict(zip(R.J, (0.0,) * 4)), "R_knee": k}
+        def world(n):
+            T = body.link_T(body.parts[n]["owning_link"], q); return body.mesh(n).vertices @ T[:3, :3].T + T[:3, 3]
+        T0 = body.link_T("R_roll_link", q)
+        crop = np.vstack([world(n) for n in keep])
+        zt = (crop - T0[:3, 3]) @ T0[:3, :3]                              # thigh frame: crop to the knee, z 85 .. 175
+        crop = crop[(zt[:, 2] > 85.0) & (zt[:, 2] < 175.0)]
+        _draw(ax, body, meshes, q, w, light, crop=crop, ambient=0.25, px=800)
+        ax.set_title(f"{title}, knee {k:g} deg", fontsize=12)
+    fig.suptitle(f"Knee seam ({name}). Blue: thigh shell; light grey: shin covers; dark grey: knee motor; grey: shin frame "
+                 "and knee horn; red: roll motor", fontsize=13)
+    f = SHEETS / f"{name}.png"; f.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(f, dpi=100, bbox_inches="tight"); print(f)
+
+
 if __name__ == "__main__":
-    if len(sys.argv) > 2 and sys.argv[1] == "top":
+    if len(sys.argv) > 2 and sys.argv[1] == "knee":
+        knee(sys.argv[2])
+    elif len(sys.argv) > 2 and sys.argv[1] == "top":
         top(sys.argv[2])
     elif len(sys.argv) > 2 and sys.argv[1] == "closeup":
         closeup(sys.argv[2])

@@ -800,6 +800,10 @@ RF_OUT_WINDOW = (21.0, 13.0)         # outboard wall window (its lower edge 1 mm
 RF_KEY_CORNER_R = 1.0               # (history) pocket corner radius; the key pockets now have square corners with reliefs
 RF_BED_EDGE_CHAMFER = 0.45          # 45 deg chamfer on the plates' top inner edges (bed side, on the case-ear faces)
 RF_KEY_RELIEF_R = 0.45              # dog-bone relief radius at the key pockets' lower corners (about the corner point)
+RF_KEY_RELIEF_UP_REAR = True        # rear pocket: the reliefs run up the side walls (centre r above the corner, the corner on
+                                     # the circle; T-bone) instead of about the corner: the corner-centred relief came 0.89 mm
+                                     # from the rear lower case-ear sleeve bores below it (x 45.75 / 66.25, z 157.25; walls
+                                     # check 0.90 / 0.69 mm, holes 0.915 mm boss wall), side reliefs leave 1.32 mm
 RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
 RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
 # Stage 5 screw connections (Idle T-sgms6h, screw check hip-screws-s1). Every Stage 5 screw sits at its defined hole
@@ -999,11 +1003,14 @@ def rf_ear_boss_outline(case: Shape, y_root: float) -> Face:
     return Face(big.outer_wire())
 
 
-def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow: float | None = None) -> Solid:
+def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow: float | None = None,
+                  relief_up: bool = False) -> Solid:
     """Pocket for an ear boss: the bounding rectangle (x, z) of its root outline grown by RF_KEY_CLEAR per side (or by
     `grow`, negative = inside; a lightening window, corners rounded 2.0), square with dog-bone reliefs RF_KEY_RELIEF_R at
     the lower corners (the flat sides key, the corners stay clear), from y_in (inside the case envelope) to y_floor, open
-    upward. A box, not the outline offset: the offset outline's edges make the part unmeshable for gmsh."""
+    upward. A box, not the outline offset: the offset outline's edges make the part unmeshable for gmsh. relief_up: each
+    relief is centred RF_KEY_RELIEF_R above its corner (the corner on the circle, the floor runs into it tangentially), so
+    it cuts into the side wall only and not below the floor."""
     # bounding box over sections from the root out to past the boss tip: the root is not the largest section everywhere (the
     # boss's lower face reaches 0.57 / 0.50 mm lower 0.0-0.8 mm out from the root: an exact 0.05 + 0.07 mm3 overlap with the
     # pocket's lower wall, front and rear)
@@ -1030,7 +1037,8 @@ def rf_key_pocket(case: Shape, y_root: float, y_in: float, y_floor: float, grow:
     # key pocket: square corners with dog-bone reliefs at the two lower ones. The bosses' lower corners are sharp at their
     # tips and r < 1 at the root, so the old r 1.0 pocket corners cut into them (exact OCC common 0.05 + 0.07 mm3, front / rear)
     box = occ_box(x0, x1, ya, yb, z0, z1)
-    return largest_solid(fuse_all([box] + [occ_cyl((xc, ya, z0), (xc, yb, z0), RF_KEY_RELIEF_R) for xc in (x0, x1)]))
+    zc = z0 + (RF_KEY_RELIEF_R if relief_up else 0.0)
+    return largest_solid(fuse_all([box] + [occ_cyl((xc, ya, zc), (xc, yb, zc), RF_KEY_RELIEF_R) for xc in (x0, x1)]))
 
 
 def rf_yellow_keepout_xz() -> Face:
@@ -1148,14 +1156,17 @@ def _thigh_shell():
 
 
 def rf_shell_xmax(y: float, z: float, r: float) -> float:
-    """Largest x (lateral, right leg) at (y, z) whose disc of radius r stays inside the committed shell's outer skin."""
+    """Largest x (lateral, right leg) at (y, z) whose disc of radius r stays inside the committed shell's outer skin.
+    The spline skin alone (lower=False): the lower section (thigh_shell LOW_*, 2026-11-23) flares the sides out to the
+    shin covers below the widest ring, so it lies outside the spline at the knee screws; the head seats and the lateral
+    cheek band stay where the approved spline put them (lateral seat x 74.41), the shell simply stands further off."""
     T = _thigh_shell()
     ang = np.linspace(0.0, 2.0 * math.pi, 48, endpoint=False)
     lo, hi = 50.0, 100.0
     for _ in range(36):
         x = 0.5 * (lo + hi)
         Q = np.c_[x + r * np.cos(ang), y + r * np.sin(ang), np.full(len(ang), z)]
-        lo, hi = (x, hi) if T.level(T.surface(Q[:, 2]), Q).max() <= 1.0 else (lo, x)
+        lo, hi = (x, hi) if T.level(T.surface(Q[:, 2], lower=False), Q).max() <= 1.0 else (lo, x)
     return lo
 
 
@@ -1317,7 +1328,7 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
         # front window (case screw): only without the floor windows, which open the same place (the two outlines 0.005 mm
         # apart left micro-edges and sliver faces)
         *([rf_rot_box(38.0, 46.5, yf_out - RF_RIB_F - 1.0, yf_in + 1.0, 185.0, 195.0)] if RF_FLOOR_WINDOW_INSET is None else []),
-        rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5),                     # rear boss (tip y 25.1; rib kept closed)
+        rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5, relief_up=RF_KEY_RELIEF_UP_REAR),   # rear boss (tip y 25.1; rib kept closed)
         *([] if RF_FLOOR_WINDOW_INSET is None else            # lightening: windows through the pocket floors, inside the key walls
           [rf_key_pocket(case, yf_in - 0.05, yf_in + 1.0, yf_out - RF_RIB_F - 1.0, -RF_FLOOR_WINDOW_INSET),
            rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, yr_out + RF_RIB + 1.0, -RF_FLOOR_WINDOW_INSET)]),
@@ -1396,7 +1407,7 @@ def build_stage4_thigh_roll_flip(side: str) -> tuple[Solid, list[Solid]]:
                      rf_post_nut_pocket(px, pz, nf, yr_out + RF_RIB),
                      rf_post_notch(px, pz, yr_out + RF_RIB, nf)]
         sleeves.append(rf_post_sleeve((px, nf, pz), (px, tip, pz)))
-    post_cut.append(rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5))   # the rear posts reach into the rear boss pocket
+    post_cut.append(rf_key_pocket(case, yr_in + 0.05, yr_in - 1.0, 25.5, relief_up=RF_KEY_RELIEF_UP_REAR))   # the rear posts reach into the rear boss pocket
     # knee screw sleeve bores through both cheeks (cut after the fuse: the medial cheek is the end block's)
     for s in screws:
         if s["mate"] != "knee_ST3025_case":

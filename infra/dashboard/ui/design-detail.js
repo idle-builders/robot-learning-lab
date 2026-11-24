@@ -1,9 +1,9 @@
-import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=body-view-20261122';
+import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=bom-ranges-20261123';
 import {designEvidence} from './design-evidence.js?v=fem-pictures-20261024';
 import {esc, briefText, evidenceText, shortText} from './readable.js?v=studies-final-20261020';
-import {mountCatalog} from './catalog.js?v=body-view-20261122';
-import {createCadViewer} from './cad-viewer.js?v=body-view-20261122';
-import {mountStudyBom} from './design-bom.js?v=body-view-20261122';
+import {mountCatalog} from './catalog.js?v=bom-ranges-20261123';
+import {createCadViewer} from './cad-viewer.js?v=bom-ranges-20261123';
+import {mountStudyBom} from './design-bom.js?v=bom-ranges-20261123';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 // Where this version's sources are: a folder at a commit, or a history tag to check out.
 const sourceLine = row => {

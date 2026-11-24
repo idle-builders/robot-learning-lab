@@ -87,7 +87,7 @@ def seal(record):
 
 def sync_one(path):
     """Resumable: any transfer/identity failure retains local originals and queue."""
-    from tools.reclaim_archived_storage import verify_archived_pack
+    from infra.storage.reclaim_archived_storage import verify_archived_pack
     with locked(path.stem):
         record = json.loads(path.read_text())
         if record['state'] not in {'pending', 'retry'}:

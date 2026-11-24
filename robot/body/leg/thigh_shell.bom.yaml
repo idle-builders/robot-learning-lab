@@ -14,6 +14,7 @@ generators:
   - -B
   - robot/body/leg/thigh_shell.py
   - build
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   - artifacts/robot/body/ape-proportions/assembly-parts.json
@@ -39,6 +40,7 @@ generators:
   - -B
   - robot/body/leg/thigh_shell.py
   - shin-cover
+  report_files: [artifacts/robot/body/leg/roll-flip/report.json]   # merges its own section (roll_flip_checks.merge)
   inputs:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   - robot/body/leg/build_upper_hip_connectors.bom.yaml
@@ -49,7 +51,8 @@ generators:
   in_place_edits:
   - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
   manifest_out: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
-  notes: Trims the lower leg's back hard cover over KNEE_RANGE and re-mounts it with PA2x8 screws. Peaks at about 6.6 GB.
+  notes: Trims the lower leg's back hard cover along a plane through the knee axis (COVER_CUT_DEG, clear of the thigh
+    hardware over KNEE_RANGE) and re-mounts it with PA2x8 screws. Peaks at about 6.6 GB.
   resources:
     limit_gb: 8
     timeout_s: 2400
@@ -102,3 +105,12 @@ parts:
     the bosses from the counterbore floor to the boss end, which seats on the shin frame's side wall.
   generator: shin-cover
   section: Knee
+# Configured values of thigh_shell.py (robot/body/bom/bom_config.py value("thigh-shell", NAME)); the single source.
+config:
+  ROLL_SWEEP_DEG:
+    value: [-45.0, 25.0]
+    unit: deg
+    doc: Hip-roll sweep of the Stage 5 (yellow pitch-to-roll) slot clearance in the thigh shell. A design sweep, not the joint range
+      (declared hip roll -30..25 in package_complete_leg_hip.bom.yaml); the lower end covers the A-11 leg-out / side-step poses at roll -45
+      (robot/body/hip-shell/sections/leg_motion.py).
+    decision: thigh session 2026-11-23 (geometry unchanged from 011827980)

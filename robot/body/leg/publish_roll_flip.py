@@ -16,6 +16,9 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges from the body definitions)
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 ART = ROOT / "artifacts/robot/body/leg/roll-flip"
@@ -102,7 +105,7 @@ def record():
                  m("Stage 4 vs battery cradle, exact B-rep", fit["stage4 (R_roll_link) x combined__stage2_lower_pelvis_battery_cradle"]["max_overlap_mm3"],
                    "mm3", "hip yaw 40 deg, beyond the 30 deg range"),
                  m("Stage 4 vs shin frame, exact B-rep", fit["stage4 (R_roll_link) x R_shin_combined"]["max_overlap_mm3"], "mm3",
-                   "knee 125 deg, beyond the 110 deg range; touching at 115"),
+                   "knee 125 deg, beyond the 95 deg range; touching at 115"),
                  m("Smallest gap Stage 4 to Stage 5", gap["s4s5"], "mm", "exact B-rep, fit poses (roll to -45)"),
                  m("Smallest gap Stage 5 to Stage 6", gap["s5s6"], "mm", "exact B-rep, 74 poses"),
                  m("Smallest gap Stage 5 to roll case", gap["s5case"], "mm", "exact B-rep, 74 poses"),
@@ -187,7 +190,8 @@ def record():
                 "report_path": rel(ART / "report.json"),
                 "hide_shell_toggle": True,
                 "show_shells": True,
-                "motion_note": "Joint sliders are inspection commands over the manifest ranges, not qualified travel.",
+                "motion_note": "Joint sliders are inspection commands over the joint ranges declared in the body definitions (joints:), not qualified travel.",
+                "joint_ranges": BOM_CONFIG.joint_ranges(),
             },
             "source_refs": [report_ref, {"label": "Decisions register (hip shell)", "path": "robot/body/hip-shell/DECISIONS.md"}],
             "evidence": evidence,
@@ -255,12 +259,14 @@ def thigh_shell_evidence(rep, report_ref):
                     "smooth spline surface from 25 values, one convex front with no crease. The top "
                     "edge is a smooth, capped curve around the shell (low peaks, gentle slopes) as close as the moving parts allow: it "
                     "wraps the roll motor and connector and dips where the yellow arms swing. Below the Stage 4 bracket the "
-                    "back slopes in and flattens to hug the knee motor's back face; the knee edge is one tilted plane, just "
-                    "above the knee hub at the front and as low at the back as the lower leg's frame plate allows over 110 deg "
-                    "of knee flexion. For that range the grey shin back cover is cut along the knee axis (its top-back edge "
-                    "rises toward the hinge). The cut takes its two old top M3 screws; it is now held by four PA2x8 self-tapping "
-                    "screws, two per side, through bosses on its side wings into pilot holes in the shin frame's thick side "
-                    "walls behind the ankle motor. The core torso shells are left out of the check: they are cut at z 271 and redesigned next.",
+                    "back slopes in and flattens to hug the knee motor's back face. Below the widest ring the sides run "
+                    "straight down, flaring slightly, and the front comes in, to the shin covers' top outline, so thigh and "
+                    "shin read as one shell (owner 2026-11-23). The knee edge is one smooth line in the side view: level 1 mm "
+                    "above the shin front cover in front of the knee axis, rising behind it along the grey shin back cover's "
+                    "top edge turned to full flexion, about 1 mm from the shin covers over the 0-95 deg knee range. The shin "
+                    "back cover's top-back edge is a plane through the knee axis, just under its two old top M3 holes; it is "
+                    "held by four PA2x8 self-tapping screws, two per side, through bosses on its side wings into pilot holes "
+                    "in the shin frame's thick side walls behind the ankle motor. The core torso shells are left out of the check: they are cut at z 271 and redesigned next.",
         measurements=[
             m("Front half", parts["R_thigh_shell_front"]["mass_g"], "g", "Bambu ABS, per leg"),
             m("Back half", parts["R_thigh_shell_back"]["mass_g"], "g", "per leg"),
@@ -288,8 +294,9 @@ def thigh_shell_evidence(rep, report_ref):
               if "mounts" in rep["shin_back_cover_trim"] else []),
         ] if "shin_back_cover_trim" in rep else []),
         conditions={"method": c["method"], "roll_range_deg": st["roll_range_deg"], "gap_mm": st["gap_mm"]},
-        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM. Open for an owner decision: press support under the "
-                    "shin cover sleeves 68.9 %, one H-cage boss wall 0.915 mm at a teardrop. Look not yet accepted by the owner.",
+        limitations="Mesh-defined (STL), not yet exact B-rep; no FEM. Sleeve exits on flat lands: press support 84-88 % "
+                    "(about 90 % is the ceiling, 10 % of the spacer ring lies past the print bed); 1.0 mm to the ankle "
+                    "coupler at its closest (climb step). Thigh design approved by the owner (2026-11-23).",
         source_refs=[report_ref])
 
 

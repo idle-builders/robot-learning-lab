@@ -1,5 +1,5 @@
 import {displayGroups, isReference, visibleDisplayGroups} from './cad-display.js?v=undeclared-overlays-20261113';
-import {createJointRig} from './cad-motion.js?v=hip-controls-20261030';
+import {createJointRig} from './cad-motion.js?v=bom-ranges-20261123';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';

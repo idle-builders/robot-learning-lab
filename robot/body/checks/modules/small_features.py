@@ -1,21 +1,27 @@
 """small_features: three small printability measurements per scoped printed part in its print direction (process.up).
 
 Thin features (pins, ribs, tips): the part is sliced every layer height; each cross-section island's largest inscribed
-circle (raster distance transform) is its printable width. Islands narrower than two line widths are thin features
-(under one line width they do not print); reported with height range and location.
-Z steps: flat faces (normal within 1 deg of vertical) that overlap in plan view but lie less than one layer height
-apart: the slicer cannot resolve the step between them (a chamfer, emboss or seat thinner than a layer vanishes or
-doubles).
+circle (pole of inaccessibility, 0.005 mm) is its printable width. Islands narrower than two line widths are thin features
+(under one line width they do not print); reported with height range and location. A feature one layer tall whose layer
+below holds wider material under it (two line widths or more) is the top of that material, a curved crown or the last
+layer of a dome, not a pin: counted apart (thin_tops_on_wider_material), with what is below every feature (`below`:
+wider material / thin material / nothing / bed).
+Z steps: pairs of flat faces (normal within 1 deg of vertical) less than one layer height apart in z that the slicer
+cannot resolve (a chamfer, emboss or seat thinner than a layer vanishes or doubles): one over the other with a real plan
+overlap (`overlap_mm2` over 0.05 mm2, no buffer), or side by side (within 0.05 mm in plan) with a step wall between them
+(a near-vertical face spanning the two heights). Near-level facets side by side with no wall between them are the
+tessellation of a curved surface, not a step: counted apart (near_level_facet_pairs).
 Trapped support: internal voids (closed cavities, printed as trapped air or support), and the area of downward faces
 beyond the material's overhang limit whose support would stand on the part itself instead of the bed (a vertical ray
 down hits the part): support in pockets, bores and under ledges, harder to remove and scarring the face below.
-Measurements and counts only."""
+Mesh-only parts on their full closed mesh (checks/print_solid.py). Measurements and counts only."""
 from __future__ import annotations
 
 import time
 
 import numpy as np
 
+from checks import print_solid as PS
 from checks import process as P
 from checks.core import tick
 from checks.registry import register
@@ -28,25 +34,15 @@ def _targets(ctx):
 
 
 def _inscribed(poly, res=RES):
-    """Largest inscribed circle diameter (mm) and its centre. Islands whose width estimate 2 x area / perimeter (exact for
-    long strips, half the diameter for a disc) is under two raster steps are slivers and read that estimate at a point
-    inside them; wider islands are rasterised (distance transform)."""
-    from scipy.ndimage import distance_transform_edt
-    from shapely import contains_xy
+    """Largest inscribed circle diameter (mm) and its centre: shapely's maximum_inscribed_circle (pole of inaccessibility) to a
+    tolerance of 0.005 mm or 1/20 of the island's strip-width estimate 2 x area / perimeter, whichever is smaller. (A raster
+    distance transform at 0.05 mm read the 1.26 mm H-cage cheek wall as 1.2 mm, under two 0.62 mm lines.)"""
+    from shapely import maximum_inscribed_circle
     est = 2 * poly.area / max(poly.length, 1e-12)
-    if est < 2 * res:                                    # a sliver: the strip formula is the width (exact for w << L)
-        c = poly.representative_point()
-        return float(est), (float(c.x), float(c.y))
-    x0, y0, x1, y1 = poly.bounds
-    xs = np.arange(x0 - res, x1 + 2 * res, res); ys = np.arange(y0 - res, y1 + 2 * res, res)
-    X, Y = np.meshgrid(xs, ys)
-    inside = contains_xy(poly, X, Y)
-    if not inside.any():
-        c = poly.representative_point()
-        return float(est), (float(c.x), float(c.y))
-    d = distance_transform_edt(inside) * res
-    i = np.unravel_index(int(np.argmax(d)), d.shape)
-    return float(max(2 * d[i], min(est, res))), (float(X[i]), float(Y[i]))
+    tol = max(1e-4, min(0.005, est / 20))
+    ls = maximum_inscribed_circle(poly, tolerance=tol)
+    (cx, cy), q = ls.coords[0], ls.coords[-1]
+    return float(2 * np.hypot(q[0] - cx, q[1] - cy)), (float(cx), float(cy))
 
 
 def thin_features(m, layer, lw):
@@ -69,15 +65,44 @@ def thin_features(m, layer, lw):
                 w, c = _inscribed(g)
                 if w < 2 * lw:
                     out.append(dict(z_mm=round(float(z), 3), width_mm=round(w, 3), xy_mm=None if c is None else [round(c[0], 2), round(c[1], 2)],
-                                    area_mm2=round(float(g.area), 3)))
+                                    area_mm2=round(float(g.area), 3), poly=g))
     return out
 
 
+def below(m, poly, z, layer, lw):
+    """What the layer under an island holds under it: ('bed' | 'nothing' | 'wider material' | 'thin material', width mm of
+    the widest section polygon under it). Wider = an inscribed width of two line widths or more."""
+    from shapely.geometry import MultiPolygon
+    zb = z - layer
+    if zb <= 0:
+        return "bed", None
+    s = m.section_multiplane(plane_origin=[0, 0, 0], plane_normal=[0, 0, 1], heights=[zb])[0]   # same frame as thin_features
+    if s is None:
+        return "nothing", None
+    best = None
+    for pf in s.polygons_full:
+        for g in (pf.geoms if isinstance(pf, MultiPolygon) else [pf]):
+            if g.area <= 0 or not g.intersects(poly):
+                continue
+            if g.intersection(poly).area < 0.5 * poly.area:
+                continue
+            w = _inscribed(g)[0] if g.area < 400 * lw * lw else np.inf
+            best = w if best is None else max(best, w)
+    if best is None:
+        return "nothing", None
+    return ("wider material" if best >= 2 * lw else "thin material"), (None if not np.isfinite(best) else round(float(best), 3))
+
+
 def z_steps(m, layer):
-    """Pairs of plan-overlapping flat faces closer than one layer height in z: [(dz, z_low, z_high, xy)]."""
-    from shapely import polygons, union_all
+    """Pairs of flat faces closer than one layer height in z that form a step: [(dz, z_low, z_high, xy, real overlap mm2,
+    kind)], kind 'overlap' (one over the other) or 'walled' (side by side with a near-vertical wall between them); and the
+    count of near-level facet pairs side by side without a wall (a curved surface's tessellation)."""
+    from shapely import contains_xy, polygons, union_all
     nz = m.face_normals[:, 2]
     flat = np.abs(nz) > np.cos(np.radians(1.0))
+    vert = np.flatnonzero(np.abs(nz) < np.sin(np.radians(10.0)))         # near-vertical faces: step walls
+    vc = m.triangles_center[vert]
+    vz0, vz1 = m.vertices[m.faces[vert]][:, :, 2].min(1), m.vertices[m.faces[vert]][:, :, 2].max(1)
     zf = m.triangles_center[:, 2]
     levels, raw = {}, {}
     for z in np.unique(np.round(zf[flat], 3)):
@@ -85,7 +110,7 @@ def z_steps(m, layer):
         raw[float(z)] = union_all(polygons(m.triangles[sel][:, :, :2])).buffer(0)
         levels[float(z)] = raw[float(z)].buffer(0.05)
     zl = sorted(levels)
-    out = []
+    out, level_pairs = [], 0
     for i, a in enumerate(zl):
         for b in zl[i + 1:]:
             if b - a >= layer:
@@ -94,11 +119,20 @@ def z_steps(m, layer):
                 continue
             inter = levels[a].intersection(levels[b])
             if not inter.is_empty and inter.area > 0.05:
-                c = inter.representative_point()
-                real = raw[a].intersection(raw[b]).area          # plan overlap without the 0.05 mm buffer (0 = side by side)
-                out.append((round(b - a, 4), round(a, 3), round(b, 3), [round(c.x, 2), round(c.y, 2)], round(float(real), 2)))
+                real = raw[a].intersection(raw[b])          # plan overlap without the 0.05 mm buffer (0 = side by side)
+                if real.area > 0.05:
+                    c = real.representative_point()
+                    out.append((round(b - a, 4), round(a, 3), round(b, 3), [round(c.x, 2), round(c.y, 2)], round(float(real.area), 2), "overlap"))
+                    continue
+                k = np.flatnonzero((vz0 >= a - 1e-3) & (vz1 <= b + 1e-3) & (vz1 - vz0 > 0.5 * (b - a)))
+                wall = k[contains_xy(inter, vc[k, 0], vc[k, 1])] if len(k) else k
+                if len(wall):
+                    c = vc[wall[0]]
+                    out.append((round(b - a, 4), round(a, 3), round(b, 3), [round(float(c[0]), 2), round(float(c[1]), 2)], round(float(real.area), 2), "walled"))
+                else:
+                    level_pairs += 1
     out.sort()
-    return out
+    return out, level_pairs
 
 
 def trapped(m, lim, layer):
@@ -133,18 +167,18 @@ def run(ctx):
     """Per printed part in its print direction: thin pins / ribs per layer, Z steps under a layer height, internal voids, support standing on the part."""
     mats, _ = P.tables()
     per, cases = {}, []
-    ev = dict(parts=0, thin_features_under_1_line=0, thin_features_under_2_lines=0, void_search_failures=0, z_steps_under_layer=0, internal_voids=0,
-              parts_with_support_on_part=0)
+    ev = dict(parts=0, thin_features_under_1_line=0, thin_features_under_2_lines=0, thin_tops_on_wider_material=0, void_search_failures=0,
+              z_steps_under_layer=0, near_level_facet_pairs=0, internal_voids=0, parts_with_support_on_part=0)
     for n in _targets(ctx):
         t0 = time.time()
         e = P.effective(ctx, n)
         lw, layer = e["line_width_mm"] or 0.42, e["layer_height_mm"] or 0.2
         lim = ((mats.get(e["material"]) or {}).get("print") or {}).get("max_overhang_deg", 45.0)
-        m, T = P.print_mesh(ctx, n, e, with_transform=True)
+        m, T = PS.print_mesh(ctx, n, e, with_transform=True)
         Ti = np.linalg.inv(T)
         back = lambda xy, z: np.round((Ti @ np.r_[xy, z, 1.0])[:3], 2).tolist()  # noqa: E731
         thin = thin_features(m, layer, lw)
-        steps = z_steps(m, layer)
+        steps, level_pairs = z_steps(m, layer)
         voids, sup_on_part, share, worst = trapped(m, lim, layer)
         void_error = voids if isinstance(voids, str) else None
         voids = [] if void_error else voids
@@ -159,13 +193,22 @@ def run(ctx):
                     break
             else:
                 feats.append(dict(t, z_from_mm=t["z_mm"], z_to_mm=t["z_mm"], layers=1))
-        thin = sorted(feats, key=lambda t: t["width_mm"])
-        r = dict(material=e["material"], up=e["up"], line_width_mm=lw, layer_height_mm=layer,
+        for f in feats:                      # what the layer under the feature's lowest island (its first, f["poly"]) holds
+            f["below"], f["below_width_mm"] = below(m, f["poly"], f["z_from_mm"], layer, lw)
+        for f in feats:
+            f.pop("poly", None)
+        tops = [f for f in feats if f["layers"] == 1 and f["below"] == "wider material"]
+        thin = sorted([f for f in feats if f not in tops], key=lambda t: t["width_mm"])
+        r = dict(material=e["material"], up=e["up"], line_width_mm=lw, line_width_source=e["source"]["line_width_mm"] if e["line_width_mm"] else "no line width resolved: 0.42 mm assumed",
+                 layer_height_mm=layer, solid=PS.solid(ctx, n)[1],
+                 thin_tops_on_wider_material=len(tops), thin_tops=[dict(t, location_mm=back(t["xy_mm"], t["z_mm"]) if t["xy_mm"] else None)
+                                                                   for t in sorted(tops, key=lambda t: t["width_mm"])[:4]],
                  thin_features_under_1_line=sum(1 for t in thin if t["width_mm"] < lw), thin_features_under_2_lines=len(thin),
                  thin_layers_under_2_lines=sum(t["layers"] for t in thin), void_search_error=void_error,
                  thinnest=[dict(t, location_mm=back(t["xy_mm"], t["z_mm"]) if t["xy_mm"] else None) for t in thin[:8]],
-                 z_steps=[dict(dz_mm=s[0], z_low_mm=s[1], z_high_mm=s[2], overlap_mm2=s[4], location_mm=back(s[3], s[1])) for s in steps[:10]],
-                 z_steps_count=len(steps), internal_voids=[dict(volume_mm3=v, location_mm=(Ti @ np.r_[c, 1.0])[:3].round(2).tolist()) for v, c in voids],
+                 z_steps=[dict(dz_mm=s[0], z_low_mm=s[1], z_high_mm=s[2], overlap_mm2=s[4], kind=s[5], location_mm=back(s[3], s[1])) for s in steps[:10]],
+                 z_steps_count=len(steps), z_steps_overlapping=sum(1 for s in steps if s[5] == "overlap"),
+                 z_steps_side_by_side_walled=sum(1 for s in steps if s[5] == "walled"), near_level_facet_pairs=level_pairs, internal_voids=[dict(volume_mm3=v, location_mm=(Ti @ np.r_[c, 1.0])[:3].round(2).tolist()) for v, c in voids],
                  support_on_part_mm2=round(sup_on_part, 1), support_on_part_share=round(share, 3),
                  support_on_part_location_mm=None if worst is None else (Ti @ np.r_[worst, 1.0])[:3].round(2).tolist())
         r["seconds"] = round(time.time() - t0, 1); tick("small_features", t0)
@@ -175,17 +218,22 @@ def run(ctx):
         ev["thin_features_under_2_lines"] += r["thin_features_under_2_lines"]
         ev["void_search_failures"] += bool(void_error)
         ev["z_steps_under_layer"] += r["z_steps_count"]
+        ev["near_level_facet_pairs"] += r["near_level_facet_pairs"]
+        ev["thin_tops_on_wider_material"] += r["thin_tops_on_wider_material"]
         ev["internal_voids"] += len(voids)
         ev["parts_with_support_on_part"] += sup_on_part > 1.0
         if thin:
             t = r["thinnest"][0]
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=t["location_mm"], value=t["width_mm"], unit="mm thinnest feature",
                               what=f"{r['thin_features_under_2_lines']} features under 2 lines ({lw} mm), {r['thin_features_under_1_line']} under 1 line; "
-                                   f"this one z {t['z_from_mm']}-{t['z_to_mm']} mm in the print frame ({t['layers']} layers)"))
+                                   f"this one z {t['z_from_mm']}-{t['z_to_mm']} mm in the print frame ({t['layers']} layers, below: {t['below']}); "
+                                   f"{r['thin_tops_on_wider_material']} one-layer tops on wider material apart"))
         if steps:
             s = r["z_steps"][0]
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=s["location_mm"], value=s["dz_mm"], unit="mm Z step",
-                              what=f"{r['z_steps_count']} flat-face pairs under one layer ({layer} mm) apart; {s['overlap_mm2']} mm2 plan overlap (0 = side by side)"))
+                              what=f"{r['z_steps_count']} flat-face steps under one layer ({layer} mm): {r['z_steps_overlapping']} one over the other, "
+                                   f"{r['z_steps_side_by_side_walled']} side by side with a step wall; this one {s['kind']}, {s['overlap_mm2']} mm2 plan overlap; "
+                                   f"{r['near_level_facet_pairs']} near-level facet pairs without a wall apart"))
         for v in r["internal_voids"]:
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=v["location_mm"], value=v["volume_mm3"], unit="mm3 internal void",
                               what="closed cavity inside the solid"))
@@ -193,6 +241,7 @@ def run(ctx):
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=r["support_on_part_location_mm"], value=r["support_on_part_mm2"],
                               unit="mm2 support standing on the part", what=f"{round(100 * share)} % of the beyond-limit area ({lim} deg)"))
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=[],
-                notes=f"slices every layer height; island width = largest inscribed circle (raster {RES} mm); Z steps = plan-overlapping flat faces "
-                      f"(within 1 deg) closer than one layer; voids = inside-out shells of the solid; support on part = beyond-limit face centres whose "
+                notes=f"slices every layer height; island width = largest inscribed circle (shapely maximum_inscribed_circle, 0.005 mm); one-layer islands on wider material below "
+                      f"counted apart as tops; Z steps = flat faces (within 1 deg) closer than one layer, one over the other (real plan overlap over "
+                      f"0.05 mm2) or side by side with a near-vertical wall between them; near-level facet pairs without a wall counted apart; voids = inside-out shells of the solid; support on part = beyond-limit face centres whose "
                       f"downward ray hits the part; locations in the manifest frame")
