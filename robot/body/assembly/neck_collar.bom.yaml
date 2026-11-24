@@ -694,3 +694,7 @@ config:
   KEEP_OUT:
     value: [[106.0, 132.0], [140.0, 215.0]]
     doc: 'elliptic angle ranges where the inner wall stays at 26.4: the neck pitch cradle and servo case sweep into the first, the link plate stands in the second'
+  # robot/body/assembly/neck_collar.py module constants (moved 2026-11-24)
+  SCREW_YZ:
+    value: [[9.0, 399.8]]
+    doc: '(y, z) of the screw axis (along x): the collar''s mid height, so the dia 10 press counter disc stays on the tab face'

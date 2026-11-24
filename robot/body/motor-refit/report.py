@@ -71,9 +71,7 @@ def verify_sweeps():
             out[j] = dict(poses=d["poses"], adjacent=d["adjacent"], pairs=rows)
     return out, limits
 IGNORE = CFG["IGNORE"]
-INTERFACES = [("R_thigh_combined", "R_knee_ST3025_case"), ("R_shin_combined", "R_knee_ST3025_output"),
-              ("R_shin_combined", "R_ankle_pitch_ST3025_case"), ("R_ankle_coupler_combined", "R_ankle_pitch_ST3025_output"),
-              ("R_hip_pitch_to_roll_combined", "R_hip_pitch_ST3025_output"), ("R_hip_yaw_to_pitch_combined", "R_hip_pitch_ST3025_case")]
+INTERFACES = list(CFG["INTERFACES"])
 
 
 def find(name):

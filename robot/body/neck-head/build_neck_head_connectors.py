@@ -96,8 +96,7 @@ def revolved_column(c, segments):
 
 # (stage, role) sites on a plate whose thickness equals the sleeve length (screws into the XM335 holes, generated from the
 # definitions by defined_holes.py / neck_screws.py)
-FLUSH_SITES = {("stage1_neck_root_cradle", "load"), ("stage2_neck_yaw_to_pitch_link", "support"),
-               ("stage2_neck_yaw_to_pitch_link", "load"), ("stage3_neck_pitch_to_head_cradle", "support")}
+FLUSH_SITES = set(CFG["FLUSH_SITES"])
 
 
 def _cut_stage_bores(sol: Solid, stage_key: str) -> Solid:

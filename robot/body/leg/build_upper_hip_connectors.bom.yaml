@@ -1765,3 +1765,17 @@ config:
   RF5_SLOT_FLARE:
     value: 0.6
     doc: 'lead-in at the arm''s lower edge: the slot widens this much per side'
+  # robot/body/leg/build_upper_hip_connectors.py module constants (moved 2026-11-24)
+  RF_OLD_FRONT_BOLTS:
+    value: [[35.0, 179.75], [35.0, 200.25], [55.7, 179.75], [55.7, 200.25]]
+    doc: 'Old Stage 5 roll-case cradle (build_stage5_pitch_to_roll, r2 frame): ear bolts (x, z), ear faces (y)'
+  RF_OLD_REAR_BOLTS:
+    value: [[31.25, 179.75], [31.25, 200.25], [55.7, 179.75], [55.7, 200.25]]
+  RF_PITCH_BOLTS:
+    value: [[2.0, 212.0], [2.0, 226.0], [-5.0, 219.0], [9.0, 219.0]]
+  RF_KNEE_SCREWS:
+    value: [[-4.0, 151.0], [12.0, 151.0], [4.0, 150.0], [-3.0, 143.0], [11.0, 143.0]]
+    doc: 'history: the five medial holes the U cradle used'
+  RF5_REAR_CHAMFER_YZ:
+    value: [[31.5, 210.49], [22.0, 216.75], [19.5, 224.5]]
+    doc: 'the flat cut it sharp (FEM peak 81-98 MPa there) Rear top corner of the plate wing vs the torso''s center_back_shell over hip pitch -58..45 x yaw -30..30 (pitch-link frame, 2026-11-20 envelope sampled at 0.5 deg pitch, 2.5 deg yaw: its lower edge z 222.9 / 219.1 / 217.4 / 216.8 / 215.5 / 214.3 / 213.3 / 212.3 at y 21 / 21.5 / 22.5 / 23.5 / 25.5 / 27.5 / 28.5 / 30): two flat chamfers 0.8 mm under it'

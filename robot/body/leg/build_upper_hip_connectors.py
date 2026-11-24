@@ -680,8 +680,8 @@ RF_AX, RF_AZ = CFG["RF_AX"], CFG["RF_AZ"]
 RF_R2_AX = CFG["RF_R2_AX"]
 RF_TURN_DEG = CFG["RF_TURN_DEG"]
 # Old Stage 5 roll-case cradle (build_stage5_pitch_to_roll, r2 frame): ear bolts (x, z), ear faces (y)
-RF_OLD_FRONT_BOLTS = [(35.0, 179.75), (35.0, 200.25), (55.7, 179.75), (55.7, 200.25)]
-RF_OLD_REAR_BOLTS = [(31.25, 179.75), (31.25, 200.25), (55.7, 179.75), (55.7, 200.25)]
+RF_OLD_FRONT_BOLTS = list(CFG["RF_OLD_FRONT_BOLTS"])
+RF_OLD_REAR_BOLTS = list(CFG["RF_OLD_REAR_BOLTS"])
 RF_Y_F_IN, RF_Y_F_CLAMP, RF_Y_F_OUT = CFG["RF_Y_F_IN"], CFG["RF_Y_F_CLAMP"], CFG["RF_Y_F_OUT"]
 RF_Y_R_IN, RF_Y_R_CLAMP, RF_Y_R_OUT = CFG["RF_Y_R_IN"], CFG["RF_Y_R_CLAMP"], CFG["RF_Y_R_OUT"]
 RF_RIB = CFG["RF_RIB"]
@@ -697,7 +697,7 @@ RF_ARM_F = CFG["RF_ARM_F"]
 RF_ARM_R = CFG["RF_ARM_R"]
 RF_HORN_BOLTS = [(RF_AX - 7.0, RF_AZ), (RF_AX + 7.0, RF_AZ), (RF_AX, RF_AZ - 7.0), (RF_AX, RF_AZ + 7.0)]
 RF_PITCH_HUB = CFG["RF_PITCH_HUB"]
-RF_PITCH_BOLTS = [(2.0, 212.0), (2.0, 226.0), (-5.0, 219.0), (9.0, 219.0)]
+RF_PITCH_BOLTS = list(CFG["RF_PITCH_BOLTS"])
 RF_PLATE_X = CFG["RF_PLATE_X"]
 RF_PITCH_HUB_R = CFG["RF_PITCH_HUB_R"]
 RF_ROLL_HUB_R = CFG["RF_ROLL_HUB_R"]
@@ -718,7 +718,7 @@ RF_KNEE_KEEP = CFG["RF_KNEE_KEEP"]
 # "far group" (16 mm circle about (4, 143)) only matches dia 2.0 holes inside the case, behind its 2.35 mm medial wall
 # (x 35.5..37.3); a screw there meets solid wall, so the cheek no longer has those four holes.
 RF_KNEE_AXIS = CFG["RF_KNEE_AXIS"]
-RF_KNEE_SCREWS = [(-4.0, 151.0), (12.0, 151.0), (4.0, 150.0), (-3.0, 143.0), (11.0, 143.0)]   # history: the five medial holes the U cradle used
+RF_KNEE_SCREWS = list(CFG["RF_KNEE_SCREWS"])
 RF_KNEE_FACE_X = CFG["RF_KNEE_FACE_X"]
 RF_KNEE_SLIT_X1 = CFG["RF_KNEE_SLIT_X1"]
 RF_END_X0 = CFG["RF_END_X0"]
@@ -860,7 +860,7 @@ RF5_HUB_FLAT_FILLET = CFG["RF5_HUB_FLAT_FILLET"]
 # Rear top corner of the plate wing vs the torso's center_back_shell over hip pitch -58..45 x yaw -30..30 (pitch-link
 # frame, 2026-11-20 envelope sampled at 0.5 deg pitch, 2.5 deg yaw: its lower edge z 222.9 / 219.1 / 217.4 / 216.8 /
 # 215.5 / 214.3 / 213.3 / 212.3 at y 21 / 21.5 / 22.5 / 23.5 / 25.5 / 27.5 / 28.5 / 30): two flat chamfers 0.8 mm under it
-RF5_REAR_CHAMFER_YZ = [(31.5, 210.49), (22.0, 216.75), (19.5, 224.5)]
+RF5_REAR_CHAMFER_YZ = list(CFG["RF5_REAR_CHAMFER_YZ"])
 RF5_REAR_RELIEF_DEG = CFG["RF5_REAR_RELIEF_DEG"]
 RF5_REAR_RELIEF_W = CFG["RF5_REAR_RELIEF_W"]
                                      # and met the arm's inner face y RF_ARM_R[0] in a 57 deg knife edge (walls 0.03-0.75 mm

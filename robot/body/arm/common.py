@@ -715,56 +715,7 @@ def cut_stage_sleeve_bores(body_r, stage_key: str):
 
 
 # Exact Right-arm integrated hard-shell mount specifications (4 forearm mounts on R arm = 8 bilateral)
-RIGHT_ARM_SHELL_MOUNTS = [
-    {
-        "id": "fore_front_187",
-        "stage": "stage4_forearm_elbow_to_wrist",
-        "shell": "fore_front",
-        "axis": (0.0, -1.0, 0.0),
-        "center": (145.0, -19.40, 187.0),
-        "post_span": (-23.00, -13.50),
-        "post_r": 4.0,
-        "slot_dir": (0.0, 0.0, 1.0),
-        "screw_src": "fore_front_M3x8_187",
-        "screw_dx": 0.0,
-    },
-    {
-        "id": "fore_front_178",
-        "stage": "stage4_forearm_elbow_to_wrist",
-        "shell": "fore_front",
-        "axis": (0.0, -1.0, 0.0),
-        "center": (145.0, -15.90, 178.0),
-        "post_span": (-18.80, -11.50),
-        "post_r": 4.0,
-        "slot_dir": (0.0, 0.0, -1.0),
-        "screw_src": "fore_front_M3x8_178",
-        "screw_dx": 0.0,
-    },
-    {
-        "id": "fore_back_187",
-        "stage": "stage4_forearm_elbow_to_wrist",
-        "shell": "fore_back",
-        "axis": (0.0, 1.0, 0.0),
-        "center": (145.0, 13.40, 187.0),
-        "post_span": (7.50, 17.00),
-        "post_r": 4.0,
-        "slot_dir": (0.0, 0.0, 1.0),
-        "screw_src": "fore_back_M3x8_187",
-        "screw_dx": 0.0,
-    },
-    {
-        "id": "fore_back_178",
-        "stage": "stage4_forearm_elbow_to_wrist",
-        "shell": "fore_back",
-        "axis": (0.0, 1.0, 0.0),
-        "center": (145.0, 9.90, 178.0),
-        "post_span": (5.50, 12.30),
-        "post_r": 4.0,
-        "slot_dir": (0.0, 0.0, -1.0),
-        "screw_src": "fore_back_M3x8_178",
-        "screw_dx": 0.0,
-    },
-]
+RIGHT_ARM_SHELL_MOUNTS = list(CFG["RIGHT_ARM_SHELL_MOUNTS"])
 
 
 def make_captive_nut_pocket(

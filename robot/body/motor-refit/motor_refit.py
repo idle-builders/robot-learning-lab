@@ -451,15 +451,7 @@ def fix_static_defects(manifest, new):
     return log
 
 
-RANGE_NOTCHES = [  # (target shell, tool part, joints swept, grid step deg): contacts inside one limb's own range (r1)
-    ("R_fore_front_hard_cover", "R_upper_arm_hard_cover", ("R_elbow", "R_shoulder_yaw"), 5.0),
-    ("L_fore_front_hard_cover", "L_upper_arm_hard_cover", ("L_elbow", "L_shoulder_yaw"), 5.0),
-    ("head_neck_collar", "original_profile_head_skin_v23", ("neck_pitch",), 2.5),
-    ("head_neck_collar", "combined__neck_pitch_to_head_cradle", ("neck_pitch",), 2.5),
-    ("original_profile_head_skin_v23", "combined__neck_yaw_to_pitch_link", ("neck_pitch",), 2.5),
-    ("R_shin_front_hard_cover", "R_B13_C047_foot_roll_case", ("R_ankle_pitch", "R_ankle_roll"), 5.0),
-    ("L_shin_front_hard_cover", "L_B13_C047_foot_roll_case", ("L_ankle_pitch", "L_ankle_roll"), 5.0),
-]
+RANGE_NOTCHES = list(CFG["RANGE_NOTCHES"])
 
 
 def fix_range_contacts(new):
