@@ -1,0 +1,598 @@
+# Cove-50 body definition for robot/body/arm/arm_shell.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# The arm shell: the whole arm's covers as one parametric surface (superellipse sections on natural cubic splines along the
+# arm, route D's hood about the shoulder roll axis), cut at the shoulder-yaw seam and the elbow into four covers per arm.
+# Owner-approved 2026-11-24 (candidate arm-shell-3, decision M-eb6cxz, Idle T-tph7xb). The eight covers, their sleeve sets
+# and the four elbow-case screws (now PA2x10: the lower cover's tab is in their stack) are claimed here; the claims moved
+# from shoulder_shells.bom.yaml (upper-arm hard covers) and ape-proportions/build.bom.yaml (lower covers, forearm covers,
+# elbow-case PA2x7) on 2026-11-24, with their assembly steps; the forearm-cover M3x8 screws stay claimed in
+# ape-proportions/build.bom.yaml, but their steps (both clamp the covers) moved here, after the covers.
+schema: cove50-body-definition/1
+definition: arm-shell
+owner: arm shell session (Idle T-tph7xb)
+generators:
+- id: arm-shell
+  command:
+  - .venv/bin/python
+  - -B
+  - robot/body/arm/arm_shell.py
+  - apply
+  inputs:
+  - artifacts/robot/body/arm/shoulder-clevis/shells/assembly-parts-shoulder-u-shells.json
+  - artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json
+  - robot/body/checks/data/materials.json
+  outputs:
+  - artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json
+  - artifacts/robot/body/arm/arm-shell/parts
+  - artifacts/robot/body/arm/arm-shell/report.json
+  manifest_out: artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json
+  resources:
+    limit_gb: 6
+    timeout_s: 1800
+  notes: Writes the selected body (robot/design.json body_manifest) from the shoulder-shells body; only the eight cover rows, the four
+    elbow-case screws and six sleeve-set rows change. Shape parameters (STATIONS, CAP, SEAM, ELB, FORE_SPLIT, WALL, RUN_CLEAR) are code
+    constants fitted by `arm_shell.py fit` (not part of the rebuild); joint ranges from the definitions (bom_config).
+  after:
+  - shoulder-shells
+parts:
+- match: R_upper_arm_hard_cover
+  kind: printed
+  line: print:R_upper_arm_hard_cover
+  name: R_upper_arm_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Shoulder
+- match: R_upper_arm_lower_cover
+  kind: printed
+  line: print:R_upper_arm_lower_cover
+  name: R_upper_arm_lower_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: R_fore_front_hard_cover
+  kind: printed
+  line: print:R_fore_front_hard_cover
+  name: R_fore_front_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: R_fore_back_hard_cover
+  kind: printed
+  line: print:R_fore_back_hard_cover
+  name: R_fore_back_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: L_upper_arm_hard_cover
+  kind: printed
+  line: print:L_upper_arm_hard_cover
+  name: L_upper_arm_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Shoulder
+- match: L_upper_arm_lower_cover
+  kind: printed
+  line: print:L_upper_arm_lower_cover
+  name: L_upper_arm_lower_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: L_fore_front_hard_cover
+  kind: printed
+  line: print:L_fore_front_hard_cover
+  name: L_fore_front_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: L_fore_back_hard_cover
+  kind: printed
+  line: print:L_fore_back_hard_cover
+  name: L_fore_back_hard_cover
+  make_buy: make
+  quantity: 1
+  generator: arm-shell
+  process:
+    material: Bambu PETG-CF
+    seeded: 'material only (T-zfejzf, 2026-11-22), kept by the arm shell (2026-11-24): PETG-CF from the manifest material text; print
+      direction not yet chosen for the arm shell''s covers (the print checks read them as not measured)'
+  section: Elbow
+- match: R_upper_arm_lower_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:3.6x2.2x1.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.5 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two elbow-case PA2x10 heads, pressed into the lower cover's tabs from the head seat to the washer (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match: R_fore_front_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:4.5x3.2x3.35
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.35 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.35
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.1
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.1 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.1
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two M3x8 heads of the forearm front cover, pressed into its bosses from the head seat to the forearm connector's face (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match: R_fore_back_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:4.5x3.2x3.85
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.85 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.85
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two M3x8 heads of the forearm back cover, pressed into its bosses from the head seat to the forearm connector's face (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match: L_upper_arm_lower_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:3.6x2.2x1.5
+    name: 304 steel compression sleeve 3.6 x 2.2 x 1.5 mm (outer x inner x length)
+    quantity: 2
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 3.6
+      inner_dia_mm: 2.2
+      length_mm: 1.5
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two elbow-case PA2x10 heads, pressed into the lower cover's tabs from the head seat to the washer (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match: L_fore_front_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:4.5x3.2x3.35
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.35 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.35
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.1
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.1 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.1
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two M3x8 heads of the forearm front cover, pressed into its bosses from the head seat to the forearm connector's face (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match: L_fore_back_hard_cover_steel_sleeves
+  kind: hardware
+  line: steel-sleeve-sets
+  name: Steel sleeve sets (CAD parts; the sleeves are bought by size, see contains)
+  make_buy: context
+  quantity: 1
+  generator: arm-shell
+  contains:
+  - line: sleeve:4.5x3.2x3.85
+    name: 304 steel compression sleeve 4.5 x 3.2 x 3.85 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 3.85
+    supplier: unknown
+    part_number: unknown
+  - line: sleeve:4.5x3.2x4.6
+    name: 304 steel compression sleeve 4.5 x 3.2 x 4.6 mm (outer x inner x length)
+    quantity: 1
+    make_buy: buy
+    spec:
+      kind: sleeve
+      standard: 304 stainless compression sleeve
+      outer_dia_mm: 4.5
+      inner_dia_mm: 3.2
+      length_mm: 4.6
+    supplier: unknown
+    part_number: unknown
+  notes: Under the two M3x8 heads of the forearm back cover, pressed into its bosses from the head seat to the forearm connector's face (arm_shell.py build; owner 2026-11-18 / M-d7rbjy, every clamped printed hole carries a sleeve).
+  section: Elbow
+- match:
+  - upper__L_elbow_case_PA2x10_2
+  - upper__L_elbow_case_PA2x10_4
+  - upper__R_elbow_case_PA2x10_2
+  - upper__R_elbow_case_PA2x10_4
+  kind: hardware
+  line: hw:PA2-x-10-ISO-7380-1
+  name: PA2 x 10 ISO 7380-1
+  make_buy: buy
+  quantity: 4
+  generator: arm-shell
+  spec:
+    kind: screw
+    thread: M2
+    family: PA
+    length_mm: 10.0
+    standard: ISO 7380-1
+    head_dia_mm: 3.5
+    head_height_mm: 1.3
+    label: PA2 x 10 ISO 7380-1
+  supplier: unknown
+  part_number: PA2 x 10 ISO 7380-1
+  notes: 'Elbow-case screws (were PA2x7, claimed in ape-proportions/build.bom.yaml): the lower cover''s 1.5 mm tab and its sleeve sit between
+    washer and head, so the stack grows by 1.5. PA2x7 engaged 1.8 mm of the STS3250 case hole''s 3.0 mm reference (aluminium, modelled depth
+    3.9 / 4.8); PA2x10 engages 3.3 with the tip 0.6 mm or more short of the bottom (PA2x8: 1.3). Standard part: the designation is the part
+    number; supplier: no repo source (unknown).'
+  section: Elbow
+assembly:
+  steps:
+  - id: right_arm:p034
+    subassembly: right_arm
+    part: R_upper_arm_hard_cover
+    direction:
+    - -1.0
+    - 0.0
+    - 0.0
+    after:
+    - right_arm:p033
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via R_shoulder_roll_to_yaw_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (R_upper_arm_shell_front_M3x8, R_upper_arm_shell_rear_M3x6), head to tip when the part carries the
+      head, else reversed; direction searched (six axes vs the seeded [0.0, 1.0, -0.0]): path contact 59.5 -> 41.5 mm out, seat released True
+      -> True, max overlap 2264.3 -> 2402.8 mm3'
+  - id: right_arm:s035
+    subassembly: right_arm
+    screw: R_upper_arm_shell_front_M3x8
+    with:
+    - R_upper_arm_shell_front_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
+  - id: right_arm:s036
+    subassembly: right_arm
+    screw: R_upper_arm_shell_rear_M3x6
+    with:
+    - R_upper_arm_shell_rear_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:s035
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after R_upper_arm_hard_cover; driver path vs placed parts
+  - id: left_arm:p034
+    subassembly: left_arm
+    part: L_upper_arm_hard_cover
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
+    after:
+    - left_arm:p033
+    status: seeded
+    derived: 'graph order, fastened distance 4 from what is present (via L_shoulder_roll_to_yaw_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (L_upper_arm_shell_front_M3x8, L_upper_arm_shell_rear_M3x6), head to tip when the part carries the
+      head, else reversed; direction searched (six axes vs the seeded [-0.0, 1.0, 0.0]): path contact 59.5 -> 41.5 mm out, seat released True
+      -> True, max overlap 2255.9 -> 2432.3 mm3'
+  - id: left_arm:s035
+    subassembly: left_arm
+    screw: L_upper_arm_shell_front_M3x8
+    with:
+    - L_upper_arm_shell_front_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p034
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
+  - id: left_arm:s036
+    subassembly: left_arm
+    screw: L_upper_arm_shell_rear_M3x6
+    with:
+    - L_upper_arm_shell_rear_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:s035
+    status: seeded
+    derived: 1 screw(s) whose joined parts are all placed after L_upper_arm_hard_cover; driver path vs placed parts
+  - id: right_arm:p037
+    subassembly: right_arm
+    part:
+    - R_upper_arm_lower_cover
+    - R_upper_arm_lower_cover_steel_sleeves
+    direction:
+    - -1.0
+    - -0.0
+    - -0.0
+    after:
+    - right_arm:s036
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via R_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__R_elbow_case_PA2x7), head to tip when the part carries the head, else reversed'
+  - id: right_arm:s038
+    subassembly: right_arm
+    screw:
+    - upper__R_elbow_case_PA2x10_2
+    - upper__R_elbow_case_PA2x10_4
+    with:
+    - upper__R_elbow_case_spacer2
+    - upper__R_elbow_case_spacer4
+    - upper__R_elbow_case_washer2
+    - upper__R_elbow_case_washer4
+    direction: screw axis
+    after:
+    - right_arm:p037
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after R_upper_arm_lower_cover; driver path vs placed parts
+  - id: right_arm:p039
+    subassembly: right_arm
+    part:
+    - R_fore_back_hard_cover
+    - R_fore_back_hard_cover_steel_sleeves
+    direction:
+    - 0.0
+    - -1.0
+    - 0.0
+    after:
+    - right_arm:s038
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via R_forearm_elbow_to_wrist_combined); direction: mean screw direction of
+      1 screw(s) joining it to placed parts (R_fore_back_M3x8), head to tip when the part carries the head, else reversed'
+  - id: right_arm:s040
+    subassembly: right_arm
+    screw:
+    - R_fore_back_M3x8_178
+    - R_fore_back_M3x8_187
+    with:
+    - R_fore_back_178_M3_nut
+    - R_fore_back_187_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p039
+    status: designer
+    derived: 'arm shell 2026-11-24: both forearm back screws clamp the back cover through its sleeves (arm_shell.py fore_mounts), so both go
+      in after it (the 178 screw was step right_arm:s025 of ape-proportions/build.bom.yaml, before the cover)'
+  - id: right_arm:p041
+    subassembly: right_arm
+    part:
+    - R_fore_front_hard_cover
+    - R_fore_front_hard_cover_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - right_arm:s040
+    status: seeded
+    derived: 'graph order, fastened distance 16 from what is present (via R_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (R_forearm_elbow_to_wrist_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0,
+      1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 618.2 -> 0.0 mm3'
+  - id: right_arm:s042
+    subassembly: right_arm
+    screw:
+    - R_fore_front_M3x8_178
+    - R_fore_front_M3x8_187
+    with:
+    - R_fore_front_178_M3_nut
+    - R_fore_front_187_M3_nut
+    direction: screw axis
+    after:
+    - right_arm:p041
+    status: designer
+    derived: 'arm shell 2026-11-24: both forearm front screws clamp the front cover through its sleeves (arm_shell.py fore_mounts), so they go
+      in after it (they were step right_arm:s026 of ape-proportions/build.bom.yaml, before the cover)'
+  - id: left_arm:p037
+    subassembly: left_arm
+    part:
+    - L_upper_arm_lower_cover
+    - L_upper_arm_lower_cover_steel_sleeves
+    direction:
+    - 1.0
+    - 0.0
+    - 0.0
+    after:
+    - left_arm:s036
+    status: seeded
+    derived: 'graph order, fastened distance 5 from what is present (via L_upper_arm_yaw_to_elbow_combined); direction: mean screw direction of
+      2 screw(s) joining it to placed parts (upper__L_elbow_case_PA2x7), head to tip when the part carries the head, else reversed; direction
+      searched (six axes vs the seeded [-1.0, 0.0, 0.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 1901.9 -> 1669.8
+      mm3'
+  - id: left_arm:s038
+    subassembly: left_arm
+    screw:
+    - upper__L_elbow_case_PA2x10_2
+    - upper__L_elbow_case_PA2x10_4
+    with:
+    - upper__L_elbow_case_spacer2
+    - upper__L_elbow_case_spacer4
+    - upper__L_elbow_case_washer2
+    - upper__L_elbow_case_washer4
+    direction: screw axis
+    after:
+    - left_arm:p037
+    status: seeded
+    derived: 2 screw(s) whose joined parts are all placed after L_upper_arm_lower_cover; driver path vs placed parts
+  - id: left_arm:p039
+    subassembly: left_arm
+    part:
+    - L_fore_back_hard_cover
+    - L_fore_back_hard_cover_steel_sleeves
+    direction:
+    - -0.0
+    - -1.0
+    - 0.0
+    after:
+    - left_arm:s038
+    status: seeded
+    derived: 'graph order, fastened distance 7 from what is present (via L_forearm_elbow_to_wrist_combined); direction: mean screw direction of
+      1 screw(s) joining it to placed parts (L_fore_back_M3x8), head to tip when the part carries the head, else reversed'
+  - id: left_arm:s040
+    subassembly: left_arm
+    screw:
+    - L_fore_back_M3x8_178
+    - L_fore_back_M3x8_187
+    with:
+    - L_fore_back_178_M3_nut
+    - L_fore_back_187_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p039
+    status: designer
+    derived: 'arm shell 2026-11-24: both forearm back screws clamp the back cover through its sleeves (arm_shell.py fore_mounts), so both go
+      in after it (the 178 screw was step left_arm:s025 of ape-proportions/build.bom.yaml, before the cover)'
+  - id: left_arm:p041
+    subassembly: left_arm
+    part:
+    - L_fore_front_hard_cover
+    - L_fore_front_hard_cover_steel_sleeves
+    direction:
+    - 0.0
+    - 1.0
+    - 0.0
+    after:
+    - left_arm:s040
+    status: seeded
+    derived: 'graph order, fastened distance 16 from what is present (via L_forearm_elbow_to_wrist_combined); direction: toward the centroid of
+      placed neighbours (L_forearm_elbow_to_wrist_combined), snapped to the nearest axis; direction searched (six axes vs the seeded [0.0, 0.0,
+      1.0]): path contact 60.0 -> 0.0 mm out, seat released True -> True, max overlap 618.5 -> 0.0 mm3'
+  - id: left_arm:s042
+    subassembly: left_arm
+    screw:
+    - L_fore_front_M3x8_178
+    - L_fore_front_M3x8_187
+    with:
+    - L_fore_front_178_M3_nut
+    - L_fore_front_187_M3_nut
+    direction: screw axis
+    after:
+    - left_arm:p041
+    status: designer
+    derived: 'arm shell 2026-11-24: both forearm front screws clamp the front cover through its sleeves (arm_shell.py fore_mounts), so they go
+      in after it (they were step left_arm:s026 of ape-proportions/build.bom.yaml, before the cover)'
+defects:
+- id: arm-shell-mesh-only
+  kind: other
+  parts:
+  - '*_upper_arm_hard_cover'
+  - '*_upper_arm_lower_cover'
+  - '*_fore_front_hard_cover'
+  - '*_fore_back_hard_cover'
+  - '*_upper_arm_lower_cover_steel_sleeves'
+  - '*_fore_front_hard_cover_steel_sleeves'
+  - '*_fore_back_hard_cover_steel_sleeves'
+  state: 'arm_shell.py builds the covers and sleeves with mesh booleans (manifold3d) from the parametric surface and writes closed meshes
+    (.npz), no STEP: the checks read the mesh (B-rep audit not run).'
+  fix: Build the same sweep as a B-rep (lofted superellipse sections in build123d / OCC) and cut it with the same analytic seams (medium).
+  effort: medium

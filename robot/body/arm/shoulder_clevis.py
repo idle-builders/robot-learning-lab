@@ -261,7 +261,16 @@ ROLL_XZ = (106.0, 360.0)
 
 # Stage 1 (body frame, mm)
 PITCH_KEEP_X = 86.0                    # today's part kept for x <= this: the pitch horn interface, unchanged
-BAR_X, BAR_Z = (86.0, 90.0), (346.0, 370.0)
+BAR_X, BAR_Z = (86.0, 90.0), (346.0, 370.0)   # today's straight bar (kept as the reference section: 4 x 24 = 96 mm2)
+# Explore D (owner 2026-11-23, "hug tight"): the bar is an arc concentric with the roll axis, so that, turning with the pitch
+# link about the roll axis, it sweeps a thin shell of revolution (rho ARC_R .. ARC_R + ARC_T) that a closed cover can hug.
+# psi = angle about the roll axis from +z toward +x (deg, body frame at standing). ARC_R = the roll servo case's largest
+# distance from the roll axis over the sector the arc sweeps relative to it (psi ARC_PSI[0] - 15 .. ARC_PSI[1] + 95: 14.3 mm)
+# + 1.6 running clearance. The arms are fans: the hub disc r HUB_R plus the sector out to the arc's outer radius over ARC_PSI.
+ARC_R, ARC_T = 15.9, 2.9               # inner radius, radial thickness (section 2.9 x 37.4 mm arc length = 108 mm2 >= 96); 3.5
+                                       # gave a hood 0.6 mm too deep for the torso (pitch servo face x 80.5)
+ARC_PSI = (-125.0, 0.0)                # the arc's span about the roll axis (the pitch hub sits at psi -137 .. -75)
+ARC_FILLET = 1.0                       # 2D corner radius of the arc section
 HORN_FACE_Y = 23.68                    # outer face of the roll horn mesh (the defined hole opening is 23.28)
 HORN_ARM_T = 4.6                       # horn arm 23.68 .. 28.28: stack 5.0 from the hole opening -> M3x8 at reference engagement
 IDLER_FACE_Y = -13.33                  # idler outer face (official STEP, registered case transform)
@@ -426,29 +435,37 @@ def build_stage1(holes):
     iy1, iy0 = IDLER_FACE_Y, IDLER_FACE_Y - IDLER_ARM_T
     # 1. pitch interface: today's B-rep for x <= 86 (pitch cheek, bosses, ring, the 4 sleeve bores, counterbores)
     keep = largest(_bool("common", largest(today_step(S1)), [occ_box(80.0, PITCH_KEEP_X, -30, 40, 330, 380)]))
-    # 2. bar along y, x 86..90, from the idler arm's outer face to the horn arm's outer face
-    bar = occ_box(BAR_X[0], BAR_X[1], iy0, hy1, BAR_Z[0], BAR_Z[1])
-    # 3. arms (x-z profile): hub r HUB_R about the roll axis + a neck back to the bar
-    neck = Polygon((BAR_X[0], BAR_Z[0]), (rx, rz - HUB_R), (rx, rz + HUB_R), (BAR_X[0], BAR_Z[1]), align=None)
-    prof = C.fillet_2d_face((neck + Pos(rx, rz) * Circle(HUB_R)).clean().faces()[0], 2.0, r_inner=4.0,
-                            skip_xy=[(BAR_X[0], BAR_Z[0]), (BAR_X[0], BAR_Z[1])])
+    # 2. bar: an arc about the roll axis (rho ARC_R .. ARC_R + ARC_T over ARC_PSI), from the idler arm's outer face to the
+    # horn arm's outer face
+    ro = ARC_R + ARC_T
+
+    t = np.radians(np.linspace(ARC_PSI[0], ARC_PSI[1], 7))
+    wedge = Polygon(*([(rx, rz)] + [(rx + 2 * ro * np.sin(a), rz + 2 * ro * np.cos(a)) for a in t]), align=None)
+    band = (Pos(rx, rz) * Circle(ro) - Pos(rx, rz) * Circle(ARC_R)) & wedge
+    band = C.fillet_2d_face(band.faces()[0], ARC_FILLET, r_inner=ARC_FILLET)
+    bar = C.extrude_xy_to_y(band, iy0, hy1)
+    # 3. arms (x-z profile): hub r HUB_R about the roll axis + the fan out to the arc's outer radius over ARC_PSI
+    fan = (Pos(rx, rz) * Circle(ro)) & wedge
+    prof = C.fillet_2d_face((fan + Pos(rx, rz) * Circle(HUB_R)).clean().faces()[0], 2.0, r_inner=4.0)
     arm_h = C.extrude_xy_to_y(prof, hy0, hy1)
     arm_i = C.extrude_xy_to_y(prof, iy0, iy1)
-    # 4. pitch hub: a solid disc about the pitch axis from the horn face to the bar's outer face (fills the kept B-rep's
-    # breakout at sleeve 2 and its open counter faces); the sleeve bores, counterbores and centre are cut again below
+    # 4. pitch hub: a solid disc about the pitch axis from the horn face to x BAR_X[1] (fills the kept B-rep's breakout at
+    # sleeve 2 and its open counter faces), then cut back to the arc's inner radius between the arms (nothing of the pitch
+    # link reaches inside rho ARC_R there: the roll case turns in it); the sleeve bores, counterbores and centre are cut below
     py, pz = PITCH_YZ_C
     hub = occ_cyl((PITCH_SLEEVE_X[0], py, pz), (BAR_X[1], py, pz), PITCH_HUB_R)
     body = largest(_bool("fuse", keep, [bar, arm_h, arm_i, hub]))
     cut = [occ_cyl((rx, hy0 - 1, rz), (rx, hy1 + 1, rz), HORN_CENTRE_R),
-           occ_cyl((rx, iy0 - 1, rz), (rx, iy1 + 1, rz), IDLER_CENTRE_R)]
+           occ_cyl((rx, iy0 - 1, rz), (rx, iy1 + 1, rz), IDLER_CENTRE_R),
+           occ_cyl((rx, iy1, rz), (rx, hy0, rz), ARC_R)]
     # today's pitch sleeve bores (r = sleeve OD / 2 as every other sleeve here) and head counterbores from the sleeve exit
     # plane through the bar (driver access to the pitch horn screws; the heads pass through them)
     for (u, v) in ((-7.0, 0.0), (0.0, 7.0), (7.0, 0.0), (0.0, -7.0)):
         cut.append(occ_cyl((PITCH_SLEEVE_X[0] - 1.0, py + u, pz + v), (PITCH_SLEEVE_X[1], py + u, pz + v), M3_SLEEVE[0]))
-        cut.append(occ_cyl((PITCH_SLEEVE_X[1], py + u, pz + v), (BAR_X[1] + 1.0, py + u, pz + v), PITCH_BORE_R))
+        cut.append(occ_cyl((PITCH_SLEEVE_X[1], py + u, pz + v), (rx - ARC_R + 1.0, py + u, pz + v), PITCH_BORE_R))
     # rocker-screw head pocket (the horn is screwed to the servo before the U goes on), then a hex-key channel
     cut.append(occ_cyl((80.0, py, pz), (PITCH_ROCKER_TOP_X, py, pz), PITCH_CENTRE_R))
-    cut.append(occ_cyl((PITCH_ROCKER_TOP_X, py, pz), (BAR_X[1] + 1.0, py, pz), PITCH_DRIVER_R))
+    cut.append(occ_cyl((PITCH_ROCKER_TOP_X, py, pz), (rx - ARC_R + 1.0, py, pz), PITCH_DRIVER_R))
     sleeves, sites = [], []
     for k in range(1, 5):
         o = holes[f"STS3250.horn+y.{k}"]["opening"]
@@ -587,7 +604,10 @@ def _density(part):
 def sections():
     """Wall / bar sections of the built parts (mm), from the constants."""
     return dict(
-        stage1=dict(bar=dict(x=list(BAR_X), z=list(BAR_Z), section_mm=[BAR_X[1] - BAR_X[0], BAR_Z[1] - BAR_Z[0]],
+        stage1=dict(bar=dict(arc_about_roll_axis=dict(r_in=ARC_R, thickness=ARC_T, psi_deg=list(ARC_PSI),
+                                                      arc_length_mid_mm=round(np.radians(ARC_PSI[1] - ARC_PSI[0]) * (ARC_R + ARC_T / 2), 2),
+                                                      section_mm2=round(ARC_T * np.radians(ARC_PSI[1] - ARC_PSI[0]) * (ARC_R + ARC_T / 2), 1)),
+                             reference_straight_bar=dict(x=list(BAR_X), z=list(BAR_Z)), section_mm=[BAR_X[1] - BAR_X[0], BAR_Z[1] - BAR_Z[0]],
                              y=[round(IDLER_FACE_Y - IDLER_ARM_T, 2), round(HORN_FACE_Y + HORN_ARM_T, 2)]),
                     horn_arm=dict(y=[HORN_FACE_Y, round(HORN_FACE_Y + HORN_ARM_T, 2)], thickness=HORN_ARM_T, hub_r=HUB_R),
                     idler_arm=dict(y=[round(IDLER_FACE_Y - IDLER_ARM_T, 2), IDLER_FACE_Y], thickness=IDLER_ARM_T, hub_r=HUB_R),

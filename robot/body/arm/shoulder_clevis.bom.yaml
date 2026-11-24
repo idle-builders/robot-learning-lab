@@ -315,20 +315,22 @@ parts:
         - Bambu PETG-CF
         mesh_h_mm: 0.9
         convergence:
-          manifest: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build)
+          manifest: artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json (arc blue U bar, arm shell, 2026-11-24; R run, L its mirror)
           levels:
           - h_from: '0.9'
             h_to: '0.7'
-            nodes: 17649 -> 32677
-            p99_change_pct: +2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)
-            p99_layer_tension_change_pct: +1.5 (max)
-            max_displacement_change_pct: +5.4 (max)
-          earlier_geometry: 'the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
+            nodes: 25156 -> 41941
+            p99_change_pct: +2.6 (recovery envelope max 28.18 -> 28.92 MPa, PAHT-CF, layer normal x)
+            p99_layer_tension_change_pct: layer ratio min 5.51 -> 5.43 (-1.4)
+            max_displacement_change_pct: +6.1 (0.945 -> 1.003 mm)
+          earlier_geometry: 'straight-bar blue U (pitch hub r 13.5 build): 0.9 -> 0.7 p99 +2.9..+3.3 %, displacement +5.4 %, at h 0.7 p99 max
+            22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72 mm; the kept pitch interface before the hub: 1.2 -> 0.9
+            p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
           stored_h_rule: first level whose p99 change to the next finer level is < 5 %
           stored_h_result: '0.9'
           converged: true
-          at_h_0p7: 'recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72
-            mm, 0 wrenches below 1'
+          at_h_0p7: 'arc U, recovery PAHT-CF over 8310 wrenches: p99 max 28.9 MPa, strength ratio min 3.04, layer ratio min 5.43, displacement
+            max 1.00 mm, 0 wrenches below 1 (2026-11-24, check label arm-shell-fem-u-h07)'
       shoulder_u_convergence:
         _doc: 'Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.'
         load:
@@ -668,20 +670,22 @@ parts:
         - Bambu PETG-CF
         mesh_h_mm: 0.9
         convergence:
-          manifest: artifacts/robot/body/arm/shoulder-clevis/assembly-parts-shoulder-u.json (pitch hub r 13.5 build)
+          manifest: artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json (arc blue U bar, arm shell, 2026-11-24; R run, L its mirror)
           levels:
           - h_from: '0.9'
             h_to: '0.7'
-            nodes: 17649 -> 32677
-            p99_change_pct: +2.9..+3.3 (recovery envelope max / p50 / p90, PAHT-CF, layer normal x)
-            p99_layer_tension_change_pct: +1.5 (max)
-            max_displacement_change_pct: +5.4 (max)
-          earlier_geometry: 'the kept pitch interface (before the r 13.5 hub): 1.2 -> 0.9 p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
+            nodes: 25156 -> 41941
+            p99_change_pct: +2.6 (recovery envelope max 28.18 -> 28.92 MPa, PAHT-CF, layer normal x)
+            p99_layer_tension_change_pct: layer ratio min 5.51 -> 5.43 (-1.4)
+            max_displacement_change_pct: +6.1 (0.945 -> 1.003 mm)
+          earlier_geometry: 'straight-bar blue U (pitch hub r 13.5 build): 0.9 -> 0.7 p99 +2.9..+3.3 %, displacement +5.4 %, at h 0.7 p99 max
+            22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72 mm; the kept pitch interface before the hub: 1.2 -> 0.9
+            p99 +6.1..+7.7 %, 0.9 -> 0.7 +3.0..+3.1 %'
           stored_h_rule: first level whose p99 change to the next finer level is < 5 %
           stored_h_result: '0.9'
           converged: true
-          at_h_0p7: 'recovery PAHT-CF over 8310 wrenches: p99 max 22.1 MPa, strength ratio min 3.98, layer ratio min 5.77, displacement max 0.72
-            mm, 0 wrenches below 1'
+          at_h_0p7: 'arc U, recovery PAHT-CF over 8310 wrenches: p99 max 28.9 MPa, strength ratio min 3.04, layer ratio min 5.43, displacement
+            max 1.00 mm, 0 wrenches below 1 (2026-11-24, check label arm-shell-fem-u-h07)'
       shoulder_u_convergence:
         _doc: 'Mesh-convergence variant of shoulder_u: the deciding case only (recovery_4kg_1p5g envelope, Bambu PAHT-CF), for runs at finer --fem-mesh-h.'
         load:
@@ -1057,3 +1061,57 @@ assembly:
     status: seeded
     derived: 4 screw(s) whose joined parts are all placed after upper__L_roll_C047_main_horn; driver path vs placed parts; moved after s017 (its
       part upper__L_roll_C047_main_horn blocked that screw's driver path, 464.326 mm3)
+study:
+  study_id: shoulder-roll-u-connectors
+  title: Shoulder roll held on both faces (arc blue U and green U)
+  robot_sections:
+  - Shoulder
+  workspace: Body
+  summary: 'Roll servo held on both faces: blue U (pitch link) on the roll horn + idler (a bearing), its bar now an arc about the roll axis
+    (route D, owner 2026-11-23 / 24); green U (roll link) on the 2 + 2 far case holes. Recovery envelope, PAHT-CF: blue U strength ratio min
+    3.12 R / 3.08 L (straight bar 3.45).'
+  maturity: CAD with the shared checks on both sides (motion, print rules, screws, envelope FEM with one mesh-convergence level on the arc
+    U); owner accepted the look (M-rya3ty, M-eb6cxz). Not printed, not loaded, robot model not updated.
+  observation: 'The shoulder roll servo is held on both faces. The blue U on the pitch link grips the roll horn and the roll idler; since
+    2026-11-24 its bar is an arc concentric with the roll axis (r 15.9 mm, 2.9 mm thick, -125..0 deg, fan arms), so the arm shell''s hood
+    can follow the roll axis with a small cut-in for the hub. The green U on the roll link clamps the roll case on its 2 + 2 far holes and
+    carries the upper-arm cover''s two mounts. Over the arm load envelope (8310 hand-force wrenches per case, push cone) no wrench takes
+    the arc blue U below strength or layer ratio 1 in either material.'
+  measurements: 'Arc blue U, FEM variant shoulder_u (idler as a bearing, h 0.9, 25156 nodes R), worst over the envelope: recovery 4 kg x
+    1.5 g PAHT-CF p99 max 28.2 MPa, strength ratio min 3.12, layer ratio min 5.51, displacement max 0.945 mm (L 28.5 MPa, 3.08, 5.50, 0.958
+    mm); PETG-CF 2.09 / 3.30 / 1.49 mm (L 2.06 / 3.29 / 1.51 mm); support 4 kg x 1 g PAHT-CF 3.81 / 0.79 mm; manipulation 9.41 / 0.32 mm.
+    Straight-bar blue U on the same setup: 3.45 / 0.86 mm (recovery, PAHT-CF). Mesh convergence 0.9 -> 0.7 (41941 nodes, recovery
+    PAHT-CF): p99 max +2.6 % (28.9 MPa), strength ratio 3.04, displacement +6.1 % (1.00 mm). Green U unchanged since its own run
+    (shoulder-u-s2-fem-fixed, 2026-11-22): recovery PAHT-CF strength ratio min 10.25. Motion (arm region library poses, with the arm shell):
+    blue U x roll case 0.60 mm at the pitch 150 / roll 95 / yaw 60 / elbow 95 corner, blue U x upper-arm cover 1.41 mm at roll -15; range
+    sweep pitch, yaw and elbow without contact inside the declared ranges, roll first contact at -15 (lower cover x torso shells, 12.5 + 5.3
+    mm3).'
+  limitations: 'Linear static FEM of the printed part alone: servo case and horn rigid at the patches, the idler a bearing (free about the
+    roll axis); one convergence level on the arc U (R; L its mirror). Yaw-case PA2x7 screws on the green U engage 1.8 of the 3.0 mm
+    reference (today''s interface, unchanged). Driver access: the pitch-horn and inner yaw-case screws are reached only before the roll
+    servo goes in (200-440 mm3 of the driver path). The pitch servo is still held on one side only. Robot model (URDF) and controller not
+    updated. Nothing printed or loaded.'
+  scope:
+    parts:
+    - '*_shoulder_pitch_to_roll_combined*'
+    - '*_shoulder_roll_to_yaw_combined*'
+    - upper__*_roll_C047_rear_idler
+    - '*_shoulder_u_*'
+  statements:
+  - text: Idle T-2e49mv (connectors), T-tph7xb (arc bar with the arm shell)
+  - text: 'owner 2026-11-20 (M-rya3ty): "Much better the two U connectors look clean now. Continue"; 2026-11-24 (M-eb6cxz): arc U and arm
+      shell approved'
+  evidence:
+  - label: Blue U FEM setups (shoulder_u, shoulder_u_convergence) and their convergence record
+    path: robot/body/arm/shoulder_clevis.bom.yaml
+  - label: Shoulder U builder (arc bar ARC_R / ARC_T)
+    path: robot/body/arm/shoulder_clevis.py
+  renders:
+  - label: arm shell standing (arc blue U under the hood)
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-standing.png
+  - label: arm shell range ends
+    path: artifacts/robot/body/arm/arm-shell/renders/arm-shell-range-ends.png
+  cad:
+    label: Complete body with the shoulder U connectors and the arm shell
+    show_shells: true
+    motion_note: Joint sliders are inspection commands over the declared ranges, not qualified travel.
