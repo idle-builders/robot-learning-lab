@@ -1,5 +1,5 @@
 {
- "_doc": "The press tooling the press check (robot/body/checks/press_lib.py, modules/press.py) models around each pressed-in steel sleeve: the heated press tip and its tool body on the entry side, the old fixed anvil post and the spacer block on the counter side. Sizes of the owner's tools (Idle M-evmrv6), moved out of press_lib.py unchanged; change them here to score another tool.",
+ "_doc": "The press tooling the press check (robot/body/checks/press_lib.py, modules/press.py) models around each pressed-in steel sleeve: the heated press tip and its tool body on the entry side, the old fixed anvil post and the spacer block on the counter side. Sizes of the owner's tools (Idle M-evmrv6), moved out of press_lib.py unchanged; change them here to score another tool. The heated tip / tool body / anvil sizes above are for the pressed-in steel sleeves; heat-set inserts use heat_set_insert_tips.",
  "tool_tip_dia_mm": 8.0,
  "tool_tip_length_mm": 15.0,
  "tool_body_dia_mm": 20.0,
@@ -10,5 +10,40 @@
  "counter_face_tolerance_mm": 0.2,
  "counter_face_edge_skip_mm": 0.15,
  "spacer_free_depth_cap_mm": 40.0,
- "spacer_recess_search_mm": 10.0
+ "spacer_recess_search_mm": 10.0,
+ "heat_set_insert_tips": {
+  "_doc": "Installation tips for brass heat-set inserts (a part is told to hold inserts by its sleeve set's definition: contains[].spec.kind insert, with its thread, length and outer diameter). Source: McMaster-Carr catalogue, 'Installation Tips for Heat-Set Inserts' (https://www.mcmaster.com/products/heat-set-insert-tips, read 2026-11-24): every tip from 0-80 / M2 to M10 has a 1/4 in (6.35 mm) tip shank with a plug connection; part number per thread below. The catalogue gives no working-end diameter or length, so the check enters none: the working face is taken as the insert's own outer diameter from its definition (the face presses on the insert, which the tip pushes flush), and instead of assuming a working-end length the check measures the length the tip needs for its shank to clear the part (shank_clearance_mm).",
+  "M2": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A341 (0-80, M2)"
+  },
+  "M2.5": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A315 (4-40, M2.5, M3)"
+  },
+  "M3": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A315 (4-40, M2.5, M3)"
+  },
+  "M3.5": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A319 (6-32, M3.5)"
+  },
+  "M4": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A323 (8-32, M4)"
+  },
+  "M5": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A327 (10-24, 10-32, M5, M6)"
+  },
+  "M6": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A327 (10-24, 10-32, M5, M6)"
+  },
+  "M8": {
+   "shank_dia_mm": 6.35,
+   "part_number": "McMaster-Carr 92160A308 (5/16-18, 5/16-24, M8)"
+  }
+ }
 }

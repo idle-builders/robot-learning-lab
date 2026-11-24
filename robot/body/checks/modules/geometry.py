@@ -16,6 +16,7 @@ from checks.registry import register
 # thresholds of the old audit, kept as named measurement definitions (they define what a counted event is, not a verdict);
 # a part's own values come from its `geometry_thresholds` setting (part_settings.json, defaults there); these are the fallback
 DEFAULT_THRESHOLDS = dict(sliver_mm2=0.25, micro_edge_mm=0.30, acute_normal_deg=125.0, g1_kink_deg=8.0)
+CHAMFER_MAX_MM = 2.0          # a planar strip at most this wide (area / longest edge) is a chamfer (as in edges.py)
 # Parts we make (printed, or kind made / other: cut, machined, harness, insulator) have our own STEP and are audited. Every other part
 # is bought (kind purchased / included / hardware, or unknown): its STEP is the supplier's (power supervisor board 80 MB, ROCK4D 45,
 # ST3025 cases 15 each, thousands of component solids), the audit of its B-rep says nothing about our design and an unscoped run never
@@ -61,53 +62,110 @@ def brep_audit(sh, thresholds=None):
     from OCP.TopExp import TopExp, TopExp_Explorer
     from OCP.TopoDS import TopoDS
     from OCP.TopTools import TopTools_IndexedDataMapOfShapeListOfShape
-    exp_f = TopExp_Explorer(sh.wrapped, TopAbs_FACE)
+    from OCP.TopTools import TopTools_IndexedMapOfShape
+    fmap = TopTools_IndexedMapOfShape(); TopExp.MapShapes_s(sh.wrapped, TopAbs_FACE, fmap)
     total_faces = sliver = cyl_faces = plane_faces = curved = 0
     min_face_area = 1e9
-    worst_sliver = None
     inner_r, outer_r = [], []
-    while exp_f.More():
-        f = TopoDS.Face_s(exp_f.Current())
+    finfo = {}                     # face index -> planar normal / point, width (area / longest edge), small planar faces
+    bores = []                     # concave cylinders: (axis point, unit axis, radius, axial range) of every bore, teardrop, slot arc
+    small_any = []                 # every face under the sliver area, any surface type (the plain OCC listing)
+    for fi in range(1, fmap.Extent() + 1):
+        f = TopoDS.Face_s(fmap.FindKey(fi))
         total_faces += 1
         g = GProp_GProps(); BRepGProp.SurfaceProperties_s(f, g)
         area = float(g.Mass())
+        p = g.CentreOfMass()
+        where = [round(p.X(), 3), round(p.Y(), 3), round(p.Z(), 3)]
         st = BRepAdaptor_Surface(f).GetType()
+        if area < SLIVER_MM2:
+            small_any.append(dict(face=fi, area_mm2=round(area, 5), surface=str(st).split("_")[-1].lower(), location_mm=where))
         if st == GeomAbs_Plane:
             plane_faces += 1
-            if area < min_face_area:
-                min_face_area = area
-            if area < SLIVER_MM2:
-                sliver += 1
-                c = GProp_GProps(); BRepGProp.SurfaceProperties_s(f, c)
-                p = c.CentreOfMass()
-                if worst_sliver is None or area < worst_sliver[0]:
-                    worst_sliver = (area, [round(p.X(), 2), round(p.Y(), 2), round(p.Z(), 2)])
+            min_face_area = min(min_face_area, area)
+            longest = 0.0
+            ex = TopExp_Explorer(f, TopAbs_EDGE)
+            while ex.More():
+                ge = GProp_GProps(); BRepGProp.LinearProperties_s(ex.Current(), ge); longest = max(longest, float(ge.Mass())); ex.Next()
+            pl = BRepAdaptor_Surface(f).Plane(); d = pl.Axis().Direction(); o = pl.Location()
+            finfo[fi] = dict(n=np.array([d.X(), d.Y(), d.Z()]), o=np.array([o.X(), o.Y(), o.Z()]), width=area / max(longest, 1e-9),
+                             area=area, where=where)
         elif st == GeomAbs_Cylinder:
             cyl_faces += 1; curved += 1
             sa = BRepAdaptor_Surface(f, True)
             r_cyl, u_span = float(sa.Cylinder().Radius()), abs(float(sa.LastUParameter() - sa.FirstUParameter()))
+            p_mid, vn = gp_Pnt(), gp_Vec()
+            BRepGProp_Face(f).Normal(0.5 * float(sa.FirstUParameter() + sa.LastUParameter()), 0.5 * float(sa.FirstVParameter() + sa.LastVParameter()), p_mid, vn)
+            ax = sa.Cylinder().Axis(); p0 = ax.Location()
+            d_ax = np.array([ax.Direction().X(), ax.Direction().Y(), ax.Direction().Z()], dtype=float)
+            o_ax = np.array([p0.X(), p0.Y(), p0.Z()], dtype=float)
+            v_p = np.array([p_mid.X(), p_mid.Y(), p_mid.Z()], dtype=float) - o_ax
+            r_vec = v_p - np.dot(v_p, d_ax) * d_ax
+            concave = float(np.dot(np.array([vn.X(), vn.Y(), vn.Z()]), r_vec)) < 0.0
             if r_cyl <= 5.5 and u_span < 5.5:        # small fillet-like cylinder: concave (inner) or convex (outer)?
-                p_mid, vn = gp_Pnt(), gp_Vec()
-                BRepGProp_Face(f).Normal(0.5 * float(sa.FirstUParameter() + sa.LastUParameter()), 0.5 * float(sa.FirstVParameter() + sa.LastVParameter()), p_mid, vn)
-                ax = sa.Cylinder().Axis(); p0 = ax.Location()
-                d_ax = np.array([ax.Direction().X(), ax.Direction().Y(), ax.Direction().Z()], dtype=float)
-                v_p = np.array([p_mid.X() - p0.X(), p_mid.Y() - p0.Y(), p_mid.Z() - p0.Z()], dtype=float)
-                r_vec = v_p - np.dot(v_p, d_ax) * d_ax
-                (inner_r if float(np.dot(np.array([vn.X(), vn.Y(), vn.Z()]), r_vec)) < 0.0 else outer_r).append(r_cyl)
+                (inner_r if concave else outer_r).append(r_cyl)
+            if concave and math.degrees(u_span) >= 90.0:
+                t = [float(sa.FirstVParameter()), float(sa.LastVParameter())]
+                bores.append((o_ax, d_ax, r_cyl, min(t), max(t)))
         else:
             curved += 1
-        exp_f.Next()
+    # sliver = planar face under the sliver area; one that lies in the plane of a planar neighbour (same normal within 1 deg,
+    # planes within 0.01 mm) is a coplanar split of that face (a modelling seam, no printable feature) and is counted apart
+    ef = TopTools_IndexedDataMapOfShapeListOfShape()
+    TopExp.MapShapesAndAncestors_s(sh.wrapped, TopAbs_EDGE, TopAbs_FACE, ef)
+    nbrs = {}
+    for i in range(1, ef.Extent() + 1):
+        lst = ef.FindFromIndex(i)
+        if lst.Extent() == 2:
+            a, b = fmap.FindIndex(lst.First()), fmap.FindIndex(lst.Last())
+            if a != b:
+                nbrs.setdefault(a, set()).add(b); nbrs.setdefault(b, set()).add(a)
+
+    def coplanar(a, b):
+        A, B = finfo.get(a), finfo.get(b)
+        return A is not None and B is not None and abs(float(A["n"] @ B["n"])) > math.cos(math.radians(1.0)) and abs(float((B["o"] - A["o"]) @ A["n"])) < 0.01
+
+    slivers, coplanar_slivers = [], []
+    for fi, inf in finfo.items():
+        if inf["area"] < SLIVER_MM2:
+            row = dict(face=fi, area_mm2=round(inf["area"], 5), width_mm=round(inf["width"], 4), location_mm=inf["where"])
+            co = [b for b in nbrs.get(fi, ()) if coplanar(fi, b)]
+            (coplanar_slivers if co else slivers).append(row)
+    sliver = len(slivers)
+    slivers.sort(key=lambda r: r["area_mm2"]); coplanar_slivers.sort(key=lambda r: r["area_mm2"])
+    worst_sliver = (slivers[0]["area_mm2"], slivers[0]["location_mm"]) if slivers else None
+    cop_faces = {r["face"] for r in coplanar_slivers}
+
+    def in_bore(pt):
+        """True when a point lies inside a bore's envelope: within 1.45 x its radius of the axis (a teardrop roof's apex is at
+        sqrt(2) r) and within its axial range (0.05 mm beyond the ends: the cap edges on the faces the bore opens in)."""
+        for o, a, r, t0, t1 in bores:
+            v = pt - o; t = float(v @ a)
+            if t0 - 0.05 <= t <= t1 + 0.05 and np.linalg.norm(v - t * a) <= 1.45 * r:
+                return True
+        return False
+
     ef = TopTools_IndexedDataMapOfShapeListOfShape()
     TopExp.MapShapesAndAncestors_s(sh.wrapped, TopAbs_EDGE, TopAbs_FACE, ef)
     total_edges = zigzag = acute = g1 = hub = unround = 0
     min_edge, max_normal = 1e9, 0.0
-    worst_zig = worst_acute = None
+    worst_acute = None
+    micro, coplanar_micro, short_any, degenerated = [], [], [], 0
+    unround_hole, unround_chamfer = [], []
     for i in range(1, ef.Extent() + 1):
         edge = TopoDS.Edge_s(ef.FindKey(i))
         if BRep_Tool.Degenerated_s(edge):
+            degenerated += 1         # a seam collapsed to a point (cone apex, sphere pole): zero length, listed by OCC
             continue
         g = GProp_GProps(); BRepGProp.LinearProperties_s(edge, g)
         length = float(g.Mass())
+        c = BRepAdaptor_Curve(edge)
+        u = 0.5 * (c.FirstParameter() + c.LastParameter())
+        pt, vt = gp_Pnt(), gp_Vec()
+        c.D1(u, pt, vt)
+        where = [round(pt.X(), 3), round(pt.Y(), 3), round(pt.Z(), 3)]
+        if length < MICRO_EDGE_MM:
+            short_any.append(dict(length_mm=round(length, 5), curve=str(c.GetType()).split("_")[-1].lower(), location_mm=where))
         if length < 1e-6:
             continue
         total_edges += 1
@@ -117,29 +175,31 @@ def brep_audit(sh, thresholds=None):
         f1, f2 = TopoDS.Face_s(faces.First()), TopoDS.Face_s(faces.Last())
         s1, s2 = BRepAdaptor_Surface(f1), BRepAdaptor_Surface(f2)
         t1, t2 = s1.GetType(), s2.GetType()
-        c = BRepAdaptor_Curve(edge)
-        u = 0.5 * (c.FirstParameter() + c.LastParameter())
-        pt, vt = gp_Pnt(), gp_Vec()
-        c.D1(u, pt, vt)
         n1, n2 = _face_normal_at(f1, pt), _face_normal_at(f2, pt)
         ang = math.degrees(math.acos(np.clip(float(np.dot(n1, n2)), -1.0, 1.0)))
-        where = [round(pt.X(), 2), round(pt.Y(), 2), round(pt.Z(), 2)]
         if t1 == GeomAbs_Plane and t2 == GeomAbs_Plane:
+            i1, i2 = fmap.FindIndex(f1), fmap.FindIndex(f2)
             min_edge = min(min_edge, length)
             if c.GetType() == GeomAbs_Line and length < MICRO_EDGE_MM and ang > 10.0:
-                zigzag += 1
-                if worst_zig is None or length < worst_zig[0]:
-                    worst_zig = (length, where)
+                row = dict(length_mm=round(length, 5), dihedral_deg=round(ang, 1), location_mm=where)
+                # an edge of a coplanar split face (above) is that seam's edge, not a step in the surface
+                (coplanar_micro if (i1 in cop_faces or i2 in cop_faces) else micro).append(row)
             if length > 0.50:
                 max_normal = max(max_normal, ang)
                 if ang > ACUTE_NORMAL_DEG:
                     acute += 1
                     if worst_acute is None or ang > worst_acute[0]:
-                        worst_acute = (ang, where)
+                        worst_acute = (ang, where[:])
             if c.GetType() == GeomAbs_Line and 1.8 <= length <= 9.5 and ang > 25.0:
                 d = c.Line().Direction()
                 if max(abs(d.X()), abs(d.Y()), abs(d.Z())) > 0.995 and abs(float(np.dot(n1, n2))) > 0.08:
-                    unround += 1
+                    row = dict(length_mm=round(length, 3), dihedral_deg=round(ang, 1), location_mm=where)
+                    if in_bore(np.array([pt.X(), pt.Y(), pt.Z()])):
+                        unround_hole.append(row)        # teardrop roof flanks, apex line, cap edges: they bound a hole
+                    elif 40.0 <= ang <= 50.0 and min(finfo[i1]["width"], finfo[i2]["width"]) <= CHAMFER_MAX_MM:
+                        unround_chamfer.append(row)     # an edge of a planar 45 deg chamfer strip
+                    else:
+                        unround += 1
         elif (t1 == GeomAbs_Cylinder and t2 == GeomAbs_Plane) or (t1 == GeomAbs_Plane and t2 == GeomAbs_Cylinder) \
                 or (t1 == GeomAbs_Cylinder and t2 == GeomAbs_Cylinder):
             if c.GetType() == GeomAbs_Line and length > 0.8:
@@ -149,6 +209,9 @@ def brep_audit(sh, thresholds=None):
                     fc, sc = (f1, s1) if t1 == GeomAbs_Cylinder else (f2, s2)
                     if fc.Orientation() != TopAbs_REVERSED and sc.Cylinder().Radius() >= 9.5 and ang > 15.0:
                         hub += 1
+    zigzag = len(micro)
+    micro.sort(key=lambda r: r["length_mm"]); coplanar_micro.sort(key=lambda r: r["length_mm"]); short_any.sort(key=lambda r: r["length_mm"])
+    worst_zig = (micro[0]["length_mm"], micro[0]["location_mm"]) if micro else None
     denom = max(1, g1 + unround + hub)
     return dict(total_faces=total_faces, planar_faces=plane_faces, cylindrical_faces=cyl_faces, curved_faces=curved, total_edges=total_edges,
                 sliver_faces=sliver, min_face_area_mm2=round(float(min_face_area if min_face_area < 1e8 else 0.0), 4),
@@ -158,7 +221,22 @@ def brep_audit(sh, thresholds=None):
                 tangential_continuity_ratio=round(g1 / denom, 4),
                 inner_fillet_faces=len(inner_r), outer_fillet_faces=len(outer_r),
                 mean_inner_fillet_radius_mm=round(float(np.mean(inner_r)), 3) if inner_r else None,
-                mean_outer_fillet_radius_mm=round(float(np.mean(outer_r)), 3) if outer_r else None), dict(sliver=worst_sliver, micro=worst_zig, acute=worst_acute)
+                mean_outer_fillet_radius_mm=round(float(np.mean(outer_r)), 3) if outer_r else None,
+                coplanar_split_faces=len(coplanar_slivers), coplanar_split_micro_edges=len(coplanar_micro),
+                unrounded_edges_bounding_holes=len(unround_hole), unrounded_chamfer_edges=len(unround_chamfer),
+                faces_under_sliver_area_any_type=len(small_any), edges_under_micro_length_any_type=len(short_any), degenerated_edges=degenerated,
+                listing=dict(
+                    _doc=(f"sliver = planar face < {SLIVER_MM2} mm2; coplanar split = such a face in the plane of a planar neighbour (normal within 1 deg, "
+                          f"planes within 0.01 mm), counted apart; micro-edge = straight edge < {MICRO_EDGE_MM} mm between two planar faces whose normals "
+                          f"differ by more than 10 deg (an edge of a coplanar split face counted apart); the *_any_type lists are the plain OCC listing "
+                          f"(every face < {SLIVER_MM2} mm2 and every edge < {MICRO_EDGE_MM} mm of any surface / curve type; degenerated edges have zero "
+                          f"length); unrounded profile corner = straight axis-aligned edge 1.8-9.5 mm between two planes at 25 deg or more and not "
+                          f"square; those inside a bore's envelope (1.45 r of its axis, within its length) and those on a planar strip at most "
+                          f"{CHAMFER_MAX_MM} mm wide at 40-50 deg are counted apart"),
+                    sliver_faces=slivers, coplanar_split_faces=coplanar_slivers, micro_edges=micro, coplanar_split_micro_edges=coplanar_micro,
+                    unrounded_edges_bounding_holes=unround_hole, unrounded_chamfer_edges=unround_chamfer,
+                    faces_under_sliver_area_any_type=sorted(small_any, key=lambda r: r["area_mm2"]), edges_under_micro_length_any_type=short_any)), \
+        dict(sliver=worst_sliver, micro=worst_zig, acute=worst_acute)
 
 
 def _mesh_mf(ctx, name):
@@ -398,7 +476,8 @@ def run(ctx):
     """B-rep hygiene per scoped part (native STEP): invalid solids, sliver faces, micro-edges, acute wedges, G1 kinks, unrounded corners, L/R volume difference, sleeves vs expected."""
     t0 = time.time()
     per_part, cases, skipped = {}, [], []
-    tot = dict(invalid_solids=0, sliver_faces=0, micro_edges=0, acute_wedge_edges=0, non_tangent_hub_steps=0, unrounded_profile_corners=0)
+    tot = dict(invalid_solids=0, sliver_faces=0, micro_edges=0, acute_wedge_edges=0, non_tangent_hub_steps=0, unrounded_profile_corners=0,
+               coplanar_split_faces=0, coplanar_split_micro_edges=0, unrounded_edges_bounding_holes=0, unrounded_chamfer_edges=0)
     from checks import process as P
     bought, dangling, from_mesh, not_measured = {}, [], [], {}
     for n in ctx.scope:
@@ -426,9 +505,13 @@ def run(ctx):
         for k in tot:
             tot[k] += r[k] if k != "invalid_solids" else r["invalid_solids"] + r.get("mirror_invalid_solids", 0)
         if w["sliver"]:
-            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["sliver"][1], value=round(w["sliver"][0], 4), unit="mm2 smallest planar face", what=f"{r['sliver_faces']} sliver faces"))
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["sliver"][1], value=round(w["sliver"][0], 4), unit="mm2 smallest sliver face",
+                              what=f"{r['sliver_faces']} sliver faces (planar < {r['thresholds']['sliver_mm2']} mm2; {r['coplanar_split_faces']} coplanar splits apart; "
+                                   f"{r['faces_under_sliver_area_any_type']} faces of any type in the plain OCC listing); each in per_part.listing"))
         if w["micro"]:
-            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["micro"][1], value=round(w["micro"][0], 4), unit="mm shortest micro-edge", what=f"{r['micro_edges']} micro-edges"))
+            cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["micro"][1], value=round(w["micro"][0], 4), unit="mm shortest micro-edge",
+                              what=f"{r['micro_edges']} micro-edges (straight plane-plane edge < {r['thresholds']['micro_edge_mm']} mm at > 10 deg; {r['coplanar_split_micro_edges']} on coplanar splits apart; "
+                                   f"{r['edges_under_micro_length_any_type']} edges of any type in the plain OCC listing, {r['degenerated_edges']} of zero length); each in per_part.listing"))
         if w["acute"]:
             cases.append(dict(part=n, mating_part=None, pose=None, location_mm=w["acute"][1], value=round(w["acute"][0], 1), unit="deg sharpest wedge normal angle", what=f"{r['acute_wedge_edges']} acute wedge edges"))
         if not r["solids"]:
@@ -475,7 +558,9 @@ def run(ctx):
                 not_measured=not_measured,
                 bad_events=dict(parts_audited=len(per_part) - len(from_mesh), bought_parts_not_audited=len(bought), dangling_native_step=len(dangling), invalid_solids=tot["invalid_solids"], sliver_faces=tot["sliver_faces"], micro_edges=tot["micro_edges"],
                                 acute_wedge_edges=tot["acute_wedge_edges"], non_tangent_hub_steps=tot["non_tangent_hub_steps"],
-                                unrounded_profile_corners=tot["unrounded_profile_corners"],
+                                unrounded_profile_corners=tot["unrounded_profile_corners"], unrounded_edges_bounding_holes=tot["unrounded_edges_bounding_holes"],
+                                unrounded_chamfer_edges=tot["unrounded_chamfer_edges"], coplanar_split_faces=tot["coplanar_split_faces"],
+                                coplanar_split_micro_edges=tot["coplanar_split_micro_edges"],
                                 parts_over_build_volume=sum(1 for r in per_part.values() if (r.get("min_bed_margin_mm") or 0) < 0),
                                 parts_over_build_volume_both_nozzles=sum(1 for r in per_part.values() if (r.get("min_bed_margin_both_nozzles_mm") or 0) < 0),
                                 parts_without_print_direction=sum(1 for r in per_part.values() if r.get("up") is None),
@@ -485,7 +570,9 @@ def run(ctx):
                                 parts_without_native_step=len(skipped) + len(from_mesh) + len(not_measured),
                                 printed_parts_measured_from_own_mesh=len(from_mesh), printed_parts_not_measured=len(not_measured),
                                 steps_without_solid=sum(1 for r in per_part.values() if r["solids"] == 0)),
-                evidence=[], notes="OpenCascade B-rep audit of the native STEP; event thresholds per part (setting geometry_thresholds, per_part[...].thresholds; defaults sliver < 0.25 mm2 planar face, micro-edge < 0.30 mm, acute wedge = normal angle > 125 deg on edges > 0.5 mm, "
+                evidence=[], notes="OpenCascade B-rep audit of the native STEP; event thresholds per part (setting geometry_thresholds, per_part[...].thresholds; defaults sliver < 0.25 mm2 planar face, micro-edge < 0.30 mm straight edge between two planes at > 10 deg, acute wedge = normal angle > 125 deg on edges > 0.5 mm, "
+                                   "each sliver and micro-edge listed with area / length and location in per_part[...].listing, a planar face in the plane of a planar neighbour (normal 1 deg, 0.01 mm) and its edges counted apart as coplanar splits, the plain OCC listing of every face / edge under the thresholds of any type (and zero-length degenerated edges) counted beside them; "
+                                   f"unrounded profile corners without the edges inside a bore's envelope (1.45 r: teardrop roof, apex, cap edges) and those of planar 45 deg strips <= {CHAMFER_MAX_MM} mm wide, both counted apart; "
                                    "G1 = cylinder/plane transition kink <= 8 deg); fillets = small cylinders (r <= 5.5 mm) split concave/convex; bed = extents in the print frame (process.up, plate_yaw_deg) vs the printer's build volume, main nozzle and both nozzles, plus the best plate yaw; without a print direction sorted STEP extents (orientation free); load-path slabs from the part's `loadpath_slices` setting (null = not set); sleeve overlap = manifest-mesh boolean, confirmed by the exact OCC common volume of the STEPs where the mesh reads above 0 (coincident press-fit cylinders tessellate into each other); "
                                    "mesh-only printed parts: what the closed mesh allows (volume, mirror, sleeves, sleeve overlap, build volume, load-path slabs), B-rep audit null; sleeves = solids of the STEPs of the sleeve sets pressed into the part (sleeve_sets: the definition's joined_to {how: pressed}, else the set whose sleeves touch the part) "
                                    "vs the part's expected_hardware.steel_sleeves setting (null = not set); mirror part = the definition's mirror_of, else the part whose x-mirrored box matches (mirror_source)")
