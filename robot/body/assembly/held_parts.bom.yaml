@@ -221,3 +221,62 @@ compose:                           # edits of the manifest composed by roll_flip
   after: [hip-yaw-screws]
   needs: [held-parts]
   notes: fan bridge plate, chest indicator, R roll case, stale screws (T-3npyjq)
+config:
+  # robot/body/assembly/held_parts.py module constants (moved 2026-11-24)
+  TASK:
+    value: T-3npyjq
+  PLATE_Y:
+    value: [8.6, 10.6]
+    doc: fan bridge plate (manifest frame, head link at standing = neutral) standoff end faces / bridge nut faces and the fan's front flange
+  FAN_C:
+    value: [-5.45, 450.5]
+    doc: fan centre (x, z) and half size; holes on a 32 mm square
+  FAN_HALF:
+    value: 20.0
+    doc: fan centre (x, z) and half size; holes on a 32 mm square
+  FAN_OPEN_R:
+    value: 18.0
+    doc: air opening (blades about 37 mm)
+  FAN_HOLES:
+    value: {fan_M3_11_462: [10.55, 466.5], fan_M3_-21_462: [-21.45, 466.5]}
+    doc: 'upper holes: screwed to the plate'
+  FAN_DROP:
+    value: [fan_M3_11_430, fan_washer_11_430, fan_nut_11_430]
+    doc: 'lower right: heatsink in front'
+  LEAD_GUIDE_KEEPOUT:
+    value: [[-30.5, -13.8], [429.0, 439.0]]
+    doc: lead guide, its washer and the fan's lead-exit nub (x -17.0..-14.3); corner inside the air opening
+  GUIDE_SCREW:
+    value: fan_M3x16_guide
+    doc: 'M3x16 already seated on y 8.6 (head 6.95..8.6): its mesh is the model'
+  BOSS_R:
+    value: 4.0
+    doc: M2.5 nut 5.8 across corners; wall and press support around the 3.9 sleeve
+  SLEEVE_M3:
+    value: [4.5, 3.2]
+    doc: 'OD / ID: the body''s most used kind (112), bore_for M3 3.2..3.4'
+  SLEEVE_M2P5:
+    value: [3.9, 2.7]
+    doc: OD of the M2.5 sleeves in use (3.9), ID = standard-parts bore_for M2.5 min
+  COMPUTE:
+    value: {compute_M2p5_CS30_0: fan_bridge_standoff_0, compute_M2p5_CS30_1: fan_bridge_standoff_1}
+  PLATE:
+    value: fan_bridge_plate
+  PLATE_SLEEVES:
+    value: fan_bridge_plate_steel_sleeves
+  SCALE_T:
+    value: 1.4285714285714286
+    doc: '= 500.0 / 350.0. chest indicator: the pocket tool of assemble_complete_fdm_body.py (sphere scaled by these semi-axes x scale_t)'
+  POCKET_AXES:
+    value: [1.95, 4.5, 5.8]
+  POCKET_Z:
+    value: 244.0
+  INDICATOR:
+    value: ape_body_shell__chest_indicator_relief4_r33
+  INDICATOR_GROW:
+    value: 0.4
+  CASE:
+    value: R_roll_servo_case_reference
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

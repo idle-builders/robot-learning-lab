@@ -114,3 +114,282 @@ config:
       (declared hip roll -30..25 in package_complete_leg_hip.bom.yaml); the lower end covers the A-11 leg-out / side-step poses at roll -45
       (robot/body/hip-shell/sections/leg_motion.py).
     decision: thigh session 2026-11-23 (geometry unchanged from 011827980)
+  # robot/body/leg/thigh_shell.py module constants (moved 2026-11-24)
+  GAP:
+    value: 1.5
+    doc: 'inner clearance to covered parts, wall thickness (today''s covers: 2.1)'
+  WALL:
+    value: 2.1
+    doc: 'inner clearance to covered parts, wall thickness (today''s covers: 2.1)'
+  Z0:
+    value: 116.0
+    doc: tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
+  TOP_Z:
+    value: 206.5
+    doc: tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
+  WINDOW:
+    value: 5.0
+    doc: each station hulls the sections within +- WINDOW mm (no waviness)
+  CLEAR:
+    value: 1.5
+  NTH:
+    value: 144
+  CENTRE:
+    value: [55.0, 5.0]
+  COVERED:
+    value: [R_thigh_roll_flip, R_roll_servo_case_reference, R_knee_ST3025_case, R_roll_upper_horn_reference, R_roll_passive_idler_reference]
+  TODAY:
+    value: [R_thigh_front_hard_cover, R_thigh_back_hard_cover]
+    doc: '(the knee output horn is on R_shin and ends at z 132.4, below Z0: it is not covered; hulling it made a lip at the knee end)'
+  NAMES:
+    value: [R_thigh_shell_front, R_thigh_shell_back]
+  SURF_Z:
+    value: [133.0, 207.0]
+    doc: 'Outer surface (owner 2026-11-19: "simple smooth parametric courses, the less parameters the better"; keep the form of 2026-11-18, remove its small ridges and valleys, the outward flare at the knee end and the ridge across the back). Every ring is a two-depth superellipse |dx/a|^e + |dy/b|^e = 1 about (cx, cy): front half (y < cy) depth b_front and exponent n, back half depth b_back and exponent n_back; with e > 2 both halves meet at the sides with zero curvature (no crease). Each of the seven ring parameters is ONE natural cubic spline in z through a few control values at fixed heights (SURF: 2 values = a straight line, 1 = a constant), C2 along z, so the skin has continuous curvature. The control values were fitted (fit-surface) as the surface closest to the 2026-11-18 skin that holds every covered part + GAP + WALL at every 1-mm station between the edges, stays inside the top free space below the top edge (green rim region, yellow sweep; the top edge keeps its height), never widens toward the knee below SURF_Z_MID (extents x min / max, y min / max), keeps the front round from mid-thigh down (n <= 2.6) and the exponents within 2.05..3.6 (front) / 4.2 (back). 25 values in all (2026-11-18: about 165 per-station values plus 17 shaping constants). the splines run over this height (constant beyond; the edges cut at z 136..206.5)'
+  SURF:
+    value: {cx: [[133.0, 207.0], [51.08, 54.289]], cy: [[133.0], [4.5]], a: [[133.0, 160.0, 178.0, 192.0, 207.0], [26.839, 29.897, 30.855, 19.971, 15.167]], b_front: [[133.0, 160.0, 192.0, 207.0], [25.787, 34.306, 31.85, 25.875]], b_back: [[133.0, 160.0, 178.0, 192.0, 207.0], [18.624, 34.293, 35.315, 35.533, 32.609]], n: [[133.0, 160.0, 192.0, 207.0], [2.508, 2.533, 2.465, 3.6]], n_back: [[133.0, 160.0, 192.0, 207.0], [4.2, 3.785, 2.847, 4.2]]}
+    doc: 'parameter: (heights, control values), mm (exponents unitless)'
+  RING:
+    value: [cx, cy, a, b_front, b_back, n, n_back]
+  SURF_Z_MID:
+    value: 172.0
+    doc: below it the ring extents never grow toward the knee (no flare)
+  DZ_ST:
+    value: 1.0
+    doc: ring spacing (and requirement stations) along z
+  LOW_Z_BOT:
+    value: 113.0
+    doc: 'Lower section (owner 2026-11-23, front view of the left thigh: "the sides go in too much, this cannot lead to a continuous design with the shin shell. The idea is that the leg looks like one continuous calm shell with the minimal joint exposed in the middle"). The spline skin tapered the sides in below the widest ring (z ~172: x 20.5..84.8) to x 24.2..77.9 at the knee while the shin covers'' top is x 17.5..86.6 wide. Below the spline''s widest ring each side extent (x min, x max) now runs, with zero slope there (no waist), one smoothstep out to the shin covers'' outer outline at their top (z 114: LOW_X); the front depth b_front and front exponent n run as one quintic, C2 at LOW_FRONT_Z, to the same outline''s superellipse (LOW_FRONT; least squares on the front cover''s outer section at z 112: cx 52.04, a 34.33, b_front 23.19, n 2.73, rms level 0.013). Both reach their targets with zero slope and curvature at LOW_Z_BOT and stay constant below. The back half (b_back, n_back) keeps the spline: the back''s lower edge stays near z 150, where the shin back cover meets it at full flexion. The approved upper skin (SURF, 25 values) is unchanged above z 171 (sides) / 166 (front); 5 values more for the lower section. the lower section reaches the shin outline here (constant below; the knee edge is >= 119)'
+  LOW_X:
+    value: [17.8, 86.2]
+    doc: 'outer x extents at the bottom (shin covers'' outer outline at z 114: 17.78 .. 86.16)'
+  LOW_FRONT_Z:
+    value: 166.0
+    doc: front blend starts here (below the shell screw bosses, z 166.7 .. 176.3)
+  LOW_Z_EXT:
+    value: [160.0, 185.0]
+    doc: the spline's widest ring (x min / x max extremes) is searched in this band
+  FIT_MAX_CHANGE:
+    value: 8.0
+    doc: fit-surface refuses a result that moves any control value further (mm / exponent units)
+  CELL_PARTS:
+    value: [Honeycomb_Cell_08_Lower_Pelvis, Honeycomb_Cell_09_Lower_Pelvis]
+    doc: cells and their top insulators
+  CELL_MIN:
+    value: 1.0
+    doc: mm the shells keep from the pelvis battery cells over the A-11 library poses (owner 2026-11-22;
+  CELL_DENT_AIM:
+    value: 1.25
+    doc: the front shell's inboard top came to 0.816 mm in the climb step [-85, -30, -30, 95]) dent aims at this distance; radial dent = gain x shortfall (the skin's normal is
+  CELL_DENT_GAIN:
+    value: 1.5
+    doc: the front shell's inboard top came to 0.816 mm in the climb step [-85, -30, -30, 95]) dent aims at this distance; radial dent = gain x shortfall (the skin's normal is
+  PITCH_RANGE:
+    value: [-90.0, 45.0]
+    doc: range limits -85..40 / -45..25 plus 5 deg
+  ROLL_SWEEP:
+    value: [-50.0, 30.0]
+    doc: range limits -85..40 / -45..25 plus 5 deg
+  KNEE_PARTS:
+    value: [R_shin_combined, R_shin_back_hard_cover, R_shin_front_hard_cover]
+  TOP_PARTS:
+    value: [R_hip_yaw_to_pitch_combined, R_hip_pitch_ST3025_case, R_hip_pitch_ST3025_output]
+    doc: green parts above the thigh
+  RIM_R_MAX:
+    value: 80.0
+    doc: rim radius about the roll axis where the green connector never comes (beyond the shell)
+  RIM_DPSI:
+    value: 0.6
+    doc: the rim radius grows at most this many mm per degree about the roll axis (smooth ramps)
+  EDGE_K:
+    value: 3
+    doc: 'Edges (owner 2026-11-17: "one continuous ridge that avoids collision and wraps the actuators closely; hills and valleys are fine when they are continuous, intentional and smooth, not random"). Both edges are heights z(theta) around the shell''s axis (vertical through CENTRE). The space the shell must leave free is computed first: on top, the green connector / hip-pitch motor rim region about the roll axis (green_rim) and the yellow pitch-to-roll part swept over the roll range; at the knee, every part on the lower leg (R_shin) grown by CLEAR and swept over KNEE_RANGE about the knee axis. Their overlap with the tube gives, per angle, the lowest height the top edge may reach and the highest the bottom edge must clear. Top edge (owner 2026-11-20: "some of the peaks on the top of the thigh shell are too aggressively high ... there will still be fabric underneath, we don''t need to aggressively cover ... smooth is aesthetic"): no longer as high as the neighbours allow (5 harmonics reached 206.5 back-inboard and 200 front-inboard, with the yellow arms'' two 30-deg slots cut 17-23 mm deep between them, slopes up to 1.1 mm/mm). Now 3 harmonics (a calm crown: one valley over each yellow arm slot, front-outboard and back-outboard, low hills front-inboard, back-inboard and outboard) as high on average as a linear program allows with every peak at most TOP_PEAK_CAP above the edge''s mean, every dip at most TOP_DIP_CAP below it and |dz/ds| <= TOP_SLOPE_MAX along the edge (s = arc length round the outer skin at TOP_RING_Z); still on the safe side of the free space at every angle (same CLEAR as before). The covered parts'' tops (roll case 200.1, yellow arm hubs 202.4) stand up to 16 mm above it (as before at the slots; now all round); fabric covers them. Values chosen from the look (drawing-sheets/roll-flip/thigh-shell-top-before / -after.png, thigh_shell_views.py top). top edge harmonics (was 5)'
+  TOP_PEAK_CAP:
+    value: 4.5
+    doc: mm a hill may rise above the edge's mean height
+  TOP_DIP_CAP:
+    value: 5.0
+    doc: 'mm a valley may sink below it (the yellow-arm valleys: wide and shallow)'
+  TOP_SLOPE_MAX:
+    value: 0.35
+    doc: mm of height per mm along the edge
+  TOP_RING_Z:
+    value: 190.0
+    doc: the arc length round the outer skin is taken at this height (the roll axis, mid-band)
+  EDGE_NTH:
+    value: 360
+    doc: 'Knee edge (owner 2026-11-23: "the shells can go as close together so that at the maximum knee they basically touch"; "same on the front, huge gap"; the leg one continuous calm shell, the minimal joint exposed). Was one tilted plane at z 136.5 (front) .. 150.5 (back), ending above the knee hub, 17-26 mm from the shin covers. Now the edge is one smooth line in the side view, a height z_e(y) the same at every x (the knee turns about x): a natural cubic spline through KNEE_EDGE_KNOTS, non-decreasing toward the back, as low as a linear program allows with every shell point that comes within COVER_GAP of the shin covers swept over KNEE_RANGE, or into the other lower-leg parts grown by CLEAR and swept the same way, above it. In front of the knee axis it runs level just above the front cover''s flat top (z 118); behind it it rises along the shin back cover''s radial top edge (COVER_CUT_DEG) turned to full flexion, so at 95 deg the back seam is one even gap along its length; at standing the joint shows only as the V between the two radial edges at the back of the knee.'
+  COVER_GAP:
+    value: 1.0
+    doc: mm the shells keep from the shin covers over KNEE_RANGE (closest approach at the worst angle)
+  COVER_STEP_DEG:
+    value: 0.5
+    doc: knee step of the cover sweep (point clouds; chord 0.5 mm at 60 mm from the axis)
+  KNEE_EDGE_KNOTS:
+    value: [-20.0, -8.0, -2.0, 2.0, 6.0, 10.0, 16.0, 22.0, 28.0, 34.0, 40.0]
+    doc: y of the spline's control values
+  KNEE_EDGE_CURV:
+    value: 0.12
+    doc: '(the shell''s bottom spans y -18.8 .. 35; constant beyond the end knots) |d2z/dy2| <= this (1/mm): bends of at least ~8 mm radius in the side view, a calm line'
+  KNEE_EDGE_Z:
+    value: [116.0, 166.0]
+    doc: (0.25 hugged the requirement closer, median excess 0.71 vs 1.11 mm, with an S-wave about the hub) height band of the shell wall the requirement is taken over
+  KNEE_EDGE_DZ:
+    value: 0.1
+    doc: ring spacing in z there (the requirement is the highest wall point closer than COVER_GAP)
+  SPLIT_LAND_MM:
+    value: 1.2
+    doc: level land on the back half's knee-edge corner at the split (blunts a knife edge)
+  SLEEVE_R:
+    value: 2.25
+    doc: '------------------------------------------------------------------------------------------------ shell screws The shell halves are bolted to the four Stage 4 posts (RF_POSTS / RF_POSTS_R): an ISO 10642 M3 countersunk screw, head flush with the outer skin at the post axis, through a 304 steel sleeve (dia 4.5 / 3.2) pressed into the boss from the post tip to the countersink (its outer end countersunk 90 deg like the shell, so the head bears on the steel and the clamp is head -> sleeve -> nut: the printed boss is not crushed and the preload does not creep away), into the ISO 4032 M3 nut in the post''s captive-nut pocket, behind a solid wall at the post tip (B.RF_POST_NUT_SHIFT): under pull-off the nut bears on that wall, and the clamp is head -> sleeve -> post tip wall -> nut. post_fit picks the length and the head recess: the thread runs through the whole nut and the tip stays POST_TIP_MIN short of the post bore''s bottom (the whole screw length, point included); flush heads first, then the shortest length; a head sinks below the skin (counterbore over the countersink) only when no standard length fits flush. stack = head top to the nut''s near face, reference = nut height.'
+  SLEEVE_BORE_R:
+    value: 1.6
+    doc: '------------------------------------------------------------------------------------------------ shell screws The shell halves are bolted to the four Stage 4 posts (RF_POSTS / RF_POSTS_R): an ISO 10642 M3 countersunk screw, head flush with the outer skin at the post axis, through a 304 steel sleeve (dia 4.5 / 3.2) pressed into the boss from the post tip to the countersink (its outer end countersunk 90 deg like the shell, so the head bears on the steel and the clamp is head -> sleeve -> nut: the printed boss is not crushed and the preload does not creep away), into the ISO 4032 M3 nut in the post''s captive-nut pocket, behind a solid wall at the post tip (B.RF_POST_NUT_SHIFT): under pull-off the nut bears on that wall, and the clamp is head -> sleeve -> post tip wall -> nut. post_fit picks the length and the head recess: the thread runs through the whole nut and the tip stays POST_TIP_MIN short of the post bore''s bottom (the whole screw length, point included); flush heads first, then the shortest length; a head sinks below the skin (counterbore over the countersink) only when no standard length fits flush. stack = head top to the nut''s near face, reference = nut height.'
+  BOSS_WEB_GAP:
+    value: 1.5
+    doc: 'mm: boss-to-wall gap that gets a web, web height'
+  BOSS_WEB_H:
+    value: 8.0
+    doc: 'mm: boss-to-wall gap that gets a web, web height'
+  BOSS_SEAT_RECESS:
+    value: 0.4
+    doc: the boss end stops this far short of the post tip and the sleeve stands out by it, so the
+  POST_TIP_MIN:
+    value: 0.3
+    doc: 'steel seats on the post: the boss end is a ceiling printed on support (up -y / +y), too rough to locate the shell (overhang check: 113 mm2 of supported face on the posts) mm: tip to bore bottom, head below the skin, counterbore'
+  POST_RECESS_MAX:
+    value: 2.5
+    doc: 'steel seats on the post: the boss end is a ceiling printed on support (up -y / +y), too rough to locate the shell (overhang check: 113 mm2 of supported face on the posts) mm: tip to bore bottom, head below the skin, counterbore'
+  POST_CBORE_CLEAR:
+    value: 0.2
+    doc: 'steel seats on the post: the boss end is a ceiling printed on support (up -y / +y), too rough to locate the shell (overhang check: 113 mm2 of supported face on the posts) mm: tip to bore bottom, head below the skin, counterbore'
+  HEAD_BELOW_SKIN:
+    value: 0.05
+    doc: 'mm: the whole head top stays at least this far under the skin (owner 2026-11-22: heads must'
+  CB_SEAT_CHAMFER:
+    value: 0.5
+    doc: 'not stand proud; the skin slopes over the dia 6.72 head disc by up to 2.5 mm, so a head flush at the axis stood 1.51 / 0.78 mm proud at front_2 / back_2) mm: 45 deg chamfer round the counterbore mouth, on a cone about the local skin normal, so the'
+  HEAD_DISC_R:
+    value: [0.0, 1.2, 2.3, 3.36]
+    doc: seat meets the sloping skin with an even lip instead of a 0.3 mm knife edge on its shallow side radii (mm) the skin is sampled at over the head disc (dk/2 = 3.36)
+  CS_HEAD:
+    value: ISO 10642
+  NUT_STD:
+    value: ISO 4032
+  THREAD:
+    value: M3
+  COVER_CUT_DEG:
+    value: -51.0
+    doc: '------------------------------------------------------------------------------------------------ shin back cover Owner 2026-11-18 (knee to 110 deg with the back of the thigh covered): the lower leg''s back hard cover gives way instead; its top-back edge became one plane along the knee axis, z = c + q y (shin frame), set by everything fixed to the thigh that reaches behind the knee (this shell included) swept over 0..110 (c 147.0, q -2.9: z 61.8 at the cover''s back). Owner 2026-11-23 (knee range 0..95, shells nearly touching at 95, the leg one continuous shell): the plane now runs through the knee axis at COVER_CUT_DEG, just under the cover''s two old M3 holes (counterbores down to z 98.8 at its back face; at -49 deg 0.2-0.6 mm slivers of them stayed): z 94.8 at the back face, the side ears'' tips (117.8) shaved 1.0. Its top-back edge is radial, so the thigh shell''s knee edge, fitted to it turned to 95 deg, closes on it as one even seam. The thigh hardware (knee motor, Stage 4 bracket, its knee screws; THIGH_SIDE) swept over KNEE_RANGE stays clear of the source cover by more than CLEAR (none of it reaches the cover over 0..95); were it closer, the plane would be lowered to keep CLEAR along its normal. The shell is no longer part of the cut: it is fitted to the cover (knee_edge), not the cover to it.'
+  SHIN_COVER:
+    value: R_shin_back_hard_cover
+  THIGH_SIDE:
+    value: [R_knee_ST3025_case, R_thigh_roll_flip, R_knee_ST3025_PA2x8_0, R_knee_ST3025_PA2x8_1, R_knee_ST3025_PA2x8_lat0, R_knee_ST3025_PA2x8_lat1]
+  MOUNT_YZ:
+    value: [[12.0, 74.5], [12.0, 81.0]]
+    doc: 'Owner 2026-11-18 ("move the mounting points elsewhere"): the cut takes the cover''s two M3 screws (z 102, into nuts in the frame''s back plate). New mounts: the cover''s side wings sit ~6 mm outboard of the shin frame''s side walls, which are solid 7 mm (medial) / 9 mm (lateral) at y 9.8..14.3, z 73..91, right behind the ankle motor. Per side two PA2x8 self-tapping screws along x, head recessed in a counterbore on the cover''s outer skin, through a boss that bridges the gap (0.2 mm short of the frame), biting into a pilot hole drilled in the frame wall. Clear of the ankle-motor screw hole at (y 10.9, z 84.7, lateral) and (y 10, z 89), and of the ankle coupler (x 24.8 .. 79.8, below z 71.5). (y, z) right leg, shin frame.'
+  BOSS_D:
+    value: 6.5
+    doc: cover boss, clearance hole, counterbore for the PA2 head (3.5 x 1.3)
+  HOLE_D:
+    value: 2.3
+    doc: cover boss, clearance hole, counterbore for the PA2 head (3.5 x 1.3)
+  CB_D:
+    value: 4.0
+    doc: cover boss, clearance hole, counterbore for the PA2 head (3.5 x 1.3)
+  CB_DEPTH:
+    value: 1.5
+    doc: cover boss, clearance hole, counterbore for the PA2 head (3.5 x 1.3)
+  PILOT_D:
+    value: 1.7
+    doc: pilot hole in the frame wall for a PA2 self-tapper; the boss seats
+  PILOT_DEPTH:
+    value: 5.0
+    doc: pilot hole in the frame wall for a PA2 self-tapper; the boss seats
+  BOSS_GAP:
+    value: 0.0
+    doc: pilot hole in the frame wall for a PA2 self-tapper; the boss seats
+  PA2_ENG:
+    value: 4.25
+    doc: 'on the frame wall (was 0.2 short: an open clamp gap under the head) engagement in the frame wall the head seat is set for (screws check reference 4.0, it reads ~0.18 less)'
+  BOSS_BACK:
+    value: 6.0
+    doc: the side-mount boss runs this far toward +y past the screws (into the curving wing)
+  BOSS_END_Y:
+    value: 18.0
+    doc: above this y the boss end is bevelled back to the wing (the frame wall face ends at y 17.5)
+  BOSS_END_BEVEL_DEG:
+    value: 67.5
+    doc: bevel turn (the bevel face runs 90 - this from the end face's +y direction)
+  LAND_D:
+    value: 10.4
+    doc: 'Flat land for the sleeve press (owner 2026-11-23): the press check''s spacer block bears on the exit plane over a dia 10 annulus (press_lib ANVIL_D) about each sleeve exit, but the dia 6.5 boss end gave it 68.9 % (recess 20.8 % beyond the boss outline, open 10.3 % past the wings'' front edge). The boss end grows to LAND_D about each exit, as part of the boss hull (no step, no crevice to the wing), its end in the plane of the sleeve exit on the frame wall; it runs down to the print bed (the wings'' front edges, up +y), where its edge on the frame wall is chamfered LAND_BED_CHAMFER (elephant foot); it stays LAND_RUN_CLEAR outside the ankle coupler''s top arc (radius about the ankle pitch axis) where the coupler''s x span comes within LAND_RUN_CLEAR of the land''s (medial: the coupler stands 0.32 mm proud of the frame wall face; lateral it is 0.65 mm short of it: untrimmed, the lateral land ran 0.73 mm from the coupler, against 1.68 mm before the land).'
+  LAND_BED_CHAMFER:
+    value: 0.3
+  LAND_RUN_CLEAR:
+    value: 1.0
+  COUPLER:
+    value: R_ankle_coupler_combined
+  ANKLE_PITCH:
+    value: R_ankle_pitch
+  CB_CHAMFER_SINK:
+    value: 0.9
+    doc: the counterbore's entry chamfer starts this far under the deepest rim point (+y side)
+  CB_CHAMFER_LEN:
+    value: 4.0
+    doc: length along the axis of the oblique chamfer cone (outward, past the skin)
+  SLV_D:
+    value: 3.6
+    doc: '304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)'
+  SLV_BORE_D:
+    value: 2.2
+    doc: '304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)'
+  PA2_L:
+    value: 8.0
+  PA2_HD:
+    value: 3.5
+  PA2_HH:
+    value: 1.3
+  PA2_D:
+    value: 2.0
+  PA2_PT:
+    value: 0.6
+  FRAME:
+    value: R_shin_combined
+  SINK:
+    value: 0.4
+    doc: the boss starts this far under the cover's outer skin (wall 1.25 along x at least)
+  VOX_H:
+    value: 0.15
+    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
+  VOX_R:
+    value: 0.4
+    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
+  VOX_FACES:
+    value: 250000
+    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
+  VOX_SMOOTH:
+    value: 12
+    doc: Taubin iterations on the marching-cubes surface (stair steps of the grid)
+  DEBURR_W:
+    value: 0.55
+    doc: 'mm: knife edges are cut back to this width (line width 0.42 + margin)'
+  COVER_Z_LOW:
+    value: 52.5
+    doc: shin frame z of the cover's straight lower edge (the source lip reached 46.5, scalloped and
+  BED_LAND:
+    value: 0.08
+    doc: 'mm: the wings'' front edges (print bed, up +y) are cut flat this far above their lowest point'
+  WING_CAP_X:
+    value: [[21.0, 27.0], [77.5, 83.5]]
+    doc: (their tips wave +-0.05; deeper, the land meets the nose's outer flank in a 0.1-0.5 mm wall) x windows about the two wings' free inner edges (right leg; the back is at y > 24)
+  WING_CAP_DROP:
+    value: 0.05
+    doc: the corner bump is capped this far under the highest top of the rest of the edge
+  WING_CORNER:
+    value: 2.5
+    doc: 'mm above the lower edge: the corner bump (the rest of the free edge is beyond)'
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of the steel screws, washers and sleeves this builder writes.

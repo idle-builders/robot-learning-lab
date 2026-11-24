@@ -69,6 +69,60 @@
      "decision": {
       "type": "string",
       "description": "Owner decision or Idle task that set it (e.g. D-15, T-jbe85r)."
+     },
+     "origin_mm": {
+      "oneOf": [
+       {
+        "type": "array",
+        "items": {
+         "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+       },
+       {
+        "type": "object",
+        "propertyNames": {
+         "pattern": "^[A-Za-z0-9_]+$"
+        },
+        "additionalProperties": {
+         "type": "array",
+         "items": {
+          "type": "number"
+         },
+         "minItems": 3,
+         "maxItems": 3
+        }
+       }
+      ],
+      "description": "Joint origin in the assembled body frame (mm, manifest frame): a vector for a single-joint match, else {joint: [x, y, z]}. The assembler writes it to manifest joints[].origin_world_mm (bom_config.joint_origin); leave it out where the section manifest's origin is used as built."
+     },
+     "axis": {
+      "oneOf": [
+       {
+        "type": "array",
+        "items": {
+         "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+       },
+       {
+        "type": "object",
+        "propertyNames": {
+         "pattern": "^[A-Za-z0-9_]+$"
+        },
+        "additionalProperties": {
+         "type": "array",
+         "items": {
+          "type": "number"
+         },
+         "minItems": 3,
+         "maxItems": 3
+        }
+       }
+      ],
+      "description": "Joint axis at neutral (unit vector, manifest frame), same form as origin_mm; written to joints[].axis_world_neutral."
      }
     }
    }

@@ -19,11 +19,15 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import bodylib as F  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-refit/motor_refit.bom.yaml config:
+
 R1 = ROOT / "artifacts/robot/body/assembly/assembly-parts.json"
 OUT = ROOT / "artifacts/robot/body/motor-refit"
 VERIFY = ROOT / ".cache/work/fdm-body-motor-refit/verify"
 REMOTE = [VERIFY, ROOT / ".cache/work/fdm-body-motor-refit/remote-out", ROOT / ".cache/work/fdm-body-motor-refit/remote-out-second"]
-LEG = ("yaw_link", "pitch_link", "roll_link", "shin", "ankle_pitch", "foot")
+LEG = CFG["LEG"]
 
 
 def limb(link):
@@ -66,10 +70,8 @@ def verify_sweeps():
                     limits.append(dict(joint_swept=j, **row))
             out[j] = dict(poses=d["poses"], adjacent=d["adjacent"], pairs=rows)
     return out, limits
-IGNORE = ("finger", "palm", "TPU_pad", "sole_pad", "sensor_pocket")
-INTERFACES = [("R_thigh_combined", "R_knee_ST3025_case"), ("R_shin_combined", "R_knee_ST3025_output"),
-              ("R_shin_combined", "R_ankle_pitch_ST3025_case"), ("R_ankle_coupler_combined", "R_ankle_pitch_ST3025_output"),
-              ("R_hip_pitch_to_roll_combined", "R_hip_pitch_ST3025_output"), ("R_hip_yaw_to_pitch_combined", "R_hip_pitch_ST3025_case")]
+IGNORE = CFG["IGNORE"]
+INTERFACES = list(CFG["INTERFACES"])
 
 
 def find(name):

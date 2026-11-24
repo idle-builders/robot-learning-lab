@@ -501,3 +501,61 @@ compose:                           # edits of the manifest composed by roll_flip
   takes: parts
   needs: [ankle-coupler-screws]
   notes: the edited ankle coupler + sleeves (T-9wpegg)
+config:
+  # robot/body/motor-refit/ankle_coupler_screws.py module constants (moved 2026-11-24)
+  CONNECTOR:
+    value: ankle_coupler_combined
+  PART:
+    value: ankle_coupler_combined
+  SLEEVES:
+    value: ankle_coupler_combined_steel_sleeves
+  HORN:
+    value: B13_C047_foot_roll_main_horn
+  R_SLEEVE:
+    value: [2.25, 1.6]
+    doc: = (4.5 / 2, 3.2 / 2). OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
+  EAR_LIP:
+    value: 0.5
+    doc: 'ear top above the floor plane (no coplanar fuse: the floor is made by the pocket cut alone)'
+  FILLET_R:
+    value: 0.6
+    doc: concave edges where a head pocket wall meets its floor (stress concentration, poor to print)
+  TIP_R:
+    value: 4.05
+    doc: '= 8.0 / 2 + 0.05. heated press tip (checks/press_lib.py TIP_D) + clearance: pocket radius around each head'
+  EAR_R:
+    value: 5.1
+    doc: '= 10.0 / 2 + 0.1. printed ear around each sleeve from the horn face to the floor: the flat counter face the anvil'
+  CENTRE_R:
+    value: 3.2
+    doc: annulus (press_lib ANVIL_D) rests on, where the 19.8 mm horn disc outline ends before it horn centre pocket after closing (was 4.5; centre of the bolt circle 7 mm from each hole)
+  CENTRE_OLD_R:
+    value: 4.5
+  WHEEL_CENTRE_R:
+    value: 3.4
+    doc: 'wheel side: central hole after closing: 7 - 2.25 - 3.4 = 1.35 mm wall = 2 lines of the 0.62 mm line (0.6 nozzle)'
+  ANVIL_R:
+    value: 5.3
+    doc: = 10.0 / 2 + 0.3. anvil annulus radius of checks/press_lib.py (ANVIL_D / 2) + clearance
+  RIM_NOTCH_L:
+    value: 4.0
+    doc: notch depth below the wheel face (the rim ends 0.4 mm below it on the horn side, 3 mm on the idler side)
+  SHIN_CLEAR:
+    value: 0.39
+    doc: boss stays this far inside the own shin's bore (the old coupler cleared it by 0.48 / 0.39 mm)
+  HUB_CLEAR:
+    value: 0.05
+    doc: 'horn hub: printed boss stays this far from the hub'
+  POCKET_TOP:
+    value: 3.0
+    doc: pocket cut runs this far above the pad's outer face
+  BACK_PAD_TOP:
+    value: 23.8
+    doc: 'outer face of the motor-refit pad (motor_refit.py: pad 20.8 -> 23.8)'
+  WHEEL:
+    value: ankle_pitch_ST3025_output
+  WHEEL_GROUPS:
+    value: [[ST3025_horn, horn], [ST3025_idler, idler]]
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

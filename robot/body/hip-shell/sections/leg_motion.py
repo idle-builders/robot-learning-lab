@@ -27,44 +27,31 @@ sys.path.insert(0, str(HERE.parent)); sys.path.insert(0, str(HERE))
 import kit  # noqa: E402
 from joint_cuts import cut_polys, draw, front, side, skeleton_parts, union  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("leg-motion")   # configured values: robot/body/hip-shell/sections/leg_motion.bom.yaml config:
+
 SOLIDS = kit.ROOT / ".cache/work/hip-shell/solids"
-VOX = 0.75
-CLIP_R = 110.0
-C = np.array([59.0, 2.0, 219.0])
-J = ("R_hip_pitch", "R_hip_roll", "R_hip_yaw", "R_knee")
+VOX = CFG["VOX"]
+CLIP_R = CFG["CLIP_R"]
+C = np.array(CFG["C"])
+J = CFG["J"]
 
 # A-11: realistic whole-leg poses, (pitch, roll, yaw, knee) in deg; pitch < 0 = flexion, roll < 0 = leg out,
 # yaw > 0 = right toes out (measured: yaw +30 moves the toe to +x), knee > 0 = bent. Both yaw signs where the motion
 # can go either way. Left leg stays standing (A-13).
-LIBRARY = {
-    "walk: swing": [(-35, 0, 0, 40), (-15, 0, 0, 60)],
-    "walk: heel strike / push-off": [(-25, 0, 0, 5), (20, 0, 0, 30)],
-    "walk: weight shift / turn": [(0, -8, 0, 10), (0, 8, 0, 10), (-25, 0, 15, 20), (-25, 0, -15, 20)],
-    "high knee / jump landing": [(-70, 0, 0, 95), (-60, -10, 0, 95)],
-    "squat / sit": [(-85, 0, 0, 95)],
-    "wide squat, toes out / in": [(-85, -20, 25, 95), (-85, -20, -25, 95)],
-    "front kick": [(-85, 0, 0, 0), (-85, 0, 0, 30)],
-    "lunge, rear leg": [(40, 0, 0, 0), (40, 0, 0, 40)],
-    "side step / leg out": [(0, -45, 0, 0), (-30, -45, 0, 30), (-30, -30, 20, 30)],
-    "cross step": [(-20, 25, 30, 20), (-20, 25, -30, 20)],
-    "turn in place": [(-20, 0, 40, 20), (-20, 0, -40, 20), (0, -10, 40, 0), (0, -10, -40, 0)],
-    "ape crouch": [(-70, -20, 20, 95), (-70, -20, -20, 95)],
-    "climb step": [(-85, -30, 30, 95), (-85, -30, -30, 95)],
-}
-KEY = {"squat": (-85, 0, 0, 95), "front kick": (-85, 0, 0, 0), "lunge rear": (40, 0, 0, 40),
-       "leg out": (0, -45, 0, 0), "cross step": (-20, 25, 30, 20), "turn, toes out": (-20, 0, 40, 20),
-       "climb, toes in": (-85, -30, -30, 95)}
-KEY_COL = dict(zip(KEY, ["#d62728", "#ff7f0e", "#2ca02c", "#1f77b4", "#9467bd", "#8c564b", "#e377c2"]))
-STEPS = 5          # path from standing into each pose, joint-space interpolation
+LIBRARY = {k: list(v) for k, v in CFG["LIBRARY"].items()}
+KEY = CFG["KEY"]
+KEY_COL = dict(zip(KEY, CFG["KEY_COLORS"]))
+STEPS = CFG["STEPS"]
 # A-12: every combination of the target ranges (conservative bound)
-GRID = list(itertools.product((-85, -60, -30, 0, 20, 40), (-45, -25, 0, 25), (-40, 0, 40), (0,)))
-FRAMES = {"torso": "torso", "yaw link": "R_yaw_link", "pitch link": "R_pitch_link", "thigh (roll link)": "R_roll_link"}
+GRID = list(itertools.product(*CFG["GRID_AXES"]))
+FRAMES = CFG["FRAMES"]
 SIDE_CUTS = [("x = 20", side(20)), ("x = 36", side(36)), ("x = 59, through C", side(59)), ("x = 80", side(80))]
 FRONT_CUTS = [("y = -15", front(-15)), ("y = 2, through C", front(2)), ("y = 20", front(20))]
-ARTEFACT_BASE = 1000.0   # A-14: a pair overlapping more than this standing is assembled inside one another; its change is
+ARTEFACT_BASE = CFG["ARTEFACT_BASE"]
                          # not counted as contact (voxel filling of open meshes)
-MECH_ROLES = {"motor", "purchased_servo_case_family_reference", "printed_structural_connector", "output",
-              "purchased_servo_output_family_reference", "output_horn", "horn", "actuator", "bearing"}
+MECH_ROLES = set(CFG["MECH_ROLES"])
 
 
 def q_of(body, p):

@@ -51,6 +51,10 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("held-parts")   # configured values: robot/body/assembly/held_parts.bom.yaml config:
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
@@ -60,30 +64,30 @@ sys.path.insert(0, str(ROOT / "robot/body/fastening"))
 OUT = ROOT / "artifacts/robot/body/assembly/held-parts"
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"   # unedited sources: build repeats after apply
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
-TASK = "T-3npyjq"
+TASK = CFG["TASK"]
 
 # fan bridge plate (manifest frame, head link at standing = neutral)
-PLATE_Y = (8.6, 10.6)                       # standoff end faces / bridge nut faces and the fan's front flange
-FAN_C, FAN_HALF = (-5.45, 450.5), 20.0      # fan centre (x, z) and half size; holes on a 32 mm square
-FAN_OPEN_R = 18.0                           # air opening (blades about 37 mm)
-FAN_HOLES = {"fan_M3_11_462": (10.55, 466.5), "fan_M3_-21_462": (-21.45, 466.5)}   # upper holes: screwed to the plate
-FAN_DROP = ("fan_M3_11_430", "fan_washer_11_430", "fan_nut_11_430")                 # lower right: heatsink in front
-LEAD_GUIDE_KEEPOUT = ((-30.5, -13.8), (429.0, 439.0))   # lead guide, its washer and the fan's lead-exit nub (x -17.0..-14.3); corner inside the air opening
-GUIDE_SCREW = "fan_M3x16_guide"             # M3x16 already seated on y 8.6 (head 6.95..8.6): its mesh is the model
-BOSS_R = 4.0                                # M2.5 nut 5.8 across corners; wall and press support around the 3.9 sleeve
-SLEEVE_M3 = (4.5, 3.2)                      # OD / ID: the body's most used kind (112), bore_for M3 3.2..3.4
-SLEEVE_M2P5 = (3.9, 2.7)                    # OD of the M2.5 sleeves in use (3.9), ID = standard-parts bore_for M2.5 min
-COMPUTE = {"compute_M2p5_CS30_0": "fan_bridge_standoff_0", "compute_M2p5_CS30_1": "fan_bridge_standoff_1"}
-PLATE, PLATE_SLEEVES = "fan_bridge_plate", "fan_bridge_plate_steel_sleeves"
+PLATE_Y = CFG["PLATE_Y"]
+FAN_C, FAN_HALF = CFG["FAN_C"], CFG["FAN_HALF"]
+FAN_OPEN_R = CFG["FAN_OPEN_R"]
+FAN_HOLES = CFG["FAN_HOLES"]
+FAN_DROP = CFG["FAN_DROP"]
+LEAD_GUIDE_KEEPOUT = CFG["LEAD_GUIDE_KEEPOUT"]
+GUIDE_SCREW = CFG["GUIDE_SCREW"]
+BOSS_R = CFG["BOSS_R"]
+SLEEVE_M3 = CFG["SLEEVE_M3"]
+SLEEVE_M2P5 = CFG["SLEEVE_M2P5"]
+COMPUTE = CFG["COMPUTE"]
+PLATE, PLATE_SLEEVES = CFG["PLATE"], CFG["PLATE_SLEEVES"]
 
 # chest indicator: the pocket tool of assemble_complete_fdm_body.py (sphere scaled by these semi-axes x scale_t)
-SCALE_T = 500.0 / 350.0
-POCKET_AXES = (1.95, 4.5, 5.8)
-POCKET_Z = 244.0
-INDICATOR = "ape_body_shell__chest_indicator_relief4_r33"
-INDICATOR_GROW = 0.4
+SCALE_T = CFG["SCALE_T"]
+POCKET_AXES = CFG["POCKET_AXES"]
+POCKET_Z = CFG["POCKET_Z"]
+INDICATOR = CFG["INDICATOR"]
+INDICATOR_GROW = CFG["INDICATOR_GROW"]
 
-CASE = "R_roll_servo_case_reference"
+CASE = CFG["CASE"]
 REMOVE = ("center_front_low_L_M2x10", "center_front_low_R_M2x10") + FAN_DROP
 
 
@@ -155,8 +159,7 @@ def build_plate(MR, by):
                for (x, z), (od, idd) in holes]
     rec = MR.save(PLATE, s, "printed")
     srec = MR.save(PLATE_SLEEVES, MR.compound(sleeves), "purchased")
-    srec["mass_kg"] = round(srec["volume_mm3"] * 7.93e-6, 6)
-    srec["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    srec.update(BOM_CONFIG.mass_record(PLATE_SLEEVES, srec["volume_mm3"], "held-parts", fallback="HARDWARE_MATERIAL", basis="native STEP volume"))
     print(PLATE, rec["volume_mm3"], "mm3;", len(sleeves), "sleeves", flush=True)
     return rec, srec, dict(holes=[dict(at_xz=list(c), sleeve_od_id_mm=list(sz)) for c, sz in holes], bosses=bosses)
 

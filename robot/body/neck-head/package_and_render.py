@@ -48,21 +48,10 @@ from common import (
     write_json,
 )
 
-STAGE_COLORS = {
-    "stage1_neck_root_cradle": [42, 138, 184, 255],
-    "stage2_neck_yaw_to_pitch_link": [28, 164, 142, 255],
-    "stage3_neck_pitch_to_head_cradle": [212, 134, 52, 255],
-    "stage4_head_sensor_compute_carrier": [64, 156, 212, 255],
-    "sleeve": [215, 222, 230, 255],
-    "shell": [231, 222, 201, 255],
-}
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
+STAGE_COLORS = BOM_CONFIG.unfrozen(CFG["STAGE_COLORS"])
 
-PRINT_ORIENTATIONS = {
-    "stage1_neck_root_cradle": "XZ Cradle & Spine Frame on Build Plate (layer normal Y)",
-    "stage2_neck_yaw_to_pitch_link": "XZ 90-Degree L-Bend & Gusset Webs on Build Plate (layer normal Y)",
-    "stage3_neck_pitch_to_head_cradle": "XY Right-Side U-Cradle Loop on Build Plate (layer normal Z)",
-    "stage4_head_sensor_compute_carrier": "XZ Carrier Plate & Dorsal Ribs Flat on Build Plate (layer normal Y)",
-}
+PRINT_ORIENTATIONS = CFG["PRINT_ORIENTATIONS"]
 
 CPP_RENDERER = ROOT / "robot/electronics/power/cad/zbuffer_renderer.cpp"
 EXE_RENDERER = ART / "zbuffer_renderer_bin"
@@ -263,9 +252,9 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "bounds_mm": [m_mm.bounds[0].round(3).tolist(), m_mm.bounds[1].round(3).tolist()],
             "native_solid_count": 1,
             "native_validity": [True],
-            "material": "Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3) FDM",
+            "material": f"Bambu PAHT-CF / PA12-CF ({MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3) or PETG-CF ({MATERIALS['PETG_CF']['density_g_cm3']:g} g/cm3) FDM",
             "mass_kg": round(p_rec["polymer_mass_PAHT_CF_g"] / 1000.0, 6),
-            "mass_basis": "Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)",
+            "mass_basis": f"Exact native STEP volume * {MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3 ({MATERIALS['PAHT_CF_dry']['name']})",
             "color": rgba,
             "display_group": "mechanism",
             "display_groups": ["mechanism"],
@@ -312,7 +301,7 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "bounds_mm": [m_slv_all.bounds[0].round(3).tolist(), m_slv_all.bounds[1].round(3).tolist()],
             "native_solid_count": len(slv_list),
             "native_validity": [True] * len(slv_list),
-            "material": "304 Stainless Steel compression sleeves (7.85 g/cm3)",
+            "material": f"304 Stainless Steel compression sleeves ({MATERIALS['Steel_Sleeve']['density_g_cm3']:g} g/cm3)",
             "mass_kg": round(p_rec["sleeve_mass_g"] / 1000.0, 6),
             "color": STAGE_COLORS["sleeve"],
             "display_group": "mechanism",

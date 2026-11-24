@@ -2701,3 +2701,137 @@ config:
     doc: Material of the printed parts this builder writes that no definition entry claims (intermediate parts a later generator
       replaces); a claimed part takes its entry's process.material. Density from robot/body/checks/data/materials.json.
     decision: bom-config 2026-11-23 (was a 1.22 g/cm3 literal in the script)
+  # robot/body/ape-proportions/build.py module constants (moved 2026-11-24)
+  FOOT_SCALE:
+    value: 1.3
+  Z_FOREARM_CUT:
+    value: 195.0
+  Z_UPPER_CUT:
+    value: 270.0
+  Z_UPPER_COVER_CUT:
+    value: 290.0
+  BOOT_BLEND_Z:
+    value: [14.0, 30.0]
+  NARROW_HIPS:
+    value: true
+    doc: 'owner 2026-11-13/14: legs 12 mm in below the hip yaw, cells to the back, splayed stance (hips.py)'
+  ELBOW_FLIP:
+    value: true
+    doc: 'owner 2026-11-13: elbow case in the upper arm (elbow_flip.py)'
+  STRETCH_ROLES:
+    value: [printed, body_shell, produced_holder, cut_stock]
+  SLEEVES:
+    value: compression_limit_sleeves
+  # robot/body/ape-proportions/elbow_flip.py module constants (moved 2026-11-24)
+  Z3:
+    value: 36.17
+    doc: 'Heights are measured from the elbow axis (mm), so the flip follows any upper-arm length. stage 3 split: the beam starts 0.5 mm above it, 1.6 mm above the turned case top'
+  Z4:
+    value: -41.33
+    doc: 'stage 4 split: clean two-rail section below the case clamp'
+  SLEEVE_BOTTOM:
+    value: -6.0
+    doc: the lower cover's rim is first carried down to here, then cut by the slanted edge below
+  LATERAL_WINDOW_R:
+    value: 18.0
+    doc: round window in the lower cover's outer wall around the idler-side cheek (radius 15)
+  FOREARM_COVER_TOP:
+    value: -15.33
+    doc: (superseded by the continuous skin below)
+  SKIN_TOP:
+    value: -4.0
+    doc: 'Forearm skin (owner 2026-11-13: upper and lower arm shells should read as one form with a gap at the elbow): the forearm shell starts at the upper-arm cover''s own bottom section and blends to the old forearm section at the wrist. forearm shell top edge at the back, from the elbow axis (the front drops to SKIN_FRONT_DROP)'
+  SKIN_TOP_SHIFT_X:
+    value: 4.0
+    doc: lateral, so the idler-side cheek (outer face x 158.5) fits inside
+  SKIN_TOP_SHIFT_Y:
+    value: -2.0
+    doc: 'forward: the clevis sits 5 mm forward of the upper cover''s centre'
+  SKIN_WALL:
+    value: 1.5
+  SKIN_N:
+    value: 160
+  SKIN_RINGS:
+    value: 48
+  SKIN_HOLD:
+    value: 30.0
+    doc: mm below the gap with exactly the upper-arm section, then the blend
+  SKIN_WRIST_Z:
+    value: 160.0
+    doc: the old forearm section here (it wrapped the wrist block's shell-mount bosses) and below
+  CAP_CUT_Z:
+    value: 285.0
+    doc: where the yaw-axis-normal cut crosses the yaw axis (just below the yaw horn)
+  CAP_GAP:
+    value: 1.5
+    doc: mm between the turning sleeve and the fixed cap
+  # robot/body/ape-proportions/forearm_clevis.py module constants (moved 2026-11-24)
+  CHEEK_R:
+    value: 15.0
+  CHEEK_BOTTOM:
+    value: -24.0
+  CHEEK_DROP_HALF:
+    value: 10.2
+    doc: the drop below the disc is narrower than the disc, inside the skin's rounded corners
+  MEDIAL_X:
+    value: [114.2, 117.2]
+  LATERAL_X:
+    value: [155.5, 158.5]
+  IDLER_FACE_X:
+    value: 154.48
+  BOSS_R:
+    value: 9.0
+  HOLE_R:
+    value: 1.7
+    doc: M3 clearance
+  HOLE_PCD_R:
+    value: 7.0
+  STUB_RELIEF_R:
+    value: 3.6
+  CENTRE_SCREW_R:
+    value: 1.7
+  LOFT_TOP:
+    value: -22.0
+    doc: from the elbow axis
+  LOFT_TOP_Y:
+    value: [-14.0, 8.0]
+  LOFT_TOP_X:
+    value: [115.2, 157.5]
+    doc: inside the skin's rounded corners, still fused to both cheeks
+  LOFT_BOTTOM_Z:
+    value: 150.0
+    doc: 'absolute: onto the wrist block (the forearm length is unchanged by the owner''s arm choice)'
+  LOFT_BOTTOM_X:
+    value: [120.0, 145.0]
+  LOFT_BOTTOM_Y:
+    value: [-14.0, 10.0]
+  WALL:
+    value: 2.2
+  WRIST_KEEP_TOP:
+    value: 156.0
+  CRADLE_RELIEF_R:
+    value: 28.0
+    doc: the upper-arm clamp keeps only its upper rear screws (r 34) on the idler side; the cheek corners reach r 27
+  CRADLE_RELIEF_X:
+    value: [154.0, 162.0]
+  BRACKET_KEEP_Z:
+    value: 283.0
+    doc: 'Upper-arm column (owner, 2026-11-13: the connector should go straight down, not along the side). A hollow tube from the yaw-horn bracket straight down onto the elbow case clamp: round at the top, coaxial with the yaw horn so it turns inside the fixed shoulder cap, lofted into a rectangle centred on the case top. Open at both ends: the five yaw-horn screws go in from below through the tube before the elbow servo slides into the clamp and closes it. old stage 3 kept above this: the plate under the yaw horn'
+  COLUMN_TOP_Z:
+    value: 284.6
+    doc: inside the bracket plate, below the horn (286.1)
+  COLUMN_TOP_CENTRE:
+    value: [130.4, -10.0]
+    doc: yaw horn centre (right side)
+  COLUMN_TOP_R:
+    value: [10.5, 13.0]
+    doc: inner (clears the screw heads on the 7 mm circle) / outer
+  COLUMN_BOTTOM_Z:
+    value: 257.4
+    doc: underside of the clamp's top plate
+  COLUMN_BOTTOM_CENTRE:
+    value: [136.85, -3.0]
+    doc: case top centre
+  COLUMN_BOTTOM_SIZE:
+    value: [[29.0, 19.0], [34.0, 24.0]]
+    doc: inner / outer

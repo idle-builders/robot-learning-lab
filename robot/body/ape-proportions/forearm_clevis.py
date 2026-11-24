@@ -18,27 +18,33 @@ from __future__ import annotations
 
 import numpy as np
 
-CHEEK_R = 15.0
-CHEEK_BOTTOM = -24.0
-CHEEK_DROP_HALF = 10.2  # the drop below the disc is narrower than the disc, inside the skin's rounded corners
-MEDIAL_X = (114.2, 117.2)
-LATERAL_X = (155.5, 158.5)
-IDLER_FACE_X = 154.48
-BOSS_R = 9.0
-HOLE_R = 1.7          # M3 clearance
-HOLE_PCD_R = 7.0
-STUB_RELIEF_R = 3.6
-CENTRE_SCREW_R = 1.7
-LOFT_TOP = -22.0      # from the elbow axis
-LOFT_TOP_Y = (-14.0, 8.0)
-LOFT_TOP_X = (115.2, 157.5)  # inside the skin's rounded corners, still fused to both cheeks
-LOFT_BOTTOM_Z = 150.0  # absolute: onto the wrist block (the forearm length is unchanged by the owner's arm choice)
-LOFT_BOTTOM_X = (120.0, 145.0)
-LOFT_BOTTOM_Y = (-14.0, 10.0)
-WALL = 2.2
-WRIST_KEEP_TOP = 156.0
-CRADLE_RELIEF_R = 28.0   # the upper-arm clamp keeps only its upper rear screws (r 34) on the idler side; the cheek corners reach r 27
-CRADLE_RELIEF_X = (154.0, 162.0)
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("ape-proportions-build")   # configured values: robot/body/ape-proportions/build.bom.yaml config:
+
+CHEEK_R = CFG["CHEEK_R"]
+CHEEK_BOTTOM = CFG["CHEEK_BOTTOM"]
+CHEEK_DROP_HALF = CFG["CHEEK_DROP_HALF"]
+MEDIAL_X = CFG["MEDIAL_X"]
+LATERAL_X = CFG["LATERAL_X"]
+IDLER_FACE_X = CFG["IDLER_FACE_X"]
+BOSS_R = CFG["BOSS_R"]
+HOLE_R = CFG["HOLE_R"]
+HOLE_PCD_R = CFG["HOLE_PCD_R"]
+STUB_RELIEF_R = CFG["STUB_RELIEF_R"]
+CENTRE_SCREW_R = CFG["CENTRE_SCREW_R"]
+LOFT_TOP = CFG["LOFT_TOP"]
+LOFT_TOP_Y = CFG["LOFT_TOP_Y"]
+LOFT_TOP_X = CFG["LOFT_TOP_X"]
+LOFT_BOTTOM_Z = CFG["LOFT_BOTTOM_Z"]
+LOFT_BOTTOM_X = CFG["LOFT_BOTTOM_X"]
+LOFT_BOTTOM_Y = CFG["LOFT_BOTTOM_Y"]
+WALL = CFG["WALL"]
+WRIST_KEEP_TOP = CFG["WRIST_KEEP_TOP"]
+CRADLE_RELIEF_R = CFG["CRADLE_RELIEF_R"]
+CRADLE_RELIEF_X = CFG["CRADLE_RELIEF_X"]
 
 
 def _cyl_x(C, x0, x1, y, z, r):
@@ -102,13 +108,13 @@ def cradle_relief(C, o, sgn):
 # the yaw-horn bracket straight down onto the elbow case clamp: round at the top, coaxial with the yaw horn so it turns
 # inside the fixed shoulder cap, lofted into a rectangle centred on the case top. Open at both ends: the five yaw-horn
 # screws go in from below through the tube before the elbow servo slides into the clamp and closes it.
-BRACKET_KEEP_Z = 283.0                  # old stage 3 kept above this: the plate under the yaw horn
-COLUMN_TOP_Z = 284.6                    # inside the bracket plate, below the horn (286.1)
-COLUMN_TOP_CENTRE = (130.4, -10.0)      # yaw horn centre (right side)
-COLUMN_TOP_R = (10.5, 13.0)             # inner (clears the screw heads on the 7 mm circle) / outer
-COLUMN_BOTTOM_Z = 257.4                 # underside of the clamp's top plate
-COLUMN_BOTTOM_CENTRE = (136.85, -3.0)   # case top centre
-COLUMN_BOTTOM_SIZE = ((29.0, 19.0), (34.0, 24.0))  # inner / outer
+BRACKET_KEEP_Z = CFG["BRACKET_KEEP_Z"]
+COLUMN_TOP_Z = CFG["COLUMN_TOP_Z"]
+COLUMN_TOP_CENTRE = CFG["COLUMN_TOP_CENTRE"]
+COLUMN_TOP_R = CFG["COLUMN_TOP_R"]
+COLUMN_BOTTOM_Z = CFG["COLUMN_BOTTOM_Z"]
+COLUMN_BOTTOM_CENTRE = CFG["COLUMN_BOTTOM_CENTRE"]
+COLUMN_BOTTOM_SIZE = CFG["COLUMN_BOTTOM_SIZE"]
 
 
 def column(sgn):

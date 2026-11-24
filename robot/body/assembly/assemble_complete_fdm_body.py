@@ -1765,106 +1765,12 @@ def raster_meshes(
 
 
 # Distinct, harmonious subsystem & stage color palette
-PALETTE = {
-    # Torso & Pelvis (4 stages)
-    "combined__stage1_center_torso_spine_chassis": [52, 134, 198, 255],
-    "combined__stage2_lower_pelvis_battery_cradle": [46, 168, 126, 255],
-    "combined__stage3_front_power_electronics_carrier": [218, 148, 48, 255],
-    "combined__stage4_rear_imu_adc_carrier": [146, 98, 196, 255],
-    # Neck & Head (4 stages)
-    "combined__neck_root_cradle": [42, 138, 184, 255],
-    "combined__neck_yaw_to_pitch_link": [28, 164, 142, 255],
-    "combined__neck_pitch_to_head_cradle": [212, 134, 52, 255],
-    "combined__head_sensor_compute_carrier": [64, 156, 212, 255],
-    # Arms (4 stages x 2)
-    "shoulder_pitch_to_roll_combined": [42, 138, 184, 255],
-    "shoulder_roll_to_yaw_combined": [28, 164, 142, 255],
-    "upper_arm_yaw_to_elbow_combined": [212, 134, 52, 255],
-    "forearm_elbow_to_wrist_combined": [64, 156, 212, 255],
-    # Hands / Geared Grippers (4 parts x 2)
-    "hand_palm_lower": [48, 152, 138, 255],
-    "hand_palm_upper": [62, 168, 152, 255],
-    "hand_right_finger": [216, 138, 56, 255],
-    "hand_left_finger": [216, 138, 56, 255],
-    # Lower Body (6 stages x 2)
-    "hip_yaw_to_pitch_combined": [46, 178, 136, 255],
-    "hip_pitch_to_roll_combined": [228, 118, 68, 255],
-    "thigh_combined": [64, 156, 212, 255],
-    "shin_combined": [42, 138, 184, 255],
-    "ankle_coupler_combined": [28, 164, 142, 255],
-    "foot_monocoque_combined": [212, 134, 52, 255],
-    # Hardware, Sleeves, Shells, Battery
-    "sleeve": [215, 222, 230, 255],
-    "shell": [231, 222, 201, 255],
-    "sole_shell": [120, 115, 110, 255],
-    "chest_indicator": [205, 120, 76, 255],
-    "battery_cell": [56, 136, 98, 255],
-    "battery_fin": [196, 206, 218, 255],
-    "actuator_case": [64, 72, 82, 255],
-    "actuator_horn": [182, 190, 198, 255],
-    "fastener": [205, 212, 220, 255],
-    "captive_nut": [220, 185, 75, 255],
-    "pcb": [46, 116, 78, 255],
-}
+CFG = BOM_CONFIG.section("assemble-complete-fdm-body")   # configured values: robot/body/assembly/assemble_complete_fdm_body.bom.yaml config:
+PALETTE = BOM_CONFIG.unfrozen(CFG["PALETTE"])
 
 
 # Replaced legacy sheet-metal / LPBF / PA12 carrier sets across all 4 structural redesigns
-REPLACED_LEGACY_PARTS = {
-    # Lower body (32 parts/leg = 64 parts)
-    "R_A1_ankle_C047_direct_mount", "L_A1_ankle_C047_direct_mount",
-    "R_B13_direct_horn_coupler", "L_B13_direct_horn_coupler",
-    "R_B13_sole_plate", "L_B13_sole_plate",
-    "R_B13_front_case_tab", "L_B13_front_case_tab",
-    "R_B13_rear_case_tab", "L_B13_rear_case_tab",
-    "R_A10_one_piece_direct_upper", "L_A10_one_piece_direct_upper",
-    "R_A13_pitch_roll_negative_L", "L_A13_pitch_roll_negative_L",
-    "R_A13_pitch_roll_positive_L", "L_A13_pitch_roll_positive_L",
-    "R_A13_pitch_output_ring8", "L_A13_pitch_output_ring8",
-    "R_A14_plain3_inside_yaw_pitch", "L_A14_plain3_inside_yaw_pitch",
-    "R_C_hip_yaw_ring_8mm_0", "L_C_hip_yaw_ring_8mm_0",
-    "R_A14_yaw_flat_shim1_0", "L_A14_yaw_flat_shim1_0",
-    "R_A14_yaw_flat_shim1_1", "L_A14_yaw_flat_shim1_1",
-    "R_A14_yaw_flat_shim1_2", "L_A14_yaw_flat_shim1_2",
-    "R_A14_yaw_flat_shim1_3", "L_A14_yaw_flat_shim1_3",
-    "R_Thigh_carrier", "L_Thigh_carrier",
-    "R_Thigh_rear_carrier", "L_Thigh_rear_carrier",
-    "R_Shin_carrier", "L_Shin_carrier",
-    "R_Shin_rear_carrier", "L_Shin_rear_carrier",
-    # Arms (12 parts)
-    "upper__R_pitch_to_roll_one_piece", "upper__L_pitch_to_roll_one_piece",
-    "upper__R_roll_to_yaw_one_piece", "upper__L_roll_to_yaw_one_piece",
-    "R_S_yaw_to_elbow", "L_S_yaw_to_elbow",
-    "R_forearm_frame_drilled", "L_forearm_frame_drilled",
-    "upper__R_forearm_wrist_one_piece", "upper__L_forearm_wrist_one_piece",
-    "R_shoulder_carrier", "L_shoulder_carrier",
-    "R_fore_carrier", "L_fore_carrier",
-    # Neck & Head (16 parts)
-    "upper__neck_root_bracket",
-    "upper__neck_yaw_to_pitch_bracket",
-    "compact_neck_U_strap_v23",
-    "single_shared_carrier_v23",
-    "microphone_compact_tab_v23",
-    "fixed_neck_ribbon_anchor_v21",
-    "fixed_neck_ribbon_cap_v21",
-    "fixed_neck_ribbon_pad_rear_v21",
-    "fixed_neck_ribbon_pad_front_v21",
-    "fixed_ribbon_M2x8_0_v21", "fixed_ribbon_M2_washer_0_v21",
-    "fixed_ribbon_M2x8_1_v21", "fixed_ribbon_M2_washer_1_v21",
-    "flush_skin_M2x8_-1", "flush_skin_M2x8_1",
-    "upper__simple_continuous_rear_neck_cowl",
-    "upper__cowl_M2x10_countersunk_0", "upper__cowl_M2x10_countersunk_1",
-    # Torso & Pelvis (27 parts)
-    "Common_power_carrier_mounting_r33",
-    "A1_integral_pelvis_flat_mate_r2",
-    "lower_cradle_lugs_224_with_waist_guard_r18",
-    "lower_cradle_lugs_252_retained_outer_r18",
-    "Power_supervisor_PA12_open_tray",
-    "Main_precharge_PA12_open_tray",
-    "IMU_ADC_carrier_v17",
-    "pelvis_front_carrier", "pelvis_back_carrier", "T02_back_lower_carrier",
-    "ape_body_shell__torso_front_relief4_r33", "ape_body_shell__torso_back_relief4_r33",
-    "ape_body_shell__pelvis_front", "ape_body_shell__pelvis_back",
-}
+REPLACED_LEGACY_PARTS = set(CFG["REPLACED_LEGACY_PARTS"])
 
 
 def classify_overlay_and_group(name: str, role: str, default_dg: str) -> tuple[str, str | None, bool]:
@@ -2676,27 +2582,10 @@ def build_complete_assembly() -> dict:
         joints.append(jc)
         controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
-    # 8 Arm joints (with updated shoulder pitch, flipped shoulder roll, inward-shifted yaw & elbow origins, and collision-free shell ranges)
-    arm_joint_origins = {
-        "R_shoulder_pitch": [64.0, 9.0, 352.0],
-        "L_shoulder_pitch": [-64.0, 9.0, 352.0],
-        "R_shoulder_roll": [106.0, 5.05, 360.0],
-        "L_shoulder_roll": [-106.0, 5.05, 360.0],
-        "R_shoulder_yaw": [127.0, -10.0, 306.0],
-        "L_shoulder_yaw": [-127.0, -10.0, 306.0],
-        "R_elbow": [138.0, -3.0, 252.0],
-        "L_elbow": [-138.0, -3.0, 252.0],
-    }
-    arm_joint_axes = {
-        "R_shoulder_yaw": [-0.2236068, -0.1490712, 0.96308682],
-        "L_shoulder_yaw": [-0.2236068, 0.1490712, -0.96308682],
-    }
+    # 8 Arm joints: origins / axes in the assembled body (shifted inward of the arm section's frames) from arm/build_arm_connectors.bom.yaml joints:
     for j in arm_man["joints"]:
         jc = copy.deepcopy(j)
-        if jc["name"] in arm_joint_origins:
-            jc["origin_world_mm"] = arm_joint_origins[jc["name"]]
-        if jc["name"] in arm_joint_axes:
-            jc["axis_world_neutral"] = arm_joint_axes[jc["name"]]
+        BOM_CONFIG.apply_joint_frames([jc])   # origin / axis in the assembled body: the arm joints' `joints:` declarations
         joints.append(jc)
         controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
@@ -2706,8 +2595,8 @@ def build_complete_assembly() -> dict:
             "name": "R_right_finger_opening",
             "parent": "R_forearm",
             "child": "R_right_finger",
-            "origin_world_mm": [139.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, -1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("R_right_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("R_right_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("R_right_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": 1.0}},
         },
@@ -2715,8 +2604,8 @@ def build_complete_assembly() -> dict:
             "name": "R_left_finger_opening",
             "parent": "R_forearm",
             "child": "R_left_finger",
-            "origin_world_mm": [121.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, -1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("R_left_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("R_left_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("R_left_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": -1.0}},
         },
@@ -2724,8 +2613,8 @@ def build_complete_assembly() -> dict:
             "name": "L_right_finger_opening",
             "parent": "L_forearm",
             "child": "L_right_finger",
-            "origin_world_mm": [-139.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, 1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("L_right_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("L_right_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("L_right_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": 1.0}},
         },
@@ -2733,8 +2622,8 @@ def build_complete_assembly() -> dict:
             "name": "L_left_finger_opening",
             "parent": "L_forearm",
             "child": "L_left_finger",
-            "origin_world_mm": [-121.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, 1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("L_left_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("L_left_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("L_left_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": -1.0}},
         },

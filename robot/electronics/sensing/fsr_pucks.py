@@ -24,15 +24,19 @@ from pathlib import Path
 
 from build123d import Compound, Cylinder, export_step
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("fsr-pucks")   # configured values: robot/electronics/sensing/fsr_pucks.bom.yaml config:
+
 ROOT = Path(__file__).resolve().parents[3]
 COUPON = ROOT / "robot/electronics/sensing/foot-contact-coupon.json"
 OUT = ROOT / "artifacts/cove50-sensor-integration/v17/parts"
 
-SHEET_THICKNESS_MM = 0.5     # selected silicone sheet (the coupon's 0.6 mm actuator is not sold)
-TOP_Z_MM = 1.2708            # pocket floor of the v17 sensor pocket pad = top of the v4 puck it replaced
-V17_EXPORT_TIME = "2026-10-24T13:19:23"
-V17_OCCURRENCE = {"R_toe_lateral": 409, "R_heel_lateral": 410, "R_mid_medial": 411,
-                  "L_toe_lateral": 413, "L_heel_lateral": 414, "L_mid_medial": 415}
+SHEET_THICKNESS_MM = CFG["SHEET_THICKNESS_MM"]
+TOP_Z_MM = CFG["TOP_Z_MM"]
+V17_EXPORT_TIME = CFG["V17_EXPORT_TIME"]
+V17_OCCURRENCE = CFG["V17_OCCURRENCE"]
 
 
 def pucks():

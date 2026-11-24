@@ -36,26 +36,34 @@ import itertools
 import numpy as np
 import trimesh
 
-CLEARANCE = 2.0
-PITCH = 0.75
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("ape-proportions-shells")   # configured values: robot/body/ape-proportions/shells.bom.yaml config:
+HW_RHO = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"]) * 1e-3   # kg/mm3 of the steel screws and washers this pass adds
+HW_BASIS = f"mesh volume x {HW_RHO * 1e6:g} g/cm3 ({CFG['HARDWARE_MATERIAL']}, robot/body/ape-proportions/shells.bom.yaml config HARDWARE_MATERIAL)"
+
+CLEARANCE = CFG["CLEARANCE"]
+PITCH = CFG["PITCH"]
 HIP_FLEX = float(__import__("os").environ.get("APE_HIP_FLEX", -90.0))  # deepest hip flexion the openings allow
 HIP = dict(pitch=np.arange(HIP_FLEX, 40.1, 5.0), roll=(-45.0, -30.0, -15.0, 0.0, 10.0, 20.0, 25.0),
            yaw=(-40.0, -20.0, 0.0, 20.0, 40.0))
-HIP_LINKS = ("pitch_link", "roll_link", "shin")
-TORSO_SHELLS = ("center_front_shell", "center_back_shell")
+HIP_LINKS = CFG["HIP_LINKS"]
+TORSO_SHELLS = CFG["TORSO_SHELLS"]
 ANKLE = dict(pitch=np.arange(-35.0, 27.6, 2.5), roll=np.arange(-25.0, 25.1, 5.0))
-ANKLE_LINKS = ("shin", "ankle_pitch")
-SKIP = ("cut_material", "adhesive_allocation", "authored_harness")
-BOOT_STATIC_CLEARANCE = 1.0   # mm keep-out round the foot's own parts (a cover, not a fit); the 0.75 mm voxel grid and the smoothing
+ANKLE_LINKS = CFG["ANKLE_LINKS"]
+SKIP = CFG["SKIP"]
+BOOT_STATIC_CLEARANCE = CFG["BOOT_STATIC_CLEARANCE"]
                               # eat part of it: measured 2026-11-23 (review rv-6c2e93) min 0.13 mm heel cap to monocoque, 0.36 mm toe part
-BOOT_SPLIT_Y = 15.5           # mm, manifest frame: toe part (y < split) slides on along +y, heel cap along -y (T-6c2e93);
+BOOT_SPLIT_Y = CFG["BOOT_SPLIT_Y"]
                               # measured 2026-11-23 on the selected body: both halves free along their paths for a split between
                               # y 14.8 and 16.3 (below it the heel cap meets the ankle coupler, above it the toe part the monocoque)
-BOOT_SPLIT_GAP = 0.4          # mm seam between the two halves (butt joint). Each half is located by its own screw tab at the far end
+BOOT_SPLIT_GAP = CFG["BOOT_SPLIT_GAP"]
                               # (toe face y -63.25, heel face y 44.35), so the seam takes the length error of the monocoque between the
                               # boss faces (107.6 mm) and of both halves (78.7 + 28.8 mm): about +-0.3 mm in FDM (review rv-jh7fcm); 0.2
                               # could close before a tab seats, 0.4 keeps both halves' ends inside the split window above
-BOOT_MIN_BODY_MM3 = 200.0     # bodies smaller than this left over by the voxel cuts are loose crumbs, dropped
+BOOT_MIN_BODY_MM3 = CFG["BOOT_MIN_BODY_MM3"]
 SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of a face unsampled, so the fill closes
 # Boot retention (Idle T-jh7fcm): each half is held by ONE PA2x8 ISO 7380-1 (the shin back cover's screw, one BOM line) along its
 # slide direction, at its far end: the toe part at the toe tip (screw +y, driven from the front), the heel cap at the heel
@@ -76,16 +84,16 @@ SEALED_SPACING = 0.15 * PITCH  # surface sample spacing that leaves no voxel of 
 # (blade dia 3) of the roll-case screw R_B13_rear_PA2x6_1 (axis x 58.7, driver_access 2026-11-23); at x 52 the boss ends 1.2 mm
 # short of that path.
 BOOT_SCREW = dict(label="PA2 x 8 ISO 7380-1", length=8.0, head_d=3.5, head_h=1.3, shank_d=2.0, point=0.6)
-BOOT_SCREW_POINT = 0.5          # tip length the engagement counts as not threaded (robot/body/checks/data/hardware.json point_mm)
+BOOT_SCREW_POINT = CFG["BOOT_SCREW_POINT"]
 BOOT_WASHER = dict(label="M2 washer 2.2/5 x 0.3", standard="ISO 7089", d1=2.2, d2=5.0, h=0.3)
-BOOT_HOLE_D = 2.4               # plain clearance hole through the tab (ISO 273 medium for M2 / PA2)
-BOOT_TAB_T = 2.9                # printed tab under the washer, from the boss face to the washer seat
-BOOT_TAB_TOL = 0.2              # FDM tolerance on the tab thickness the stack is checked over
-BOOT_CB_D = 5.4                 # washer counterbore: d2 5.0 + 2 x 0.2 radial clearance (as the head carrier's washer counterbores)
+BOOT_HOLE_D = CFG["BOOT_HOLE_D"]
+BOOT_TAB_T = CFG["BOOT_TAB_T"]
+BOOT_TAB_TOL = CFG["BOOT_TAB_TOL"]
+BOOT_CB_D = CFG["BOOT_CB_D"]
 BOOT_SITES = (dict(half="toe", x=52.0, z=9.7, dir=1.0, face_y=-63.25),
               dict(half="heel", x=50.5, z=8.0, dir=-1.0, face_y=44.35))
-BOOT_BOSS_HW = 4.0              # boss half width (x)
-BOOT_TAB_HW, BOOT_TAB_HH = 4.6, 4.0   # tab half width (x): counterbore r 2.7 + 1.9 wall, wider than the boss so the countersink keeps
+BOOT_BOSS_HW = CFG["BOOT_BOSS_HW"]
+BOOT_TAB_HW, BOOT_TAB_HH = CFG["BOOT_TAB_HW"], CFG["BOOT_TAB_HH"]
                                       # its side walls (at 4.0 the walls beside a 0.8-1.1 toe countersink came to 0.7-1.0 mm); tab depth below the axis (z):
                                       # r 2.7 + 1.3 wall; the tab runs up to the skin above it (fills the toe tip / heel, no slot)
 # Countersink at the counterbore mouth (review rv-jh7fcm): the toe skin slopes back over the bore (about 50 deg in the x = axis section),
@@ -96,12 +104,12 @@ BOOT_TAB_HW, BOOT_TAB_HH = 4.6, 4.0   # tab half width (x): counterbore r 2.7 + 
 # r 6 mm): chamfer 0.5 / 0.7 / 0.9 / 1.0 / 1.1 -> thinnest rim wall R 0.61 / 0.80 / 1.02 / 0.98 / 0.90, L 0.48 / 0.68 / 0.82 / 0.92 /
 # 1.03 mm (tab half width 4.6); the rest under 2 lines is the roof between the bore top and the skin above it, which rises at about
 # 50 deg. Heels: nothing under one line without it, and a countersink adds nothing measurable there (left plain).
-BOOT_CSK_HALF_ANGLE = 45.0      # deg from the countersink axis (90 deg included)
+BOOT_CSK_HALF_ANGLE = CFG["BOOT_CSK_HALF_ANGLE"]
 BOOT_CSK_W = dict(toe=1.0, heel=0.0)   # mm of chamfer in the skin plane beyond the bore's long axis there (dia ~8 at the skin); 0 = none
-BOOT_CSK_SEAT_KEEP = 0.3        # mm the countersink stays outward of the washer seat
-BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = 7.5, 2.6, 2.0   # boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
-BOOT_PILOT = (1.7, 6.0)         # pilot dia (85 % of the PA2 major) and depth from the boss face (1.5 mm of boss behind it)
-BOOT_SKIN_SINK = 0.4            # the tab starts this far under the outer skin (no outward change)
+BOOT_CSK_SEAT_KEEP = CFG["BOOT_CSK_SEAT_KEEP"]
+BOOT_BOSS_LEN, BOOT_BOSS_TOP, BOOT_BOSS_Z0 = CFG["BOOT_BOSS_LEN"], CFG["BOOT_BOSS_TOP"], CFG["BOOT_BOSS_Z0"]
+BOOT_PILOT = CFG["BOOT_PILOT"]
+BOOT_SKIN_SINK = CFG["BOOT_SKIN_SINK"]
 
 
 def boot_site_geometry(st, sx=1.0):
@@ -477,23 +485,23 @@ def apply(new, h):
             w = BOOT_WASHER
             extra.append(dict(name=wn, physical_part_id=wn, owning_link=boot["owning_link"], role="standard_nominal", hardware_kind="washer",
                               **h["save_mesh"](wn, washer), volume_mm3=round(float(washer.volume), 3),
-                              mass_kg=round(float(washer.volume) * 7.85e-6, 7), color=[128, 136, 146, 255], display_group="mechanism",
+                              mass_kg=round(float(washer.volume) * HW_RHO, 7), color=[128, 136, 146, 255], display_group="mechanism",
                               display_groups=["mechanism"], overlay_id="actuators_and_hardware",
                               parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"), inspection_reference=False,
-                              mass_basis="mesh volume x 7.85 g/cm3",
+                              mass_basis=HW_BASIS,
                               material=(f"{w['standard']} M2 washer d1 {w['d1']:g} / d2 {w['d2']:g} x {w['h']:g} under the retention screw's head, "
                                         f"in the dia {BOOT_CB_D:g} counterbore of the {st['half']} of the boot, on the printed tab (shells.py, T-jh7fcm)")))
             cn = f"{s}_foot_boot_{st['half']}_PA2x8"
             sm = boot_screw_mesh(rec)
             extra.append(dict(name=cn, physical_part_id=cn, bom_group=cn, owning_link=boot["owning_link"], role="fastener_proxy",
-                              **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * 7.85e-6, 7),
+                              **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * HW_RHO, 7),
                               material=(f"PA2x8 self-tapping, ISO 7380-1 button head, on an ISO 7089 M2 washer through the {st['half']} of the boot's "
                                         f"dia {BOOT_HOLE_D:g} clearance hole into a "
                                         f"dia {BOOT_PILOT[0]:g} pilot in the foot monocoque's boss (PA2 family envelope: head dia 3.5 x 1.3, "
                                         "shank dia 2, 0.6 mm point)"),
                               color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                               overlay_id="actuators_and_hardware", parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"),
-                              inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3"))
+                              inspection_reference=False, mass_basis=HW_BASIS))
             notes.append(f"{part['name']}: retention tab {rec['tab_volume_mm3']} mm3, head under skin {rec['head_under_skin_min_mm']} mm")
             part.update(h["save_mesh"](part["name"], half))
             part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts cut out with a "

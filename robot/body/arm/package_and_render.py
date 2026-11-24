@@ -41,23 +41,13 @@ from common import (
     write_json,
 )
 
-STAGE_COLORS = {
-    "stage1_shoulder_pitch_to_roll": [42, 138, 184, 255],
-    "stage2_shoulder_roll_to_yaw": [28, 164, 142, 255],
-    "stage3_upper_arm_yaw_to_elbow": [212, 134, 52, 255],
-    "stage4_forearm_elbow_to_wrist": [64, 156, 212, 255],
-    "sleeve": [215, 222, 230, 255],
-    "nut": [220, 185, 75, 255],
-    "screw": [210, 218, 226, 255],
-    "hard_cover": [231, 222, 201, 255],
-}
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-arm-connectors")   # configured values: robot/body/arm/build_arm_connectors.bom.yaml config:
 
-PRINT_ORIENTATIONS = {
-    "stage1_shoulder_pitch_to_roll": "XZ Roll-Case Flange Bed (layer normal Y)",
-    "stage2_shoulder_roll_to_yaw": "XZ Roll-Horn Flange Bed (layer normal Y)",
-    "stage3_upper_arm_yaw_to_elbow": "YZ Elbow-Ear Flange Bed (layer normal X)",
-    "stage4_forearm_elbow_to_wrist": "YZ Medial-Spine Bed (layer normal X)",
-}
+STAGE_COLORS = BOM_CONFIG.unfrozen(CFG["STAGE_COLORS"])
+
+PRINT_ORIENTATIONS = CFG["PRINT_ORIENTATIONS"]
 
 CPP_RENDERER = ROOT / "robot/electronics/power/cad/zbuffer_renderer.cpp"
 EXE_RENDERER = ART / "zbuffer_renderer_bin"
@@ -248,9 +238,9 @@ def package_family(fam: str, hw: dict) -> dict:
             "bounds_mm": [m_mm.bounds[0].round(3).tolist(), m_mm.bounds[1].round(3).tolist()],
             "native_solid_count": 1,
             "native_validity": [True],
-            "material": "Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3) FDM",
+            "material": f"Bambu PAHT-CF / PA12-CF ({MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3) or PETG-CF ({MATERIALS['PETG_CF']['density_g_cm3']:g} g/cm3) FDM",
             "mass_kg": round(item["polymer_mass_paht_cf_g"] / 1000.0, 6),
-            "mass_basis": "Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)",
+            "mass_basis": f"Exact native STEP volume * {MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3 ({MATERIALS['PAHT_CF_dry']['name']})",
             "color": rgba,
             "display_group": "mechanism",
             "display_groups": ["mechanism"],
@@ -282,7 +272,7 @@ def package_family(fam: str, hw: dict) -> dict:
             "bounds_mm": [m_slv.bounds[0].round(3).tolist(), m_slv.bounds[1].round(3).tolist()],
             "native_solid_count": item["sleeves_count"],
             "native_validity": [True] * item["sleeves_count"],
-            "material": "304 Stainless Steel compression sleeves (7.85 g/cm3)",
+            "material": f"304 Stainless Steel compression sleeves ({MATERIALS['Steel_Sleeve']['density_g_cm3']:g} g/cm3)",
             "mass_kg": round(item["sleeves_mass_g"] / 1000.0, 6),
             "color": STAGE_COLORS["sleeve"],
             "display_group": "mechanism",
