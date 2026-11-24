@@ -13,8 +13,8 @@ naming the definition file to fix. Nothing is filled in for you.
 
 ```bash
 .venv/bin/python -B robot/body/bom/build.py            # seconds; --publish also updates the design dashboard BOM
-python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/checks/run.py --checks assembly --label assembly
-python3 infra/tools/memguard.py --limit-gb 4 --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py --checks bom --label bom
+python3 infra/tools/memguard.py --timeout-s 1800 -- .venv/bin/python -B robot/body/checks/run.py --checks assembly --label assembly
+python3 infra/tools/memguard.py --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py --checks bom --label bom
 .venv/bin/python -B robot/body/bom/publish_body.py --publish   # main checkout: the selected body's dashboard record (below)
 ```
 
