@@ -34,16 +34,16 @@ STAGE_PART_BASENAMES = CFG["STAGE_PART_BASENAMES"]
 REPLACED_ARM_PARTS = set(CFG["REPLACED_ARM_PARTS"])
 
 # Exact kinematic frames and axes on the Right arm
-N_YAW = np.array([-0.1643989873053573, 0.0, 0.9863939238321437], dtype=float)
-V_YAW = np.array([0.9863939238321437, 0.0, 0.1643989873053573], dtype=float)
-W_YAW = np.array([0.0, 1.0, 0.0], dtype=float)
+N_YAW = np.array(CFG["N_YAW"], dtype=float)
+V_YAW = np.array(CFG["V_YAW"], dtype=float)
+W_YAW = np.array(CFG["W_YAW"], dtype=float)
 A_YAW = np.column_stack([N_YAW, V_YAW, W_YAW])
-P_PITCH = np.array([52.0, 9.0, 352.0], dtype=float)
-P_ROLL = np.array([112.0, 3.0, 360.0], dtype=float)
-P_YAW = np.array([134.0, -10.0, 306.0], dtype=float)
-O_YAW_CASE = np.array([134.49319696191608, -10.0, 303.04081822850355], dtype=float)
-P_ELBOW = np.array([145.0, -3.0, 252.0], dtype=float)
-P_WRIST_ORIGIN = np.array([138.5, 1.0, 172.5], dtype=float)
+P_PITCH = np.array(CFG["P_PITCH"], dtype=float)
+P_ROLL = np.array(CFG["P_ROLL"], dtype=float)
+P_YAW = np.array(CFG["P_YAW"], dtype=float)
+O_YAW_CASE = np.array(CFG["O_YAW_CASE"], dtype=float)
+P_ELBOW = np.array(CFG["P_ELBOW"], dtype=float)
+P_WRIST_ORIGIN = np.array(CFG["P_WRIST_ORIGIN"], dtype=float)
 
 _A20 = math.radians(20.0)
 ROT_ROLL = np.column_stack([

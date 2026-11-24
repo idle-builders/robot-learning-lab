@@ -2198,9 +2198,13 @@ joints:
 - match: [R_right_finger_opening, L_right_finger_opening]
   range_deg: [0.0, 45.0]
   doc: Right finger, driven +1 by the opening control.
+  origin_mm: {R_right_finger_opening: [139.5, 1.0, 141.45], L_right_finger_opening: [-139.5, 1.0, 141.45]}
+  axis: {R_right_finger_opening: [0.0, -1.0, 0.0], L_right_finger_opening: [0.0, 1.0, 0.0]}
 - match: [R_left_finger_opening, L_left_finger_opening]
   range_deg: [-45.0, 0.0]
   doc: Left finger, driven -1 by the opening control.
+  origin_mm: {R_left_finger_opening: [121.5, 1.0, 141.45], L_left_finger_opening: [-121.5, 1.0, 141.45]}
+  axis: {R_left_finger_opening: [0.0, -1.0, 0.0], L_left_finger_opening: [0.0, 1.0, 0.0]}
 config:
   # robot/body/assembly/assemble_complete_fdm_body.py module constants (moved 2026-11-24)
   PALETTE:

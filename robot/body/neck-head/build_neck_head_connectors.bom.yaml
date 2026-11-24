@@ -1872,3 +1872,15 @@ config:
   FLUSH_SITES:
     value: [[stage1_neck_root_cradle, load], [stage2_neck_yaw_to_pitch_link, load], [stage2_neck_yaw_to_pitch_link, support], [stage3_neck_pitch_to_head_cradle, support]]
     doc: (stage, role) sites on a plate whose thickness equals the sleeve length (screws into the XM335 holes, generated from the definitions by defined_holes.py / neck_screws.py)
+  # robot/body/neck-head/common.py module constants (moved 2026-11-24)
+  P_NECK_YAW:
+    value: [0.0, 5.0, 365.0]
+    doc: Exact neck joint origins and axes in world neutral coordinates (mm)
+  AXIS_NECK_YAW:
+    value: [0.0, 0.0, 1.0]
+  P_NECK_PITCH:
+    value: [-13.5, 5.0, 414.0]
+  AXIS_NECK_PITCH:
+    value: [1.0, 0.0, 0.0]
+  HEAD_CG_MM:
+    value: [-4.0, -2.0, 445.0]

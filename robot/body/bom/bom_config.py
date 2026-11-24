@@ -96,6 +96,38 @@ def section(definition, defs=None):
     return Section(definition, values(definition, defs))
 
 
+def joint_origin(name, defs=None):
+    """Declared origin (mm, assembled body frame) of joint `name`; raises when its declaration gives none."""
+    d = joints(defs).get(name)
+    if d is None or "origin_mm" not in d:
+        raise Undeclared(f"joint {name!r}: no origin_mm declared; add it to its `joints:` entry")
+    return list(d["origin_mm"])
+
+
+def joint_axis(name, defs=None):
+    """Declared neutral axis of joint `name`; raises when its declaration gives none."""
+    d = joints(defs).get(name)
+    if d is None or "axis" not in d:
+        raise Undeclared(f"joint {name!r}: no axis declared; add it to its `joints:` entry")
+    return list(d["axis"])
+
+
+def apply_joint_frames(joint_records, defs=None):
+    """Set origin_world_mm / axis_world_neutral of the joint records whose declaration gives them. Returns the names set."""
+    J, done = joints(defs), []
+    for rec in joint_records:
+        d = J.get(rec.get("name"))
+        if not d:
+            continue
+        if "origin_mm" in d:
+            rec["origin_world_mm"] = list(d["origin_mm"])
+        if "axis" in d:
+            rec["axis_world_neutral"] = list(d["axis"])
+        if "origin_mm" in d or "axis" in d:
+            done.append(rec["name"])
+    return done
+
+
 def apply_joint_ranges(manifest, defs=None, strict=True):
     """Set manifest joints[].range_deg and controls[].range_deg from the declarations (driven joints untouched).
     Returns log lines. strict: an undriven manifest joint without a declaration raises."""

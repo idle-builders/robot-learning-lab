@@ -18,20 +18,26 @@ generators:
   - artifacts/robot/body/arm
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
-# Joint ranges of the arms: the single source of these ranges (owner 2026-11-23); see robot/body/bom/bom_config.py.
+# Joint ranges of the arms, and their origins / axes in the assembled body (the arms sit inward of the arm section study's
+# frames, arm/common.py P_*): the single source (owner 2026-11-23/24); see robot/body/bom/bom_config.py.
 joints:
 - match: [R_shoulder_pitch, L_shoulder_pitch]
   range_deg: [-60.0, 150.0]
   doc: Shoulder pitch, collision-free shell range (was hard-coded in assemble_complete_fdm_body.py).
+  origin_mm: {R_shoulder_pitch: [64.0, 9.0, 352.0], L_shoulder_pitch: [-64.0, 9.0, 352.0]}
 - match: [R_shoulder_roll, L_shoulder_roll]
   range_deg: [-15.0, 95.0]
   doc: Shoulder roll (flipped), collision-free shell range.
+  origin_mm: {R_shoulder_roll: [106.0, 5.05, 360.0], L_shoulder_roll: [-106.0, 5.05, 360.0]}
 - match: [R_shoulder_yaw, L_shoulder_yaw]
   range_deg: [-60.0, 60.0]
   doc: Shoulder yaw.
+  origin_mm: {R_shoulder_yaw: [127.0, -10.0, 306.0], L_shoulder_yaw: [-127.0, -10.0, 306.0]}
+  axis: {R_shoulder_yaw: [-0.2236068, -0.1490712, 0.96308682], L_shoulder_yaw: [-0.2236068, 0.1490712, -0.96308682]}
 - match: [R_elbow, L_elbow]
   range_deg: [0.0, 95.0]
   doc: Elbow flexion.
+  origin_mm: {R_elbow: [138.0, -3.0, 252.0], L_elbow: [-138.0, -3.0, 252.0]}
 config:
   # robot/body/arm/common.py module constants (moved 2026-11-24)
   STAGE_LINKS:
@@ -56,3 +62,23 @@ config:
   RIGHT_ARM_SHELL_MOUNTS:
     value: [{id: fore_front_187, stage: stage4_forearm_elbow_to_wrist, shell: fore_front, axis: [0.0, -1.0, 0.0], center: [145.0, -19.4, 187.0], post_span: [-23.0, -13.5], post_r: 4.0, slot_dir: [0.0, 0.0, 1.0], screw_src: fore_front_M3x8_187, screw_dx: 0.0}, {id: fore_front_178, stage: stage4_forearm_elbow_to_wrist, shell: fore_front, axis: [0.0, -1.0, 0.0], center: [145.0, -15.9, 178.0], post_span: [-18.8, -11.5], post_r: 4.0, slot_dir: [0.0, 0.0, -1.0], screw_src: fore_front_M3x8_178, screw_dx: 0.0}, {id: fore_back_187, stage: stage4_forearm_elbow_to_wrist, shell: fore_back, axis: [0.0, 1.0, 0.0], center: [145.0, 13.4, 187.0], post_span: [7.5, 17.0], post_r: 4.0, slot_dir: [0.0, 0.0, 1.0], screw_src: fore_back_M3x8_187, screw_dx: 0.0}, {id: fore_back_178, stage: stage4_forearm_elbow_to_wrist, shell: fore_back, axis: [0.0, 1.0, 0.0], center: [145.0, 9.9, 178.0], post_span: [5.5, 12.3], post_r: 4.0, slot_dir: [0.0, 0.0, -1.0], screw_src: fore_back_M3x8_178, screw_dx: 0.0}]
     doc: Exact Right-arm integrated hard-shell mount specifications (4 forearm mounts on R arm = 8 bilateral)
+  # robot/body/arm/common.py module constants (moved 2026-11-24)
+  N_YAW:
+    value: [-0.1643989873053573, 0.0, 0.9863939238321437]
+    doc: Exact kinematic frames and axes on the Right arm
+  V_YAW:
+    value: [0.9863939238321437, 0.0, 0.1643989873053573]
+  W_YAW:
+    value: [0.0, 1.0, 0.0]
+  P_PITCH:
+    value: [52.0, 9.0, 352.0]
+  P_ROLL:
+    value: [112.0, 3.0, 360.0]
+  P_YAW:
+    value: [134.0, -10.0, 306.0]
+  O_YAW_CASE:
+    value: [134.49319696191608, -10.0, 303.04081822850355]
+  P_ELBOW:
+    value: [145.0, -3.0, 252.0]
+  P_WRIST_ORIGIN:
+    value: [138.5, 1.0, 172.5]

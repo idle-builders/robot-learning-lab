@@ -2582,27 +2582,10 @@ def build_complete_assembly() -> dict:
         joints.append(jc)
         controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
-    # 8 Arm joints (with updated shoulder pitch, flipped shoulder roll, inward-shifted yaw & elbow origins, and collision-free shell ranges)
-    arm_joint_origins = {
-        "R_shoulder_pitch": [64.0, 9.0, 352.0],
-        "L_shoulder_pitch": [-64.0, 9.0, 352.0],
-        "R_shoulder_roll": [106.0, 5.05, 360.0],
-        "L_shoulder_roll": [-106.0, 5.05, 360.0],
-        "R_shoulder_yaw": [127.0, -10.0, 306.0],
-        "L_shoulder_yaw": [-127.0, -10.0, 306.0],
-        "R_elbow": [138.0, -3.0, 252.0],
-        "L_elbow": [-138.0, -3.0, 252.0],
-    }
-    arm_joint_axes = {
-        "R_shoulder_yaw": [-0.2236068, -0.1490712, 0.96308682],
-        "L_shoulder_yaw": [-0.2236068, 0.1490712, -0.96308682],
-    }
+    # 8 Arm joints: origins / axes in the assembled body (shifted inward of the arm section's frames) from arm/build_arm_connectors.bom.yaml joints:
     for j in arm_man["joints"]:
         jc = copy.deepcopy(j)
-        if jc["name"] in arm_joint_origins:
-            jc["origin_world_mm"] = arm_joint_origins[jc["name"]]
-        if jc["name"] in arm_joint_axes:
-            jc["axis_world_neutral"] = arm_joint_axes[jc["name"]]
+        BOM_CONFIG.apply_joint_frames([jc])   # origin / axis in the assembled body: the arm joints' `joints:` declarations
         joints.append(jc)
         controls.append({"name": jc["name"], "range_deg": jc.get("range_deg")})  # set from the declarations below
 
@@ -2612,8 +2595,8 @@ def build_complete_assembly() -> dict:
             "name": "R_right_finger_opening",
             "parent": "R_forearm",
             "child": "R_right_finger",
-            "origin_world_mm": [139.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, -1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("R_right_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("R_right_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("R_right_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": 1.0}},
         },
@@ -2621,8 +2604,8 @@ def build_complete_assembly() -> dict:
             "name": "R_left_finger_opening",
             "parent": "R_forearm",
             "child": "R_left_finger",
-            "origin_world_mm": [121.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, -1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("R_left_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("R_left_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("R_left_finger_opening"),
             "driven_by": {"linear": {"R_finger_opening": -1.0}},
         },
@@ -2630,8 +2613,8 @@ def build_complete_assembly() -> dict:
             "name": "L_right_finger_opening",
             "parent": "L_forearm",
             "child": "L_right_finger",
-            "origin_world_mm": [-139.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, 1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("L_right_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("L_right_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("L_right_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": 1.0}},
         },
@@ -2639,8 +2622,8 @@ def build_complete_assembly() -> dict:
             "name": "L_left_finger_opening",
             "parent": "L_forearm",
             "child": "L_left_finger",
-            "origin_world_mm": [-121.50, 1.00, 141.45],
-            "axis_world_neutral": [0.0, 1.0, 0.0],
+            "origin_world_mm": BOM_CONFIG.joint_origin("L_left_finger_opening"),
+            "axis_world_neutral": BOM_CONFIG.joint_axis("L_left_finger_opening"),
             "range_deg": BOM_CONFIG.joint_range("L_left_finger_opening"),
             "driven_by": {"linear": {"L_finger_opening": -1.0}},
         },

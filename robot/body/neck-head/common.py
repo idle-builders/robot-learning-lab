@@ -35,10 +35,10 @@ BASELINE_STEPS = {
 REPLACED_NECK_HEAD_PARTS = set(CFG["REPLACED_NECK_HEAD_PARTS"])
 
 # Exact neck joint origins and axes in world neutral coordinates (mm)
-P_NECK_YAW = np.array([0.0, 5.0, 365.0], dtype=float)
-AXIS_NECK_YAW = np.array([0.0, 0.0, 1.0], dtype=float)
-P_NECK_PITCH = np.array([-13.5, 5.0, 414.0], dtype=float)
-AXIS_NECK_PITCH = np.array([1.0, 0.0, 0.0], dtype=float)
+P_NECK_YAW = np.array(CFG["P_NECK_YAW"], dtype=float)
+AXIS_NECK_YAW = np.array(CFG["AXIS_NECK_YAW"], dtype=float)
+P_NECK_PITCH = np.array(CFG["P_NECK_PITCH"], dtype=float)
+AXIS_NECK_PITCH = np.array(CFG["AXIS_NECK_PITCH"], dtype=float)
 
 
 def sha(path: Path) -> str:
@@ -920,7 +920,7 @@ def classify_neck_head_link(part_dict: dict) -> str | None:
 # Optimal FDM build-plate normal axis for each stage so primary bending & loop tension lie in-plane (XY)
 PRINT_AXES = CFG["PRINT_AXES"]
 
-HEAD_CG_MM = np.array([-4.0, -2.0, 445.0], dtype=float)
+HEAD_CG_MM = np.array(CFG["HEAD_CG_MM"], dtype=float)
 
 # 6-DOF wrenches defined at HEAD_CG_MM (`F_N` in N, `M_Nm` in N*m)
 LOAD_CASES = {

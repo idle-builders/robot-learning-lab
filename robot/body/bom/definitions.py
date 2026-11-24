@@ -99,14 +99,25 @@ class Definitions:
                 self.steps.append(dict(st, file=f, index=i, rank=rank))
             for i, jd in enumerate(doc.get("joints", [])):
                 lo, hi = jd["range_deg"]
-                for jn in names_of(jd["match"]):
+                names = names_of(jd["match"])
+                for jn in names:
                     if jn in self.joints:
                         self.find("joint_declared_twice", f, f"joints[{i}] {jn}", f"also declared in {self.joints[jn]['file']}", joint=jn)
                         continue
                     if not lo < hi:
                         self.find("joint_range_empty", f, f"joints[{i}] {jn}", f"range_deg {jd['range_deg']}: lower must be below upper", joint=jn)
+                    frame = {}
+                    for key in ("origin_mm", "axis"):
+                        v = jd.get(key)
+                        if isinstance(v, dict):
+                            v = v.get(jn)
+                        elif v is not None and len(names) > 1:
+                            self.find("joint_frame_ambiguous", f, f"joints[{i}] {jn}", f"{key} is one vector for {len(names)} joints; give {{joint: vector}}", joint=jn)
+                            v = None
+                        if v is not None:
+                            frame[key] = [float(x) for x in v]
                     self.joints[jn] = dict(range_deg=[float(lo), float(hi)], doc=jd.get("doc"), decision=jd.get("decision"),
-                                           file=f, definition=doc["definition"], entry=f"joints[{i}]")
+                                           file=f, definition=doc["definition"], entry=f"joints[{i}]", **frame)
             if doc.get("config"):
                 self.config[doc["definition"]] = {k: dict(v, file=f) for k, v in doc["config"].items()}
             if doc.get("study"):
