@@ -1,4 +1,4 @@
-"""Cove-50 R3 whole-body inverse dynamics with optimised floor forces, and the servo envelopes it is compared with.
+"""APE0 R3 whole-body inverse dynamics with optimised floor forces, and the servo envelopes it is compared with.
 
 Each frame's joint torques come from mj_inverse on the selected R3 body with
 constraints off, plus floor forces at the active sole corners. Those forces sit
@@ -70,15 +70,15 @@ def _servos():
 SERVOS = _servos()
 
 
-FEET_SCALE = tuple(float(x) for x in os.environ['COVE50_FEET_SCALE'].split(',')) if os.environ.get('COVE50_FEET_SCALE') else None
-ARM_SCALE = (tuple(float(x) for x in os.environ['COVE50_ARM_SCALE'].split(',')) if ',' in os.environ['COVE50_ARM_SCALE']
-    else float(os.environ['COVE50_ARM_SCALE'])) if os.environ.get('COVE50_ARM_SCALE') else None  # s, or upper,forearm
-FIST = tuple(float(x) for x in os.environ['COVE50_FIST'].split(',')) if os.environ.get('COVE50_FIST') else None  # length,mass
+FEET_SCALE = tuple(float(x) for x in os.environ['APE0_FEET_SCALE'].split(',')) if os.environ.get('APE0_FEET_SCALE') else None
+ARM_SCALE = (tuple(float(x) for x in os.environ['APE0_ARM_SCALE'].split(',')) if ',' in os.environ['APE0_ARM_SCALE']
+    else float(os.environ['APE0_ARM_SCALE'])) if os.environ.get('APE0_ARM_SCALE') else None  # s, or upper,forearm
+FIST = tuple(float(x) for x in os.environ['APE0_FIST'].split(',')) if os.environ.get('APE0_FIST') else None  # length,mass
 
 
 def robot_spec():
-    """The selected R3 spec, with COVE50_FEET_SCALE=length,width (tracking.scale_feet), COVE50_ARM_SCALE=s or
-    upper,forearm (tracking.scale_arms) and COVE50_FIST=length,mass (tracking.add_fists) when set."""
+    """The selected R3 spec, with APE0_FEET_SCALE=length,width (tracking.scale_feet), APE0_ARM_SCALE=s or
+    upper,forearm (tracking.scale_arms) and APE0_FIST=length,mass (tracking.add_fists) when set."""
     spec = tracking.scale_arms(tracking.scale_feet(mjlab_adapter.robot_spec(), FEET_SCALE), ARM_SCALE)
     return tracking.add_fists(spec, *FIST) if FIST else spec
 

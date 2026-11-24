@@ -33,7 +33,7 @@ def main() -> None:
     parser.add_argument("--student-bc", action="store_true",
                         help="Load the shared Direct Frame squat/arm BC candidate")
     parser.add_argument("--body-xml", type=Path)
-    parser.add_argument("--cove50-body-xml", type=Path,
+    parser.add_argument("--ape0-body-xml", type=Path,
                         help="Retarget the 21-axis Cove body, motor law, reset and height goals")
     parser.add_argument("--physics-model", choices=("baseline", "candidate"), default="baseline")
     parser.add_argument("--mode", choices=("cycle", "stand"), default="cycle")
@@ -86,19 +86,19 @@ def main() -> None:
         parser.error("checkpoint is required unless --zero-actions is set")
     if args.physics_model == "candidate" and args.body_xml:
         parser.error("--body-xml and --physics-model candidate are mutually exclusive")
-    if args.cove50_body_xml and (args.body_xml or args.physics_model != "baseline"):
-        parser.error("--cove50-body-xml requires the default baseline mode and no --body-xml")
+    if args.ape0_body_xml and (args.body_xml or args.physics_model != "baseline"):
+        parser.error("--ape0-body-xml requires the default baseline mode and no --body-xml")
     if args.recover_from_start and (not args.start_squat or args.mode != "cycle"):
         parser.error("--recover-from-start requires --start-squat in cycle mode")
     if args.posture_ramp_s is not None and args.posture_ramp_s <= 0:
         parser.error("--posture-ramp-s must be positive")
     if args.initial_blend is not None and not (
-        0 <= args.initial_blend <= 1 and args.cove50_body_xml and args.scripted_target_probe
+        0 <= args.initial_blend <= 1 and args.ape0_body_xml and args.scripted_target_probe
         and args.start_squat and args.recover_from_start
     ):
         parser.error("--initial-blend requires a Cove scripted seated recovery and a value in [0,1]")
     if args.seated_rise_stage and not (
-        args.cove50_body_xml and args.start_squat and args.recover_from_start
+        args.ape0_body_xml and args.start_squat and args.recover_from_start
         and args.mode == "cycle" and not args.settled_squat_reset
         and args.initial_blend is None
     ):
@@ -146,7 +146,7 @@ def main() -> None:
     if args.body_xml:
         cfg.scene.entities["robot"].spec_fn = partial(ape_walk.task._ape_spec, args.body_xml.resolve())
         cfg.scene.entities["robot"].collisions[0].disable_other_geoms = False
-    if args.cove50_body_xml:
+    if args.ape0_body_xml:
         sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
         from control.skills.policy_transfer.train_posture_arm import (
             retarget, SQUAT_LEGS, SQUAT_COUNTERBALANCE_ARMS, SQUAT_ACTION_SCALE,
@@ -155,7 +155,7 @@ def main() -> None:
         from ape_walk.physics.frame50 import (configure_frame50_motors,
                                               clip_frame50_leg_targets,
                                               reveal_frame50_proxy_geometry_for_video)
-        body = args.cove50_body_xml.resolve()
+        body = args.ape0_body_xml.resolve()
         if args.seated_rise_stage:
             cfg = build_seated_rise_env_cfg(body, variance=args.randomized_physics)
         else:
@@ -173,8 +173,8 @@ def main() -> None:
             clip_frame50_leg_targets(cfg, body,
                                      margin_rad=args.leg_target_margin_rad)
     elif args.scripted_target_probe:
-        parser.error("--scripted-target-probe requires --cove50-body-xml")
-    if candidate_model or args.body_xml or args.cove50_body_xml:
+        parser.error("--scripted-target-probe requires --ape0-body-xml")
+    if candidate_model or args.body_xml or args.ape0_body_xml:
         cfg.scene.sensors = (cfg.scene.sensors or ()) + (
             ape_walk.task.ContactSensorCfg(
                 name="self_body_contact",
@@ -185,7 +185,7 @@ def main() -> None:
                 fields=("found", "force"), reduce="none", num_slots=1,
             ),
         )
-    if args.cove50_body_xml and not args.seated_rise_stage:
+    if args.ape0_body_xml and not args.seated_rise_stage:
         # The pelvis-subtree sensor above detects robot self contact. It does
         # not detect a fallen pelvis touching terrain. Keep that physical
         # failure separate from sole and hand contacts in the score trace.
@@ -214,7 +214,7 @@ def main() -> None:
         cfg.commands["twist"].ramp_s = args.posture_ramp_s
     reset = cfg.events["set_ground_state"].params
     if args.settled_squat_reset:
-        if not (args.start_squat and args.cove50_body_xml):
+        if not (args.start_squat and args.ape0_body_xml):
             parser.error("Settled squat reset requires --start-squat on Cove")
         reset["sitting_z_min"] = 0.1712
         reset["sitting_z_max"] = 0.1712
@@ -247,7 +247,7 @@ def main() -> None:
         for act in robot.actuators
     ]
     observed_motor_delay_lags = set()
-    if args.video and args.cove50_body_xml:
+    if args.video and args.ape0_body_xml:
         reveal_frame50_proxy_geometry_for_video(env.unwrapped.sim.mj_model)
     hand_site_ids = [robot.site_names.index(name) for name in
                      ("left_hand_center", "right_hand_center")]
@@ -256,7 +256,7 @@ def main() -> None:
     action_term = env.unwrapped.action_manager.get_term("joint_pos")
     leg_rated_effort = torch.tensor(
         ([act.effort_limit for act in cfg.scene.entities["robot"].articulation.actuators[:10]]
-         if args.cove50_body_xml else [1.56] * 10),
+         if args.ape0_body_xml else [1.56] * 10),
         device=args.device,
     )
     if args.scripted_target_probe:
@@ -281,7 +281,7 @@ def main() -> None:
         def policy(_):
             return torch.zeros_like(robot.data.joint_pos)
     elif args.student_bc:
-        if not args.cove50_body_xml or args.task != ape_walk.task.ELBOW_SQUAT_HEADING_OBS_TASK_ID:
+        if not args.ape0_body_xml or args.task != ape_walk.task.ELBOW_SQUAT_HEADING_OBS_TASK_ID:
             parser.error("Shared BC posture replay requires the Cove heading-observed task")
         from control.skills.low_level.multicommand_bc import load_student
         policy = load_student(args.checkpoint, args.device, action_term.target_names,
@@ -391,7 +391,7 @@ def main() -> None:
                 first_action_hash = hashlib.sha256(actions.cpu().numpy().tobytes()).hexdigest()
             bounded_actions = actions.clone()
             if args.squat_active_mask:
-                if not args.cove50_body_xml:
+                if not args.ape0_body_xml:
                     parser.error("Squat action mask requires the Cove body")
                 inactive = set(range(bounded_actions.shape[1])) - set(SQUAT_ACTION_SCALE)
                 bounded_actions[:, list(inactive)] = 0.0
@@ -441,8 +441,8 @@ def main() -> None:
         tilt = math.degrees(math.acos(max(-1.0, min(1.0,
             1 - 2 * (quat[1] ** 2 + quat[2] ** 2)))))
         hand_force = float(sensors["hand_ground_contact"].data.force[0].norm(dim=-1).max())
-        self_body_contact = bool(sensors["self_body_contact"].data.found[0].any()) if candidate_model or args.body_xml or args.cove50_body_xml else False
-        floor_body_contact = bool(sensors["nonsole_body_ground_contact"].data.found[0].any()) if args.cove50_body_xml else False
+        self_body_contact = bool(sensors["self_body_contact"].data.found[0].any()) if candidate_model or args.body_xml or args.ape0_body_xml else False
+        floor_body_contact = bool(sensors["nonsole_body_ground_contact"].data.found[0].any()) if args.ape0_body_xml else False
         body_contact = self_body_contact or floor_body_contact
         feet = sensors["feet_ground_contact"].data.found[0].cpu().tolist()
         foot_forces = sensors["feet_ground_contact"].data.force[0].norm(dim=-1).cpu().tolist()
@@ -501,9 +501,9 @@ def main() -> None:
 
     report = {
         "task": task_id,
-        "body_xml": str(candidate_model or args.body_xml or args.cove50_body_xml or ape_walk.task.ELBOW_MODEL),
-        "body_sha256": hashlib.sha256((candidate_model or args.body_xml or args.cove50_body_xml or ape_walk.task.ELBOW_MODEL).read_bytes()).hexdigest(),
-        "physics_model": "cove50" if args.cove50_body_xml else args.physics_model,
+        "body_xml": str(candidate_model or args.body_xml or args.ape0_body_xml or ape_walk.task.ELBOW_MODEL),
+        "body_sha256": hashlib.sha256((candidate_model or args.body_xml or args.ape0_body_xml or ape_walk.task.ELBOW_MODEL).read_bytes()).hexdigest(),
+        "physics_model": "ape0" if args.ape0_body_xml else args.physics_model,
         "leg_rated_effort_limits_nm": [round(float(v), 6) for v in leg_rated_effort],
         "checkpoint": str(args.checkpoint) if args.checkpoint else None,
         "zero_actions": args.zero_actions,
@@ -512,8 +512,8 @@ def main() -> None:
         "scripted_leg_override_rad": ([args.scripted_hip_pitch, args.scripted_knee,
                                         args.scripted_ankle_pitch]
                                        if args.scripted_hip_pitch is not None else None),
-        "motor_rail_v": args.motor_rail_v if args.cove50_body_xml else None,
-        "command_delay_ms": args.command_delay_ms if args.cove50_body_xml else None,
+        "motor_rail_v": args.motor_rail_v if args.ape0_body_xml else None,
+        "command_delay_ms": args.command_delay_ms if args.ape0_body_xml else None,
         "leg_target_margin_rad": args.leg_target_margin_rad,
         "action_smoothing_alpha": args.action_smoothing_alpha,
         "squat_active_mask": args.squat_active_mask,

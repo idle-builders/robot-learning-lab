@@ -97,9 +97,9 @@ def main():
     args.out.mkdir(parents=True, exist_ok=False)
     args.work.mkdir(parents=True, exist_ok=True)
     sys.path.insert(0, str(TASK))
-    native = load(TASK / 'run.py', 'cove50_forward_stop_original_runner')
+    native = load(TASK / 'run.py', 'ape0_forward_stop_original_runner')
     sys.path.insert(0, str(ROOT / 'control/skills/basic-gait'))
-    replay = load(ROOT / 'control/skills/basic-gait/replay.py', 'cove50_forward_stop_layout')
+    replay = load(ROOT / 'control/skills/basic-gait/replay.py', 'ape0_forward_stop_layout')
     import torch
     profile = 'train' if args.mode == 'train' else args.profile
     report = dict(schema='cove50.forward-stop-native.v1', mode=args.mode,

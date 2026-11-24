@@ -1,6 +1,6 @@
 # Actuators, power and electronics
 
-Results for the 50 cm ape (Cove-50). Every number is a catalogue value, a public listing price or a simulation unless
+Results for the 50 cm ape (APE0). Every number is a catalogue value, a public listing price or a simulation unless
 it says "measured". **Nothing in this topic has been measured on a physical servo, battery, rail or board.** Prices
 are single-unit public listings before tax and shipping, not quotes. Purchases are the owner's decision; none has been
 made. Sensors and the camera stack are in `perception-and-sensing.md`; the frame and servo pockets in

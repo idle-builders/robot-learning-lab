@@ -1,7 +1,7 @@
-# Complete Cove-50 FDM Ape Body Integration (`cove50-complete-fdm-body-r1`, `T-g6ns9t`, `M-qzbpak`)
+# Complete APE0 FDM Ape Body Integration (`cove50-complete-fdm-body-r1`, `T-g6ns9t`, `M-qzbpak`)
 
 ## 1. Objective & Scope
-Combine all four completed 3D-printable FDM structural subsystems into one coherent, source-verified Complete Cove-50 FDM Ape Body CAD assembly (`cove50-complete-fdm-body-r1`):
+Combine all four completed 3D-printable FDM structural subsystems into one coherent, source-verified Complete APE0 FDM Ape Body CAD assembly (`cove50-complete-fdm-body-r1`):
 1. **Lower Body (`cove50-complete-leg-hip-fdm-combined-r10`, `T-f39h6b`, `M-y8acff`):**
    - 12 printed parts (6 stages × 2 legs: Stage 1 Shin, Stage 2 Ankle Pitch-to-Roll Coupler, Stage 3 Foot Monocoque, Stage 4 Thigh, Stage 5 Hip Pitch-to-Roll Link, Stage 6 Hip Yaw-to-Pitch Link)
    - 128 pressed-in `304 SS` compression sleeves (`64/leg`)

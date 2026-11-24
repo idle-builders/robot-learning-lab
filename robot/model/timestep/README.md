@@ -1,4 +1,4 @@
-# Selected Cove-50 model: continuous-servo resolution R3
+# Selected APE0 model: continuous-servo resolution R3
 
 R3 retains the selected V24/R23/R33 electronics and upper V5/lower V16 mechanics,
 the R2 physical collision correction, all meshes, 22 axes, mass/inertia, travel

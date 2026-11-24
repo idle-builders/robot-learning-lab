@@ -7,7 +7,7 @@ MotionCommand. Outputs are cheap derived files: references.json plus
 
     .venv-control/bin/python control/wbc/motions.py --output DIR
 
-regenerate them exactly. Set COVE50_FEET_SCALE, COVE50_ARM_SCALE and COVE50_FIST as for agility/library.py when the references
+regenerate them exactly. Set APE0_FEET_SCALE, APE0_ARM_SCALE and APE0_FIST as for agility/library.py when the references
 were authored on a scaled body.
 """
 import argparse
@@ -109,13 +109,13 @@ def main():
     # The body the references were authored on (agility/body.py reads the same variables): longer arms move the
     # forearm bodies, so their tracked positions must come from the same body. Foot scaling moves no body frame.
     scales = {}
-    if os.environ.get('COVE50_FEET_SCALE'):
-        scales['feet_scale'] = tuple(float(x) for x in os.environ['COVE50_FEET_SCALE'].split(','))
-    if os.environ.get('COVE50_ARM_SCALE'):
-        a = [float(x) for x in os.environ['COVE50_ARM_SCALE'].split(',')]
+    if os.environ.get('APE0_FEET_SCALE'):
+        scales['feet_scale'] = tuple(float(x) for x in os.environ['APE0_FEET_SCALE'].split(','))
+    if os.environ.get('APE0_ARM_SCALE'):
+        a = [float(x) for x in os.environ['APE0_ARM_SCALE'].split(',')]
         scales['arm_scale'] = a[0] if len(a) == 1 else tuple(a)
-    if os.environ.get('COVE50_FIST'):
-        scales['fist'] = tuple(float(x) for x in os.environ['COVE50_FIST'].split(','))
+    if os.environ.get('APE0_FIST'):
+        scales['fist'] = tuple(float(x) for x in os.environ['APE0_FIST'].split(','))
     cfg = tracking.env_cfg(motion_file='', **scales)
     scene = Scene(cfg.scene, device='cpu')
     sim = Simulation(num_envs=1, cfg=cfg.sim, model=scene.compile(), device='cpu')

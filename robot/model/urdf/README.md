@@ -1,4 +1,4 @@
-# Selected Cove-50 URDF with complete motor visuals
+# Selected APE0 URDF with complete motor visuals
 
 This export retains the selected R3 joint tree, all 22 axes, collisions, inertial
 tensors, actuator/sensor contracts and nominal 3.8303 kg mass. It restores all

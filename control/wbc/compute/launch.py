@@ -330,7 +330,7 @@ if _restored_teacher('reward-v2-mixed-20261106'):
     PILOTS['loop1-v3-mixed-fast-20261106'] = dict(_LOOP, command_delay=0.01, feedback_delay=0.005)
     PILOTS['loop1-v3-damiao-20261106'] = dict(_LOOP, actuator='qdd-damiao-gim', eval_segments=REWARD_SEGMENTS + LOOP_DYNAMIC)
 # Agility loop, cycle 2 (step 10): feet 1.3x longer and wider (tracking.scale_feet; motions regenerated with
-# COVE50_FEET_SCALE=1.3,1.3). The demand check (cove50-agility-allocation-feet-20261106) keeps 64 motions on the 24 V
+# APE0_FEET_SCALE=1.3,1.3). The demand check (cove50-agility-allocation-feet-20261106) keeps 64 motions on the 24 V
 # qdd-damiao-gim plant (agility/feasible-selection-qdd-damiao-feet.json, .cache/work/wbc-qdd-damiao-feet; the 1.5, 2
 # and 4 cm hops and the 3.5 Hz bounce join) and 50 on the 12 V mixed set (feasible-selection-mixed-feet.json,
 # .cache/work/wbc-mixed-feet). Each continues its plant's cycle-1 teacher; evaluate-start is that teacher on the

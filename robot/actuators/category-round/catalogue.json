@@ -1,8 +1,8 @@
 {
  "schema": "cove50.actuator-catalogue.v1",
- "title": "Small robot actuator catalogue for Cove-50 (50 cm, ~4.6 kg humanoid; 20 body joints + XM335 neck)",
+ "title": "Small robot actuator catalogue for APE0 (50 cm, ~4.6 kg humanoid; 20 body joints + XM335 neck)",
  "checked_on": "2026-11-06",
- "status": "Desk research from maker pages, datasheets, retailers and community databases. Nothing here is measured on a Cove-50 part. Metrics are evidence to compare, not pass/fail thresholds.",
+ "status": "Desk research from maker pages, datasheets, retailers and community databases. Nothing here is measured on an APE0 part. Metrics are evidence to compare, not pass/fail thresholds.",
  "method": {
   "classes": {
    "12V": "3S pack rail, 11.1 V nominal, 12.6 V full; figures reported at 12 V",

@@ -1,4 +1,4 @@
-"""Train and evaluate Cove-50 R3 deep squat & rise feedback policies (Skill #4 v3 and Skill #5 v3)."""
+"""Train and evaluate APE0 R3 deep squat & rise feedback policies (Skill #4 v3 and Skill #5 v3)."""
 from __future__ import annotations
 
 import argparse
@@ -81,7 +81,7 @@ class ValueCritic(nn.Module):
 
 
 def deep_squat_vectors() -> tuple[np.ndarray, np.ndarray]:
-    """Return (q_deep, q_ff) for a ~69-71 mm pelvis drop deep squat on Cove-50 R3."""
+    """Return (q_deep, q_ff) for a ~69-71 mm pelvis drop deep squat on APE0 R3."""
     q_deep = np.zeros(22, dtype=np.float32)
     # Forward arm counter-balance
     q_deep[0] = 1.15

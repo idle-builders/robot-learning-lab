@@ -1,4 +1,4 @@
-"""Upstream MJLab BeyondMimic tracking task on the selected Cove-50 R3 boundary.
+"""Upstream MJLab BeyondMimic tracking task on the selected APE0 R3 boundary.
 
 The native task terms, rewards, adaptive sampling and PPO runner are unchanged.
 This module supplies only the exact R3 entity and numerical options, the R3
@@ -38,7 +38,7 @@ MODEL = ROOT / 'artifacts/robot/model/timestep'
 RUNTIME = ROOT / 'control/common/plant'
 
 # Narrow ranges (Idle taste M-mx9gnr): none is identified on hardware yet.
-# Lengths/linear speeds use the G1 BeyondMimic value x HEIGHT_RATIO (Cove-50
+# Lengths/linear speeds use the G1 BeyondMimic value x HEIGHT_RATIO (APE0
 # 0.5 m / G1 1.32 m, rounded); dimensionless angles keep the G1 value.
 HEIGHT_RATIO = .4
 _G1_VELOCITY = dict(x=.5, y=.5, z=.2, roll=.52, pitch=.52, yaw=.78)
@@ -1130,7 +1130,7 @@ def ppo_cfg(**overrides):
         algorithm=RslRlPpoAlgorithmCfg(value_loss_coef=1.0, use_clipped_value_loss=True, clip_param=.2,
             entropy_coef=.005, num_learning_epochs=5, num_mini_batches=4, learning_rate=1e-3,
             schedule='adaptive', gamma=.99, lam=.95, desired_kl=.01, max_grad_norm=1.0),
-        experiment_name='cove50_tracking', save_interval=500, num_steps_per_env=24, max_iterations=30_000)
+        experiment_name='ape0_tracking', save_interval=500, num_steps_per_env=24, max_iterations=30_000)
     for key, value in overrides.items():
         setattr(cfg, key, value)
     return cfg

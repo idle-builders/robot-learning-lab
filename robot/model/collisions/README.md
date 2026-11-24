@@ -1,4 +1,4 @@
-# Selected Cove-50 model: collision correction R2
+# Selected APE0 model: collision correction R2
 
 R2 corrects the rigid collision treatment of 44 source shapes explicitly marked
 as non-BOM, unfitted aesthetic references. Their appearance remains visible.

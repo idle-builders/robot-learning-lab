@@ -33,7 +33,7 @@ Follow the [evaluation principles](../../../docs/design/evaluation-principles.md
 
 ## Reward design is a design loop
 
-Most Cove-50 WBC setbacks so far were reward failures: wide widths that make the remaining error free, joint means
+Most APE0 WBC setbacks so far were reward failures: wide widths that make the remaining error free, joint means
 that hide one straight knee, no joint-velocity or foot term, and terminations that make flight risky. When a policy
 survives but avoids what its reference asks for, suspect the reward before the body, actuators, simulator or
 budget. Do not recommend hardware changes until a reward that asks for the behaviour shows the hardware is the limit.
@@ -57,7 +57,7 @@ Before fitting a basic skill, also audit current-body saved artifacts by checkpo
 
 When choosing a learner or diagnosing failure, read [learning methods and failure diagnosis](references/learning-methods-and-failure-diagnosis.md). It separates interface/body/data failures from hypotheses about BC, PPO, distillation, recurrent state and newer action models.
 
-For Cove-50 low level training, train basic movements, object contact and short handoffs; a later planner consumes their observable outcomes. The exact Direct Frame source remains a valid **experimental training embodiment** even when mechanical selection or physical transfer is unresolved. Do not use a CAD decision as a stop condition for source-labelled control learning.
+For APE0 low level training, train basic movements, object contact and short handoffs; a later planner consumes their observable outcomes. The exact Direct Frame source remains a valid **experimental training embodiment** even when mechanical selection or physical transfer is unresolved. Do not use a CAD decision as a stop condition for source-labelled control learning.
 
 When changing the simulation world, prioritize motor/contact credibility, attained-state lessons, mid-episode recovery and useful full-training throughput. Keep the mechanics-only control lane fast; use calibrated rendering for image-dependent skills. Record raw motion, force and timing with a written behavior review, not a combined score.
 

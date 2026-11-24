@@ -1,6 +1,6 @@
 ---
 name: ape-joint-bank
-description: Find, stage, extend, or close out the structured Cove-50 actuator and joint design bank for CAD and motion work. Use for bank records and candidate assets; route whole-body selection and learned-control evaluation to their own workflows.
+description: Find, stage, extend, or close out the structured APE0 actuator and joint design bank for CAD and motion work. Use for bank records and candidate assets; route whole-body selection and learned-control evaluation to their own workflows.
 ---
 
 # Ape joint design bank

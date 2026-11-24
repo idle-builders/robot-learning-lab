@@ -5,7 +5,7 @@
   1.3
  ],
  "arm_scale": 1.7,
- "rule": "larger of leg/arm frames beyond stall <= 10% and base residual p95 <= 7% of weight; motions regenerated with COVE50_FEET_SCALE=1.3,1.3 COVE50_ARM_SCALE=1.7, knuckle catalogue included",
+ "rule": "larger of leg/arm frames beyond stall <= 10% and base residual p95 <= 7% of weight; motions regenerated with APE0_FEET_SCALE=1.3,1.3 APE0_ARM_SCALE=1.7, knuckle catalogue included",
  "source": "artifacts/runs/cove50-agility-allocation-ape-body-20261106-d9e4a116035e/report.json",
  "keep": [
   "forward-walk",

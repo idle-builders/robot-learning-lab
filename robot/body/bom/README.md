@@ -1,6 +1,6 @@
 # Robot BOM and assembly order: start here for hardware
 
-Everything needed to build the selected Cove-50 body starts here: what to print and buy, from which scripts and files,
+Everything needed to build the selected APE0 body starts here: what to print and buy, from which scripts and files,
 with which print setup, and in which order it goes together (owner 2026-11-20 / 2026-11-22, Idle T-4jjry4, T-ghvncz).
 
 **The BOM tool knows no part.** What goes into the BOM is decided by the agents working on the body, in one annotated

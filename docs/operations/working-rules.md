@@ -2,7 +2,7 @@
 
 Operating procedures for agents in this repository. They follow the current tools and layout and change with them. The owner's intent and decision rules are in `AGENTS.md`.
 
-Use idle tasks for work planning and the active goal for the objective. The 50 cm ape-shaped robot is the target; earlier 35 cm work is historical evidence. Microduck, Microban, and Berkeley are references. Use upstream Arena, Isaac Lab, Mimic, LeRobot, and GR00T code where relevant. Work locally in this folder; Runpod is compute only.
+Use idle tasks for work planning and the active goal for the objective. The 50 cm ape-shaped robot, APE0 (formerly Cove-50), is the target; new study IDs, run IDs, schema tags and model files use `ape0`, while existing `cove50` IDs, paths and sealed model files keep their names as provenance (owner, 2026-11-24); earlier 35 cm work is historical evidence. Microduck, Microban, and Berkeley are references. Use upstream Arena, Isaac Lab, Mimic, LeRobot, and GR00T code where relevant. Work locally in this folder; Runpod is compute only.
 
 `robot/design.json` names the selected design: `selected` maps each robot section to its one selected study, and one study may cover several sections. Use its exact source when continuing; record a new selection with `infra/dashboard/results_hub.py select-design STUDY_ID --robot-section SECTION` and in Idle. Selection does not imply physical or learned-control qualification.
 

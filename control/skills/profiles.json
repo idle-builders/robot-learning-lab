@@ -691,7 +691,7 @@
       "new_simulator_controls": 27200,
       "new_physics_substeps": 2176000,
       "replay_recipe": {
-        "runtime": "Local .venv-control Python environment on the selected Cove-50 R3 rigid XML.",
+        "runtime": "Local .venv-control Python environment on the selected APE0 R3 rigid XML.",
         "entry": "control/skills/independent-arm-feedback/run.py",
         "argv": [
           "--execute",
@@ -746,7 +746,7 @@
       "new_simulator_controls": 28000,
       "new_physics_substeps": 2240000,
       "replay_recipe": {
-        "runtime": "Local .venv-control Python environment on the selected Cove-50 R3 rigid XML.",
+        "runtime": "Local .venv-control Python environment on the selected APE0 R3 rigid XML.",
         "entry": "control/skills/supported-skill-transitions/run.py",
         "argv": [
           "--execute",
@@ -762,5 +762,5 @@
     }
   ],
   "distinct_checkpoint_count": 8,
-  "remaining_skills": "All five basic skill tracks on the selected assembled Cove-50 R3 model (forward walking, walking-to-stop, bilateral arm motion, coordinated sensor-feedback independent arm motion, and continuous 34 s supported stance/posture/arm transitions) now have working learned profiles on the shelf. Deeper squat range, tighter heading/yaw control, and walking-to-posture handoffs remain optional future refinements."
+  "remaining_skills": "All five basic skill tracks on the selected assembled APE0 R3 model (forward walking, walking-to-stop, bilateral arm motion, coordinated sensor-feedback independent arm motion, and continuous 34 s supported stance/posture/arm transitions) now have working learned profiles on the shelf. Deeper squat range, tighter heading/yaw control, and walking-to-posture handoffs remain optional future refinements."
 }

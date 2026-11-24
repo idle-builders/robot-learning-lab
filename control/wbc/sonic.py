@@ -1,4 +1,4 @@
-"""GEAR-SONIC as the starting whole-body controller for Cove-50 R3.
+"""GEAR-SONIC as the starting whole-body controller for APE0 R3.
 
 NVIDIA GEAR-SONIC (GR00T-WholeBodyControl default release, 2026-02-19, NVIDIA
 Open Model License) is a Unitree G1 motion tracker trained on large retargeted
@@ -476,7 +476,7 @@ RECIPES, DESIRED_KL, TRUST_ACTOR_LR = ('release', 'trust-region'), .01, 1e-7
 
 def ppo_cfg(recipe='release', **overrides):
     import tracking
-    cfg = tracking.ppo_cfg(experiment_name='cove50_sonic', **overrides)
+    cfg = tracking.ppo_cfg(experiment_name='ape0_sonic', **overrides)
     cfg.algorithm.entropy_coef = .01 if recipe == 'release' else 0.
     cfg.algorithm.schedule, cfg.algorithm.learning_rate, cfg.algorithm.desired_kl = 'fixed', CRITIC_LR, DESIRED_KL
     return cfg

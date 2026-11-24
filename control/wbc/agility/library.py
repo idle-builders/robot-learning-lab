@@ -1,4 +1,4 @@
-"""The Cove-50 agility motion set: fixed references across tempos for the servo-demand check and later WBC training.
+"""The APE0 agility motion set: fixed references across tempos for the servo-demand check and later WBC training.
 
 Families (each at two to four tempos):
 - retained: the six published R3 skill rollouts (physics rollouts on this body), the
@@ -661,7 +661,7 @@ def side_shuffle(B, step_time, width=.03, n=3):
         swing_h=.02)
 
 
-# ---- knuckle support (long arms: COVE50_ARM_SCALE) ------------------------------------------------------------------
+# ---- knuckle support (long arms: APE0_ARM_SCALE) ------------------------------------------------------------------
 
 # Knuckle stance on the ape body (upper arm 1.6x, forearm 1.27x, 30 mm fist, feet 1.3x), found by scanning lean, hip
 # height, hip offset and knuckle placement (cove50 agility loop, arm options): hips 0.20 m up and 45 mm behind the
@@ -963,7 +963,7 @@ def main():
     parser.add_argument('--derive', type=Path, help='a folder of built target motions: write training variants of them '
         '(mirror images and arm-leg combinations, never the validation catalogue\'s) instead of a catalogue')
     parser.add_argument('--catalogue', choices=('agility', 'ape', 'knuckle', 'validation'), default='agility',
-        help='ape: step-4 tempos and ape moves; knuckle: moves on feet and knuckles (needs long arms, COVE50_ARM_SCALE); '
+        help='ape: step-4 tempos and ape moves; knuckle: moves on feet and knuckles (needs long arms, APE0_ARM_SCALE); '
              'validation: never-trained tempos, mirror images and arm-leg combinations (long-arm settings)')
     args = parser.parse_args()
     B = Body()

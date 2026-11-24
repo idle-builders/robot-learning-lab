@@ -4,7 +4,7 @@ Owner interaction, search, routes, belief and the near-body stop policy. Status 
 
 ## What these results are
 
-- All simulation, 2026-10-05 to 10-16. The body was a 17 cm kinematic proxy or the Cove-50 Direct Frame (rejected 2026-10-10, removed 2026-11-12), so no mount, stop distance or clearance transfers to a built robot. What transfers is the **software contract**: which states the behaviour keeps apart, which evidence moves it between them, and which failures appear.
+- All simulation, 2026-10-05 to 10-16. The body was a 17 cm kinematic proxy or the APE0 Direct Frame (rejected 2026-10-10, removed 2026-11-12), so no mount, stop distance or clearance transfers to a built robot. What transfers is the **software contract**: which states the behaviour keeps apart, which evidence moves it between them, and which failures appear.
 - Owner, bystanders and props are scripted. Owner replies come from evaluator truth. The 5 cm margin is a development proxy around modelled bodies, not a human-safe distance. Near misses are counted next to the continuous gaps.
 - Most room results use rooms already exposed during development: they show consistency, not generalisation.
 - The target stays: a 50 cm ape that learns a shown object from its owner, finds it again after it moved, approaches only when the route is currently safe, and says honestly when it does not know. The first interactions are notice me, teach me, find it again, play with me, help me, show me what you learned; teach-and-find is the first connected probe. Fetch, cleanup and play with animals add possession and contact checks later.

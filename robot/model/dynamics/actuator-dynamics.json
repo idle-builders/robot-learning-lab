@@ -2,7 +2,7 @@
  "schema": "cove50.actuator-dynamics.v1",
  "version": "r4-dynamics-20261105",
  "parent_model": "r3-urdf-visual-r1-20261026",
- "status": "best estimates pending bench identification; nothing here is measured on a Cove-50 part",
+ "status": "best estimates pending bench identification; nothing here is measured on an APE0 part",
  "scope": "Joint-side actuator dynamics layered on the unchanged R3 rigid MJCF, URDF, masses, sensors and timing. 'nominal' is the best estimate used by default; 'low' and 'high' bound it for sensitivity, not for randomization.",
  "law": {
   "feetech_duty": "Firmware position loop (BAM STS3215 model): the internal target moves toward the commanded target at most target_rate_limit_rad_s; duty = clamp(duty_gain_per_rad * (internal target - q, less half the backlash), +-max_duty); output torque = stall_torque_Nm * (duty - qd / no_load_speed_rad_s), limited to +-stall_torque_Nm (current limit). This keeps the catalog torque-speed line at full duty and adds the back-EMF damping stall/no-load speed inside it.",

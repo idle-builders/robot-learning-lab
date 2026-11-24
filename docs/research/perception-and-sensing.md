@@ -6,7 +6,7 @@ Scope: cameras, depth, range, IMU and proprioception, audio, touch, captured wor
 
 ## How to read this file
 
-- **Bodies.** Almost every result ran on the Cove-50 Direct Frame (a 21-axis simulation body, rejected 2026-10-10, removed 2026-11-12), on a kinematic 8 cm or 0.4 s step surrogate, or on a 17 cm collision proxy. No sensor is mounted, powered or calibrated on the selected body. Read each number as evidence about a sensing role, not as a part spec.
+- **Bodies.** Almost every result ran on the APE0 Direct Frame (a 21-axis simulation body, rejected 2026-10-10, removed 2026-11-12), on a kinematic 8 cm or 0.4 s step surrogate, or on a 17 cm collision proxy. No sensor is mounted, powered or calibrated on the selected body. Read each number as evidence about a sensing role, not as a part spec.
 - **Idealisations that recur.** Rendered depth, virtual 72-beam range planes at 4 / 8 / 11 / 30 cm, ideal yaw, exact joint state, scripted owner and props, kinematic stops. A result that depends on one says so.
 - **Evidence ids.** `V<n>` are run ids of the closed-loop chain (`artifacts/ape-closed-loop-cove50-v<n>/`), kept once per finding.
 

@@ -2,7 +2,7 @@
 
 This planner has no simulator geometry or person labels. It does not represent
 the ape body: its configurable circular radius is a temporary kinematic
-eye-proxy clearance for testing map/pose/action wiring, not a Cove-50 safety
+eye-proxy clearance for testing map/pose/action wiring, not an APE0 safety
 envelope.
 """
 

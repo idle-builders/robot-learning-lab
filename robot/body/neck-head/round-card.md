@@ -1,4 +1,4 @@
-# Cove-50 Neck & Head 4-Stage 3D-Printable FDM Connector Redesign (`r1-20261104`)
+# APE0 Neck & Head 4-Stage 3D-Printable FDM Connector Redesign (`r1-20261104`)
 
 - **Idle Task:** `T-zesmm6`
 - **Dashboard:** `http://127.0.0.1:8805/design/` (`robot_sections: ["Neck", "Head"]`)
