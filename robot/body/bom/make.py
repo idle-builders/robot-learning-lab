@@ -42,6 +42,17 @@ import gencache as GC  # noqa: E402
 
 GENSITE = HERE / "gensite"
 DEFAULT_RES = dict(limit_gb=6, timeout_s=900)
+
+
+def learned_timeout(gid, floor=900, factor=4, cap=7200):
+    """A generator without a declared timeout_s: factor x its longest recorded successful run (gencache entries), at
+    least `floor`, at most `cap` seconds of awake time (memguard). roll-flip-cad ran up to 645 s recorded and 1450 s
+    under load against the old flat 900 s (2026-11-23); a declared resources.timeout_s always wins."""
+    try:
+        secs = [e.get("seconds") or 0 for _, e in zip(range(50), GC.entries(gid))]
+    except Exception:  # noqa: BLE001
+        secs = []
+    return int(min(cap, max(floor, factor * max(secs, default=0))))
 # blob-store indexes only say where a missing file is restored from (the file then read is recorded itself); as inputs they
 # would invalidate every entry whenever any session uploads anything (same rule as checks/resultcache.py)
 IGNORE_READS = ("infra/tools/memguard.py", "data/private-archive.json", "data/regenerable-artifacts.json", "data/blob-store")
@@ -100,6 +111,8 @@ def run_one(g, log_dir: Path):
     pre_sha = {r: GC.file_state(ROOT, r) for r in before}
     GC.idx().flush()
     res = {**DEFAULT_RES, **(g.get("resources") or {})}
+    if "timeout_s" not in (g.get("resources") or {}):
+        res["timeout_s"] = learned_timeout(g["id"])
     rec = Path(tempfile.mkdtemp(prefix=f"gen-{g['id']}-", dir=GC.store()))
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(res["limit_gb"]), "--timeout-s", str(res["timeout_s"]), "--"] + g["command"]
     if shutil.which("caffeinate"):
