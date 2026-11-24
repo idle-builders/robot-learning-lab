@@ -551,7 +551,7 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - right_leg:s023
+    - right_leg:s017
     status: seeded
     derived: 'graph order, fastened distance 20 from the base; direction: no screw to placed parts: toward the centroid of placed neighbours (R_knee_ST3025_case),
       snapped to the nearest axis'
@@ -657,7 +657,7 @@ assembly:
     - 0.0
     - 1.0
     after:
-    - left_leg:s023
+    - left_leg:s017
     status: seeded
     derived: 'mirror of right_leg p25 (R_ <-> L_, x negated): graph order, fastened distance 20 from the base; direction: no screw to placed parts:
       toward the centroid of placed neighbours (R_knee_ST3025_case), snapped to the nearest axis'

@@ -698,7 +698,7 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - right_leg:s017
+    - right_leg:s026
     status: designer
     derived: 'hip order (lead 2026-11-20, roll-flip designer): thigh shells last: the back half with its pressed boss sleeves along -y onto the
       rear posts'
@@ -911,7 +911,7 @@ assembly:
     - -1.0
     - 0.0
     after:
-    - left_leg:s017
+    - left_leg:s026
     status: seeded
     derived: 'mirror of right_leg p19 (R_ <-> L_, x negated): hip order (lead 2026-11-20, roll-flip designer): thigh shells last: the back half
       with its pressed boss sleeves along -y onto the rear posts'
