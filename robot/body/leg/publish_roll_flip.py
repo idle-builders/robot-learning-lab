@@ -134,7 +134,7 @@ def record():
                  m("Stage 5 strength / p99, heavy 6 kg 1.5 g", s5n["heavy_6kg_1p5g"][1], "ratio", f"today {s5o['heavy_6kg_1p5g'][1]}"),
                  m("Stage 5 p99 von Mises, roll stall", s5n["roll_stall"][0], "MPa", f"today {s5o['roll_stall'][0]}"),
              ],
-             conditions={"material": "PAHT-CF dry, orthotropic, bonded 304 SS sleeves", "mesh": fem["method"],
+             conditions={"material": "Bambu PAHT-CF (data sheet, data/materials.json), orthotropic, bonded 304 SS sleeves", "mesh": fem["method"],
                          "print_layer_normal": f"Stage 4 new {n4}, today x; Stage 5 new {n5} (best worst-case of strength and "
                                                "layer ratios), today z",
                          "patches": fem["patches"]},

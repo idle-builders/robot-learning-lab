@@ -45,7 +45,7 @@ import numpy as np
 
 from checks import bodylib as BL
 from checks import screwlib as SL
-from checks.core import DATA, ROOT, tick
+from checks.core import DATA, ROOT, step_turn_T, tick
 from checks.registry import register
 
 EPS_MM3 = 1e-3
@@ -295,9 +295,9 @@ def step_frame(ctx, n):
         return None, "STEP placed by placement_offset_mm (not reproduced here)"
     M = np.eye(4)
     M[:3, 3] = np.asarray(p.get("native_step_offset_mm") or (0, 0, 0), float)
-    if str(p.get("roll_flip", "")).startswith("turned"):
-        b = np.array(p["bounds_mm"], float)
-        M = np.asarray(R.turn_T_at(0.5 * (b[0][0] + b[1][0])), float) @ M
+    turn = step_turn_T(p)                           # the roll-flip case (core.step_turn_T: declared in config)
+    if turn is not None:
+        M = np.asarray(turn, float) @ M
     return str(BL.src(st)), M
 
 

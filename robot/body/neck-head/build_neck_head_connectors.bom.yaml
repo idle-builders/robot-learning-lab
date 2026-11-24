@@ -49,8 +49,7 @@ parts:
     _doc: 'Old neck-head fem_evaluate stage1_neck_root_cradle (''combined'' family): head wrench at [-4.0, -2.0, 445.0] transferred to the load
       patch centroid with stage scale 0.55 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named mating screws
       / servo parts (holes patches, follow the part); the pressed-in sleeves are steel bore-collar regions (0.85 mm around each sleeve bore of
-      the companion part; the companions are not bonded in the mesh). Variants legacy_coordinates / legacy_coordinates_coarse keep the old hand-typed
-      bolt sites and capsule collars.'
+      the companion part; the companions are not bonded in the mesh).'
     mesh_h_mm: 2.2
     origin_mm: load_centroid
     load_cases:
@@ -223,8 +222,7 @@ parts:
       the load patch centroid with stage scale 1.0 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named mating
       screws / servo parts (holes patches, follow the part); the pressed-in parts are steel bore-collar regions (0.85 mm around each bore of
       the companion part; the companions are not bonded in the mesh): since T-acpw7j only the 2 brass tongue inserts, the 4 pitch case holes
-      are plain. Variants legacy_coordinates / legacy_coordinates_coarse keep the
-      old hand-typed bolt sites and capsule collars.'
+      are plain.'
     mesh_h_mm: 2.2
     origin_mm: load_centroid
     load_cases:
@@ -388,8 +386,7 @@ parts:
       to the load patch centroid with stage scale 0.75 and lever 0.45; stored setup: supports and load = the part''s own holes next to the named
       mating screws / servo parts (holes patches, follow the part); the pressed-in parts are steel bore-collar regions (0.85 mm around each
       bore of the companion part; the companions are not bonded in the mesh): since T-5bqc3m K2 only the 9 brass heat-set inserts (no brass in
-      checks/data/materials.json: modelled as Steel 304 sleeve, stiffer than brass). Variants legacy_coordinates / legacy_coordinates_coarse keep
-      the old hand-typed bolt sites and capsule collars.'
+      checks/data/materials.json: modelled as Steel 304 sleeve, stiffer than brass).'
     mesh_h_mm: 2.2
     origin_mm: load_centroid
     load_cases:
