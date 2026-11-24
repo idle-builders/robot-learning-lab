@@ -386,6 +386,79 @@ def axial_segments(mesh, rays, head, d, radii, t_lo, t_hi):
     return res
 
 
+GAP_SUPPORT = 0.10      # share of a layer pair's rays (at least 2) that must agree on its gap
+GAP_AGREE_MM = 0.05     # ... within this
+
+
+def supported_min(gaps):
+    """The gap of a layer pair: the smallest gap that at least GAP_SUPPORT of its rays (>= 2) agree on within GAP_AGREE_MM
+    (the median of those rays), so the layers bear where they come closest, but one ray grazing a wall no longer sets
+    the pair (R_shin_back_cover_PA2x8_2 read -62.8 mm from 1 of 28 rays, the 27 others 0). Returns (gap, rays below it)."""
+    g = np.sort(np.asarray(gaps, float))
+    n = len(g)
+    k = min(n, max(2, int(math.ceil(GAP_SUPPORT * n))))
+    for i in range(n - k + 1):
+        if g[i + k - 1] - g[i] <= GAP_AGREE_MM:
+            return float(np.median(g[i:i + k])), i
+    return float(np.median(g)), int((g < np.median(g)).sum())
+
+
+def point_mm(p) -> float:
+    """Length of a screw's tip point that does not count as engaged thread: its screw_plan's point_mm (the builder's
+    standard), else data/hardware.json screw_standards.point_mm (as screw_plan.choose_length and interfaces.match_screw)."""
+    v = (p.get("screw_plan") or {}).get("point_mm")
+    return float(v) if v is not None else float(HARDWARE["screw_standards"]["point_mm"])
+
+
+def thread_span(mesh, rays, head, d, r, win):
+    """Where a part's material lies inside radius r of the screw axis, from N_ANG rays parallel to the axis at r (exact
+    hits, not the 0.25 mm radial stations): per ray its material segments clipped to win = (t0, t1); returns dict(
+    start_mm, end_mm, length_mm: medians over the rays with material, rays) or None. With r between a tapped / pilot
+    bore and the screw's major radius the material is the thread the screw engages."""
+    seg = axial_segments(mesh, rays, head, d, [r], win[0] - 2.0, win[1] + 2.0)[r]
+    rows = []
+    for s in seg:
+        cl = [(max(a, win[0]), min(b, win[1])) for a, b in s if min(b, win[1]) > max(a, win[0])]
+        if cl:
+            rows.append((cl[0][0], cl[-1][1], sum(b - a for a, b in cl)))
+    if len(rows) < N_ANG // 2:
+        return None
+    a = np.array(rows)
+    return dict(start_mm=round(float(np.median(a[:, 0])), 3), end_mm=round(float(np.median(a[:, 1])), 3),
+                length_mm=round(float(np.median(a[:, 2])), 3), rays=len(rows))
+
+
+_ENG_REF = None
+
+
+def engagement_reference_x_d() -> dict:
+    """Reference engagement per terminal material as a multiple of the thread's major diameter (standard-parts.json)."""
+    global _ENG_REF
+    if _ENG_REF is None:
+        _ENG_REF = json.loads(I.DEFS.read_text())["engagement_reference_x_major_dia"]
+    return _ENG_REF
+
+
+THREADED_KINDS = ("insert", "threaded_sleeve")      # hardware spec kinds that carry the screw's thread
+
+
+def insert_reference(c, rs, threaded_len):
+    """Reference engagement of a screw threading into hardware (a heat-set insert or threaded sleeve, alone or in a sleeve
+    set): the thread length its body definition declares (its own spec, or a `contains` entry, of kind insert /
+    threaded_sleeve and the screw's major diameter: length_mm), else the threaded length measured along the screw
+    (geometry). (value, basis)."""
+    e = relations().claims.get(c) or {}
+    th = HARDWARE["threads"]
+    specs = [e.get("spec") or {}] + [x.get("spec") or {} for x in e.get("contains") or []]
+    ins = [x for x in specs if x.get("kind") in THREADED_KINDS and x.get("length_mm") and th.get(x.get("thread") or "") is not None
+           and abs(th[x["thread"]] - 2 * rs) < 1e-6]
+    if ins:
+        return round(float(ins[0]["length_mm"]), 3), f"thread length of the {ins[0].get('label') or ins[0].get('standard') or ins[0]['kind']} (definition)"
+    if threaded_len is not None:
+        return round(float(threaded_len), 3), "threaded length of the part along the screw (geometry; no threaded hardware of this size in its definition)"
+    return None, None
+
+
 
 
 # ------------------------------------------------------------------------------------------------ tool paths
@@ -445,6 +518,8 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     g = screw_geometry(meshes[name])
     head, d, L = g.pop("_head"), g.pop("_d"), g["length_mm"]
     rh, hh = g["r_head_mm"], g["head_height_mm"]
+    pt = point_mm(p)
+    thread_end = L - pt                  # the full thread ends here; the point beyond it engages nothing
     rs = fam.get(nom.get("thread"), {}).get("major_dia_mm", 2 * g["r_shank_mm"]) / 2.0
     t_lo, t_hi = -1.0, L + 2.0
     shank = (hh, L)
@@ -464,6 +539,8 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                   t_range_mm=[round(min(x["t"] for x in span), 2), round(max(x["t"] for x in span) + DT, 2)],
                   solid_on_axis_mm=round(len(solid) * DT, 2), thread_overlap_mm=round(len(thread) * DT, 2),
                   clearance_len_mm=round(len(clear) * DT, 2))
+        if thread:
+            pr["thread_bore_dia_mm"] = round(2 * float(np.median([x["hole_r"] for x in thread])), 3)
         recess = []
         if holes:
             # the bore is the narrowest stretch; stations wider by more than RECESS_MM are a pocket on the same axis (nut trap,
@@ -481,6 +558,9 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                 tt = np.array([x["t"] for x in bore]); ov = np.array([x["offset_vec"] for x in bore])
                 slope = np.polyfit(tt, ov, 1)[0]                 # least-squares drift of the bore centre per mm of depth (3 components)
                 pr["axis_tilt_deg"] = round(math.degrees(math.atan(float(np.linalg.norm(slope)))), 2)
+        core = [x["t"] for x in (bore if holes else []) + solid]
+        if core:
+            pr["core_t0_mm"] = round(min(core), 2)       # where the part's own bore (or solid) starts along the screw
         if recess or pockets:          # pockets: wide openings with no round bore (hex nut traps); r_min is their narrowest
             pr["recess_len_mm"] = round((len(recess) + len(pockets)) * DT, 2)
             if pockets:
@@ -493,6 +573,18 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     ih = I.match_screw(iface_holes, head, d, shank) if iface_holes else None
     nuts = [c for c in stack if parts[c]["hardware"] == "nut"]
     thr = [(parts[c]["thread_overlap_mm"], c) for c in stack if parts[c]["thread_overlap_mm"] > 0 and parts[c]["hardware"] != "washer"]
+    def thread_in(c, lo, hi):
+        """Exact thread span of part c along the screw (thread_span at the radius halfway between its tapped / pilot bore
+        and the screw's major radius) inside [lo, hi]; None where the radial probe found no bore narrower than the thread."""
+        tb = parts.get(c, {}).get("thread_bore_dia_mm")
+        if not tb:
+            return None
+        r_t = round((tb / 2 + rs) / 2, 3)
+        sp = thread_span(meshes[c], rayss[c], head, d, r_t, (lo, hi))
+        if sp:
+            sp["ray_radius_mm"] = r_t
+        return sp
+
     if ih:
         term = dict(kind="defined_tapped_hole", part=ih["part"], engagement_mm=ih["engagement_mm"],
                     reference_engagement_mm=ih["reference_engagement_mm"], axis_offset_mm=ih["axis_offset_mm"],
@@ -505,10 +597,20 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
                     axis_offset_mm=parts[c].get("axis_offset_mm"))
     elif thr:
         e, c = max(thr)
-        mat = "plastic" if printed(c) else "unknown"
-        term = dict(kind="thread_in_part", part=c, engagement_mm=e, axis_offset_mm=parts[c].get("axis_offset_mm"),
-                    reference_engagement_mm=round(2.0 * 2 * rs, 2) if mat == "plastic" else None,
-                    motor_part_without_definition=body.parts[c]["role"] in I.MOTOR_ROLES)
+        tr = parts[c]["t_range_mm"]
+        sp = thread_in(c, max(hh, tr[0] - 1.0), min(thread_end, tr[1] + 1.0))      # thread up to where the point begins
+        eng = sp["length_mm"] if sp else e
+        if printed(c):
+            ref, basis = round(engagement_reference_x_d()["plastic"] * 2 * rs, 2), "plastic x major dia (standard-parts.json)"
+        elif relations().is_sleeve_set(c) or relations().is_hardware(c):
+            whole = thread_in(c, tr[0] - 1.0, tr[1] + 1.0)
+            ref, basis = insert_reference(c, rs, whole["length_mm"] if whole else None)
+        else:
+            ref, basis = None, None
+        term = dict(kind="thread_in_part", part=c, engagement_mm=round(eng, 3), axis_offset_mm=parts[c].get("axis_offset_mm"),
+                    reference_engagement_mm=ref, reference_basis=basis, engagement_stations_mm=e, point_mm=pt,
+                    engagement_from="exact rays in the thread zone, to the start of the point" if sp else "0.25 mm radial stations",
+                    thread_span=sp, motor_part_without_definition=body.parts[c]["role"] in I.MOTOR_ROLES)
     else:
         term = None
     tpart = term["part"] if term else None
@@ -528,20 +630,6 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     if tpart:
         t0 = parts[tpart]["t_range_mm"][0] if tpart in parts else t_term
         win[tpart] = (t0 - 1.0, t0 + 1.0)
-    levels, level_of = [], {}
-    for c in sorted(clamped, key=lambda c: parts[c]["t_range_mm"][0]):
-        host = next((lv for lv in levels if relations().is_sleeve_set(c) and any(
-            printed(h) and parts[h]["t_range_mm"][0] - 0.3 <= parts[c]["t_range_mm"][0]
-            and parts[c]["t_range_mm"][1] <= parts[h]["t_range_mm"][1] + 0.3 for h in lv)), None)
-        if host is None:
-            host = []; levels.append(host)
-        host.append(c)
-    for i, lv in enumerate(levels):
-        for c in lv:
-            level_of[c] = i + 1
-    level_of[name] = 0
-    if tpart:
-        level_of[tpart] = len(levels) + 1
     radii = sorted({round(x, 2) for x in (rs + 0.3, rs + 0.7, (rs + rh) / 2 + 0.2, rh - 0.1, rh + 0.6, rh + 1.5) if x > rs + 0.2})
     # no ray within RAY_CLEAR_MM of a chain part's bore or recess wall: a ray grazing the bore a sleeve sits in reads the
     # sleeve's outer skin as 0-0.44 mm segments (M2.5 ISO 4762: (rs + rh) / 2 + 0.2 = 1.95 against a 3.96 mm bore); moved
@@ -550,6 +638,28 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     radii = sorted({round(next((y for y in (x, x - RAY_CLEAR_MM, x + RAY_CLEAR_MM, x - 2 * RAY_CLEAR_MM, x + 2 * RAY_CLEAR_MM)
                                 if y > rs + 0.2 and all(abs(y - wr) >= RAY_CLEAR_MM - 1e-9 for wr in wall_r)), x), 2) for x in radii})
     seg = {c: axial_segments(meshes[c], rayss[c], head, d, radii, t_lo - 2.0, t_hi) for c in chain if c in meshes}
+    # levels in the order the parts lie along the screw: by where each part's own bore starts (its narrowest stretch, or
+    # solid on the axis), not by the start of its radial span, which includes a counterbore or nut trap on the axis: a
+    # washer in a counterbore starts with the shell's counterbore wall but lies before the shell's bore (T-jh7fcm boot,
+    # head carrier); ties (spans clipped at the head) go to the part that ends first
+    bear = {c: (parts[c].get("core_t0_mm", parts[c]["t_range_mm"][0]), parts[c]["t_range_mm"][1]) for c in clamped}
+    levels, level_of = [], {}
+    for c in sorted((c for c in clamped if not relations().is_sleeve_set(c)), key=lambda c: bear[c]):
+        levels.append([c])
+    for c in sorted((c for c in clamped if relations().is_sleeve_set(c)), key=lambda c: bear[c]):
+        host = next((lv for lv in levels if any(
+            printed(h) and parts[h]["t_range_mm"][0] - 0.3 <= parts[c]["t_range_mm"][0]
+            and parts[c]["t_range_mm"][1] <= parts[h]["t_range_mm"][1] + 0.3 for h in lv)), None)
+        if host is None:
+            host = []; levels.append(host)
+        host.append(c)
+    levels.sort(key=lambda lv: min(bear[c] for c in lv))
+    for i, lv in enumerate(levels):
+        for c in lv:
+            level_of[c] = i + 1
+    level_of[name] = 0
+    if tpart:
+        level_of[tpart] = len(levels) + 1
     contacts, overlaps = {}, {}
     for r in radii:
         for k in range(N_ANG):
@@ -572,9 +682,11 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     pairs = []
     for (a, b), v in contacts.items():
         gaps = np.array(v)
-        pairs.append(dict(upper=a, lower=b, interface=True, min_gap_mm=round(float(gaps.min()), 3),
-                          max_gap_mm=round(float(gaps.max()), 3), median_gap_mm=round(float(np.median(gaps)), 3),
-                          rays=len(v), touching_pct=round(100.0 * float((np.abs(gaps) <= 0.05).mean()), 1)))
+        med = float(np.median(gaps))
+        g_, n_low = supported_min(gaps)
+        pairs.append(dict(upper=a, lower=b, interface=True, gap_mm=round(g_, 3), min_gap_mm=round(float(gaps.min()), 3),
+                          max_gap_mm=round(float(gaps.max()), 3), median_gap_mm=round(med, 3),
+                          rays=len(v), rays_below_gap=n_low, touching_pct=round(100.0 * float((np.abs(gaps) <= 0.05).mean()), 1)))
     for (a, b), v in overlaps.items():
         if (a, b) in contacts:
             continue
@@ -589,14 +701,14 @@ def analyse_screw(name, body, cands, meshes, rayss, kinds, iface_holes, fam, sce
     for x in pairs:
         if x["interface"]:
             k = (level_of[x["upper"]], level_of[x["lower"]])
-            lv_gap[k] = min(lv_gap.get(k, np.inf), x["min_gap_mm"])
+            lv_gap[k] = min(lv_gap.get(k, np.inf), x["gap_mm"])
     for x in pairs:
         if x["interface"]:
             g_ = lv_gap[(level_of[x["upper"]], level_of[x["lower"]])]
-            x.update(level_gap_mm=g_, bears=x["min_gap_mm"] == g_)
+            x.update(level_gap_mm=g_, bears=x["gap_mm"] == g_)
     pairs.sort(key=lambda x: (level_of.get(x["upper"], 99), level_of.get(x["lower"], 99)))
     seat = [x for x in pairs if x["upper"] == name and x["interface"]]
-    seat = min(seat, key=lambda x: abs(x["min_gap_mm"])) if seat else None
+    seat = min(seat, key=lambda x: abs(x["gap_mm"])) if seat else None
 
     # sleeves: every clamped printed part should carry one where the screw passes
     sleeves = []
@@ -672,15 +784,16 @@ def findings(r) -> list[dict]:
     s = r["head_seat"]
     if s is None:
         add("head_seat", None, "head on a layer", "no layer found under the head within 3 mm")
-    elif abs(s["min_gap_mm"]) > REF["gap_mm"]:
-        add("head_seat_gap_mm", s["min_gap_mm"], f"0 +- {REF['gap_mm']}", s["lower"])
+    elif abs(s["gap_mm"]) > REF["gap_mm"]:
+        add("head_seat_gap_mm", s["gap_mm"], f"0 +- {REF['gap_mm']}", s["lower"])
     for c in r["contacts"]:
         if c["upper"] == r["name"] and c["interface"]:
             continue                                   # the head seat, above
-        if c["min_gap_mm"] < -REF["gap_mm"] and not c.get("same_servo"):
-            add("layers_interpenetrate_mm", c["min_gap_mm"], f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")
-        elif c["interface"] and c.get("bears", True) and c.get("level_gap_mm", c["min_gap_mm"]) > REF["gap_mm"]:
-            add("layers_gap_mm", c["min_gap_mm"], f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")   # once per level pair: its bearing part
+        g = c.get("gap_mm", c["min_gap_mm"])           # interface pairs: the ray majority; overlap pairs: the deepest overlap
+        if g < -REF["gap_mm"] and not c.get("same_servo"):
+            add("layers_interpenetrate_mm", g, f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")
+        elif c["interface"] and c.get("bears", True) and c.get("level_gap_mm", g) > REF["gap_mm"]:
+            add("layers_gap_mm", g, f"0 +- {REF['gap_mm']}", f"{c['upper']} / {c['lower']}")   # once per level pair: its bearing part
     for sl in r["sleeves"]:
         if sl["sleeve"] is None:
             add("clamped_printed_hole_without_sleeve", sl["clamped_len_mm"], "a steel sleeve", sl["printed_part"])
