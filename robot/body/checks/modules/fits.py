@@ -125,7 +125,9 @@ def run_foot(ctx):
         Ti = np.linalg.inv(T)
 
         def near(q, T=T, n=n):
-            return _neighbour_distance(ctx, n, (q - T[:3, 3]) @ T[:3, :3])
+            qp = (q - T[:3, 3]) @ T[:3, :3]
+            *_, d, who = _neighbour_distance(ctx, n, qp, np.zeros_like(qp))   # nearest neighbour surface of any direction
+            return d, who
         r = foot(m, near, cfg["zone_mm"], cfg["mate_mm"], cfg["chamfer_min_mm"], cfg["sample_mm"], e["layer_height_mm"] or 0.2)
         for run in r["runs"]:
             run["location_mm"] = np.round((Ti @ np.r_[run.pop("runs_xyz"), 1.0])[:3], 2).tolist()
