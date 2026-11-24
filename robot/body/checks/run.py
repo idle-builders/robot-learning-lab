@@ -839,6 +839,22 @@ def summary(rep, top=6):
     if off:
         print(f"  screening solids more than 5 % off the recorded part volume (overlaps / distances with them are approximate): "
               + ", ".join(f"{n} {v['diff_pct']:+.0f} % ({v['how']})" for n, v in sorted(off.items())))
+    # screening solids not made as asked (core.screen_solid / _step_how name it in the solid's description)
+    import re
+    coarse = {n: m.group(1) for n, h in hows.items() if (m := re.search(r"\[tolerance (\S+ mm, coarser than the \S+ mm asked)", h))}
+    if coarse:
+        print(f"  STEP tessellated coarser than asked: {len(coarse)}: " + ", ".join(f"{n} ({v})" for n, v in sorted(coarse.items())[:8])
+              + (" ..." if len(coarse) > 8 else ""))
+    nomesh = sorted(n for n, h in hows.items() if "resolves nowhere: this STEP" in h)
+    if nomesh:
+        print(f"  mesh file missing, screened by the STEP alone (may not match the manifest's mesh): {', '.join(nomesh)}")
+    moved = {n: m.group(1) for n, h in hows.items() if (m := re.search(r"\[STEP read from (\S+), not", h))}
+    if moved:
+        print(f"  STEP read from another path than the manifest names: " + ", ".join(f"{n} ({v})" for n, v in sorted(moved.items())))
+    unused = sorted(n for n, h in hows.items() if "STEP not used" in h)
+    if unused:
+        print(f"  STEP not used as the screening solid (why in the solid's description): {len(unused)}: {', '.join(unused[:8])}"
+              + (" ..." if len(unused) > 8 else ""))
     for name, r in rep["checks"].items():
         waited = (r.get("seconds") or 0) > 30 and r.get("cpu_s") is not None and r["cpu_s"] < 0.5 * r["seconds"]
         cpu_note = f" (CPU {r['cpu_s']} s of {r['seconds']} s: the process waited, starved or blocked, rather than computed)" if waited else ""

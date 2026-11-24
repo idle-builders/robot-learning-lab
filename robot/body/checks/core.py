@@ -163,12 +163,32 @@ def save_sha():
         _SHA_NEW.clear()
 
 
+class StepMeshError(ValueError):
+    """Every rung of step_mesh's ladder failed. .attempts = [(tol, ang, why)] in the order tried; the message names them all,
+    first failure first (the last one alone, an AttributeError from a null face triangulation, used to hide the first,
+    a non-manifold piece)."""
+    def __init__(self, step, attempts):
+        self.attempts = attempts
+        super().__init__(f"{Path(step).name}: no closed tessellation at any tolerance: "
+                         + "; ".join(f"{t:g} mm: {why}" for t, _, why in attempts))
+
+
+def _ladder(tol, ang):
+    """Tolerances step_mesh tries, in order: the one asked, 0.03 (finer), then coarser 0.1, 0.2, 0.5, 1.0 mm. OCC's
+    mesher fails at some tolerances and not others on the same STEP, in both directions (measured 2026-11-24 over the 241
+    STEPs of the selected body: the shin front hard covers non-manifold at 0.03 and null-triangulated at 0.05-0.2, closed at
+    0.5 and 1.0; the stage-1 chassis closed at 0.03-0.05, non-manifold from 0.1; a finger closed to 0.1, not from 0.2)."""
+    rungs = [(tol, ang), (min(tol, 0.03), min(ang, 0.2))] + [(max(tol, t), max(ang, 0.5)) for t in (0.1, 0.2, 0.5, 1.0)]
+    return list(dict.fromkeys(rungs))
+
+
 def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_solid_mm3=0.0):
     """Closed triangle mesh of a native STEP, cached by the STEP's sha256: all solids (or the largest, or those of at
     least min_solid_mm3, e.g. a servo's housing without its internal gears), each tessellated and unioned so touching
-    solids give one manifold. OCC leaves a few small faces of some mirrored STEPs (left ST3025 cases) untriangulated at
-    0.03 mm, and a shape whose meshing failed fails again at any tolerance: each retry re-imports the STEP and meshes it
-    coarser (0.1, then 0.5 mm). The tolerance actually used is in m.metadata["tol"]."""
+    solids give one manifold. OCC leaves some faces untriangulated or non-manifold at one tolerance and not at another, and
+    a shape whose meshing failed fails again at any tolerance: each retry re-imports the STEP and meshes it at the next rung
+    of _ladder. m.metadata: "tol" the tolerance actually used, "tol_asked", "attempts" [(tol, ang, why)] of the rungs that
+    failed before it. When every rung fails, StepMeshError names every attempt."""
     import trimesh
     key = (f"{sha(step)[:16]}-{tol}-{ang}-{int(largest)}-{min_solid_mm3:g}-"
            f"{'_'.join(f'{v:g}' for v in (offset or (0, 0, 0)))}")
@@ -178,18 +198,21 @@ def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_sol
         if len(d["f"]):                       # an empty entry was written by the old fallback: rebuild
             m = trimesh.Trimesh(d["v"], d["f"], process=False)
             m.metadata["tol"] = float(d["t"]) if "t" in d else tol
+            m.metadata["tol_asked"] = tol
+            m.metadata["attempts"] = json.loads(str(d["a"])) if "a" in d else None   # None: cached before the attempts were kept
             return m
     import manifold3d as M
     from build123d import Location, import_step
-    err = None
-    for t_try, a_try in dict.fromkeys(((tol, ang), (min(tol, 0.03), min(ang, 0.2)), (max(tol, 0.1), max(ang, 0.5)),
-                                       (max(tol, 0.5), max(ang, 0.5)))):
-        sh = import_step(str(step)).moved(Location(tuple(float(v) for v in (offset or (0.0, 0.0, 0.0)))))
-        sols = list(sh.solids())
-        if largest:
-            sols = [max(sols, key=lambda s: s.volume)]
-        sols = [s for s in sols if s.volume >= min_solid_mm3] or sols
+    attempts = []
+    for t_try, a_try in _ladder(tol, ang):
         try:
+            sh = import_step(str(step)).moved(Location(tuple(float(v) for v in (offset or (0.0, 0.0, 0.0)))))
+            sols = list(sh.solids())
+            if largest:
+                sols = [max(sols, key=lambda s: s.volume)]
+            sols = [s for s in sols if s.volume >= min_solid_mm3] or sols
+            if not sols:
+                raise ValueError("the STEP holds no solid")
             parts, pieces = [], []
             for so in sols:
                 v, fc = so.tessellate(t_try, a_try)
@@ -199,20 +222,24 @@ def step_mesh(step: Path, offset=None, tol=0.03, ang=0.2, largest=False, min_sol
                 pieces.append(t)
                 parts.append(kit.mf(t))
         except Exception as exc:  # noqa: BLE001
-            err = exc
+            attempts.append((t_try, a_try, f"{type(exc).__name__}: {exc}"))
+            if "holds no solid" in str(exc) or "empty shape" in str(exc):    # nothing imported: no tolerance changes that
+                break
             continue
-        if any(x.status().name != "NoError" or x.is_empty() for x in parts):
+        bad = [i for i, x in enumerate(parts) if x.status().name != "NoError" or x.is_empty()]
+        if bad:
             # a tessellation that is not a manifold reads as EMPTY to manifold3d (the chassis at 0.1 mm: 9123 faces,
             # NotManifold; fine at 0.03): meshing again, finer or coarser, on a fresh import gives another triangulation
-            err = ValueError(f"tessellation at {t_try} mm is not a manifold")
+            attempts.append((t_try, a_try, f"not a manifold: {len(bad)} of {len(parts)} solid(s), "
+                                           + ", ".join(f"{sols[i].volume:.4g} mm3" for i in bad[:4])))
             continue
         u = parts[0] if len(parts) == 1 else M.Manifold.batch_boolean(parts, M.OpType.Add)
         m = kit.tm(u) if u.status().name == "NoError" and not u.is_empty() else trimesh.util.concatenate(pieces)
         f.parent.mkdir(parents=True, exist_ok=True)
-        cachefs.savez(f, v=np.asarray(m.vertices), f=np.asarray(m.faces), t=t_try)
-        m.metadata["tol"] = t_try
+        cachefs.savez(f, v=np.asarray(m.vertices), f=np.asarray(m.faces), t=t_try, a=json.dumps(attempts))
+        m.metadata.update(tol=t_try, tol_asked=tol, attempts=attempts)
         return m
-    raise err
+    raise StepMeshError(step, attempts)
 
 
 _FAILED_FILE = CACHE / "step-mesh" / "not-usable.json"
@@ -262,7 +289,9 @@ STEP_ROLES = {r: max([float(SCREENING["class_min_solid_mm3"].get(c, 0.0)) for c 
               if _takes_step(_ROLES["kind"].get(r), r)}
 
 
-SOLID_VERSION = "v4"   # 2026-11-23: a rejection is keyed by what the screening solid is made from (STEP sha, tolerance, offset, the
+SOLID_VERSION = "v5"   # 2026-11-24: step_mesh tries 0.2 and 1.0 mm too and reports every attempt; a rejection is remembered only
+                       # when the STEP itself failed (no rung closed, frame / box mismatch), never a tool exception. v4 entries ignored.
+                       # v4 2026-11-23: a rejection is keyed by what the screening solid is made from (STEP sha, tolerance, offset, the
                        # roll-flip turn, the manifest box, the min solid), not the part's name: a renamed body read the rejection a
                        # wrongly turned case had left under its opaque id, and a moved part kept its old one. v3 entries are ignored.
                        # v3 2026-11-22: rejections re-evaluated once (a translated STEP now reports its offset; a tool exception
@@ -289,6 +318,30 @@ def _mb(step):
         return 0.0
 
 
+def _resolved(path):
+    """'' when a manifest path resolves to itself, else what it resolved to (blob_store.ensure maps a path from before the
+    2026-11-12 restructure to its new name): a screening solid made from another file than the manifest names says so."""
+    got = BL.src(path)
+    return "" if Path(got).resolve() == (ROOT / path).resolve() else str(Path(got).relative_to(ROOT) if Path(got).is_relative_to(ROOT) else got)
+
+
+def _step_how(n, p, step, m, tol):
+    """Description of a STEP screening solid: the tolerance used, and when it differs from the one asked, which rungs failed;
+    the part's mesh when it resolves nowhere (the STEP is then the only geometry, and may predate the mesh); a STEP read
+    from another path than the manifest names."""
+    t_used = float(m.metadata.get("tol", tol))
+    how = f"native STEP tessellation ({t_used:g} mm)"
+    if abs(t_used - tol) > 1e-9:
+        how += (f" [tolerance {t_used:g} mm, {'coarser' if t_used > tol else 'finer'} than the {tol:g} mm asked: "
+                + ("; ".join(f"{t:g} mm {w}" for t, _, w in m.metadata["attempts"]) if m.metadata.get("attempts") is not None
+                   else "the finer rungs failed (cached tessellation from before the attempts were recorded)") + "]")
+    if (r := _resolved(step)):
+        how += f" [STEP read from {r}, not {step}]"
+    if p.get("mesh") and not BL.src(p["mesh"]).is_file():
+        how += f" [mesh {p['mesh']} resolves nowhere: this STEP is the part's only geometry and may not match the manifest's mesh]"
+    return how
+
+
 def screen_solid(body, n, changed):
     """Closed screening solid of part n in the manifest frame and how it was made. Order: native STEP tessellation;
     else the part's own mesh when it is already a closed manifold (decimated only within 1.5 % of its volume); only an
@@ -312,17 +365,23 @@ def screen_solid(body, n, changed):
         fail_key = f"{SOLID_VERSION}:{sha(BL.src(step))[:16]}:{tol}:{hashlib.sha256(made_of.encode()).hexdigest()[:16]}"
         failed = _failed()
         if fail_key in failed and n not in changed:
-            step, step_why = None, failed[fail_key]
+            step, step_why = None, failed[fail_key]    # the same text as when it was found: a description never depends on run order
     if step and not p.get("placement_offset_mm") and (fine or stepped):
-        why = None
+        why, remember = None, True
         # a servo STEP may hold its housing as several small solids (ST3025: 11 pieces, one over 4000 mm3): when the
         # housing filter leaves a solid that does not span the manifest bounds, take every solid
         for mins in dict.fromkeys((min_solid_mm3(n, p), 0.0)):
             try:
                 m = step_mesh(BL.src(step), p.get("native_step_offset_mm"), tol=tol, ang=0.2 if tol < 0.05 else 0.5,
                               min_solid_mm3=mins)
+            except StepMeshError as exc:
+                why = str(exc)
+                # OCC failing on the STEP (non-manifold, null face triangulation, no solid) is a property of the STEP;
+                # every rung failing in the tool's own Python (TypeError, NameError ...) is not: retried next run
+                remember = any(w.startswith(("not a manifold", "ValueError")) or "NbNodes" in w for _, _, w in exc.attempts)
+                break
             except Exception as exc:  # noqa: BLE001
-                why = f"{type(exc).__name__}: {exc}"
+                why, remember = f"{type(exc).__name__}: {exc}", False
                 break
             if turn is not None:
                 m = m.copy(); m.apply_transform(turn)
@@ -330,18 +389,17 @@ def screen_solid(body, n, changed):
                 why = "empty tessellation"
                 break
             if _step_fits(m, b):
-                t_used = m.metadata.get("tol", tol)
-                return m, f"native STEP tessellation ({t_used} mm)" + (" housing solids" if mins else "")
+                return m, _step_how(n, p, step, m, tol) + (" housing solids" if mins else "")
             why = f"frame or manifold mismatch (solids >= {mins:g} mm3)"
             if m is not None and len(m.faces) and m.bounds is not None:
                 d = np.asarray(m.bounds, float) - b
                 if np.abs(d[0] - d[1]).max() < 0.05 and np.abs(d[0]).max() > 0.5:   # every face of the box moved alike
                     why = (f"the STEP is the manifest mesh's shape moved by {np.round(d[0], 2).tolist()} mm (all six box faces alike): "
                            "a placement or native_step_offset_mm to fix in its builder")
-        if not str(why).startswith(("TypeError", "AttributeError", "NameError", "KeyError", "ImportError", "ModuleNotFoundError")):
+        if remember:
             _failed(fail_key, why)          # a property of the STEP: remembered; a tool exception is retried next run
         step_why = why
-        print(f"  {n}: STEP solid not used ({why}); mesh solid instead (remembered)", flush=True)
+        print(f"  {n}: STEP solid not used ({why}); mesh solid instead" + (" (remembered)" if remember else " (retried next run)"), flush=True)
     mesh_file = BL.src(p["mesh"])
     if not mesh_file.is_file():                     # nothing left to screen it with: say which part and why, not a bare stat error
         raise FileNotFoundError(f"{n}: no screening solid: native STEP " + (f"not used ({step_why})" if step_why else "absent")
