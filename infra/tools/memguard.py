@@ -11,7 +11,7 @@ is no brutal memguard just a best effort"; the Mac has 32 GB and swaps fast):
 * Measure. A job's memory is the physical footprint of its process tree, sampled every second (macOS: phys_footprint
   from proc_pid_rusage, what Activity Monitor and `top` MEM show, compressed pages included; elsewhere the resident set).
   Resident memory alone missed compressed pages: on 2026-11-24 a hip-section job read 2 GB resident at a 15 GB footprint.
-* Remember. Each command keeps two weighted numbers in ~/.cache/memguard/profiles.json: its mean footprint over a run and
+* Remember. Each command keeps two weighted numbers in ~/.cache/memguard/profiles/commands.json: its mean footprint over a run and
   its peak, under three keys from its command line: the exact command (paths relative to the working directory, --label
   dropped), the script with its subcommand and --checks value, and the script alone. A finished run is folded in as a
   weighted running average (1/n for the first runs, then MEMGUARD_WEIGHT 0.25, so it follows a command whose memory
@@ -47,7 +47,10 @@ import time
 from pathlib import Path
 
 SLOTS = Path(os.environ.get("MEMGUARD_DIR") or Path.home() / ".cache" / "memguard")   # MEMGUARD_DIR: a separate registry (tests)
-PROFILES = SLOTS / "profiles.json"
+# the command profiles live in a subfolder: older copies of this script (still run from worktrees on an older base) read every
+# *.json directly in SLOTS as a job slot and crashed with KeyError 'pid' on profiles.json (torso worktree, 2026-11-24)
+PROFILES = SLOTS / "profiles" / "commands.json"
+_OLD_PROFILES = SLOTS / "profiles.json"
 BUDGET_GB = float(os.environ.get("MEMGUARD_BUDGET_GB", "24"))
 FLOOR_GB = float(os.environ.get("MEMGUARD_FLOOR_GB", "2"))
 DEFAULT_GB = float(os.environ.get("MEMGUARD_DEFAULT_GB", "6"))
@@ -185,6 +188,15 @@ def command_keys(args: list[str], cwd: str | None = None) -> list[str]:
 
 
 def _profiles() -> dict:
+    if _OLD_PROFILES.exists():                           # move the old file out of the slot folder (once; a copy of before writes it again)
+        try:
+            PROFILES.parent.mkdir(parents=True, exist_ok=True)
+            old = json.loads(_OLD_PROFILES.read_text())
+            new = json.loads(PROFILES.read_text()) if PROFILES.exists() else {}
+            tmp = PROFILES.with_suffix(".tmp"); tmp.write_text(json.dumps({**old, **new}, separators=(",", ":"))); tmp.replace(PROFILES)
+            _OLD_PROFILES.unlink(missing_ok=True)
+        except (OSError, ValueError):
+            pass
     try:
         return json.loads(PROFILES.read_text())
     except (OSError, ValueError):
@@ -224,6 +236,7 @@ def _remember(keys: list[str], mean: float, peak: float):
                 prof[k] = _update(prof.get(k), mean, peak)
             old = time.time() - FORGET_DAYS * 86400
             prof = {k: v for k, v in prof.items() if v.get("t", 0) >= old}
+            PROFILES.parent.mkdir(parents=True, exist_ok=True)
             tmp = PROFILES.with_suffix(".tmp"); tmp.write_text(json.dumps(prof, separators=(",", ":"))); tmp.replace(PROFILES)
     except OSError:
         pass
