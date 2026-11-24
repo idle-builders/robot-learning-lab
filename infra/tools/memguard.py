@@ -28,7 +28,7 @@ is no brutal memguard just a best effort"; the Mac has 32 GB and swaps fast):
 
 --limit-gb is accepted from older callers; it is only the first guess for a command without history, never a cap.
 Running and waiting jobs register in ~/.cache/memguard (claimed under a file lock, dead pids ignored); memguard
-processes of older copies of this script count flat at their --limit-gb. Shell wrappers whose command line merely
+processes of older copies of this script count at their --limit-gb for their first 60 s, then at their peak. Shell wrappers whose command line merely
 contains "memguard.py" are never counted. `--status` prints the machine, the running jobs with their summaries and, given
 a command, its summary and whether it would start now, without running anything.
 """
@@ -238,7 +238,7 @@ class Forecast:
         self.sm, self.basis = summary_for(keys) if keys and flat is None else (None, "")
         if flat is not None:
             self.mean = self.peak = flat
-            self.basis = f"older memguard, its cap {flat:.1f} GB"
+            self.basis = f"older memguard, counted at {flat:.1f} GB"
         elif self.sm is None:
             self.mean = self.peak = guess if guess is not None else DEFAULT_GB
             self.basis = (f"no earlier run; the caller's --limit-gb {self.mean:.1f} GB as a first guess" if guess is not None
@@ -291,9 +291,10 @@ def running_jobs() -> list[dict]:
         if "keys" in d:
             now = float(d.get("now_gb", 0.0))
             fc = Forecast(d["keys"], d.get("guess_gb"), now)
-        else:                                              # older memguard: flat at its cap
+        else:                                              # older memguard: its cap for its first 60 s, then its peak
             now = tree_gb(pid, tree)[0]
-            fc = Forecast(None, None, flat=max(float(d.get("limit_gb", 12.0)), now))
+            young = time.time() - float(d.get("since", 0)) < 60
+            fc = Forecast(None, None, flat=max(float(d.get("limit_gb", 12.0)) if young else float(d.get("peak_gb", 0.0)), now))
         jobs.append(dict(pid=pid, cmd=d.get("cmd", ""), now=now, fc=fc))
     out = "" if os.environ.get("MEMGUARD_DIR") else subprocess.run(["ps", "-Ao", "pid=,command="], capture_output=True, text=True).stdout
     for line in out.splitlines():
