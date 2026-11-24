@@ -21,17 +21,20 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "robot/body")); sys.path.insert(0, str(ROOT / "robot/body/fastening"))
 from mount_check import kind as hw_kind, nominal  # noqa: E402
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("standard-hardware")   # thread, nut, washer, countersink sizes: robot/body/standard-hardware/generate.bom.yaml config (shared with generate.py)
 
 DATA = ROOT / "robot/body/checks/data"
 STD = json.loads((DATA / "hardware.json").read_text())["screw_standards"]
-THREADS = {"M2": 2.0, "M2.5": 2.5, "M3": 3.0, "M4": 4.0}
+THREADS = CFG["THREADS"]
 # ISO 4032 hex nut: width across flats s, height m (mm)
-HEX_NUT = {"M2": (4.0, 1.6), "M2.5": (5.0, 2.0), "M3": (5.5, 2.4), "M4": (7.0, 3.2)}
+HEX_NUT = CFG["HEX_NUT"]
 # ISO 7089 plain washer: inner d1, outer d2, thickness h (mm)
-WASHER = {"M2": (2.2, 5.0, 0.3), "M2.5": (2.7, 6.0, 0.5), "M3": (3.2, 7.0, 0.5), "M4": (4.3, 9.0, 0.8)}
+WASHER = CFG["WASHER"]
 # ISO 10642 countersunk head (90 deg): head diameter dk, height k (mm)
-CSK = {"M2": (4.4, 1.2), "M2.5": (5.5, 1.5), "M3": (6.3, 1.7), "M4": (8.96, 2.48)}
-GENERATED = {"screw", "nut", "washer", "spacer"}
+CSK = CFG["CSK"]
+GENERATED = set(CFG["GENERATED"])
 
 
 def thread_of(name):
