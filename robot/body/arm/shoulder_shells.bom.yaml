@@ -84,7 +84,6 @@ parts:
     materials:
     - Bambu PAHT-CF
     - Bambu PETG-CF
-    - legacy_fdm_PAHT_CF_dry
     regions:
     - material: Steel 304 sleeve
       where:
@@ -156,16 +155,6 @@ parts:
           step_deg: 15.0
           directions: 96
           cone_deg: 30.0
-    open_difference: 'Old arm numbers are history (owner 2026-11-18; the old arm fem_evaluate report is not in the tree, its sites were 12-48
-      mm off today''s parts), not reproduced; proven by fem_setup (patches on the sleeve sites, per-side / per-mate areas, 0 shared support/load
-      nodes) and mesh convergence on the roll-flip manifest (sha256 068f6436...). Load patch rigid (decision M-chnfz7: master-slave elimination
-      with a 6-DOF reference node at the load centroid, direct solve; the support is fixed = already rigid). Mesh convergence, change to the next
-      finer level (all cases, materials): 1.2: p99 +3.1..+4.3 % and displacement +5.4..+6.2 % to h 0.9 (2.2->1.6 +4.2..+7.1, 1.6->1.2 +5.2..+7.2).
-      At the stored h: recovery p99 133 MPa (ratio 0.66), peak 732, displacement 14.0 mm (20016 nodes). At the converged level the part is overloaded
-      for the 4 kg cases (p99 above the strength reference; displacement 14 mm). Differences to the old script: wrench at the load patch centroid;
-      patches follow the sleeve bores next to the named mating parts; steel collars 0.7 mm around the sleeve bores; no metal seat regions (M-vnzq43);
-      default material Bambu datasheet. Support is the roll case (old: roll main horn); roll-case and yaw-case sleeves are told apart by axis
-      (a yaw-case sleeve sits 0.5 mm from the roll case).'
     convergence:
       manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695
       levels:
@@ -424,7 +413,6 @@ parts:
     materials:
     - Bambu PAHT-CF
     - Bambu PETG-CF
-    - legacy_fdm_PAHT_CF_dry
     regions:
     - material: Steel 304 sleeve
       where:
@@ -505,8 +493,6 @@ parts:
       under the Al servo cases is polymer). Sleeves are told apart by their axis (roll-case sleeves point along y, yaw-case sleeves along the
       yaw axis): one yaw-case sleeve sits 0.5 mm from the roll case and would otherwise be clamped and loaded. The load patch is rigid (all its
       nodes follow one rigid-body motion, the wrench acts on it at the load centroid): the sleeve rings cannot bend independently.'
-    open_difference: 'Mirror of the R setup, not separately converged: mesh convergence and the old-study differences are those of the R part
-      (see its open_difference). Left stress should match the R part within mesh noise.'
     variants:
       short_arm_wrenches:
         load_cases:

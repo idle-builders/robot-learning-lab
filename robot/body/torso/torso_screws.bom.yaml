@@ -132,28 +132,6 @@ parts:
         - 8000.0
         - 4800.0
         - 8000.0
-    variants:
-      legacy_torso:
-        materials:
-        - legacy_torso_PAHT_CF_dry
-        - legacy_torso_PAHT_CF_wet
-        - legacy_torso_PETG_CF
-        regions:
-        - material: legacy_torso_sleeve_zone
-          where:
-            bore_collars:
-              of: combined__stage1_center_torso_spine_chassis_steel_sleeves
-              r_extra_mm: 1.2
-              end_extra_mm: 1.2
-    open_difference: 'Old torso numbers (torso fem_evaluate: own mesh 4372 nodes, volume-scaled, moment spread as a force couple over the load
-      nodes, sleeve zones x 2.65 stiffness and x 0.58 stress, support / load = spheres around the old bores, which sit 12 mm off today''s shoulder
-      sites) are history, not reproduced. variant legacy_torso = the old materials (legacy_torso_*) and the 2.65 sleeve-zone stiffness as a bore-collar
-      region (r 1.2 mm around every sleeve; the 0.58 stress factor and the volume scaling are not reproduced). legacy_torso vs the old stored
-      PAHT dry / wet / PETG, all cases: p99 -8..-9 % (1g), -40..-41 % (3g, 6g), -58..-59 % (combined stall); peak +2..+10 % (1g, 3g, 6g), -56
-      % (stall); max displacement +44 % (1g), -16 % (3g), -20 % (6g), -11..-12 % (stall). Stored (Bambu PAHT-CF, steel collars) combined stall
-      p99 14.69 / peak 67.4 / disp 2.61 mm vs old dry 35.8 / 132.9 / 2.64. Mesh convergence h 2.2 -> 1.6 mm (nodes 37373 -> 58727): p99 +4.5..+5.1
-      %, peak +4.9..+17.6 %, max displacement +8.4..+10.1 % (4 load cases x 2 materials). Only stage 1 (the chassis) has a setup; the old script''s
-      stages 2-4 are other parts (stage 2 is the pelvis cradle, migrated earlier).'
     convergence:
       manifest: artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json sha256 068f643641fe3695 (the part's STEP and sleeves
         are identical in the motor-refit manifest it first ran on, sha e8b9ae95)

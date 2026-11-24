@@ -60,8 +60,11 @@ def record():
     rep = json.load(open(ART / "report.json"))
     fem, mass = rep["fem"], rep["mass"]
 
+    def paht(by_m):        # the declared PAHT-CF material of the setup (data/materials.json name)
+        return by_m[next(m for m in by_m if "PAHT" in m.upper())]
+
     def p99(part, case, normal):
-        d = fem[part]["by_layer_normal"][normal]["PAHT_CF_dry"][case]
+        d = paht(fem[part]["by_layer_normal"][normal])[case]
         return round(d["p99_vm_MPa"], 1), round(d["p99_strength_ratio"], 2)
 
     n4 = next(iter(fem["stage4_roll_flip"]["by_layer_normal"]))   # the H-cage print direction the FEM ran along
@@ -70,7 +73,7 @@ def record():
     # print orientation of the new Stage 5: the layer normal with the best worst-case of strength and layer ratios
     def governing(part, case="heavy_6kg_1p5g"):
         bl = fem[part]["by_layer_normal"]
-        return max(bl, key=lambda n: min(bl[n]["PAHT_CF_dry"][case]["p99_strength_ratio"], bl[n]["PAHT_CF_dry"][case]["p99_layer_ratio"]))
+        return max(bl, key=lambda n: min(paht(bl[n])[case]["p99_strength_ratio"], paht(bl[n])[case]["p99_layer_ratio"]))
     n5 = governing("stage5_roll_flip")
     s5n = {c: p99("stage5_roll_flip", c, n5) for c in ("recovery_4kg_1p5g", "heavy_6kg_1p5g", "roll_stall")}
     fit = rep["fit_brep"]["worst_by_pair"]
