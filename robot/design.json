@@ -1,6 +1,6 @@
 {
   "schema": "robot-learning-lab.robot-design.v2",
-  "name": "Cove-50 printed FDM body",
+  "name": "APE0 printed FDM body",
   "status": "selected_complete_body",
   "scope": "The selected robot: the complete 3D-printed FDM body with its connectors, the integrated electronics and the selected actuators. Selection does not qualify physical behaviour.",
   "body": "robot/body/motor-refit",

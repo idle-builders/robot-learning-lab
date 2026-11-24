@@ -1,4 +1,4 @@
-# Cove-50 body definition for robot/body/motor-refit/ankle_coupler_screws.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# APE0 body definition for robot/body/motor-refit/ankle_coupler_screws.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
 # The agents who own this builder maintain this file: what the builder generates from what (generators), which manifest
 # parts it owns and what each is (parts: make / buy, spec, supplier or unknown, never guessed), and how they go together
 # (assembly). robot/body/bom/build.py and the checks only read it and report what is missing, naming this file.
