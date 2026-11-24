@@ -1833,8 +1833,6 @@ config:
   INSERT_MATERIAL:
     value: Brass CuZn39Pb3 (CW614N)
     doc: Material of the knurled heat-set inserts (was 8.5 g/cm3 in code; the table's datasheet value is 8.47).
-  LEGACY:
-    value: {neck_root_cradle: [neck_root_M2x6_, neck_root_M2_washer_], neck_yaw_to_pitch_link: [neck_yaw_horn_M2x5_, neck_pitch_horn_M2x5_], neck_pitch_to_head_cradle: [neck_head_M2x5_, neck_head_M2_washer_], head_sensor_compute_carrier: []}
   # robot/body/neck-head/package_and_render.py module constants (moved 2026-11-24)
   STAGE_COLORS:
     value: {stage1_neck_root_cradle: [42, 138, 184, 255], stage2_neck_yaw_to_pitch_link: [28, 164, 142, 255], stage3_neck_pitch_to_head_cradle: [212, 134, 52, 255], stage4_head_sensor_compute_carrier: [64, 156, 212, 255], sleeve: [215, 222, 230, 255], shell: [231, 222, 201, 255]}
@@ -1845,9 +1843,6 @@ config:
     value: {stage1_neck_root_cradle: neck_root_cradle, stage2_neck_yaw_to_pitch_link: neck_yaw_to_pitch_link, stage3_neck_pitch_to_head_cradle: neck_pitch_to_head_cradle, stage4_head_sensor_compute_carrier: head_sensor_compute_carrier}
   STAGE_LINKS:
     value: {stage1_neck_root_cradle: torso, stage2_neck_yaw_to_pitch_link: neck_yaw, stage3_neck_pitch_to_head_cradle: head, stage4_head_sensor_compute_carrier: head}
-  REPLACED_NECK_HEAD_PARTS:
-    value: [compact_neck_U_strap_v23, fixed_neck_ribbon_anchor_v21, fixed_neck_ribbon_cap_v21, fixed_neck_ribbon_pad_front_v21, fixed_neck_ribbon_pad_rear_v21, fixed_ribbon_M2_washer_0_v21, fixed_ribbon_M2_washer_1_v21, fixed_ribbon_M2x8_0_v21, fixed_ribbon_M2x8_1_v21, mic_foot_M2x3_0, mic_foot_M2x3_1, microphone_compact_tab_v23, single_shared_carrier_v23, upper__one_piece_bent_neck_L]
-    doc: Legacy sheet-metal and boxy PA12 neck/head brackets & obsolete v21 ribbon clamp hardware replaced by the 4-stage FDM connectors
   MATERIALS:
     value: {Al5052_H32: Aluminium 5052-H32, PAHT_CF_dry: legacy_fdm_PAHT_CF_dry, PAHT_CF_wet: legacy_fdm_PAHT_CF_wet, PETG_CF: legacy_fdm_PETG_CF, Steel_Sleeve: Steel 304 sleeve}
     doc: Material of each legacy FEM / mass key of this section's scripts, as its entry in robot/body/checks/data/materials.json (values there; same numbers as the table this replaced, 2026-11-24)
@@ -1866,8 +1861,6 @@ config:
   RING_MM:
     value: 2.6
     doc: radius of the rays that find the standard part's outer face around a hole (outside the tapped bore)
-  N_RAYS:
-    value: 8
   # robot/body/neck-head/build_neck_head_connectors.py module constants (moved 2026-11-24)
   FLUSH_SITES:
     value: [[stage1_neck_root_cradle, load], [stage2_neck_yaw_to_pitch_link, load], [stage2_neck_yaw_to_pitch_link, support], [stage3_neck_pitch_to_head_cradle, support]]

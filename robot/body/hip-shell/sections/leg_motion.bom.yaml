@@ -8,27 +8,10 @@ definition: leg-motion
 owner: (set by the owning session)
 config:
   # robot/body/hip-shell/sections/leg_motion.py module constants (moved 2026-11-24)
-  VOX:
-    value: 0.75
-  CLIP_R:
-    value: 110.0
-  C:
-    value: [59.0, 2.0, 219.0]
   J:
     value: [R_hip_pitch, R_hip_roll, R_hip_yaw, R_knee]
   KEY:
     value: {squat: [-85, 0, 0, 95], front kick: [-85, 0, 0, 0], lunge rear: [40, 0, 0, 40], leg out: [0, -45, 0, 0], cross step: [-20, 25, 30, 20], 'turn, toes out': [-20, 0, 40, 20], 'climb, toes in': [-85, -30, -30, 95]}
-  STEPS:
-    value: 5
-    doc: path from standing into each pose, joint-space interpolation
-  FRAMES:
-    value: {torso: torso, yaw link: R_yaw_link, pitch link: R_pitch_link, thigh (roll link): R_roll_link}
-  ARTEFACT_BASE:
-    value: 1000.0
-    doc: 'A-14: a pair overlapping more than this standing is assembled inside one another; its change is'
-  MECH_ROLES:
-    value: [actuator, bearing, horn, motor, output, output_horn, printed_structural_connector, purchased_servo_case_family_reference, purchased_servo_output_family_reference]
-    doc: not counted as contact (voxel filling of open meshes)
   LIBRARY:
     value:
       'walk: swing': [[-35, 0, 0, 40], [-15, 0, 0, 60]]
@@ -50,6 +33,3 @@ config:
     value: [[-85, -60, -30, 0, 20, 40], [-45, -25, 0, 25], [-40, 0, 40], [0]]
     unit: deg
     doc: 'A-12: every combination of these (pitch, roll, yaw, knee) values (conservative bound).'
-  KEY_COLORS:
-    value: ['#d62728', '#ff7f0e', '#2ca02c', '#1f77b4', '#9467bd', '#8c564b', '#e377c2']
-    doc: Plot colour of each KEY pose, in KEY order.

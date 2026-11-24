@@ -64,7 +64,7 @@ sys.path.insert(0, str(ROOT / "robot/body/fastening"))
 OUT = ROOT / "artifacts/robot/body/assembly/held-parts"
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"   # unedited sources: build repeats after apply
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
-TASK = CFG["TASK"]
+TASK = "T-3npyjq"
 
 # fan bridge plate (manifest frame, head link at standing = neutral)
 PLATE_Y = CFG["PLATE_Y"]

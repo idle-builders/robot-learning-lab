@@ -32,9 +32,9 @@ import bom_config as BOM_CONFIG  # noqa: E402
 CFG = BOM_CONFIG.section("leg-motion")   # configured values: robot/body/hip-shell/sections/leg_motion.bom.yaml config:
 
 SOLIDS = kit.ROOT / ".cache/work/hip-shell/solids"
-VOX = CFG["VOX"]
-CLIP_R = CFG["CLIP_R"]
-C = np.array(CFG["C"])
+VOX = 0.75
+CLIP_R = 110.0
+C = np.array([59.0, 2.0, 219.0])
 J = CFG["J"]
 
 # A-11: realistic whole-leg poses, (pitch, roll, yaw, knee) in deg; pitch < 0 = flexion, roll < 0 = leg out,
@@ -42,16 +42,17 @@ J = CFG["J"]
 # can go either way. Left leg stays standing (A-13).
 LIBRARY = {k: list(v) for k, v in CFG["LIBRARY"].items()}
 KEY = CFG["KEY"]
-KEY_COL = dict(zip(KEY, CFG["KEY_COLORS"]))
-STEPS = CFG["STEPS"]
+KEY_COL = dict(zip(KEY, ["#d62728", "#ff7f0e", "#2ca02c", "#1f77b4", "#9467bd", "#8c564b", "#e377c2"]))
+STEPS = 5          # path from standing into each pose, joint-space interpolation
 # A-12: every combination of the target ranges (conservative bound)
 GRID = list(itertools.product(*CFG["GRID_AXES"]))
-FRAMES = CFG["FRAMES"]
+FRAMES = {"torso": "torso", "yaw link": "R_yaw_link", "pitch link": "R_pitch_link", "thigh (roll link)": "R_roll_link"}
 SIDE_CUTS = [("x = 20", side(20)), ("x = 36", side(36)), ("x = 59, through C", side(59)), ("x = 80", side(80))]
 FRONT_CUTS = [("y = -15", front(-15)), ("y = 2, through C", front(2)), ("y = 20", front(20))]
-ARTEFACT_BASE = CFG["ARTEFACT_BASE"]
+ARTEFACT_BASE = 1000.0   # A-14: a pair overlapping more than this standing is assembled inside one another; its change is
                          # not counted as contact (voxel filling of open meshes)
-MECH_ROLES = set(CFG["MECH_ROLES"])
+MECH_ROLES = {"motor", "purchased_servo_case_family_reference", "printed_structural_connector", "output",
+              "purchased_servo_output_family_reference", "output_horn", "horn", "actuator", "bearing"}
 
 
 def q_of(body, p):

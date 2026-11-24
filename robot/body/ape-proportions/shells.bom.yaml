@@ -225,8 +225,6 @@ config:
     value: [center_front_shell, center_back_shell]
   ANKLE_LINKS:
     value: [shin, ankle_pitch]
-  SKIP:
-    value: [cut_material, adhesive_allocation, authored_harness]
   BOOT_STATIC_CLEARANCE:
     value: 1.0
     doc: mm keep-out round the foot's own parts (a cover, not a fit); the 0.75 mm voxel grid and the smoothing

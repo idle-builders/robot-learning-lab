@@ -518,8 +518,6 @@ config:
     value: foot_monocoque_combined_steel_sleeves
   CASE:
     value: B13_C047_foot_roll_case
-  OLD_SCREWS:
-    value: [B13_front_PA2x6_, B13_rear_PA2x6_]
   POCKET_R:
     value: 4.05
     doc: '= 8.0 / 2 + 0.05. pocket radius around each head: the heated press tip (checks/press_lib.py TIP_D / 2) + clearance, so the tip reaches the sleeve'

@@ -47,7 +47,10 @@ ROOT = C.ROOT
 STAGE = CFG["STAGE"]
 STEEL_G_MM3 = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"])   # steel screws, washers and sleeves
 BRASS_G_MM3 = BOM_CONFIG.density_g_mm3(CFG["INSERT_MATERIAL"])     # heat-set inserts
-LEGACY = CFG["LEGACY"]
+LEGACY = {"neck_root_cradle": ("neck_root_M2x6_", "neck_root_M2_washer_"),
+          "neck_yaw_to_pitch_link": ("neck_yaw_horn_M2x5_", "neck_pitch_horn_M2x5_"),
+          "neck_pitch_to_head_cradle": ("neck_head_M2x5_", "neck_head_M2_washer_"),
+          "head_sensor_compute_carrier": ()}
 
 
 def _sha(f: Path) -> str:

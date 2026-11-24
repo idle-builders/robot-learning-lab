@@ -35,8 +35,9 @@ OUT = ROOT / "artifacts/cove50-sensor-integration/v17/parts"
 
 SHEET_THICKNESS_MM = CFG["SHEET_THICKNESS_MM"]
 TOP_Z_MM = CFG["TOP_Z_MM"]
-V17_EXPORT_TIME = CFG["V17_EXPORT_TIME"]
-V17_OCCURRENCE = CFG["V17_OCCURRENCE"]
+V17_EXPORT_TIME = "2026-10-24T13:19:23"
+V17_OCCURRENCE = {"R_toe_lateral": 409, "R_heel_lateral": 410, "R_mid_medial": 411,
+                  "L_toe_lateral": 413, "L_heel_lateral": 414, "L_mid_medial": 415}
 
 
 def pucks():

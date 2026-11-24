@@ -55,7 +55,10 @@ PLANE_MED, D_MED = CFG["PLANE_MED"], CFG["D_MED"]
 PLANE_LAT, D_LAT = CFG["PLANE_LAT"], CFG["D_LAT"]
 CLR = CFG["CLR"]
 
-OLD_SERVO_PARTS = CFG["OLD_SERVO_PARTS"]
+OLD_SERVO_PARTS = ("{s}_pitch_servo_case_reference", "{s}_pitch_upper_horn_reference", "{s}_pitch_passive_idler_reference",
+                   "{s}_C047_knee_case", "{s}_C047_knee_main_horn", "{s}_C047_knee_rear_idler",
+                   "{s}_B13R14_raised_C047_ankle_pitch_case", "{s}_B13R14_raised_C047_ankle_pitch_main_horn",
+                   "{s}_B13R14_raised_C047_ankle_pitch_rear_idler")
 
 
 def load_step(path):

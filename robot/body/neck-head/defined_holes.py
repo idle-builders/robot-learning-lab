@@ -26,7 +26,7 @@ for _p in (ROOT / "robot/body/fastening", ROOT / "robot/body"):
         sys.path.insert(0, str(_p))
 
 RING_MM = CFG["RING_MM"]
-N_RAYS = CFG["N_RAYS"]
+N_RAYS = 8
 _CACHE: dict = {}
 
 

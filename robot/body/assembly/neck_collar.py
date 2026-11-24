@@ -61,7 +61,7 @@ CFG = BOM_CONFIG.section("neck-collar")   # configured values: robot/body/assemb
 OUT = ROOT / os.environ.get("NECK_COLLAR_OUT", "artifacts/robot/body/assembly/neck-collar")   # NECK_COLLAR_OUT: scratch folder inside the repo for iterations
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"   # unedited sources
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
-TASK = CFG["TASK"]
+TASK = "T-a2mt33"
 
 COLLAR, LINK = CFG["COLLAR"], CFG["LINK"]
 SLEEVES = CFG["SLEEVES"]

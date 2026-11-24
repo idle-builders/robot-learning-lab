@@ -132,8 +132,6 @@ config:
     doc: each station hulls the sections within +- WINDOW mm (no waviness)
   CLEAR:
     value: 1.5
-  NTH:
-    value: 144
   CENTRE:
     value: [55.0, 5.0]
   COVERED:
@@ -154,9 +152,6 @@ config:
   SURF_Z_MID:
     value: 172.0
     doc: below it the ring extents never grow toward the knee (no flare)
-  DZ_ST:
-    value: 1.0
-    doc: ring spacing (and requirement stations) along z
   LOW_Z_BOT:
     value: 113.0
     doc: 'Lower section (owner 2026-11-23, front view of the left thigh: "the sides go in too much, this cannot lead to a continuous design with the shin shell. The idea is that the leg looks like one continuous calm shell with the minimal joint exposed in the middle"). The spline skin tapered the sides in below the widest ring (z ~172: x 20.5..84.8) to x 24.2..77.9 at the knee while the shin covers'' top is x 17.5..86.6 wide. Below the spline''s widest ring each side extent (x min, x max) now runs, with zero slope there (no waist), one smoothstep out to the shin covers'' outer outline at their top (z 114: LOW_X); the front depth b_front and front exponent n run as one quintic, C2 at LOW_FRONT_Z, to the same outline''s superellipse (LOW_FRONT; least squares on the front cover''s outer section at z 112: cx 52.04, a 34.33, b_front 23.19, n 2.73, rms level 0.013). Both reach their targets with zero slope and curvature at LOW_Z_BOT and stay constant below. The back half (b_back, n_back) keeps the spline: the back''s lower edge stays near z 150, where the shin back cover meets it at full flexion. The approved upper skin (SURF, 25 values) is unchanged above z 171 (sides) / 166 (front); 5 values more for the lower section. the lower section reaches the shin outline here (constant below; the knee edge is >= 119)'
@@ -169,9 +164,6 @@ config:
   LOW_Z_EXT:
     value: [160.0, 185.0]
     doc: the spline's widest ring (x min / x max extremes) is searched in this band
-  FIT_MAX_CHANGE:
-    value: 8.0
-    doc: fit-surface refuses a result that moves any control value further (mm / exponent units)
   CELL_PARTS:
     value: [Honeycomb_Cell_08_Lower_Pelvis, Honeycomb_Cell_09_Lower_Pelvis]
     doc: cells and their top insulators
@@ -216,15 +208,9 @@ config:
   TOP_RING_Z:
     value: 190.0
     doc: the arc length round the outer skin is taken at this height (the roll axis, mid-band)
-  EDGE_NTH:
-    value: 360
-    doc: 'Knee edge (owner 2026-11-23: "the shells can go as close together so that at the maximum knee they basically touch"; "same on the front, huge gap"; the leg one continuous calm shell, the minimal joint exposed). Was one tilted plane at z 136.5 (front) .. 150.5 (back), ending above the knee hub, 17-26 mm from the shin covers. Now the edge is one smooth line in the side view, a height z_e(y) the same at every x (the knee turns about x): a natural cubic spline through KNEE_EDGE_KNOTS, non-decreasing toward the back, as low as a linear program allows with every shell point that comes within COVER_GAP of the shin covers swept over KNEE_RANGE, or into the other lower-leg parts grown by CLEAR and swept the same way, above it. In front of the knee axis it runs level just above the front cover''s flat top (z 118); behind it it rises along the shin back cover''s radial top edge (COVER_CUT_DEG) turned to full flexion, so at 95 deg the back seam is one even gap along its length; at standing the joint shows only as the V between the two radial edges at the back of the knee.'
   COVER_GAP:
     value: 1.0
     doc: mm the shells keep from the shin covers over KNEE_RANGE (closest approach at the worst angle)
-  COVER_STEP_DEG:
-    value: 0.5
-    doc: knee step of the cover sweep (point clouds; chord 0.5 mm at 60 mm from the axis)
   KNEE_EDGE_KNOTS:
     value: [-20.0, -8.0, -2.0, 2.0, 6.0, 10.0, 16.0, 22.0, 28.0, 34.0, 40.0]
     doc: y of the spline's control values
@@ -234,9 +220,6 @@ config:
   KNEE_EDGE_Z:
     value: [116.0, 166.0]
     doc: (0.25 hugged the requirement closer, median excess 0.71 vs 1.11 mm, with an S-wave about the hub) height band of the shell wall the requirement is taken over
-  KNEE_EDGE_DZ:
-    value: 0.1
-    doc: ring spacing in z there (the requirement is the highest wall point closer than COVER_GAP)
   SPLIT_LAND_MM:
     value: 1.2
     doc: level land on the back half's knee-edge corner at the split (blunts a knife edge)
@@ -360,18 +343,6 @@ config:
   SINK:
     value: 0.4
     doc: the boss starts this far under the cover's outer skin (wall 1.25 along x at least)
-  VOX_H:
-    value: 0.15
-    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
-  VOX_R:
-    value: 0.4
-    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
-  VOX_FACES:
-    value: 250000
-    doc: voxel pitch, opening / closing radius (mm), faces kept after decimation
-  VOX_SMOOTH:
-    value: 12
-    doc: Taubin iterations on the marching-cubes surface (stair steps of the grid)
   DEBURR_W:
     value: 0.55
     doc: 'mm: knife edges are cut back to this width (line width 0.42 + margin)'

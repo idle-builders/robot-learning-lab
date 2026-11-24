@@ -144,6 +144,10 @@ defects:                           # what is known to be wrong with these parts 
 Owner 2026-11-23: every configured value (a joint range, a clearance, a count, a material choice) is set in the
 definitions, and the builders, the design checks and the design dashboard read it from there. No second copy in a
 script, a JSON side file or the dashboard, and no silent default: an undeclared value is an error or a finding.
+A definition holds robot information only (owner 2026-11-24): dimensions, joints and their frames, materials, hardware,
+the motion the body must clear (the pose library), print orientations and part colours. A tool's own settings stay in
+its code: mesh and voxel sampling, solver steps and tolerances, plot colours that colour no part, role filters, task ids,
+legacy part-name lists and export provenance (as the checks keep their measurement parameters).
 
 ```yaml
 joints:                            # the joints this builder owns: each joint is declared in exactly one definition
