@@ -116,24 +116,6 @@
   ],
   "combined": [
    [
-    "deep_crouch",
-    {
-     "R_hip_pitch": -35.0,
-     "R_knee": 70.0,
-     "R_ankle_pitch": -35.0
-    }
-   ],
-   [
-    "wide_straddle_crouch",
-    {
-     "R_hip_yaw": 15.0,
-     "R_hip_roll": -18.0,
-     "R_hip_pitch": -30.0,
-     "R_knee": 60.0,
-     "R_ankle_pitch": -30.0
-    }
-   ],
-   [
     "abducted_extension",
     {
      "R_hip_yaw": -15.0,
@@ -141,16 +123,6 @@
      "R_hip_pitch": 30.0,
      "R_knee": 30.0,
      "R_ankle_pitch": 20.0
-    }
-   ],
-   [
-    "max_flex_combined",
-    {
-     "R_hip_pitch": -35.0,
-     "R_hip_roll": 20.0,
-     "R_knee": 125.0,
-     "R_ankle_pitch": 35.0,
-     "R_ankle_roll": -25.0
     }
    ],
    [
