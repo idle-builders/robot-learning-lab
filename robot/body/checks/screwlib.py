@@ -66,6 +66,24 @@ def ring_points(g, ring_mm=RING_MM):
     return np.array(pts)
 
 
+SELECT_STEP_MM = 0.5   # axial spacing of the selection rings: 8 stations over a 30 mm screw (3.7 mm apart) stepped over 2 mm plates
+
+
+def selection_points(g, ring_mm=NEAR_MM):
+    """Points that select a screw for a scope (screws_of_scope): rings of 8 points at r_shank + RING_MM and at r_shank +
+    ring_mm around the shank every SELECT_STEP_MM along it, the head ring of ring_points, and a ring just outside the head
+    (r_head + RING_MM) at its underside, where a countersunk head (head height 0) sits in the plate's countersink."""
+    d, h = np.asarray(g["_d"]), np.asarray(g["_head"])
+    u = np.cross(d, [1, 0, 0] if abs(d[0]) < 0.9 else [0, 1, 0]); u /= np.linalg.norm(u); w = np.cross(d, u)
+    ang = np.radians(np.arange(0, 360, 45))
+    ring = np.array([np.cos(a) * u + np.sin(a) * w for a in ang])
+    t0, t1 = g["head_height_mm"] + 0.2, g["length_mm"] - 0.2
+    ts = np.linspace(t0, t1, max(8, int(np.ceil((t1 - t0) / SELECT_STEP_MM)) + 1))
+    pts = [h + t * d + (g["r_shank_mm"] + rr) * r for rr in sorted({RING_MM, ring_mm}) for t in ts for r in ring]
+    pts += [h + (g["head_height_mm"] + 0.3) * d + (g["r_head_mm"] + RING_MM) * r for r in ring]
+    return np.vstack([np.array(pts), ring_points(g, ring_mm)[-len(ring):]])
+
+
 def standing_T(ctx):
     q0 = ctx.body.standing
     return {lk: ctx.body.link_T(lk, q0) for lk in {p["owning_link"] for p in ctx.body.parts.values()}}
@@ -85,9 +103,11 @@ def world_bounds(ctx, T, n):
 
 def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
     """{screw: dict(geometry, touched scoped parts, link transform)} of the screws that touch a scoped part or its steel sleeves:
-    >= 2 points of a ring r_shank + ring_mm (default 3 mm) around the shank, along it and under the head, lie inside that
-    part's solid at standing (the connectivity graph uses 0.8 mm; 3 mm is the window in which mount_check still reads a
-    hole as the screw's). A selection, not a measurement: mount_check's own stack says which parts a screw really passes."""
+    >= 2 selection_points (rings r_shank + 0.8 mm and r_shank + ring_mm, default 3 mm, every 0.5 mm along the shank, under
+    and around the head) lie inside that part's solid at standing (3 mm is the window in which mount_check still reads a
+    hole as the screw's; the 0.8 mm ring finds a screw ending in an insert in a thin boss, 0.5 mm steps find thin plates).
+    A selection, not a measurement: mount_check's own stack says which parts a screw really passes.
+    Every screw's geometry (neutral frame) is kept on ctx (_screw_geometry) for the reverse view."""
     MC = mount_check()
     T = T or standing_T(ctx)
     parts = ctx.body.parts
@@ -105,7 +125,8 @@ def screws_of_scope(ctx, T=None, ring_mm=NEAR_MM):
             g = MC.screw_geometry(BL.load_mesh(p["mesh"]))
         except Exception:  # noqa: BLE001
             continue
-        pts = ring_points(g, ring_mm)
+        ctx.__dict__.setdefault("_screw_geometry", {})[k] = g
+        pts = selection_points(g, ring_mm)
         Ts = T[p["owning_link"]]
         pw = pts @ Ts[:3, :3].T + Ts[:3, 3]
         lo, hi = pw.min(0) - 0.5, pw.max(0) + 0.5
