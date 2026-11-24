@@ -5,7 +5,7 @@ A load case {"hand_envelope": {...}} in a part's FEM setup (data/part_settings.j
   force_N        the case force at the hand tip (e.g. 4 kg x 1.5 g = 58.84 N)
   hand_parts     part names or globs whose combined box gives the hand tip: x / y centre, lowest z (knuckle / fingertip contact)
   stage_link     the link the connector belongs to (its wrench is expressed in that link's neutral frame, i.e. the manifest frame the part is meshed in)
-  step_deg       pose grid step over each joint's manifest range (ends included), default 15
+  step_deg       pose grid step over each joint's declared range (ends included; body definitions `joints:`, checks.core.declare_ranges), default 15
   directions     force directions sampled on a half sphere, default 48. With cone_deg each kept sample is turned to the push side
                  (toward the shoulder). Without it a sample stands for itself and its opposite: von Mises and displacement are the same for
                  both, layer tension is not, so the fem check evaluates it for both signs (summary "symmetric")
@@ -14,7 +14,8 @@ A load case {"hand_envelope": {...}} in a part's FEM setup (data/part_settings.j
                  a push through the hand with floor friction mu = tan(cone_deg); without it every direction counts
 
 The chain is every joint from the torso to the hand's link. Its most proximal joint is held at 0: turning it turns hand, axes and the
-stage together, and the direction sphere is turned with them, so it adds no new wrench. Every other joint of the chain runs over its range.
+stage together, and the direction sphere is turned with them, so it adds no new wrench. Every other joint of the chain runs over its declared
+range; a joint without a range is held at 0 and listed (joints_without_range), never swept over an invented one.
 For each pose and direction d the hand force is F = min(force_N, stall_factor * stall_j / |a_j . ((p_hand - o_j) x d)|) over the chain's joints j:
 a servo cannot hold more than its stall, so beyond it the arm gives way at that joint instead of loading the structure further. The wrench at the
 stage's origin is (F d, (p_hand - origin) x F d), turned back into the stage link's neutral frame. The arm's own weight is not added (about
@@ -28,7 +29,7 @@ import math
 
 import numpy as np
 
-from checks.core import ROOT
+from checks.core import ROOT, joint_range, range_report
 
 DEFAULT_STEP_DEG = 15.0
 DEFAULT_DIRECTIONS = 48
@@ -97,11 +98,14 @@ def envelope(body, spec, origin):
     fac = float(spec.get("stall_factor", 1.0))
     lim = np.array([fac * stall.get(n, np.inf) for n in names])
     step = float(spec.get("step_deg", DEFAULT_STEP_DEG))
-    grids = []
+    grids, unranged = [], []
     for k, j in enumerate(chain):
         if k == 0:
             grids.append(np.array([0.0])); continue
-        lo, hi = j["range_deg"]
+        r = joint_range(body, j["name"])
+        if r is None:
+            unranged.append(j["name"]); grids.append(np.array([0.0])); continue
+        lo, hi = r
         n = max(2, int(math.ceil((hi - lo) / step)) + 1)
         grids.append(np.linspace(lo, hi, n))
     D = half_sphere(int(spec.get("directions", DEFAULT_DIRECTIONS)))
@@ -160,7 +164,8 @@ def envelope(body, spec, origin):
                    chain=names, held_at_0=names[0], step_deg=step, hand_tip_mm=np.round(p_hand0, 2).tolist(), hand_parts=hand_names, stage_link=spec["stage_link"],
                    origin_mm=np.round(origin, 2).tolist(),
                    stall_capped_wrenches=capped, stall_capped_by_joint={k: v for k, v in by_joint.items() if v},
-                   force_N_quantiles=_q(Fm), moment_Nmm_quantiles=_q(Mm))
+                   force_N_quantiles=_q(Fm), moment_Nmm_quantiles=_q(Mm),
+                   joint_ranges=range_report(body, names)[0], joints_without_range=unranged)
     return W, labels, summary
 
 
