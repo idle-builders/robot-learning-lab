@@ -342,6 +342,43 @@ def _step_how(n, p, step, m, tol):
     return how
 
 
+def step_turn_T(p):
+    """4x4 turn of a part's native STEP into its manifest place, or None: a manifest row marked `roll_flip: "turned ..."` (the
+    builder keeps the vendor STEP in its pre-turn pose) is turned by the angle about the axis point its body definition declares
+    in config (RF_TURN_DEG about y through (RF_AX, RF_AZ), read with robot/body/bom/definitions.py, never a builder module), on
+    the part's side of the mirror plane (checks/data/roles.json geometry mirror_plane_x_mm), mirrored on the other side."""
+    if not str(p.get("roll_flip", "")).startswith("turned"):
+        return None
+    cfg = _turn_config()
+    a = np.radians(cfg["RF_TURN_DEG"])
+    Rm = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.cos(a)]])
+    c = np.array([cfg["RF_AX"], 0.0, cfg["RF_AZ"]])
+    T = np.eye(4); T[:3, :3] = Rm; T[:3, 3] = c - Rm @ c
+    from checks.relations import GEO
+    x0 = GEO["mirror_plane_x_mm"]
+    b = np.array(p["bounds_mm"], float)
+    if (0.5 * (b[0][0] + b[1][0]) - x0) * (cfg["RF_AX"] - x0) < 0:      # the other side: mirror about the plane
+        M = np.eye(4); M[0, 0] = -1.0; M[0, 3] = 2 * x0
+        T = M @ T @ M
+    return T
+
+
+_TURN = {}
+
+
+def _turn_config():
+    """RF_TURN_DEG, RF_AX, RF_AZ from the one body definition whose config declares them."""
+    if not _TURN:
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import definitions as DEF
+        keys = ("RF_TURN_DEG", "RF_AX", "RF_AZ")
+        hits = [c for c in (DEF.load().config or {}).values() if all(k in c for k in keys)]
+        if len(hits) != 1:
+            raise ValueError(f"roll_flip turn: {len(hits)} body definitions declare {', '.join(keys)} in config (need exactly one)")
+        _TURN.update({k: float(hits[0][k]["value"]) for k in keys})
+    return _TURN
+
+
 def screen_solid(body, n, changed):
     """Closed screening solid of part n in the manifest frame and how it was made. Order: native STEP tessellation;
     else the part's own mesh when it is already a closed manifold (decimated only within 1.5 % of its volume); only an
@@ -358,7 +395,7 @@ def screen_solid(body, n, changed):
     tol = 0.03 if fine else 0.1                     # unchanged parts: coarser screening mesh, faster sweep
     step_why = None                                 # why the STEP is not the screening solid: named in the solid's `how`
     b = np.array(p["bounds_mm"], float)
-    turn = R.turn_T_at(0.5 * (b[0][0] + b[1][0])) if str(p.get("roll_flip", "")).startswith("turned") else None  # the roll-flip case:
+    turn = step_turn_T(p)                           # the roll-flip case:
     if step and not p.get("placement_offset_mm") and (fine or stepped):                           # turned about the roll axis, on its side
         made_of = json.dumps(dict(offset=p.get("native_step_offset_mm"), turn=None if turn is None else np.round(turn, 6).tolist(),
                                   box=np.round(b, 3).tolist(), min_solid=min_solid_mm3(n, p)))

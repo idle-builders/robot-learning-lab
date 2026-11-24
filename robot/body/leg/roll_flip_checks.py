@@ -349,6 +349,12 @@ def _file_sha(path):
         return None
 
 
+def _lm_vox():
+    """leg_motion's voxel size (the _lm_solid fill), part of the closed() cache key."""
+    from leg_motion import VOX as LVOX
+    return LVOX
+
+
 def _closed_key(p):
     """What closed() builds a part's solid from, never its name: the mesh file's content, the role (servo case: hull; printed
     connector: gmsh surface of the STEP), the STEP's content, offset and volume for the gmsh path, the voxel size."""
@@ -356,7 +362,7 @@ def _closed_key(p):
     step = p.get("native_step") if p.get("role") == "printed_structural_connector" else None
     made = dict(v=CLOSED_VERSION, mesh=kit.mesh_tag(p), role=p.get("role"), servo=p.get("role") in _ROLES["classes"]["servo_case"]["roles"],
                 step=_file_sha(step) if step else None, offset=p.get("native_step_offset_mm") if step else None,
-                volume=p.get("volume_mm3") if step else None, vox=VOX)
+                volume=p.get("volume_mm3") if step else None, vox=VOX, lm_vox=_lm_vox())
     return hashlib.sha256(json.dumps(made, sort_keys=True, default=str).encode()).hexdigest()[:24]
 
 

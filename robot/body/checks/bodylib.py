@@ -49,7 +49,9 @@ class Body:
         self.parts = {p["name"]: p for p in manifest["parts"] if p.get("mesh")}
         self.joints = {j["name"]: j for j in manifest["joints"]}
         self.child_joint = {j["child"]: j for j in manifest["joints"]}
-        self.root = manifest.get("root_link", "torso")
+        # the root link: the manifest's root_link, else the one link that is no joint's child (the joint tree, never a name)
+        roots = sorted({j["parent"] for j in manifest["joints"]} - {j["child"] for j in manifest["joints"]})
+        self.root = manifest.get("root_link") or (roots[0] if len(roots) == 1 else None)
         self._mesh = {}
 
     def mesh(self, name):
