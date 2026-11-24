@@ -11,3 +11,18 @@ generators:
   inputs: [robot/design.json]
   outputs: [.cache/work/bom-hardware]
   notes: Reads the declared specs through robot/body/bom/definitions.py; propose_specs.py next to it drafts specs from names and meshes for definition authors.
+config:
+  # robot/body/standard-hardware/generate.py module constants (moved 2026-11-24)
+  THREADS:
+    value: {M2: 2.0, M2.5: 2.5, M3: 3.0, M4: 4.0}
+  HEX_NUT:
+    value: {M2: [4.0, 1.6], M2.5: [5.0, 2.0], M3: [5.5, 2.4], M4: [7.0, 3.2]}
+    doc: 'ISO 4032 hex nut: width across flats s, height m (mm)'
+  WASHER:
+    value: {M2: [2.2, 5.0, 0.3], M2.5: [2.7, 6.0, 0.5], M3: [3.2, 7.0, 0.5], M4: [4.3, 9.0, 0.8]}
+    doc: 'ISO 7089 plain washer: inner d1, outer d2, thickness h (mm)'
+  CSK:
+    value: {M2: [4.4, 1.2], M2.5: [5.5, 1.5], M3: [6.3, 1.7], M4: [8.96, 2.48]}
+    doc: 'ISO 10642 countersunk head (90 deg): head diameter dk, height k (mm)'
+  GENERATED:
+    value: [nut, screw, spacer, washer]

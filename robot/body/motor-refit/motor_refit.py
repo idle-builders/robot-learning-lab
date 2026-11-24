@@ -46,18 +46,16 @@ R1 = ROOT / "artifacts/robot/body/assembly"
 OUT = ROOT / "artifacts/robot/body/motor-refit"
 PARTS = OUT / "parts"
 
-HIP_SHIFT = 4.0
-DOWNSTREAM = ("pitch_link", "roll_link", "shin", "ankle_pitch", "foot")  # leg links below the hip pitch, per side
-SHIFTED_JOINTS = ("hip_roll", "knee", "ankle_pitch", "ankle_roll")
+CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-refit/motor_refit.bom.yaml config:
+HIP_SHIFT = CFG["HIP_SHIFT"]
+DOWNSTREAM = CFG["DOWNSTREAM"]
+SHIFTED_JOINTS = CFG["SHIFTED_JOINTS"]
 # stretch planes (r1 world x, right leg) and moves for the knee/ankle widening
-PLANE_MED, D_MED = 48.0, -6.6
-PLANE_LAT, D_LAT = 72.0, +7.2
-CLR = 0.15  # mm contact clearance to purchased cases
+PLANE_MED, D_MED = CFG["PLANE_MED"], CFG["D_MED"]
+PLANE_LAT, D_LAT = CFG["PLANE_LAT"], CFG["D_LAT"]
+CLR = CFG["CLR"]
 
-OLD_SERVO_PARTS = ("{s}_pitch_servo_case_reference", "{s}_pitch_upper_horn_reference", "{s}_pitch_passive_idler_reference",
-                   "{s}_C047_knee_case", "{s}_C047_knee_main_horn", "{s}_C047_knee_rear_idler",
-                   "{s}_B13R14_raised_C047_ankle_pitch_case", "{s}_B13R14_raised_C047_ankle_pitch_main_horn",
-                   "{s}_B13R14_raised_C047_ankle_pitch_rear_idler")
+OLD_SERVO_PARTS = CFG["OLD_SERVO_PARTS"]
 
 
 def load_step(path):
@@ -277,13 +275,13 @@ def build_legs(manifest):
     return out, servos, sleeve_spec
 
 
-CELL_Y, CELL_Z = 6.0, (220.0, 242.7)   # M-jxjse2: two 21700 cells lying along y on the midline, stacked
-CELL_R, CELL_L = 21.5 / 2, 70.0
+CELL_Y, CELL_Z = CFG["CELL_Y"], CFG["CELL_Z"]
+CELL_R, CELL_L = CFG["CELL_R"], CFG["CELL_L"]
 WEB_Y = (CELL_Y - 9.0, CELL_Y + 9.0)
 FIN_SEGMENTS = ((CELL_Y - 27.0, WEB_Y[0] - 1.0), (WEB_Y[1] + 1.0, CELL_Y + 20.0))  # clear of the shells
-FRONT_POSTS = ((-6.5, 0.0), (6.5, 0.0))  # x of the two new front-shell posts
-FRONT_POST_Z = 257.5                     # above the upper cell (top 253.45) and the hip pitch sweep (case top 249)
-FRONT_POST_Y = (-37.5, -41.0)            # post face (tab front); skin inner face -39.96, outer -41.97 at z 257.5
+FRONT_POSTS = CFG["FRONT_POSTS"]
+FRONT_POST_Z = CFG["FRONT_POST_Z"]
+FRONT_POST_Y = CFG["FRONT_POST_Y"]
 
 
 def edit_front_shell(manifest):
@@ -453,15 +451,7 @@ def fix_static_defects(manifest, new):
     return log
 
 
-RANGE_NOTCHES = [  # (target shell, tool part, joints swept, grid step deg): contacts inside one limb's own range (r1)
-    ("R_fore_front_hard_cover", "R_upper_arm_hard_cover", ("R_elbow", "R_shoulder_yaw"), 5.0),
-    ("L_fore_front_hard_cover", "L_upper_arm_hard_cover", ("L_elbow", "L_shoulder_yaw"), 5.0),
-    ("head_neck_collar", "original_profile_head_skin_v23", ("neck_pitch",), 2.5),
-    ("head_neck_collar", "combined__neck_pitch_to_head_cradle", ("neck_pitch",), 2.5),
-    ("original_profile_head_skin_v23", "combined__neck_yaw_to_pitch_link", ("neck_pitch",), 2.5),
-    ("R_shin_front_hard_cover", "R_B13_C047_foot_roll_case", ("R_ankle_pitch", "R_ankle_roll"), 5.0),
-    ("L_shin_front_hard_cover", "L_B13_C047_foot_roll_case", ("L_ankle_pitch", "L_ankle_roll"), 5.0),
-]
+RANGE_NOTCHES = list(CFG["RANGE_NOTCHES"])
 
 
 def fix_range_contacts(new):

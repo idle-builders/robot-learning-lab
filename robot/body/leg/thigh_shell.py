@@ -65,18 +65,20 @@ if os.environ.get("THIGH_SHELL_OUT"):
     OUT = Path(os.environ["THIGH_SHELL_OUT"]).resolve(); OUT.mkdir(parents=True, exist_ok=True)
     R.OUT, R.REPORT = OUT.parent, OUT.parent / "report.json"     # R.merge writes the report there
     R.MOVED = OUT / "moved"                                       # screw / nut / sleeve npz (R.save_npz) stay there too
-GAP, WALL = 1.5, 2.1              # inner clearance to covered parts, wall thickness (today's covers: 2.1)
-Z0, TOP_Z = 116.0, 206.5          # tube from just above the knee case's bottom (z 113) to the top; edges cut by edge_cut()
-WINDOW = 5.0                      # each station hulls the sections within +- WINDOW mm (no waviness)
+CFG = BOM_CONFIG.section("thigh-shell")   # configured values: robot/body/leg/thigh_shell.bom.yaml config:
+STEEL = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"])   # g/mm3 of the screws, washers and sleeves this builder writes
+STEEL_BASIS = f"mesh volume x {STEEL * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']}, robot/body/leg/thigh_shell.bom.yaml config HARDWARE_MATERIAL)"
+GAP, WALL = CFG["GAP"], CFG["WALL"]
+Z0, TOP_Z = CFG["Z0"], CFG["TOP_Z"]
+WINDOW = CFG["WINDOW"]
 ROLL_RANGE = tuple(BOM_CONFIG.value("thigh-shell", "ROLL_SWEEP_DEG"))   # design sweep of the Stage 5 slot, not the joint range
-CLEAR = 1.5
-NTH = 144
-CENTRE = np.array([55.0, 5.0])
-COVERED = ("R_thigh_roll_flip", "R_roll_servo_case_reference", "R_knee_ST3025_case",
-           "R_roll_upper_horn_reference", "R_roll_passive_idler_reference")
+CLEAR = CFG["CLEAR"]
+NTH = CFG["NTH"]
+CENTRE = np.array(CFG["CENTRE"])
+COVERED = CFG["COVERED"]
 # (the knee output horn is on R_shin and ends at z 132.4, below Z0: it is not covered; hulling it made a lip at the knee end)
-TODAY = ("R_thigh_front_hard_cover", "R_thigh_back_hard_cover")
-NAMES = ("R_thigh_shell_front", "R_thigh_shell_back")
+TODAY = CFG["TODAY"]
+NAMES = CFG["NAMES"]
 
 
 def shell_material(name):
@@ -130,20 +132,12 @@ def arm_hub_points(z):
 # top edge keeps its height), never widens toward the knee below SURF_Z_MID (extents x min / max, y min / max), keeps the
 # front round from mid-thigh down (n <= 2.6) and the exponents within 2.05..3.6 (front) / 4.2 (back). 25 values in all
 # (2026-11-18: about 165 per-station values plus 17 shaping constants).
-SURF_Z = (133.0, 207.0)            # the splines run over this height (constant beyond; the edges cut at z 136..206.5)
-SURF = {                           # parameter: (heights, control values), mm (exponents unitless)
-    "cx": ((133.0, 207.0), (51.08, 54.289)),
-    "cy": ((133.0,), (4.5,)),
-    "a": ((133.0, 160.0, 178.0, 192.0, 207.0), (26.839, 29.897, 30.855, 19.971, 15.167)),
-    "b_front": ((133.0, 160.0, 192.0, 207.0), (25.787, 34.306, 31.85, 25.875)),
-    "b_back": ((133.0, 160.0, 178.0, 192.0, 207.0), (18.624, 34.293, 35.315, 35.533, 32.609)),
-    "n": ((133.0, 160.0, 192.0, 207.0), (2.508, 2.533, 2.465, 3.6)),
-    "n_back": ((133.0, 160.0, 192.0, 207.0), (4.2, 3.785, 2.847, 4.2)),
-}
-RING = ("cx", "cy", "a", "b_front", "b_back", "n", "n_back")
-SURF_Z_MID = 172.0                 # below it the ring extents never grow toward the knee (no flare)
+SURF_Z = CFG["SURF_Z"]
+SURF = CFG["SURF"]
+RING = CFG["RING"]
+SURF_Z_MID = CFG["SURF_Z_MID"]
 SURF_N = dict(min=2.05, round_max=2.6, front_max=3.6, back_max=4.2, cy=(4.5, 6.7))
-DZ_ST = 1.0                        # ring spacing (and requirement stations) along z
+DZ_ST = CFG["DZ_ST"]
 
 
 def station_hull(body, z):
@@ -182,11 +176,11 @@ def _spline_basis(zk, z, nu=0):
 # 0.013). Both reach their targets with zero slope and curvature at LOW_Z_BOT and stay constant below. The back half (b_back,
 # n_back) keeps the spline: the back's lower edge stays near z 150, where the shin back cover meets it at full flexion. The
 # approved upper skin (SURF, 25 values) is unchanged above z 171 (sides) / 166 (front); 5 values more for the lower section.
-LOW_Z_BOT = 113.0                  # the lower section reaches the shin outline here (constant below; the knee edge is >= 119)
-LOW_X = (17.8, 86.2)               # outer x extents at the bottom (shin covers' outer outline at z 114: 17.78 .. 86.16)
-LOW_FRONT_Z = 166.0                # front blend starts here (below the shell screw bosses, z 166.7 .. 176.3)
+LOW_Z_BOT = CFG["LOW_Z_BOT"]
+LOW_X = CFG["LOW_X"]
+LOW_FRONT_Z = CFG["LOW_FRONT_Z"]
 LOW_FRONT = dict(b_front=23.19, n=2.73)
-LOW_Z_EXT = (160.0, 185.0)         # the spline's widest ring (x min / x max extremes) is searched in this band
+LOW_Z_EXT = CFG["LOW_Z_EXT"]
 
 
 def _smoothstep(s):
@@ -319,7 +313,7 @@ def top_free_limit(body, th, zz, r_skin, z_top):
     return lim
 
 
-FIT_MAX_CHANGE = 8.0               # fit-surface refuses a result that moves any control value further (mm / exponent units)
+FIT_MAX_CHANGE = CFG["FIT_MAX_CHANGE"]
 
 
 def fit_surface():
@@ -472,10 +466,10 @@ def dilated(m, vox=0.5, faces=None, clear=None):
     return kit.mf(dm)
 
 
-CELL_PARTS = ("Honeycomb_Cell_08_Lower_Pelvis", "Honeycomb_Cell_09_Lower_Pelvis")   # cells and their top insulators
-CELL_MIN = 1.0                    # mm the shells keep from the pelvis battery cells over the A-11 library poses (owner 2026-11-22;
+CELL_PARTS = CFG["CELL_PARTS"]
+CELL_MIN = CFG["CELL_MIN"]
                                   # the front shell's inboard top came to 0.816 mm in the climb step [-85, -30, -30, 95])
-CELL_DENT_AIM, CELL_DENT_GAIN = 1.25, 1.5   # dent aims at this distance; radial dent = gain x shortfall (the skin's normal is
+CELL_DENT_AIM, CELL_DENT_GAIN = CFG["CELL_DENT_AIM"], CFG["CELL_DENT_GAIN"]
                                             # tilted ~40 deg off radial up there, a radial move only partly opens the gap)
 
 
@@ -540,11 +534,11 @@ def yellow_sweep(body):
 #     axis everything farther than that (minus CLEAR) is cut: a surface of revolution about the roll axis whose radius R(y)
 #     changes with y at most 1 mm per mm (front wall: the arc round the roll horn; back wall: a wider arc).
 KNEE_RANGE = tuple(BOM_CONFIG.joint_range("R_knee"))   # knee flexion the shell leaves room for: the declared joint range, no margin (owner 2026-11-23: shells close to about 1 mm at 95; was 110, owner 2026-11-18)
-PITCH_RANGE, ROLL_SWEEP = (-90.0, 45.0), (-50.0, 30.0)   # range limits -85..40 / -45..25 plus 5 deg
-KNEE_PARTS = ("R_shin_combined", "R_shin_back_hard_cover", "R_shin_front_hard_cover")
-TOP_PARTS = ("R_hip_yaw_to_pitch_combined", "R_hip_pitch_ST3025_case", "R_hip_pitch_ST3025_output")   # green parts above the thigh
-RIM_R_MAX = 80.0                  # rim radius about the roll axis where the green connector never comes (beyond the shell)
-RIM_DPSI = 0.6                    # the rim radius grows at most this many mm per degree about the roll axis (smooth ramps)
+PITCH_RANGE, ROLL_SWEEP = CFG["PITCH_RANGE"], CFG["ROLL_SWEEP"]
+KNEE_PARTS = CFG["KNEE_PARTS"]
+TOP_PARTS = CFG["TOP_PARTS"]
+RIM_R_MAX = CFG["RIM_R_MAX"]
+RIM_DPSI = CFG["RIM_DPSI"]
 
 
 def _rel(body, link, dq):
@@ -660,11 +654,11 @@ def green_rim(body):
 # side of the free space at every angle (same CLEAR as before). The covered parts' tops (roll case 200.1, yellow arm hubs
 # 202.4) stand up to 16 mm above it (as before at the slots; now all round); fabric covers them. Values chosen from the
 # look (drawing-sheets/roll-flip/thigh-shell-top-before / -after.png, thigh_shell_views.py top).
-EDGE_K = 3                        # top edge harmonics (was 5)
-TOP_PEAK_CAP = 4.5                # mm a hill may rise above the edge's mean height
-TOP_DIP_CAP = 5.0                 # mm a valley may sink below it (the yellow-arm valleys: wide and shallow)
-TOP_SLOPE_MAX = 0.35              # mm of height per mm along the edge
-TOP_RING_Z = 190.0                # the arc length round the outer skin is taken at this height (the roll axis, mid-band)
+EDGE_K = CFG["EDGE_K"]
+TOP_PEAK_CAP = CFG["TOP_PEAK_CAP"]
+TOP_DIP_CAP = CFG["TOP_DIP_CAP"]
+TOP_SLOPE_MAX = CFG["TOP_SLOPE_MAX"]
+TOP_RING_Z = CFG["TOP_RING_Z"]
 # Knee edge (owner 2026-11-23: "the shells can go as close together so that at the maximum knee they basically touch";
 # "same on the front, huge gap"; the leg one continuous calm shell, the minimal joint exposed). Was one tilted plane at
 # z 136.5 (front) .. 150.5 (back), ending above the knee hub, 17-26 mm from the shin covers. Now the edge is one smooth
@@ -675,15 +669,15 @@ TOP_RING_Z = 190.0                # the arc length round the outer skin is taken
 # it it rises along the shin back cover's radial top edge (COVER_CUT_DEG) turned to full flexion, so at 95 deg the back
 # seam is one even gap along its length; at standing the joint shows only as the V between the two radial edges at the
 # back of the knee.
-EDGE_NTH = 360
-COVER_GAP = 1.0                   # mm the shells keep from the shin covers over KNEE_RANGE (closest approach at the worst angle)
-COVER_STEP_DEG = 0.5              # knee step of the cover sweep (point clouds; chord 0.5 mm at 60 mm from the axis)
-KNEE_EDGE_KNOTS = (-20.0, -8.0, -2.0, 2.0, 6.0, 10.0, 16.0, 22.0, 28.0, 34.0, 40.0)   # y of the spline's control values
+EDGE_NTH = CFG["EDGE_NTH"]
+COVER_GAP = CFG["COVER_GAP"]
+COVER_STEP_DEG = CFG["COVER_STEP_DEG"]
+KNEE_EDGE_KNOTS = CFG["KNEE_EDGE_KNOTS"]
                                   # (the shell's bottom spans y -18.8 .. 35; constant beyond the end knots)
-KNEE_EDGE_CURV = 0.12             # |d2z/dy2| <= this (1/mm): bends of at least ~8 mm radius in the side view, a calm line
+KNEE_EDGE_CURV = CFG["KNEE_EDGE_CURV"]
                                   # (0.25 hugged the requirement closer, median excess 0.71 vs 1.11 mm, with an S-wave about the hub)
-KNEE_EDGE_Z = (116.0, 166.0)      # height band of the shell wall the requirement is taken over
-KNEE_EDGE_DZ = 0.1                # ring spacing in z there (the requirement is the highest wall point closer than COVER_GAP)
+KNEE_EDGE_Z = CFG["KNEE_EDGE_Z"]
+KNEE_EDGE_DZ = CFG["KNEE_EDGE_DZ"]
 
 
 def shin_sweep(body):
@@ -830,7 +824,7 @@ def skin_point_normal(th, z):
     return P, nrm
 
 
-SPLIT_LAND_MM = 1.2              # level land on the back half's knee-edge corner at the split (blunts a knife edge)
+SPLIT_LAND_MM = CFG["SPLIT_LAND_MM"]
 EDGE_OUT, EDGE_IN = 1.5, WALL + 1.0   # the edge faces run along the skin normal this far outside / inside the outer skin
 
 
@@ -1123,19 +1117,19 @@ def build():
 # thread runs through the whole nut and the tip stays POST_TIP_MIN short of the post bore's bottom (the whole screw
 # length, point included); flush heads first, then the shortest length; a head sinks below the skin (counterbore over the
 # countersink) only when no standard length fits flush. stack = head top to the nut's near face, reference = nut height.
-SLEEVE_R, SLEEVE_BORE_R = 2.25, 1.60
-BOSS_WEB_GAP, BOSS_WEB_H = 1.5, 8.0   # mm: boss-to-wall gap that gets a web, web height
-BOSS_SEAT_RECESS = 0.4            # the boss end stops this far short of the post tip and the sleeve stands out by it, so the
+SLEEVE_R, SLEEVE_BORE_R = CFG["SLEEVE_R"], CFG["SLEEVE_BORE_R"]
+BOSS_WEB_GAP, BOSS_WEB_H = CFG["BOSS_WEB_GAP"], CFG["BOSS_WEB_H"]
+BOSS_SEAT_RECESS = CFG["BOSS_SEAT_RECESS"]
                                   # steel seats on the post: the boss end is a ceiling printed on support (up -y / +y), too rough
                                   # to locate the shell (overhang check: 113 mm2 of supported face on the posts)
-POST_TIP_MIN, POST_RECESS_MAX, POST_CBORE_CLEAR = 0.3, 2.5, 0.2   # mm: tip to bore bottom, head below the skin, counterbore
-HEAD_BELOW_SKIN = 0.05            # mm: the whole head top stays at least this far under the skin (owner 2026-11-22: heads must
+POST_TIP_MIN, POST_RECESS_MAX, POST_CBORE_CLEAR = CFG["POST_TIP_MIN"], CFG["POST_RECESS_MAX"], CFG["POST_CBORE_CLEAR"]
+HEAD_BELOW_SKIN = CFG["HEAD_BELOW_SKIN"]
                                   # not stand proud; the skin slopes over the dia 6.72 head disc by up to 2.5 mm, so a head flush
                                   # at the axis stood 1.51 / 0.78 mm proud at front_2 / back_2)
-CB_SEAT_CHAMFER = 0.5             # mm: 45 deg chamfer round the counterbore mouth, on a cone about the local skin normal, so the
+CB_SEAT_CHAMFER = CFG["CB_SEAT_CHAMFER"]
                                   # seat meets the sloping skin with an even lip instead of a 0.3 mm knife edge on its shallow side
-HEAD_DISC_R = (0.0, 1.2, 2.3, 3.36)   # radii (mm) the skin is sampled at over the head disc (dk/2 = 3.36)
-CS_HEAD, NUT_STD, THREAD = "ISO 10642", "ISO 4032", "M3"
+HEAD_DISC_R = CFG["HEAD_DISC_R"]
+CS_HEAD, NUT_STD, THREAD = CFG["CS_HEAD"], CFG["NUT_STD"], CFG["THREAD"]
 
 
 def _hw():
@@ -1284,12 +1278,12 @@ def post_screws(posts, body):
             ms = mir(sm)
             rows.append(dict(name=sn, physical_part_id=sn, bom_group=f"{side}_thigh_shell_{lbl}_countersunk", owning_link=f"{side}_roll_link",
                              role="fastener_proxy", **R.save_npz(sn, ms), volume_mm3=round(float(ms.volume), 3),
-                             mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(ms.volume) * STEEL / 1000.0, 7),
                              material=f"{CS_HEAD} {lbl} (hex socket countersunk, head flush with the shell skin) into the {NUT_STD} M3 nut in the "
                                       f"Stage 4 post; head dk {head['dk']} (theoretical) x k {head['k']}, shank dia 3, {pt} mm point (envelope)",
                              color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip="generated from the shell's countersink and the post's nut by thigh_shell.py post_screws",
                              screw_plan=dict(hole_id=f"{q['stem']}: nut in the Stage 4 post", thread_label="M3", head_standard=CS_HEAD,
                                              length_mm=L, stack_mm=round(dist, 3), engagement_mm=round(eng, 3),
@@ -1300,11 +1294,11 @@ def post_screws(posts, body):
             mn = mir(nm)
             rows.append(dict(name=nn, physical_part_id=nn, bom_group=f"{side}_thigh_shell_nut_M3", owning_link=f"{side}_roll_link",
                              role="fastener_proxy", **R.save_npz(nn, mn), volume_mm3=round(float(mn.volume), 3),
-                             mass_kg=round(float(mn.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(mn.volume) * STEEL / 1000.0, 7),
                              material=f"{NUT_STD} M3 hex nut (s {nut['s']}, m {nut['m']}) in the Stage 4 post's captive-nut pocket, against its tip wall",
                              color=[220, 185, 75, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip="generated at the post by thigh_shell.py post_screws"))
     for half in ("front", "back"):
         sm = kit.tm(M.Manifold.batch_boolean(sleeves[half], M.OpType.Add))
@@ -1312,8 +1306,8 @@ def post_screws(posts, body):
             nm_ = f"{side}_thigh_shell_{half}_steel_sleeves"
             ms = kit.mirror_x(sm) if side == "L" else sm
             rows.append(dict(name=nm_, owning_link=f"{side}_roll_link", role="compression_limit_sleeves", **R.save_npz(nm_, ms),
-                             volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 6),
-                             color=[215, 222, 230, 255], mass_basis="304 SS sleeves, mesh volume x 7.85 g/cm3",
+                             volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * STEEL / 1000.0, 6),
+                             color=[215, 222, 230, 255], mass_basis="304 SS sleeves, " + STEEL_BASIS,
                              material=f"304 stainless tube dia {2 * SLEEVE_R:g} / {2 * SLEEVE_BORE_R:g}, pressed into the shell boss, outer end "
                                       "countersunk 90 deg (hand countersink to the OD) so the screw head bears on it",
                              roll_flip="generated at the posts by thigh_shell.py post_screws"))
@@ -1367,9 +1361,9 @@ def _loft_solid(rings):
 # bracket, its knee screws; THIGH_SIDE) swept over KNEE_RANGE stays clear of the source cover by more than CLEAR (none of
 # it reaches the cover over 0..95); were it closer, the plane would be lowered to keep CLEAR along its normal. The shell is
 # no longer part of the cut: it is fitted to the cover (knee_edge), not the cover to it.
-COVER_CUT_DEG = -51.0
-SHIN_COVER = "R_shin_back_hard_cover"
-THIGH_SIDE = ("R_knee_ST3025_case", "R_thigh_roll_flip", "R_knee_ST3025_PA2x8_0", "R_knee_ST3025_PA2x8_1", "R_knee_ST3025_PA2x8_lat0", "R_knee_ST3025_PA2x8_lat1")
+COVER_CUT_DEG = CFG["COVER_CUT_DEG"]
+SHIN_COVER = CFG["SHIN_COVER"]
+THIGH_SIDE = CFG["THIGH_SIDE"]
 
 # Owner 2026-11-18 ("move the mounting points elsewhere"): the cut takes the cover's two M3 screws (z 102, into nuts in the
 # frame's back plate). New mounts: the cover's side wings sit ~6 mm outboard of the shin frame's side walls, which are
@@ -1377,14 +1371,14 @@ THIGH_SIDE = ("R_knee_ST3025_case", "R_thigh_roll_flip", "R_knee_ST3025_PA2x8_0"
 # self-tapping screws along x, head recessed in a counterbore on the cover's outer skin, through a boss that bridges the
 # gap (0.2 mm short of the frame), biting into a pilot hole drilled in the frame wall. Clear of the ankle-motor screw hole
 # at (y 10.9, z 84.7, lateral) and (y 10, z 89), and of the ankle coupler (x 24.8 .. 79.8, below z 71.5). (y, z) right leg, shin frame.
-MOUNT_YZ = ((12.0, 74.5), (12.0, 81.0))
-BOSS_D, HOLE_D, CB_D, CB_DEPTH = 6.5, 2.3, 4.0, 1.5     # cover boss, clearance hole, counterbore for the PA2 head (3.5 x 1.3)
-PILOT_D, PILOT_DEPTH, BOSS_GAP = 1.7, 5.0, 0.0          # pilot hole in the frame wall for a PA2 self-tapper; the boss seats
+MOUNT_YZ = CFG["MOUNT_YZ"]
+BOSS_D, HOLE_D, CB_D, CB_DEPTH = CFG["BOSS_D"], CFG["HOLE_D"], CFG["CB_D"], CFG["CB_DEPTH"]
+PILOT_D, PILOT_DEPTH, BOSS_GAP = CFG["PILOT_D"], CFG["PILOT_DEPTH"], CFG["BOSS_GAP"]
                                                        # on the frame wall (was 0.2 short: an open clamp gap under the head)
-PA2_ENG = 4.25                    # engagement in the frame wall the head seat is set for (screws check reference 4.0, it reads ~0.18 less)
-BOSS_BACK = 6.0                   # the side-mount boss runs this far toward +y past the screws (into the curving wing)
-BOSS_END_Y = 18.0                 # above this y the boss end is bevelled back to the wing (the frame wall face ends at y 17.5)
-BOSS_END_BEVEL_DEG = 67.5         # bevel turn (the bevel face runs 90 - this from the end face's +y direction)
+PA2_ENG = CFG["PA2_ENG"]
+BOSS_BACK = CFG["BOSS_BACK"]
+BOSS_END_Y = CFG["BOSS_END_Y"]
+BOSS_END_BEVEL_DEG = CFG["BOSS_END_BEVEL_DEG"]
 # Flat land for the sleeve press (owner 2026-11-23): the press check's spacer block bears on the exit plane over a dia 10
 # annulus (press_lib ANVIL_D) about each sleeve exit, but the dia 6.5 boss end gave it 68.9 % (recess 20.8 % beyond the boss
 # outline, open 10.3 % past the wings' front edge). The boss end grows to LAND_D about each exit, as part of the boss hull
@@ -1393,15 +1387,15 @@ BOSS_END_BEVEL_DEG = 67.5         # bevel turn (the bevel face runs 90 - this fr
 # LAND_RUN_CLEAR outside the ankle coupler's top arc (radius about the ankle pitch axis) where the coupler's x span comes
 # within LAND_RUN_CLEAR of the land's (medial: the coupler stands 0.32 mm proud of the frame wall face; lateral it is 0.65 mm
 # short of it: untrimmed, the lateral land ran 0.73 mm from the coupler, against 1.68 mm before the land).
-LAND_D = 10.4
-LAND_BED_CHAMFER = 0.3
-LAND_RUN_CLEAR = 1.0
-COUPLER, ANKLE_PITCH = "R_ankle_coupler_combined", "R_ankle_pitch"
-CB_CHAMFER_SINK = 0.9             # the counterbore's entry chamfer starts this far under the deepest rim point (+y side)
-CB_CHAMFER_LEN = 4.0              # length along the axis of the oblique chamfer cone (outward, past the skin)
-SLV_D, SLV_BORE_D = 3.6, 2.2      # 304 sleeve under each head (owner 2026-11-18: every clamped printed hole carries one)
-PA2_L, PA2_HD, PA2_HH, PA2_D, PA2_PT = 8.0, 3.5, 1.3, 2.0, 0.6
-FRAME = "R_shin_combined"
+LAND_D = CFG["LAND_D"]
+LAND_BED_CHAMFER = CFG["LAND_BED_CHAMFER"]
+LAND_RUN_CLEAR = CFG["LAND_RUN_CLEAR"]
+COUPLER, ANKLE_PITCH = CFG["COUPLER"], CFG["ANKLE_PITCH"]
+CB_CHAMFER_SINK = CFG["CB_CHAMFER_SINK"]
+CB_CHAMFER_LEN = CFG["CB_CHAMFER_LEN"]
+SLV_D, SLV_BORE_D = CFG["SLV_D"], CFG["SLV_BORE_D"]
+PA2_L, PA2_HD, PA2_HH, PA2_D, PA2_PT = CFG["PA2_L"], CFG["PA2_HD"], CFG["PA2_HH"], CFG["PA2_D"], CFG["PA2_PT"]
+FRAME = CFG["FRAME"]
 
 
 def _cyl_x(x0, x1, y, z, d):
@@ -1416,7 +1410,7 @@ def _hits_x(m, y, z, x0):
     return sorted(loc[:, 0], key=lambda v: abs(v - x0))
 
 
-SINK = 0.4                        # the boss starts this far under the cover's outer skin (wall 1.25 along x at least)
+SINK = CFG["SINK"]
 
 
 def _skin_heightfield(cov, y, z, x0, d, rad, end, n=17):
@@ -1617,16 +1611,16 @@ def cover_sleeve_rows(solids):
         nm = f"{side}_shin_back_hard_cover_steel_sleeves"
         ms = kit.mirror_x(sm) if side == "L" else sm
         rows.append(dict(name=nm, owning_link=f"{side}_shin", role="compression_limit_sleeves", **R.save_npz(nm, ms),
-                         volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 6),
-                         color=[215, 222, 230, 255], mass_basis="304 SS sleeves, mesh volume x 7.85 g/cm3",
+                         volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * STEEL / 1000.0, 6),
+                         color=[215, 222, 230, 255], mass_basis="304 SS sleeves, " + STEEL_BASIS,
                          material=f"304 stainless tube dia {SLV_D:g} / {SLV_BORE_D:g}, pressed into the cover's side bosses from the "
                                   "counterbore floor to the boss end; the PA2 head bears on it, its far end on the shin frame's wall",
                          roll_flip="generated at the shin back cover's side mounts by thigh_shell.py shin-cover"))
     return rows
 
 
-VOX_H, VOX_R, VOX_FACES = 0.15, 0.4, 250000   # voxel pitch, opening / closing radius (mm), faces kept after decimation
-VOX_SMOOTH = 12                   # Taubin iterations on the marching-cubes surface (stair steps of the grid)
+VOX_H, VOX_R, VOX_FACES = CFG["VOX_H"], CFG["VOX_R"], CFG["VOX_FACES"]
+VOX_SMOOTH = CFG["VOX_SMOOTH"]
 
 
 def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):
@@ -1681,8 +1675,8 @@ def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):
     return max(out.split(only_watertight=False), key=lambda p_: abs(p_.volume))
 
 
-DEBURR_W = 0.55                   # mm: knife edges are cut back to this width (line width 0.42 + margin)
-COVER_Z_LOW = 52.5                # shin frame z of the cover's straight lower edge (the source lip reached 46.5, scalloped and
+DEBURR_W = CFG["DEBURR_W"]
+COVER_Z_LOW = CFG["COVER_Z_LOW"]
                                   # necked to 0.2-0.5 mm up to z 52.2)
 
 
@@ -1720,11 +1714,11 @@ def deburr(m, width=DEBURR_W, max_wedge=75.0, cap=3.0):
     return kit.tm(kit.mf(m) - M.Manifold.batch_boolean(hulls, M.OpType.Add)), len(hulls)
 
 
-BED_LAND = 0.08                   # mm: the wings' front edges (print bed, up +y) are cut flat this far above their lowest point
+BED_LAND = CFG["BED_LAND"]
                                   # (their tips wave +-0.05; deeper, the land meets the nose's outer flank in a 0.1-0.5 mm wall)
-WING_CAP_X = ((21.0, 27.0), (77.5, 83.5))   # x windows about the two wings' free inner edges (right leg; the back is at y > 24)
-WING_CAP_DROP = 0.05              # the corner bump is capped this far under the highest top of the rest of the edge
-WING_CORNER = 2.5                 # mm above the lower edge: the corner bump (the rest of the free edge is beyond)
+WING_CAP_X = CFG["WING_CAP_X"]
+WING_CAP_DROP = CFG["WING_CAP_DROP"]
+WING_CORNER = CFG["WING_CORNER"]
 
 
 def print_trims(m):
@@ -1784,12 +1778,12 @@ def mount_screws(sites):
             nm = f"{s}_shin_back_cover_PA2x8_{i}"
             rows.append(dict(name=nm, physical_part_id=nm, bom_group=f"{s}_shin_back_cover_PA2x8", owning_link=f"{s}_shin",
                              role="fastener_proxy", **R.save_npz(nm, m), volume_mm3=round(float(m.volume), 3),
-                             mass_kg=round(float(m.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(m.volume) * STEEL / 1000.0, 7),
                              material="PA2x8 self-tapping, through the shin back cover's side boss into a dia 1.7 pilot hole in "
                                       "the shin frame's side wall (PA2 family envelope: head dia 3.5 x 1.3, shank dia 2, 0.6 mm point)",
                              color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip=f"shin back cover side mount, {st['side']} wall (y {st['y']}, z {st['z']})"))
     return rows
 

@@ -707,3 +707,77 @@ config:
     doc: Material of the printed parts this builder writes that no definition entry claims (intermediate parts a later generator
       replaces); a claimed part takes its entry's process.material. Density from robot/body/checks/data/materials.json.
     decision: bom-config 2026-11-23 (was a 1.22 g/cm3 literal in the script)
+  # robot/body/motor-refit/motor_refit.py module constants (moved 2026-11-24)
+  HIP_SHIFT:
+    value: 4.0
+  DOWNSTREAM:
+    value: [pitch_link, roll_link, shin, ankle_pitch, foot]
+    doc: leg links below the hip pitch, per side
+  SHIFTED_JOINTS:
+    value: [hip_roll, knee, ankle_pitch, ankle_roll]
+  PLANE_MED:
+    value: 48.0
+    doc: stretch planes (r1 world x, right leg) and moves for the knee/ankle widening
+  D_MED:
+    value: -6.6
+    doc: stretch planes (r1 world x, right leg) and moves for the knee/ankle widening
+  PLANE_LAT:
+    value: 72.0
+  D_LAT:
+    value: 7.2
+  CLR:
+    value: 0.15
+    doc: mm contact clearance to purchased cases
+  OLD_SERVO_PARTS:
+    value: ['{s}_pitch_servo_case_reference', '{s}_pitch_upper_horn_reference', '{s}_pitch_passive_idler_reference', '{s}_C047_knee_case', '{s}_C047_knee_main_horn', '{s}_C047_knee_rear_idler', '{s}_B13R14_raised_C047_ankle_pitch_case', '{s}_B13R14_raised_C047_ankle_pitch_main_horn', '{s}_B13R14_raised_C047_ankle_pitch_rear_idler']
+  CELL_Y:
+    value: 6.0
+    doc: 'M-jxjse2: two 21700 cells lying along y on the midline, stacked'
+  CELL_Z:
+    value: [220.0, 242.7]
+    doc: 'M-jxjse2: two 21700 cells lying along y on the midline, stacked'
+  CELL_R:
+    value: 10.75
+    doc: = 21.5 / 2.
+  CELL_L:
+    value: 70.0
+  FRONT_POSTS:
+    value: [[-6.5, 0.0], [6.5, 0.0]]
+    doc: x of the two new front-shell posts
+  FRONT_POST_Z:
+    value: 257.5
+    doc: above the upper cell (top 253.45) and the hip pitch sweep (case top 249)
+  FRONT_POST_Y:
+    value: [-37.5, -41.0]
+    doc: post face (tab front); skin inner face -39.96, outer -41.97 at z 257.5
+  # robot/body/motor-refit/servo_placement.py module constants (moved 2026-11-24)
+  ST3025_OUTPUT:
+    value: [2, 7]
+    doc: 'ST3025 STEP solid classes (local frame: output axis = +Z through x=10, y=0; case spans x -20..20, y -10..10). spline hub boss + front wheel (turns with the child link)'
+  ST3025_REAR:
+    value: [15, 8, 9]
+    doc: rear wheel and its boss (turns with the child link)
+  ST3025_AXIS_X:
+    value: 10.0
+  # robot/body/motor-refit/cad_ops.py module constants (moved 2026-11-24)
+  AX:
+    value: {x: 0, y: 1, z: 2}
+  BIG:
+    value: 2000.0
+  FUZZY:
+    value: 0.0001
+  # robot/body/motor-refit/package.py module constants (moved 2026-11-24)
+  SKIP_ROLES:
+    value: [adhesive_allocation, authored_harness, cut_material]
+  # robot/body/motor-refit/report.py module constants (moved 2026-11-24)
+  LEG:
+    value: [yaw_link, pitch_link, roll_link, shin, ankle_pitch, foot]
+  IGNORE:
+    value: [finger, palm, TPU_pad, sole_pad, sensor_pocket]
+  # robot/body/motor-refit/motor_refit.py module constants (moved 2026-11-24)
+  RANGE_NOTCHES:
+    value: [[R_fore_front_hard_cover, R_upper_arm_hard_cover, [R_elbow, R_shoulder_yaw], 5.0], [L_fore_front_hard_cover, L_upper_arm_hard_cover, [L_elbow, L_shoulder_yaw], 5.0], [head_neck_collar, original_profile_head_skin_v23, [neck_pitch], 2.5], [head_neck_collar, combined__neck_pitch_to_head_cradle, [neck_pitch], 2.5], [original_profile_head_skin_v23, combined__neck_yaw_to_pitch_link, [neck_pitch], 2.5], [R_shin_front_hard_cover, R_B13_C047_foot_roll_case, [R_ankle_pitch, R_ankle_roll], 5.0], [L_shin_front_hard_cover, L_B13_C047_foot_roll_case, [L_ankle_pitch, L_ankle_roll], 5.0]]
+    doc: '(target shell, tool part, joints swept, grid step deg): contacts inside one limb''s own range (r1)'
+  # robot/body/motor-refit/report.py module constants (moved 2026-11-24)
+  INTERFACES:
+    value: [[R_thigh_combined, R_knee_ST3025_case], [R_shin_combined, R_knee_ST3025_output], [R_shin_combined, R_ankle_pitch_ST3025_case], [R_ankle_coupler_combined, R_ankle_pitch_ST3025_output], [R_hip_pitch_to_roll_combined, R_hip_pitch_ST3025_output], [R_hip_yaw_to_pitch_combined, R_hip_pitch_ST3025_case]]

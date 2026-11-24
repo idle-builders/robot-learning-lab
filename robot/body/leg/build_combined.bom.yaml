@@ -18,3 +18,7 @@ generators:
   - artifacts/robot/body/leg/combined
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+config:
+  # robot/body/leg/package_and_render.py module constants (moved 2026-11-24)
+  LOWER_LEG_OWNING_LINKS:
+    value: [L_ankle_pitch, L_foot, L_roll_link, L_shin, R_ankle_pitch, R_foot, R_roll_link, R_shin]

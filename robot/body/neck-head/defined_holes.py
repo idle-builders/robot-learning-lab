@@ -15,14 +15,18 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
+
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "AGENTS.md").exists())
 HERE = Path(__file__).resolve().parent
 for _p in (ROOT / "robot/body/fastening", ROOT / "robot/body"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-RING_MM = 2.6           # radius of the rays that find the standard part's outer face around a hole (outside the tapped bore)
-N_RAYS = 8
+RING_MM = CFG["RING_MM"]
+N_RAYS = CFG["N_RAYS"]
 _CACHE: dict = {}
 
 

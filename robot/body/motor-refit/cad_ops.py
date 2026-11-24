@@ -25,9 +25,15 @@ from OCP.TopExp import TopExp_Explorer
 from OCP.TopTools import TopTools_ListOfShape
 from OCP.gp import gp_Ax2, gp_Dir, gp_GTrsf, gp_Mat, gp_Pnt, gp_Trsf, gp_Vec, gp_XYZ
 
-AX = {"x": 0, "y": 1, "z": 2}
-BIG = 2000.0
-FUZZY = 1e-4
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-refit/motor_refit.bom.yaml config:
+
+AX = CFG["AX"]
+BIG = CFG["BIG"]
+FUZZY = CFG["FUZZY"]
 
 
 def box(lo, hi):

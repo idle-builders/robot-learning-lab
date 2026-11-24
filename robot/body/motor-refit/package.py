@@ -21,9 +21,13 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import bodylib as F  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-refit/motor_refit.bom.yaml config:
+
 R1 = ROOT / "artifacts/robot/body/assembly/assembly-parts.json"
 OUT = ROOT / "artifacts/robot/body/motor-refit"
-SKIP_ROLES = {"cut_material", "adhesive_allocation", "authored_harness"}
+SKIP_ROLES = set(CFG["SKIP_ROLES"])
 
 
 def scene(man):

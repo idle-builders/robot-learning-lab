@@ -9,24 +9,19 @@ import json
 import math
 import numpy as np
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
+
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "AGENTS.md").exists())
 STUDY = Path(__file__).resolve().parent
 ART = ROOT / "artifacts/robot/body/neck-head"
 EC_MANIFEST = ROOT / "artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json"
 
-STAGE_PART_BASENAMES = {
-    "stage1_neck_root_cradle": "neck_root_cradle",
-    "stage2_neck_yaw_to_pitch_link": "neck_yaw_to_pitch_link",
-    "stage3_neck_pitch_to_head_cradle": "neck_pitch_to_head_cradle",
-    "stage4_head_sensor_compute_carrier": "head_sensor_compute_carrier",
-}
+STAGE_PART_BASENAMES = CFG["STAGE_PART_BASENAMES"]
 
-STAGE_LINKS = {
-    "stage1_neck_root_cradle": "torso",
-    "stage2_neck_yaw_to_pitch_link": "neck_yaw",
-    "stage3_neck_pitch_to_head_cradle": "head",
-    "stage4_head_sensor_compute_carrier": "head",
-}
+STAGE_LINKS = CFG["STAGE_LINKS"]
 
 # Exact baseline STEP paths for the 4 neck & head connector stages
 BASELINE_STEPS = {
@@ -37,28 +32,13 @@ BASELINE_STEPS = {
 }
 
 # Legacy sheet-metal and boxy PA12 neck/head brackets & obsolete v21 ribbon clamp hardware replaced by the 4-stage FDM connectors
-REPLACED_NECK_HEAD_PARTS = {
-    "fixed_neck_ribbon_anchor_v21",
-    "fixed_neck_ribbon_cap_v21",
-    "fixed_neck_ribbon_pad_rear_v21",
-    "fixed_neck_ribbon_pad_front_v21",
-    "fixed_ribbon_M2x8_0_v21",
-    "fixed_ribbon_M2_washer_0_v21",
-    "fixed_ribbon_M2x8_1_v21",
-    "fixed_ribbon_M2_washer_1_v21",
-    "upper__one_piece_bent_neck_L",
-    "compact_neck_U_strap_v23",
-    "single_shared_carrier_v23",
-    "microphone_compact_tab_v23",
-    "mic_foot_M2x3_0",
-    "mic_foot_M2x3_1",
-}
+REPLACED_NECK_HEAD_PARTS = set(CFG["REPLACED_NECK_HEAD_PARTS"])
 
 # Exact neck joint origins and axes in world neutral coordinates (mm)
-P_NECK_YAW = np.array([0.0, 5.0, 365.0], dtype=float)
-AXIS_NECK_YAW = np.array([0.0, 0.0, 1.0], dtype=float)
-P_NECK_PITCH = np.array([-13.5, 5.0, 414.0], dtype=float)
-AXIS_NECK_PITCH = np.array([1.0, 0.0, 0.0], dtype=float)
+P_NECK_YAW = np.array(CFG["P_NECK_YAW"], dtype=float)
+AXIS_NECK_YAW = np.array(CFG["AXIS_NECK_YAW"], dtype=float)
+P_NECK_PITCH = np.array(CFG["P_NECK_PITCH"], dtype=float)
+AXIS_NECK_PITCH = np.array(CFG["AXIS_NECK_PITCH"], dtype=float)
 
 
 def sha(path: Path) -> str:
@@ -116,51 +96,7 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
     return D
 
 
-MATERIALS = {
-    "Al5052_H32": {
-        "name": "Aluminium 5052-H32 (baseline sheet)",
-        "density_g_cm3": 2.68,
-        "E_MPa": 68300.0,
-        "nu": 0.33,
-        "reference_strength_MPa": 193.0,
-    },
-    "PAHT_CF_dry": {
-        "name": "Bambu PAHT-CF / PA12-CF (dry, FDM)",
-        "density_g_cm3": 1.22,
-        "E_inplane_MPa": 7550.0,
-        "E_layer_MPa": 3290.0,
-        "G_MPa": 1100.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 92.0,
-        "tensile_Z_layer_MPa": 43.0,
-    },
-    "PAHT_CF_wet": {
-        "name": "Bambu PAHT-CF / PA12-CF (moisture-conditioned, FDM)",
-        "density_g_cm3": 1.22,
-        "E_inplane_MPa": 6570.0,
-        "E_layer_MPa": 2700.0,
-        "G_MPa": 950.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 71.0,
-        "tensile_Z_layer_MPa": 37.0,
-    },
-    "PETG_CF": {
-        "name": "PETG-CF / PLA-CF (home-lab standard CF filament)",
-        "density_g_cm3": 1.25,
-        "E_inplane_MPa": 5800.0,
-        "E_layer_MPa": 2850.0,
-        "G_MPa": 1000.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 68.0,
-        "tensile_Z_layer_MPa": 34.0,
-    },
-    "Steel_Sleeve": {
-        "name": "304 Stainless Steel compression sleeve",
-        "density_g_cm3": 7.85,
-        "E_MPa": 200000.0,
-        "nu": 0.29,
-    },
-}
+MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):
@@ -546,7 +482,7 @@ def cyl_along(pt, direction, r: float, length: float):
 # pitch_case_joint() derives (2.5 mm with M2x5: the full thread ends 0.3 mm short of the 2.0 mm tap bottom, 1.5 mm engaged below the
 # 0.2 mm mouth chamfer; review rv-acpw7j).
 # Head-skin taper cut of the microphone wing's top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it
-MIC_TAPER = {"x0": 47.8, "z0": 467.2, "z1": 472.4}
+MIC_TAPER = CFG["MIC_TAPER"]
 
 
 def neck_anchor() -> dict:
@@ -849,7 +785,7 @@ def build_stage_sleeves(stage_key: str) -> list[dict]:
                 slv = Solid((slv - cone).wrapped)
             name = f"{STAGE_PART_BASENAMES[stage_key]}__{grp['name']}_sleeve_{idx + 1}"
             vol = float(slv.volume)
-            rho = 8.5 if grp.get("threaded") else MATERIALS["Steel_Sleeve"]["density_g_cm3"]     # brass heat-set insert / 304 sleeve
+            rho = BOM_CONFIG.material_row(CFG["INSERT_MATERIAL"])["density_g_cm3"] if grp.get("threaded") else MATERIALS["Steel_Sleeve"]["density_g_cm3"]     # brass heat-set insert / 304 sleeve
             mass_g = vol * (rho * 1e-3)
             out.append({
                 "name": name,
@@ -955,48 +891,9 @@ def neck_link_transform(link_name: str, yaw_deg: float, pitch_deg: float) -> np.
     return np.eye(4)
 
 
-NECK_YAW_PARTS = {
-    "upper__neck_yaw_front_horn",
-    "upper__neck_yaw_horn_M2x5_0",
-    "upper__neck_yaw_horn_M2x5_1",
-    "upper__one_piece_bent_neck_L",
-    "upper__neck_pitch_front_horn",
-    "upper__neck_pitch_horn_M2x5_0",
-    "upper__neck_pitch_horn_M2x5_1",
-}
+NECK_YAW_PARTS = set(CFG["NECK_YAW_PARTS"])
 
-TORSO_HIGH_PARTS = {
-    "Common_power_carrier_mounting_r33",
-    "ape_body_shell__torso_front_relief4_r33",
-    "ape_body_shell__torso_back_relief4_r33",
-    "upper__simple_continuous_rear_neck_cowl",
-    "upper__cowl_M2_nut_0",
-    "upper__cowl_M2_nut_1",
-    "upper__cowl_M2x10_countersunk_0",
-    "upper__cowl_M2x10_countersunk_1",
-    "fixed_neck_ribbon_anchor_v21",
-    "fixed_neck_ribbon_cap_v21",
-    "fixed_neck_ribbon_pad_rear_v21",
-    "fixed_neck_ribbon_pad_front_v21",
-    "fixed_ribbon_M2x8_0_v21",
-    "fixed_ribbon_M2_washer_0_v21",
-    "fixed_ribbon_M2x8_1_v21",
-    "fixed_ribbon_M2_washer_1_v21",
-    "upper__neck_yaw_case_XM335",
-    "upper__neck_root_M2_washer_0",
-    "upper__neck_root_M2_washer_1",
-    "upper__neck_root_M2_washer_2",
-    "upper__neck_root_M2_washer_3",
-    "upper__neck_root_M2x6_0",
-    "upper__neck_root_M2x6_1",
-    "upper__neck_root_M2x6_2",
-    "upper__neck_root_M2x6_3",
-    "neck_anchor_M3x8_0",           # T-jxshhv (neck_anchor.json; the length follows screw_plan.choose_length)
-    "neck_anchor_M3x8_1",
-    "IMU_ADC_carrier_v17",
-    "Power_supervisor_PA12_open_tray",
-    "Power_supervisor_source_board",
-}
+TORSO_HIGH_PARTS = set(CFG["TORSO_HIGH_PARTS"])
 
 
 def classify_neck_head_link(part_dict: dict) -> str | None:
@@ -1021,14 +918,9 @@ def classify_neck_head_link(part_dict: dict) -> str | None:
 
 # ---- study load cases (moved from the retired per-study fem_evaluate.py); run_neck_head_topopt.py loads its topology optimisation with them
 # Optimal FDM build-plate normal axis for each stage so primary bending & loop tension lie in-plane (XY)
-PRINT_AXES = {
-    "stage1_neck_root_cradle": "Y",            # XZ cradle & spine frame in XY plane
-    "stage2_neck_yaw_to_pitch_link": "Y",      # XZ 90-degree L-bend & side webs in XY plane
-    "stage3_neck_pitch_to_head_cradle": "Z",   # XY U-cradle loop around +X in XY plane
-    "stage4_head_sensor_compute_carrier": "Y", # XZ carrier plate & ribs flat on build plate
-}
+PRINT_AXES = CFG["PRINT_AXES"]
 
-HEAD_CG_MM = np.array([-4.0, -2.0, 445.0], dtype=float)
+HEAD_CG_MM = np.array(CFG["HEAD_CG_MM"], dtype=float)
 
 # 6-DOF wrenches defined at HEAD_CG_MM (`F_N` in N, `M_Nm` in N*m)
 LOAD_CASES = {

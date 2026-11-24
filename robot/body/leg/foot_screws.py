@@ -40,17 +40,21 @@ sys.path.insert(0, str(ROOT / "robot/body"))
 import cad_ops as C  # noqa: E402
 import motor_refit as MR  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("foot-screws")   # configured values: robot/body/leg/foot_screws.bom.yaml config:
+
 OUT = ROOT / "artifacts/robot/body/leg/foot-screws"
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
 VARIANT = SHELL_PASS.with_name("assembly-parts-roll-flip.json")
-CONNECTOR = "foot_monocoque_combined"
-PART, SLEEVES = "foot_monocoque_combined", "foot_monocoque_combined_steel_sleeves"
-CASE = "B13_C047_foot_roll_case"
-OLD_SCREWS = ("B13_front_PA2x6_", "B13_rear_PA2x6_")
-POCKET_R = 8.0 / 2 + 0.05      # pocket radius around each head: the heated press tip (checks/press_lib.py TIP_D / 2) + clearance, so the tip reaches the sleeve
-EAR_R = 10.0 / 2 + 0.1          # printed ear from the case face to the part's back: the flat counter face the anvil annulus rests on
-EAR_H = 0.5                     # ear height above the case face (the case face stands 0.2 mm off the hole opening); ends inside the part
-POCKET_H = 16.0                 # pocket cut height above the head seat: the heated tip length (press_lib TIP_L 15) + 1
+CONNECTOR = CFG["CONNECTOR"]
+PART, SLEEVES = CFG["PART"], CFG["SLEEVES"]
+CASE = CFG["CASE"]
+OLD_SCREWS = CFG["OLD_SCREWS"]
+POCKET_R = CFG["POCKET_R"]
+EAR_R = CFG["EAR_R"]
+EAR_H = CFG["EAR_H"]
+POCKET_H = CFG["POCKET_H"]
 
 
 def bbox(s):
@@ -141,8 +145,7 @@ def build():
             nm = f"{side}_{base}"
             rec = MR.save(nm, sh, kind)
             if kind == "purchased":
-                rec["mass_kg"] = round(C.volume(sh) * 7.85e-6, 6)
-                rec["mass_basis"] = "native STEP volume x 7.85 g/cm3 (304 SS)"
+                rec.update(BOM_CONFIG.mass_record(nm, C.volume(sh), "foot-screws", fallback="HARDWARE_MATERIAL", basis="native STEP volume"))
             recs[nm] = rec
     (OUT / "records.json").write_text(json.dumps(dict(plan=r["plan"], records=recs), indent=1) + "\n")
     print("wrote", OUT / "records.json", flush=True)

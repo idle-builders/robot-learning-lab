@@ -32,6 +32,10 @@ from common import (
     ensure_two_screw_shin_shell_assets,
 )
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-combined")   # configured values: robot/body/leg/build_combined.bom.yaml config:
+
 # Parts in V16 lower leg that are replaced by the 3 new FDM connector stages per leg
 REPLACED_V16_LOWER_LEG_PARTS = set()
 for _side in ("R", "L"):
@@ -65,16 +69,7 @@ for _side in ("R", "L"):
         ]
     )
 
-LOWER_LEG_OWNING_LINKS = {
-    "R_roll_link",
-    "R_shin",
-    "R_ankle_pitch",
-    "R_foot",
-    "L_roll_link",
-    "L_shin",
-    "L_ankle_pitch",
-    "L_foot",
-}
+LOWER_LEG_OWNING_LINKS = set(CFG["LOWER_LEG_OWNING_LINKS"])
 
 EXTRA_4SCREW_SPECS = []
 for _side in ("R", "L"):

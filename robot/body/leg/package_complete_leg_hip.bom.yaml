@@ -40,3 +40,13 @@ joints:
 - match: [R_ankle_roll, L_ankle_roll]
   range_deg: [-20.0, 20.0]
   doc: Ankle roll, accepted range.
+config:
+  # robot/body/leg/package_complete_leg_hip.py module constants (moved 2026-11-24)
+  STAGE_COLORS:
+    value: {stage1_shin: [42, 138, 184, 255], stage2_ankle_coupler: [28, 164, 142, 255], stage3_foot_monocoque: [212, 134, 52, 255], stage4_thigh: [64, 156, 212, 255], stage5_hip_pitch_to_roll: [228, 118, 68, 255], stage6_hip_yaw_to_pitch: [46, 178, 136, 255], sleeve: [215, 222, 230, 255]}
+  PRINT_ORIENTATIONS:
+    value: {stage1_shin: YZ Cheek / Oblique Bed (layer normal Z/X), stage2_ankle_coupler: YZ Oblique Arch Bed (layer normal X), stage3_foot_monocoque: XY Flat Sole Bed (layer normal Z), stage4_thigh: YZ Medial Cheek Bed (layer normal X), stage5_hip_pitch_to_roll: XY Corridor Bridge Bed (layer normal Z), stage6_hip_yaw_to_pitch: YZ Lateral Wall / XY Top Deck Bed (layer normal X)}
+  # robot/body/leg/common.py module constants (moved 2026-11-24)
+  MATERIALS:
+    value: {Al5052_H32: Aluminium 5052-H32, Al6061_T6: Aluminium 6061-T6, PAHT_CF_dry: legacy_fdm_PAHT_CF_dry, PAHT_CF_wet: legacy_fdm_PAHT_CF_wet, PETG_CF: legacy_fdm_PETG_CF, Steel_Sleeve: Steel 304 sleeve}
+    doc: Material of each legacy FEM / mass key of this section's scripts, as its entry in robot/body/checks/data/materials.json (values there; same numbers as the table this replaced, 2026-11-24)

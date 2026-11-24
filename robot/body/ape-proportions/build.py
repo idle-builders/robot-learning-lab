@@ -53,23 +53,24 @@ PARTS = OUT / "parts"
 
 UPPER_ARM_SCALE = float(os.environ.get("APE_UPPER", 1.570))  # owner 2026-11-13; env only for comparison variants
 FOREARM_SCALE = float(os.environ.get("APE_FOREARM", 1.0))
-FOOT_SCALE = 1.3
-Z_FOREARM_CUT = 195.0
-Z_UPPER_CUT = 270.0
-Z_UPPER_COVER_CUT = 290.0
+CFG = BOM_CONFIG.section("ape-proportions-build")   # configured values: robot/body/ape-proportions/build.bom.yaml config:
+FOOT_SCALE = CFG["FOOT_SCALE"]
+Z_FOREARM_CUT = CFG["Z_FOREARM_CUT"]
+Z_UPPER_CUT = CFG["Z_UPPER_CUT"]
+Z_UPPER_COVER_CUT = CFG["Z_UPPER_COVER_CUT"]
 FOOT_PLANES = dict(toe=16.5, heel=37.5, lateral=16.0, medial=36.5)  # mm from the ankle-roll origin
-BOOT_BLEND_Z = (14.0, 30.0)
+BOOT_BLEND_Z = CFG["BOOT_BLEND_Z"]
 # Upper-arm beam: the stage 3 connector is a 3 x 6.5 mm bar between the yaw and elbow horns; bending across its 3 mm
 # side carried the 4 kg support case at ~160 MPa (fem_arm.py). The longer arm leaves free space between the elbow
 # servo and the yaw horn, so the bar becomes a solid beam there (right side; the left side is its mirror in x).
 SHELL_PASS = bool(int(os.environ.get("APE_SHELL_PASS", "0")))  # T-czv2d8 runs as its own step: shells.py MANIFEST OUT_DIR (memory)
-NARROW_HIPS = True  # owner 2026-11-13/14: legs 12 mm in below the hip yaw, cells to the back, splayed stance (hips.py)
-ELBOW_FLIP = True  # owner 2026-11-13: elbow case in the upper arm (elbow_flip.py)
+NARROW_HIPS = CFG["NARROW_HIPS"]
+ELBOW_FLIP = CFG["ELBOW_FLIP"]
 UPPER_BEAM = (dict(x=(110.2, 126.0), y=(-6.0, 6.0), z_above_elbow_axis=36.7, z_top=283.5) if ELBOW_FLIP else  # above the turned case
               dict(x=(110.2, 119.0), y=(-6.0, 6.0), z_above_elbow_axis=11.7, z_top=283.5))
 
-STRETCH_ROLES = ("printed", "body_shell", "produced_holder", "cut_stock")
-SLEEVES = "compression_limit_sleeves"
+STRETCH_ROLES = CFG["STRETCH_ROLES"]
+SLEEVES = CFG["SLEEVES"]
 
 
 class Op:

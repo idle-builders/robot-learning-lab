@@ -41,6 +41,10 @@ from package_and_render import (
     set_equal_3d,
 )
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("package-complete-leg-hip")   # configured values: robot/body/leg/package_complete_leg_hip.bom.yaml config:
+
 REPLACED_V16_UPPER_HIP_PARTS = set()
 for _side in ("R", "L"):
     REPLACED_V16_UPPER_HIP_PARTS.update(
@@ -63,24 +67,9 @@ for _side in ("R", "L"):
 
 REPLACED_ALL_6_STAGES = REPLACED_V16_LOWER_LEG_PARTS | REPLACED_V16_UPPER_HIP_PARTS
 
-STAGE_COLORS = {
-    "stage1_shin": [42, 138, 184, 255],
-    "stage2_ankle_coupler": [28, 164, 142, 255],
-    "stage3_foot_monocoque": [212, 134, 52, 255],
-    "stage4_thigh": [64, 156, 212, 255],
-    "stage5_hip_pitch_to_roll": [228, 118, 68, 255],
-    "stage6_hip_yaw_to_pitch": [46, 178, 136, 255],
-    "sleeve": [215, 222, 230, 255],
-}
+STAGE_COLORS = BOM_CONFIG.unfrozen(CFG["STAGE_COLORS"])
 
-PRINT_ORIENTATIONS = {
-    "stage1_shin": "YZ Cheek / Oblique Bed (layer normal Z/X)",
-    "stage2_ankle_coupler": "YZ Oblique Arch Bed (layer normal X)",
-    "stage3_foot_monocoque": "XY Flat Sole Bed (layer normal Z)",
-    "stage4_thigh": "YZ Medial Cheek Bed (layer normal X)",
-    "stage5_hip_pitch_to_roll": "XY Corridor Bridge Bed (layer normal Z)",
-    "stage6_hip_yaw_to_pitch": "YZ Lateral Wall / XY Top Deck Bed (layer normal X)",
-}
+PRINT_ORIENTATIONS = CFG["PRINT_ORIENTATIONS"]
 
 
 def build_complete_combined_cad_and_fem():

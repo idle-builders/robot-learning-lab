@@ -12,12 +12,16 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks.bodylib import Body, src  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-refit/motor_refit.bom.yaml config:
+
 ST3025_STEP = ROOT / "artifacts/cove50-engineering-competition/elbow-studio/direct-servo/r1/source/ST3025-MODEL/ST3025-MODEL.stp"
 
 # ST3025 STEP solid classes (local frame: output axis = +Z through x=10, y=0; case spans x -20..20, y -10..10).
-ST3025_OUTPUT = {2, 7}      # spline hub boss + front wheel (turns with the child link)
-ST3025_REAR = {8, 9, 15}    # rear wheel and its boss (turns with the child link)
-ST3025_AXIS_X = 10.0
+ST3025_OUTPUT = set(CFG["ST3025_OUTPUT"])
+ST3025_REAR = set(CFG["ST3025_REAR"])
+ST3025_AXIS_X = CFG["ST3025_AXIS_X"]
 
 
 def joint_spec(side: str) -> dict:
