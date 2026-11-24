@@ -1,7 +1,9 @@
 """press: sleeves of a scoped part (its sleeve sets: process.relations, the definition's joined_to {how: pressed}, else the sets whose
 sleeves touch the part; never a name): press tool / anvil path obstruction (mm3), counter-face coverage, flatness. Screen = mesh booleans, exact = press_lib.score_part. Raw function moved from leg/fast_check.py.
 A part without a native STEP (mesh-only shells and carriers) is screened on its own mesh when that mesh is closed, its sleeves from their
-STEP or, without one, from their mesh's revolution axes; a part it cannot measure is listed in not_measured with the reason and counted."""
+STEP or, without one, from their mesh's revolution axes; a part it cannot measure is listed in not_measured with the reason and counted.
+A tube that is a heat-set insert by its sleeve set's definition (contains[].spec.kind insert, matched by length and diameters) gets the
+insert model (press_lib.insert_row: catalogue tip per thread, entry face, no exit-plane support); a tube matching no item is counted."""
 from __future__ import annotations
 
 import os
@@ -51,9 +53,17 @@ def sleeve_sets(body, n):
     return P.relations(body).sleeve_sets_of(n)
 
 
-def check_press(body, changed, exact=False, skipped=None):
+def set_items(rel, sn):
+    """The bought items a sleeve set's body definition says it holds (contains, the items for this set), [] without a definition.
+    An item whose spec.kind is insert is a heat-set insert (press_lib.insert_row), never told by its name."""
+    e = (getattr(rel, "claims", None) or {}).get(sn) if rel is not None else None
+    return [it for it in (e or {}).get("contains") or [] if not it.get("part") or it["part"] == sn]
+
+
+def check_press(body, changed, exact=False, skipped=None, rel=None):
     """{part: result} for the scoped parts with steel sleeves; skipped (dict, optional) collects {part: why} of those not measured.
-    A part with several sleeve sets gets the rows of all of them, numbered on."""
+    A part with several sleeve sets gets the rows of all of them, numbered on. rel (ctx.rel): the sleeve sets' definitions, which
+    tell heat-set inserts (spec.kind insert) from sleeves."""
     from checks import press_lib as PC
     import trimesh
     t0 = time.time()
@@ -73,17 +83,17 @@ def check_press(body, changed, exact=False, skipped=None):
             for sn in sets:
                 ps = body.parts[sn]
                 sl = import_step(str(BL.src(ps["native_step"]))).moved(Location(tuple(float(v) for v in (ps.get("native_step_offset_mm") or (0, 0, 0)))))
-                rows += [{**r, "index": len(rows) + r["index"]} for r in PC.score_part(max(part.solids(), key=lambda x: x.volume), sl)]
+                rows += [{**r, "index": len(rows) + r["index"]} for r in PC.score_part(max(part.solids(), key=lambda x: x.volume), sl, set_items(rel, sn))]
             out[n] = dict(method="exact OCC (press_lib.score_part)", summary=PC.summary(rows), rows=rows, sleeve_sets=sets)
             continue
         mesh, src = _part_mesh(body, n)
         if mesh is None:
             skipped[n] = src
             continue
-        axes, ssrc = [], set()
+        axes, ssrc, items = [], set(), []
         for sn in sets:
             a, w = _sleeve_axes(body, sn)
-            axes += a; ssrc.add(w)
+            axes += a; ssrc.add(w); items += [set_items(rel, sn)] * len(a)
         ssrc = " + ".join(sorted(ssrc))
         pm = kit.mf(mesh); rays = PC._rays(mesh)
 
@@ -101,16 +111,25 @@ def check_press(body, changed, exact=False, skipped=None):
             return dict(tool_tip_obstruction_mm3=round(tip, 3), tool_body_obstruction_mm3=round(bod, 3),
                         anvil_path_obstruction_mm3=round(anv, 3), anvil_dia10_first15mm_obstruction_mm3=round(a10, 3),
                         counter_face=PC.counter_face(mesh, rays, e_out, d, r_out))
+        def vol(p0, d, r, L):
+            return float((pm ^ cyl(p0, d, r, L)).volume())
         rows = []
         for i, ax in enumerate(axes):
             if ax is None:
                 rows.append(dict(index=i, error="no cylindrical face")); continue
             e0, e1, d, r_out, r_in = ax
+            it, sc = PC.item_of((float(np.linalg.norm(e1 - e0)), 2 * r_out, 2 * r_in), items[i])
+            if it is not None and (it.get("spec") or {}).get("kind") == "insert":
+                rows.append(PC.insert_row(vol, mesh, rays, i, e0, e1, d, r_out, r_in, it["spec"],
+                                          f"definition item {it.get('line')} (nearest length / diameters, {sc} mm)"))
+                continue
+            ksrc = (f"definition item {it.get('line')} ({sc} mm)" if it is not None else
+                    "no definition item" + (f" within {PC.ITEM_MATCH_MM} mm (nearest {sc} mm): the set's STEP and its definition's contains disagree" if sc is not None else " (no contains)"))
             a, b = orient(e0, e1, d, r_out), orient(e1, e0, -d, r_out)
             ka = (a["tool_tip_obstruction_mm3"] + a["tool_body_obstruction_mm3"], a["anvil_path_obstruction_mm3"])
             kb = (b["tool_tip_obstruction_mm3"] + b["tool_body_obstruction_mm3"], b["anvil_path_obstruction_mm3"])
             best, entry, other = (a, e0, b) if ka <= kb else (b, e1, a)
-            rows.append(dict(index=i, centre_mm=np.round((e0 + e1) / 2, 2).tolist(), axis=np.round(d if best is a else -d, 3).tolist(),
+            rows.append(dict(index=i, kind="sleeve", kind_source=ksrc, centre_mm=np.round((e0 + e1) / 2, 2).tolist(), axis=np.round(d if best is a else -d, 3).tolist(),
                              entry_end_mm=np.round(entry, 2).tolist(), length_mm=round(float(np.linalg.norm(e1 - e0)), 2),
                              od_mm=round(2 * r_out, 2), id_mm=round(2 * r_in, 2), **best,
                              other_side=dict(tool_mm3=round(other["tool_tip_obstruction_mm3"] + other["tool_body_obstruction_mm3"], 3),
@@ -135,9 +154,10 @@ def _applies(ctx):
 def run(ctx):
     """Steel sleeves of a scoped part: counter-side spacer support (flat / wall / recess / open %, free depth mm) and entry-side press tool path obstruction (mm3); the old fixed-post anvil fields stay in the rows."""
     skipped = {}
-    raw = check_press(ctx.body, ctx.scope, ctx.exact_press, skipped)
+    raw = check_press(ctx.body, ctx.scope, ctx.exact_press, skipped, ctx.rel)
     per_part, cases = {}, []
-    bad = dict(sleeves_with_tool_obstruction=0, sleeves_with_anvil_obstruction=0, sleeves_with_counter_face_below_90pct=0, sleeves_with_support_below_90pct=0)
+    bad = dict(sleeves_with_tool_obstruction=0, sleeves_with_anvil_obstruction=0, sleeves_with_counter_face_below_90pct=0, sleeves_with_support_below_90pct=0,
+               inserts=0, inserts_with_face_obstruction=0, inserts_entry_face_flat_below_90pct=0)
     for n, r in raw.items():
         per_part[n] = dict(method=r["method"], summary=r["summary"], sleeves=r["rows"],
                            sleeve_sets={sn: ctx.rel.source(sn, "sleeve_owner") for sn in r["sleeve_sets"]})
@@ -146,11 +166,24 @@ def run(ctx):
         bad["sleeves_with_anvil_obstruction"] += s["with_anvil_obstruction"]
         bad["sleeves_with_counter_face_below_90pct"] += s["counter_face_coverage_below_90pct"]
         bad["sleeves_with_support_below_90pct"] += s["counter_face_support_below_90pct"]
+        bad["inserts"] += s["inserts"]; bad["inserts_with_face_obstruction"] += s["inserts_with_face_obstruction"]
+        bad["inserts_entry_face_flat_below_90pct"] += s["inserts_entry_face_flat_below_90pct"]
         exp = ctx.settings(n).get("expected_hardware", {}).get("steel_sleeves")
-        per_part[n]["sleeves_found"] = s["sleeves"]
+        per_part[n]["sleeves_found"] = s["sleeves"] + s["inserts"]      # every tube of the sleeve sets (as before); inserts_found of them heat-set inserts
+        per_part[n]["inserts_found"] = s["inserts"]
         per_part[n]["sleeves_expected_in_settings"] = exp
         for row in r["rows"]:
             if "error" in row:
+                continue
+            if row.get("kind") == "insert":     # heat-set insert: entry face and tip path, no exit-plane support
+                ef = row["entry_face"]
+                cases.append(dict(part=n, mating_part=None, pose=None, location_mm=row["centre_mm"], unit="% insert entry face flat (low is bad)",
+                                  value=ef["flat_pct"], what=f"heat-set insert {row['index']} ({row['thread']}, {row['kind_source']}): entry face flat {ef['flat_pct']} %, "
+                                                            f"wall {ef['wall_pct']} %, open {ef['open_pct']} % (insert OD .. tip shank); tip shank {row.get('tip_shank_dia_mm')} mm needs a "
+                                                            f"{row.get('shank_clearance_mm')} mm working end; bore beyond the far end {row['exit_side']['bore_beyond_exit_mm']} mm"))
+                if row["tool_tip_obstruction_mm3"] > 0:
+                    cases.append(dict(part=n, mating_part=None, pose=None, location_mm=row["centre_mm"], unit="mm3 press tool path obstruction",
+                                      value=row["tool_tip_obstruction_mm3"], what=f"heat-set insert {row['index']}: part inside the insert's outer diameter beyond its entry end"))
                 continue
             cf = row["counter_face"]
             tool = row["tool_tip_obstruction_mm3"] + row["tool_body_obstruction_mm3"]
@@ -164,6 +197,9 @@ def run(ctx):
                                   value=round(tool, 3), what=f"sleeve {row['index']}: entry side"))
     cases.sort(key=lambda c: (c["unit"].startswith("mm3"), -c["value"] if c["unit"].startswith("mm3") else c["value"]))
     bad = dict(sleeves_with_support_below_90pct=bad["sleeves_with_support_below_90pct"], sleeves_with_tool_obstruction=bad["sleeves_with_tool_obstruction"],
+               inserts=bad["inserts"], inserts_with_face_obstruction=bad["inserts_with_face_obstruction"],
+               inserts_entry_face_flat_below_90pct=bad["inserts_entry_face_flat_below_90pct"],
+               tubes_matching_no_definition_item=sum(1 for r in raw.values() for row in r["rows"] if str(row.get("kind_source", "")).startswith("no definition item within")),
                old_post_model_sleeves_with_anvil_obstruction=bad["sleeves_with_anvil_obstruction"],
                old_post_model_sleeves_with_coverage_below_90pct=bad["sleeves_with_counter_face_below_90pct"],
                parts_measured_from_own_mesh=sum(1 for r in raw.values() if "own closed mesh" in r["method"]), parts_not_measured=len(skipped))
