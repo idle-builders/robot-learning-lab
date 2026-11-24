@@ -315,7 +315,8 @@ def brep(name, man_parts, turned=False, min_solid_mm3=0.0):
 
 def fit_poses():
     """The exact-fit pose list [(name, {joint: deg})]: checks/data/pose_sets.json fit_poses (fit_check_upper_hip.py's list on the
-    current joint names, plus the hip-shell target extremes), read by checks.core."""
+    current joint names, plus the hip-shell target extremes), read by checks.core; the sweep angles inside a joint's range and its
+    ends come from the range the body definitions declare, the stress angles beyond it from the table."""
     from checks import core
     return core.fit_poses()
 

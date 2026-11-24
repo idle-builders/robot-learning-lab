@@ -1,7 +1,9 @@
 """fastener_motion: every screw (head, shank, protruding tip) against the non-fastener parts on OTHER links over the pose set (and, on request, the
 range of the joints given with --joints): overlap (mm3, exact manifold boolean, split head / shank / tip) and minimum distance (mm) per screw with
 the worst pose; plus screws whose head sits inside a part of their own link at standing (stale models). clearance, fit and collision_sweep skip
-fasteners, which hid the STS3250 case-ear PA2 heads against the hip part on roll-flip Stage 4."""
+fasteners, which hid the STS3250 case-ear PA2 heads against the hip part on roll-flip Stage 4. Poses that set a joint beyond its declared
+range (body definitions `joints:`, core.declare_ranges) are measured and reported apart (beyond_declared_range: per pose its joints, per
+screw and part the measurements), not in `others` / worst_cases."""
 from __future__ import annotations
 
 import time
@@ -10,7 +12,7 @@ import numpy as np
 
 from checks import bodylib as BL
 from checks import screwlib as SL
-from checks.core import kit, tick
+from checks.core import beyond_declared, kit, range_report, tick
 from checks.registry import register
 
 TIP_MM = 3.0            # the tip zone: last 3 mm of the screw
@@ -77,6 +79,7 @@ def run(ctx):
         w = c @ T[:3, :3].T + T[:3, 3]
         return w.min(0), w.max(0)
 
+    beyond_q = [beyond_declared(body, q) for _, q in poses]      # per pose: joints outside their declared range ([] = a design pose)
     per_screw, unmeasured = {}, []
     limb = body.limb_of()                  # limbs from the joint tree (checks/relations.py), as clearance and the sweeps
     other_limb = set()                     # (screw, part) on two different limbs: WBC self-collision limits, left out and listed
@@ -95,8 +98,9 @@ def run(ctx):
         lk = p["owning_link"]
         b = m.bounds
         sc = np.array([[b[i][0], b[j][1], b[k][2]] for i in (0, 1) for j in (0, 1) for k in (0, 1)])
-        rows, cache = {}, {}
+        rows_d, rows_b, cache = {}, {}, {}
         for qi, (pn, q) in enumerate(poses):
+            rows = rows_b if beyond_q[qi] else rows_d
             slo, shi = wbox(sc, lk, qi)
             Ts = link_T(lk, qi)
             for n in cand:
@@ -132,7 +136,7 @@ def run(ctx):
                     r.update(max_overlap_mm3=round(v, 3), pose_of_max=pn, _qi=qi, _Trel=Trel, zones_at_max={k: round(x, 3) for k, x in z.items()}, location_mm=cen)
                 if d < r["min_distance_mm"]:
                     r.update(min_distance_mm=round(d, 3), pose_of_min=pn)
-        for r in rows.values():       # worst pose again with the part's full manifest mesh (the screening solid is decimated / coarser)
+        for r in list(rows_d.values()) + list(rows_b.values()):       # worst pose again with the part's full manifest mesh (the screening solid is decimated / coarser)
             Trel = r.pop("_Trel", None); r.pop("_qi", None)
             if Trel is not None:
                 try:
@@ -156,7 +160,10 @@ def run(ctx):
         own.sort(key=lambda r: -r["head_overlap_mm3"])
         per_screw[sn] = dict(link=lk, touches=touching[sn]["touched"] if sn in touching else [], head_height_mm=g["head_height_mm"],
                              head_dia_mm=round(2 * g["r_head_mm"], 2), length_mm=g["length_mm"], head_volume_mm3=round(hv, 2),
-                             others=sorted(rows.values(), key=lambda r: (-r["max_overlap_mm3"], r["min_distance_mm"]))[:6],
+                             others=sorted(rows_d.values(), key=lambda r: (-r["max_overlap_mm3"], r["min_distance_mm"]))[:6],
+                             beyond_declared_range=[dict(r, joints_at_max=beyond_q[[n for n, _ in poses].index(r["pose_of_max"])] if r["pose_of_max"] else None)
+                                                    for r in sorted(rows_b.values(), key=lambda r: (-r["max_overlap_mm3"], r["min_distance_mm"]))[:6]
+                                                    if r["max_overlap_mm3"] > OVERLAP_MM3 or r["min_distance_mm"] < search],
                              head_inside_own_link_parts=own,
                              stale_head_in_plate=bool(own and own[0]["head_overlap_mm3"] > HEAD_IN_PLATE_MM3))
     tick("fastener_motion", t0)
@@ -174,29 +181,24 @@ def run(ctx):
             o = r["head_inside_own_link_parts"][0]
             cases.append(dict(part=sn, mating_part=o["part"], pose="standing", location_mm=None, value=o["head_overlap_mm3"],
                               unit="mm3 head inside own plate", what=f"head volume {r['head_volume_mm3']} mm3, same link"))
-    # poses outside a joint's manifest range are named so: a hit there is beyond the robot's motion
-    import json as _json
-    rng = {j["name"]: j.get("range_deg") for j in _json.loads(open(ctx.manifest).read()).get("joints", []) if j.get("range_deg")}
-    qs = dict(poses)
-
-    def outside(pose_name):
-        q = qs.get(pose_name) or {}
-        bad = [f"{j} {v:g} (range {rng[j][0]:g}..{rng[j][1]:g})" for j, v in q.items() if j in rng and not rng[j][0] - 1e-6 <= v <= rng[j][1] + 1e-6]
-        return bad
-    for c in cases:
-        bad = outside(c.get("pose")) if c.get("pose") and c["pose"] != "standing" else []
-        if bad:
-            c["pose_outside_joint_range"] = bad
-            c["what"] += "; pose outside the joint range: " + ", ".join(bad)
     order = {"mm3 overlap": 0, "mm3 head inside own plate": 1}         # collisions first, stale screw models after
-    cases.sort(key=lambda c: (order.get(c["unit"], 2), bool(c.get("pose_outside_joint_range")), -c["value"] if c["unit"].startswith("mm3") else c["value"]))
+    cases.sort(key=lambda c: (order.get(c["unit"], 2), -c["value"] if c["unit"].startswith("mm3") else c["value"]))
     n_ov = sum(1 for r in per_screw.values() if any(o["max_overlap_mm3"] > OVERLAP_MM3 for o in r["others"]))
-    return dict(per_part=per_part, worst_cases=cases[:30],
+    apart = {f"{sn} x {o['part']}": o for sn, r in per_screw.items() for o in r["beyond_declared_range"]}
+    apart = dict(sorted(apart.items(), key=lambda t: (-t[1]["max_overlap_mm3"], t[1]["min_distance_mm"])))
+    bposes = [dict(pose=n, joints=b) for (n, _), b in zip(poses, beyond_q) if b]
+    ranges, rcount, rfind = range_report(body, {j for _, q in poses for j in q})
+    return dict(per_part=per_part, worst_cases=cases[:30], beyond_declared_range=dict(poses=bposes, contacts=apart),
+                joint_ranges=ranges, range_findings=rfind,
                 bad_events=dict(screws=len(per_screw), screws_overlapping_other_link=n_ov,
+                                beyond_declared_range_poses=len(bposes),
+                                beyond_declared_range_screw_pairs_overlapping=sum(1 for o in apart.values() if o["max_overlap_mm3"] > OVERLAP_MM3),
+                                **rcount,
                                 screws_head_inside_own_plate=sum(r["stale_head_in_plate"] for r in per_screw.values()),
                                 screws_unmeasured=len(unmeasured), other_limb_pairs_left_out=len(other_limb)),
                 evidence=[], unmeasured=unmeasured, other_limb_pairs=sorted(f"{a} x {b}" for a, b in other_limb),
-                notes=f"{len(poses)} poses ({ctx.poses_name}{' + joint ranges' if getattr(ctx, 'joints', None) else ''}); screw = scoped-link screws + screws touching "
+                notes=f"{len(poses)} poses ({ctx.poses_name}{' + declared joint ranges' if getattr(ctx, 'joints', None) else ''}), {len(bposes)} beyond a declared range "
+                      "(measured, in beyond_declared_range, not in others / worst_cases); screw = scoped-link screws + screws touching "
                       f"a scoped part; others = non-fastener parts on other links within {search:g} mm, pairs on two different limbs left out (other_limb_pairs: WBC self-collision limits, as clearance and the sweeps); overlap = manifold boolean of the screw mesh with the "
                       f"screening solid, split head / shank / tip (last {TIP_MM:g} mm); distance capped at {search:g} mm; head inside own plate = head volume "
                       f"overlap with a same-link part at standing above {HEAD_IN_PLATE_MM3:g} mm3")

@@ -140,24 +140,34 @@ def measure(new_mf, new_pts, new_bounds, T_rel, part: Prepped, margin):
 
 
 def pose_set(body, jname, step):
+    """([{joint: deg}], adjacent joints) of joint jname: its range_deg in steps, each neighbouring joint over its range at jname's ends
+    and middle, and the pairwise range corners. The checks' Body carries the declared ranges (checks.core.declare_ranges). A joint
+    without a range_deg is never posed over an invented one: jname without one gives no poses, a neighbour without one is left out;
+    both are added to body.unranged_in_poses."""
     j = body.joints[jname]
     parent, child = j["parent"], j["child"]
-    rng = j.get("range_deg") or [-30, 30]
+    unranged = body.__dict__.setdefault("unranged_in_poses", set())
+    rng = j.get("range_deg")
+    if not rng:
+        unranged.add(jname)
+        return [], []
     own = list(np.arange(rng[0], rng[1] + 1e-6, step))
     if rng[1] not in own:
         own.append(rng[1])
     poses = [{jname: float(a)} for a in own]
     adj = [jj for jj in body.joints.values() if jj.get("active") is not False and jj["name"] != jname and
            (jj["child"] in (parent, child) or jj["parent"] in (parent, child))]
+    unranged |= {jj["name"] for jj in adj if not jj.get("range_deg")}
+    adj = [jj for jj in adj if jj.get("range_deg")]
     for jj in adj:
-        r2 = jj.get("range_deg") or [-30, 30]
+        r2 = jj["range_deg"]
         for a2 in list(np.arange(r2[0], r2[1] + 1e-6, step * 2)) + [r2[1]]:
             for a1 in (rng[0], 0.5 * (rng[0] + rng[1]), rng[1]):
                 poses.append({jname: float(a1), jj["name"]: float(a2)})
     # pairwise extremes of adjacent joints together (flexion corners)
     for x in range(len(adj)):
         for y in range(x + 1, len(adj)):
-            ra, rb = adj[x].get("range_deg") or [-30, 30], adj[y].get("range_deg") or [-30, 30]
+            ra, rb = adj[x]["range_deg"], adj[y]["range_deg"]
             for a in ra:
                 for b in rb:
                     for a1 in (rng[0], rng[1]):

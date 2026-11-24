@@ -32,8 +32,93 @@ def tick(name, t0):
 
 
 def load_body(manifest: Path):
-    """Body (parts, joints, link_T) of one manifest, loaded once."""
-    return kit.base(manifest)
+    """Body (parts, joints, link_T) of one manifest, loaded once; every joint's range_deg is the one the body definitions declare
+    (declare_ranges)."""
+    return declare_ranges(kit.base(manifest))
+
+
+# ------------------------------------------------------------------------------------------------ joint ranges
+def declared_joints():
+    """({joint: dict(range_deg, file, entry, ...)}, error or None): the joint ranges the body definitions declare (`joints:` of
+    robot/**/<builder>.bom.yaml, robot/body/bom/bom_config.joints; LAB_DEFINITIONS_ROOT gives another set). The single source of
+    every range the checks use (owner 2026-11-23)."""
+    try:
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import bom_config
+        return bom_config.joints(), None
+    except Exception as exc:  # noqa: BLE001  (unreadable definitions: every joint reads 'manifest only', and the error is reported)
+        return {}, f"{type(exc).__name__}: {exc}"
+
+
+def declare_ranges(body, declared=None):
+    """Set each joint's range_deg to its declared range. A joint no definition declares keeps the manifest's range_deg, marked
+    'manifest only'; a joint with neither has range_deg None and is not swept (no invented range). body.range_source[joint] =
+    {range_deg, manifest_range_deg, from: definition | manifest only | none, definition: 'file entry' | None}; body.range_findings
+    lists the declared ranges that differ from the manifest's, the manifest-only joints and the joints without a range."""
+    if getattr(body, "range_source", None) is not None and declared is None:
+        return body
+    err = None
+    if declared is None:
+        declared, err = declared_joints()
+    src, diff = {}, []
+    for jn, j in body.joints.items():
+        man = [float(x) for x in j["range_deg"]] if j.get("range_deg") else None
+        d = declared.get(jn)
+        if d is not None:
+            r, frm, where = [float(x) for x in d["range_deg"]], "definition", f"{d['file']} {d['entry']}"
+            if man is not None and man != r:
+                diff.append(dict(joint=jn, declared_range_deg=r, manifest_range_deg=man, definition=where))
+        elif man is not None:
+            r, frm, where = man, "manifest only", None
+        else:
+            r, frm, where = None, "none", None
+        j["range_deg"] = r
+        src[jn] = dict(range_deg=r, manifest_range_deg=man, **{"from": frm}, definition=where)
+    body.range_source = src
+    body.range_findings = dict(declared_differs_from_manifest=diff,
+                               manifest_only=sorted(n for n, s in src.items() if s["from"] == "manifest only"),
+                               without_range=sorted(n for n, s in src.items() if s["from"] == "none"),
+                               definitions_error=err)
+    body.unranged_in_poses = set()     # joints a pose list names that have no range (pose left out), filled by the pose builders
+    return body
+
+
+def joint_range(body, jn):
+    """[lo, hi] of joint jn as declared (declare_ranges), None when the joint has no range."""
+    declare_ranges(body)
+    j = body.joints.get(jn)
+    return list(j["range_deg"]) if j and j.get("range_deg") else None
+
+
+BEYOND_TOL_DEG = 0.01
+
+
+def beyond_declared(body, q):
+    """[{joint, declared_range_deg, value_deg}] of the joints pose q sets outside their declared range (by more than 0.01 deg); []
+    for a pose inside every declared range. Such a pose is a stress pose: measured, reported apart (beyond_declared_range), never
+    part of the design-pose results; joints without a range are not judged."""
+    out = []
+    for jn, a in q.items():
+        r = joint_range(body, jn)
+        if r and not (min(r) - BEYOND_TOL_DEG <= a <= max(r) + BEYOND_TOL_DEG):
+            out.append(dict(joint=jn, declared_range_deg=r, value_deg=round(float(a), 3)))
+    return out
+
+
+def range_report(body, joints):
+    """(joint_ranges {joint: range_source} of `joints`, counts for bad_events, findings) for a check's result: where each range came
+    from, the declared ranges that differ from the manifest's, manifest-only joints and joints without a range (left out)."""
+    declare_ranges(body)
+    js = sorted({j for j in joints if j in body.joints} | set(body.unranged_in_poses))
+    jr = {j: body.range_source[j] for j in js if j in body.range_source}
+    f = body.range_findings
+    find = dict(declared_differs_from_manifest=[d for d in f["declared_differs_from_manifest"] if d["joint"] in jr],
+                manifest_only=[j for j in f["manifest_only"] if j in jr],
+                without_range=sorted({j for j in f["without_range"] if j in jr} | set(body.unranged_in_poses)),
+                definitions_error=f["definitions_error"])
+    counts = dict(joints_range_differs_from_manifest=len(find["declared_differs_from_manifest"]),
+                  joints_range_manifest_only=len(find["manifest_only"]), joints_without_range=len(find["without_range"]))
+    return jr, counts, find
 
 
 # ------------------------------------------------------------------------------------------------ hashing / caches
@@ -301,32 +386,95 @@ def full_closed_mesh(body, n):
 
 
 # ------------------------------------------------------------------------------------------------ poses
+def _ranges(body=None):
+    """{joint: [lo, hi]}: the body's declared ranges (declare_ranges), or without a body the definitions' own."""
+    if body is not None:
+        declare_ranges(body)
+        return {n: list(j["range_deg"]) for n, j in body.joints.items() if j.get("range_deg")}
+    return {n: list(d["range_deg"]) for n, d in declared_joints()[0].items()}
+
+
+def _end(r, which):
+    """'lo' / 'hi' of a declared range."""
+    return float(min(r)) if which == "lo" else float(max(r))
+
+
+def _region_list(body, v, which):
+    """[(name, {joint: deg})] of one region (pose_sets.json region_poses.regions[k]), every angle a declared range end (declare_ranges):
+    `ends` = each joint alone at both ends; `combinations` = {joint: lo | hi} together (optional `name`); with library / all, `corners`
+    = every combination of ends of the listed groups (the joints of a group take the same end). A joint the body lacks is left out of
+    a pose; a pose naming a joint without a range is left out and the joint listed (body.unranged_in_poses)."""
+    rng = _ranges(body)
+    unranged = body.__dict__.setdefault("unranged_in_poses", set())
+    P = []
+
+    def pose(ends):
+        q = {}
+        for j, e in ends.items():
+            if j not in body.joints:
+                continue
+            if j not in rng:
+                unranged.add(j)
+                return None
+            q[j] = _end(rng[j], e)
+        return q or None
+    for j in v.get("ends", []):
+        for e in ("lo", "hi"):
+            q = pose({j: e})
+            if q:
+                P.append((f"{j} {q[j]:+g}", q))
+    for c in v.get("combinations", []):
+        q = pose(c["ends"])
+        if q:
+            P.append((c.get("name") or " + ".join(f"{j} {a:+g}" for j, a in q.items()), q))
+    if which in ("library", "all"):
+        import itertools
+        for groups in v.get("corners", []):
+            for es in itertools.product(("lo", "hi"), repeat=len(groups)):
+                q = pose({j: e for g, e in zip(groups, es) for j in g})
+                if q:
+                    P.append(("corner " + " ".join(f"{'/'.join(g)} {q[g[0]]:+g}" for g in groups if g[0] in q), q))
+    return P
+
+
 def region_poses(body, which, links):
-    """[(name, family, {joint: deg})] of the arm / neck / torso regions (pose_sets.json region_poses) that hold one of `links`; standing
-    first. Joints the body lacks are left out of a pose. [] when no region holds a link."""
+    """[(name, family, {joint: deg})] of the arm / neck / torso regions (pose_sets.json region_poses) that hold one of `links`, the
+    angles taken from the declared joint ranges (_region_list). [] when no region holds a link."""
     regs = [(k, v) for k, v in json.loads((DATA / "pose_sets.json").read_text())["region_poses"]["regions"].items() if set(v["links"]) & set(links)]
     P = []
     for k, v in regs:
         fam = k.split("_")[0]
-        lists = [v["key"]] + ([v["library_extra"]] if which in ("library", "all") else [])
-        for L in lists:
-            P += [(f"{fam}: {nm}", fam, {**body.standing, **{j: float(a) for j, a in q.items() if j in body.joints}}) for nm, q in L.items()]
+        P += [(f"{fam}: {nm}", fam, {**body.standing, **q}) for nm, q in _region_list(body, v, which)]
     return P
 
 
-def fit_poses():
-    """[(name, {joint: deg})] of the exact-fit list, pose_sets.json fit_poses: standing, each sweep's joint alone at each of its
-    angles, then the combined poses."""
+def fit_poses(body=None):
+    """[(name, {joint: deg})] of the exact-fit list, pose_sets.json fit_poses: standing; each sweep's joint alone at the multiples of
+    its step_deg inside its declared range (0 left out) and at both declared ends, then at its stress angles (beyond_deg: deliberately
+    outside the declared range, reported apart by the checks); then the combined poses. The ranges are the body's (declare_ranges),
+    or the definitions' without a body; a sweep joint without a range keeps its stress angles only (listed in body.unranged_in_poses)."""
     fp = json.loads((DATA / "pose_sets.json").read_text())["fit_poses"]
+    rng = _ranges(body)
     P = [("standing", {})]
     for sw in fp["sweeps"]:
-        P += [(sw["name"].format(deg=a), {sw["joint"]: float(a)}) for a in sw["deg"]]
+        r, st = rng.get(sw["joint"]), float(sw["step_deg"])
+        angles = []
+        if r:
+            lo, hi = float(min(r)), float(max(r))
+            k0, k1 = int(np.ceil(lo / st - 1e-9)), int(np.floor(hi / st + 1e-9))
+            angles = sorted(({lo, hi} | {round(k * st, 6) for k in range(k0, k1 + 1)}) - {0.0})
+        elif body is not None:
+            body.__dict__.setdefault("unranged_in_poses", set()).add(sw["joint"])
+        angles += [float(a) for a in sw.get("beyond_deg", []) if not (r and min(r) <= a <= max(r))]
+        P += [(sw["name"].format(deg=a), {sw["joint"]: float(a)}) for a in sorted(angles)]
     return P + [(nm, {j: float(a) for j, a in q.items()}) for nm, q in fp["combined"]]
 
 
-def _leg_sources(spec):
+def _leg_sources(body, spec):
     """[(name, family, {joint: deg})] of a set's leg-motion sources (pose_sets.json: leg_motion KEY / library / GRID on
-    leg_motion.joints, fit_poses, range_ends), each the joints it sets, before standing is filled in."""
+    leg_motion.joints, fit_poses, range_ends = both declared ends of each listed joint, stress_ends = deliberate angles beyond the
+    declared range), each the joints it sets, before standing is filled in. Poses beyond a declared range stay in the set: the
+    checks measure them and report them apart (beyond_declared)."""
     from leg_motion import GRID, KEY, library_poses
     J = json.loads((DATA / "pose_sets.json").read_text())["leg_motion"]["joints"]
 
@@ -336,10 +484,18 @@ def _leg_sources(spec):
     if spec.get("leg_motion_key"):
         P += [(f"key: {k}", "key", q4(v)) for k, v in KEY.items()]
     if spec.get("fit_poses"):       # the exact-fit list (single joints over wide ranges + combined crouches)
-        P += [(f"fit: {nm}", "fit poses", cmd) for nm, cmd in fit_poses()]
+        P += [(f"fit: {nm}", "fit poses", cmd) for nm, cmd in fit_poses(body)]
     if spec.get("fit_extremes"):
-        P += [(f"fit: {nm}", "fit extremes", cmd) for nm, cmd in fit_poses()[-spec["fit_extremes"]:]]
-    P += [(f"range end: {j} {a:+g}", "range ends", {j: float(a)}) for j, a in spec.get("range_ends", [])]
+        P += [(f"fit: {nm}", "fit extremes", cmd) for nm, cmd in fit_poses(body)[-spec["fit_extremes"]:]]
+    rng = _ranges(body)
+    for j in spec.get("range_ends", {}).get("joints", []):
+        if j not in body.joints:
+            continue
+        if j not in rng:
+            body.__dict__.setdefault("unranged_in_poses", set()).add(j)
+            continue
+        P += [(f"range end: {j} {a:+g}", "range ends", {j: a}) for a in (_end(rng[j], "lo"), _end(rng[j], "hi"))]
+    P += [(f"stress end: {j} {a:+g}", "stress ends", {j: float(a)}) for j, a in spec.get("stress_ends", []) if j in body.joints]
     if spec.get("leg_motion_library"):
         P += [(f"{fam} {np.round(p, 1).tolist()}", fam, q4(p)) for fam, p, _ in library_poses()]
     if spec.get("leg_motion_grid"):
@@ -385,14 +541,16 @@ def pose_set(body, which, links=()):
     """[(name, family, {joint: deg})] of a named set in data/pose_sets.json. links: owning links of the scoped parts; the parts on an arm,
     neck or torso link get that region's poses (region_poses) in place of the leg-motion poses; leg parts and mixed scopes keep the leg set
     (mixed: plus the region poses). The leg set names one leg's joints; scoped parts on the other leg get it mirrored onto that leg
-    (leg_sides, mirror_cmd: '(mirror)' after the pose name, a range end named by its own joint), a scope on both legs gets both."""
+    (leg_sides, mirror_cmd: '(mirror)' after the pose name, a range or stress end named by its own joint), a scope on both legs gets
+    both. Range ends and region poses are the declared ranges' ends (declare_ranges); poses beyond a declared range are kept
+    (beyond_declared tells them apart)."""
     spec = json.loads((DATA / "pose_sets.json").read_text())[which]
     st = body.standing
     reg = region_poses(body, which, links) if links else []
     in_region = {lk for v in json.loads((DATA / "pose_sets.json").read_text())["region_poses"]["regions"].values() for lk in v["links"]}
     if reg and set(links) <= in_region:
         return [("standing", "standing", dict(st))] + reg
-    src = _leg_sources(spec)
+    src = _leg_sources(body, spec)
     as_named, mirrored = leg_sides(body, {j for _, _, c in src for j in c}, links)
     P = [("standing", "standing", dict(st))] if spec.get("standing") else []
     if as_named:
@@ -400,9 +558,9 @@ def pose_set(body, which, links=()):
     if mirrored:
         for nm, fam, cmd in src:
             m = mirror_cmd(body, cmd)
-            if fam == "range ends":
+            if fam in ("range ends", "stress ends"):
                 (j, a), = m.items()
-                nm = f"range end: {j} {a:+g}"
+                nm = f"{fam[:-1]}: {j} {a:+g}"
             else:
                 nm = f"{nm} (mirror)"
             P.append((nm, fam, {**st, **m}))
