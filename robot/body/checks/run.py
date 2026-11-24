@@ -1,6 +1,6 @@
 """Shared design check for the printed body. One report per run, a worst-first summary on stdout. No pass/fail.
 
-  python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py \
+  python3 infra/tools/memguard.py --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py \
       [--manifest PATH  (default: body_manifest in robot/design.json)] \
       [--parts GLOB[,GLOB]] [--section Hip] [--link GLOB] [--role ROLE] [--changed-since REV|last-run] \
       [--checks clearance,gaps,mass,press,render,geometry,fit,static_audit,range_sweep,collision_sweep,shell_offset,fem,fem_setup,print_setup,screws,driver_access] [--fem-variant NAME] [--poses key|library|all|fit] [--exact-press] [--process KEY=VALUE ...] [--label NAME]
