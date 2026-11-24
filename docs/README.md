@@ -27,6 +27,7 @@ Current best results, numbers, limits and open questions:
 
 ## Design references
 
+- [Design kit](design/design-kit.md): how shells and connectors look and are built (calm parametric shells, two-sided U / H / I / Y connectors); read before any shell or connector work.
 - [Evaluation principles](design/evaluation-principles.md): scores, not verdicts; the 0–5 distance-to-viable scale.
 - [Artifact storage](design/artifact-storage.md): content store, private archive, cold files, restore.
 - [Finished designs](design/finished-designs.md): earlier accepted designs kept in Git history.

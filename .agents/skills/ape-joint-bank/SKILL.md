@@ -15,7 +15,7 @@ Keep compact bank records, source identities/hashes and active source parts loca
 
 Use `python3 robot/actuators/joint-bank/bank.py` to `list` by region, architecture, maturity, CAD, or motion availability; `show <ID>` for the full record; `motion <ID>` for normalized saved poses; and `resolve <ID> <asset>` for a verified source path. Inspect `limits`, source documentation, interface frame, units, and any failed trial before reuse. `source_only` means there is no banked CAD; a missing origin is unknown, not zero. A saved pose is neither continuous collision clearance nor a control trajectory.
 
-Stage a useful candidate with `stage <ID> --out <new-directory>`. Add `--with-shell` only when the selected exterior STEP helps the CAD task. The staged `package.json` retains source hashes and frame information; local specimen parts are not automatically aligned to that shell. Keep generated or modified geometry separate from the frozen source package and identify its parameters and provenance.
+Stage a useful candidate with `stage <ID> --out <new-directory>`. Add `--with-shell` only when the selected exterior STEP helps the CAD task. The staged `package.json` retains source hashes and frame information; local specimen parts are not automatically aligned to that shell. Keep generated or modified geometry separate from the frozen source package and identify its parameters and provenance. New shells and connectors built from a staged option follow the [design kit](../../../docs/design/design-kit.md) and its code in `robot/body/design_kit/`.
 
 ## Complete or maintain the bank
 

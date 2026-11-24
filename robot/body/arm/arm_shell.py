@@ -59,6 +59,7 @@ from checks import bodylib as F  # noqa: E402
 import bom_config as BOM_CONFIG  # noqa: E402  (joint ranges and part materials: the body definitions)
 import shoulder_clevis as SC  # noqa: E402
 import shoulder_shells as SS  # noqa: E402
+from design_kit import shell as K  # noqa: E402  (docs/design/design-kit.md: the master surface and seam cutters)
 
 SOURCE = SS.CANDIDATE                            # input: the shoulder-shells body (only read)
 OUT = ROOT / "artifacts/robot/body/arm/arm-shell"
@@ -116,155 +117,25 @@ COLS = ("cx", "cy", "cz", "w", "a_out", "a_in", "b_front", "b_back", "n")
 
 
 # ---------------------------------------------------------------------------------------------- the master surface
-def _knots(st=None):
-    st = st or STATIONS
-    C = np.array([s[1] for s in st], float)
-    t = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(C, axis=0), axis=1))]
-    V = np.array([list(s[1]) + list(s[2:]) for s in st], float)
-    return t, V
+# design_kit.shell.Sweep: superellipse sections on natural cubic splines, tilt 0 = horizontal (up +z), tilt 1 = normal to
+# the yaw axis, U from +x (outboard), V = U x N (~ -y, front), the route D hood as the dome above the first station
+def sweep(st=None):
+    return K.Sweep(st or STATIONS, tilt_axis=YAW, up=(0.0, 0.0, 1.0), u_ref=(1.0, 0.0, 0.0), cap=CAP, wall=WALL)
 
 
-def _spline(tk, Vk):
-    """Natural cubic spline per column (C2; a clamped vertical start at the hood was tried: it joins the dome without a
-    crease but tightens the spine's bend at the top to r 21 mm, so the natural end is kept)."""
-    from scipy.interpolate import CubicSpline
-    return CubicSpline(tk, Vk, bc_type="natural", axis=0)
-
-
-def stations(t, st=None):
-    """Centre (n, 3), frame U, V, N (n, 3) each and the ring values (n, 5: a_out, a_in, b_front, b_back, n) at chord
-    parameters t (natural cubic spline per column)."""
-    from scipy.interpolate import CubicSpline
-    tk, Vk = _knots(st)
-    t = np.clip(np.asarray(t, float), tk[0], tk[-1])
-    val = _spline(tk, Vk)(t)
-    C = val[:, :3]
-    w = np.clip(val[:, 3], 0.0, 1.0)
-    N = (1.0 - w)[:, None] * np.array([0.0, 0.0, 1.0]) + w[:, None] * YAW
-    N /= np.linalg.norm(N, axis=1, keepdims=True)
-    U = np.array([1.0, 0.0, 0.0]) - N[:, :1] * N
-    U /= np.linalg.norm(U, axis=1, keepdims=True)
-    V = np.cross(U, N)                                 # ~ -y (front)
-    return C, U, V, N, val[:, 4:]
-
-
-def ring_r(th, prm, gx=1.0, gy=1.0):
-    """Superellipse radius at angle th (from U toward V) for ring values prm (..., 5); gx / gy scale the u / v half-widths."""
-    a = np.where(np.cos(th) > 0, prm[..., 0], prm[..., 1]) * gx
-    b = np.where(np.sin(th) > 0, prm[..., 2], prm[..., 3]) * gy
-    e = prm[..., 4]
-    with np.errstate(divide="ignore", invalid="ignore"):
-        r = (np.abs(np.cos(th) / a) ** e + np.abs(np.sin(th) / b) ** e) ** (-1.0 / e)
-    return np.nan_to_num(r, nan=0.0, posinf=0.0)
-
-
-def _dome(h, p):
-    return np.clip(1.0 - np.clip(h, 0.0, 1.0) ** p, 0.0, 1.0) ** (1.0 / p)
-
-
-def grid(st=None, dt=0.6, nth=256, ncap=48):
-    """Outer skin as rings (nr, nth, 3) from the dome's pole row down to the last station, the pole, and vertex normals."""
-    tk, _ = _knots(st)
-    th = np.linspace(-np.pi, np.pi, nth, endpoint=False)
-    t = np.arange(0.0, tk[-1] + 1e-9, dt)
-    C, U, V, N, prm = stations(t, st)
-    R = ring_r(th[None, :], prm[:, None, :])
-    body = C[:, None, :] + R[..., None] * (np.cos(th)[None, :, None] * U[:, None, :] + np.sin(th)[None, :, None] * V[:, None, :])
-    c0, p0 = C[0], prm[0]
-    phi = np.linspace(0.0, np.pi / 2, ncap)[1:-1][::-1]           # dome rows from near the pole down to the first ring
-    hz = np.sin(phi) ** (2.0 / CAP["p"])                          # height share h of each row (as shoulder_shells._grid)
-    gx = np.cos(phi) ** (2.0 / CAP["p"])
-    gy = _dome(hz, CAP["p_y"])
-    Rc = ring_r(th[None, :], p0[None, None, :], gx[:, None], gy[:, None])
-    cap = (c0 + np.array([0.0, 0.0, 1.0]) * ((CAP["z_top"] - c0[2]) * hz)[:, None])[:, None, :] + \
-        Rc[..., None] * (np.cos(th)[None, :, None] * U[0] + np.sin(th)[None, :, None] * V[0])
-    G = np.concatenate([cap, body], 0)
-    pole = np.array([c0[0], c0[1], CAP["z_top"]])
-    dth = np.roll(G, -1, 1) - np.roll(G, 1, 1)
-    up = np.concatenate([np.broadcast_to(pole, (1,) + G.shape[1:]), G[:-1]], 0)
-    dn = np.concatenate([G[1:], G[-1:] + (G[-1:] - G[-2:-1])], 0)
-    Nv = np.cross(up - dn, dth)
-    Nv /= np.linalg.norm(Nv, axis=-1, keepdims=True)
-    cen = np.concatenate([np.broadcast_to(c0, (len(cap), 3)), C], 0)
-    if np.mean(np.einsum("ijk,ijk->ij", Nv, G - cen[:, None, :])) < 0:
-        Nv = -Nv
-    return G, pole, Nv
-
-
-def _solid(G, pole, bottom):
-    """Closed mesh: pole fan on top, ring grid, fan to `bottom` (rows run top to bottom)."""
-    nz, nth = G.shape[:2]
-    i, j = np.meshgrid(np.arange(nz - 1), np.arange(nth), indexing="ij")
-    a, b = i * nth + j, i * nth + (j + 1) % nth
-    Fc = np.r_[np.c_[a.ravel(), b.ravel(), (b + nth).ravel()], np.c_[a.ravel(), (b + nth).ravel(), (a + nth).ravel()]]
-    P, B = nz * nth, nz * nth + 1
-    j = np.arange(nth); last = (nz - 1) * nth
-    Fc = np.r_[Fc, np.c_[(j + 1) % nth, j, np.full(nth, P)], np.c_[last + j, last + (j + 1) % nth, np.full(nth, B)]]
-    m = trimesh.Trimesh(np.vstack([G.reshape(-1, 3), pole, bottom]), Fc, process=True)
-    if m.volume < 0:
-        m.invert()
-    return m
-
-
-def master(st=None):
-    """(outer solid, inner solid) of the whole arm; the shell is outer - inner (wall WALL along the normal)."""
-    G, pole, Nv = grid(st)
-    tk, _ = _knots(st)
-    Cend, _, _, Nend, _ = stations([tk[-1]], st)
-    bot = Cend[0] - 4.0 * Nend[0]
-    outer = _solid(G, pole, bot)
-    Gi = G - WALL * Nv
-    Gi = np.concatenate([Gi, Gi[-1:] - 3.0 * Nend[0]], 0)          # the inner solid runs out past the open end
-    inner = _solid(Gi, pole - np.array([0.0, 0.0, WALL]), bot - 6.0 * Nend[0])
-    return outer, inner
-
-
-# ---------------------------------------------------------------------------------------------- local coordinates
-_TDENSE = {}
-
-
-def local(P, st=None, dt=0.25):
-    """Station parameter t, angle th and radius rho of points P in their section plane, the skin radius r_skin at that
-    angle, and the dome share h (> 0 above the first station). Points beyond the ends get the end station."""
-    from scipy.spatial import cKDTree
-    key = (tuple(map(tuple, _knots(st)[1].round(6).tolist())), dt)
-    if key not in _TDENSE:
-        tk, _ = _knots(st)
-        t = np.arange(0.0, tk[-1] + 1e-9, dt)
-        _TDENSE.clear(); _TDENSE[key] = (t,) + stations(t, st)
-    t, C, U, V, N, prm = _TDENSE[key]
-    P = np.asarray(P, float)
-    _, i0 = cKDTree(C).query(P)
-    best = i0.copy()
-    win = np.arange(-60, 61)
-    idx = np.clip(i0[:, None] + win[None, :], 0, len(t) - 1)
-    f = np.einsum("ijk,ijk->ij", P[:, None, :] - C[idx], N[idx])        # signed distance from each nearby plane
-    sc = np.sign(f[:, :-1]) != np.sign(f[:, 1:])
-    k = np.where(sc.any(1), np.argmin(np.where(sc, np.abs(win[None, :-1]), 10 ** 6), axis=1), np.argmin(np.abs(f), axis=1))
-    best = idx[np.arange(len(P)), k]
-    d = P - C[best]
-    d = d - np.einsum("ij,ij->i", d, N[best])[:, None] * N[best]
-    u, v = np.einsum("ij,ij->i", d, U[best]), np.einsum("ij,ij->i", d, V[best])
-    th = np.arctan2(v, u); rho = np.hypot(u, v)
-    rs = ring_r(th, prm[best])
-    h = np.zeros(len(P))
-    top = (best == 0) & ((P - C[0]) @ np.array([0.0, 0.0, 1.0]) > 0)
-    if top.any():                                                      # the dome above the first station
-        d0 = P[top] - C[0]
-        h[top] = d0[:, 2] / (CAP["z_top"] - C[0][2])
-        u0, v0 = d0 @ U[0], d0 @ V[0]
-        th[top] = np.arctan2(v0, u0); rho[top] = np.hypot(u0, v0)
-        rs[top] = ring_r(th[top], prm[0][None, :], _dome(h[top], CAP["p"]), _dome(h[top], CAP["p_y"]))
-    return t[best], th, rho, rs, h
+SWEEP = sweep()
+_knots = lambda st=None: sweep(st).knots() if st else SWEEP.knots()          # noqa: E731
+stations = lambda t, st=None: (sweep(st) if st else SWEEP).frames(t)          # noqa: E731
+ring_r = K.ring_r
+grid = lambda st=None, **kw: (sweep(st) if st else SWEEP).grid(**kw)          # noqa: E731
+master = lambda st=None: (sweep(st) if st else SWEEP).master()                # noqa: E731
+local = lambda P, st=None, dt=0.25: (sweep(st) if st else SWEEP).local(P, dt)  # noqa: E731
 
 
 def margin(P, need, st=None, exclude=False):
     """Radial room (mm) between points P + need and the outer skin (< 0: the point with its need pokes out); for
     `exclude` sets (parts that must stay outside) the room outside the skin."""
-    _, _, rho, rs, h = local(P, st)
-    if exclude:
-        return np.where(h >= 1.0, 99.0, rho - rs - need)
-    return np.where(h >= 1.0, -need - 1.0, rs - rho - need)
+    return (sweep(st) if st else SWEEP).margin(P, need, exclude=exclude)
 
 
 # ---------------------------------------------------------------------------------------------- requirements
@@ -330,57 +201,25 @@ def requirements(body):
 
 
 def report_margins(body, st=None, verbose=True):
-    rows = {}
-    for k, (P, need) in requirements(body).items():
-        m = margin(P, need, st, exclude=k.startswith("EXCLUDE"))
-        i = int(np.argmin(m))
-        rows[k] = dict(points=int(len(P)), min_mm=round(float(m[i]), 2), at=np.round(P[i], 1).tolist(),
-                       short_points=int((m < 0).sum()))
-        if verbose:
-            print(f"{k:50s} min {m[i]:6.2f} mm at {np.round(P[i], 1)}  short {int((m < 0).sum())} / {len(P)}", flush=True)
-    return rows
+    return (sweep(st) if st else SWEEP).report_margins(requirements(body), verbose=verbose)
 
 
 # ---------------------------------------------------------------------------------------------- the cut into parts
-def _mf(m):
-    return SS._mf(m)
-
-
-def _tm(x):
-    r = x.to_mesh()
-    return trimesh.Trimesh(np.asarray(r.vert_properties)[:, :3], np.asarray(r.tri_verts), process=False)   # as manifold
-    # gives it (2-manifold; merging coincident vertices would join two sheets that touch along an edge)
+_mf, _tm = K.to_manifold, K.to_trimesh
+_boss = K.boss
 
 
 def _wedge_x(phi0, phi1, r=400.0, n=90, x0=60.0, x1=200.0):
     """Prism along x over the sector phi0..phi1 (deg, from straight down toward the front) about the elbow axis."""
-    ph = np.radians(np.linspace(phi0, phi1, n))
-    yz = np.r_[[[ELBOW[1], ELBOW[2]]], np.c_[ELBOW[1] - r * np.sin(ph), ELBOW[2] - r * np.cos(ph)]]
-    poly = __import__("shapely.geometry", fromlist=["Polygon"]).Polygon(yz)
-    if not poly.exterior.is_ccw:
-        poly = poly.__class__(yz[::-1])
-    m = trimesh.creation.extrude_polygon(poly, x1 - x0)
-    T = np.eye(4); T[:3, :3] = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]; T[0, 3] = x0     # (a, b, c) -> (c + x0, a, b)
-    m.apply_transform(T)
-    if m.volume < 0:
-        m.invert()
-    return m
+    return K.seam_sector(ELBOW, (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (0.0, 0.0, -1.0), (0.0, -1.0, 0.0), phi0, phi1, x0, x1, r=r, n=n)
 
 
 def _cyl_x(r, x0=60.0, x1=200.0):
-    return trimesh.creation.cylinder(radius=r, segment=[[x0, ELBOW[1], ELBOW[2]], [x1, ELBOW[1], ELBOW[2]]], sections=180)
+    return K.seam_cylinder([x0, ELBOW[1], ELBOW[2]], [x1, ELBOW[1], ELBOW[2]], r)
 
 
 def _tube_yaw(r_in, r_out, s0, s1):
-    a, b = yaw_point(s0), yaw_point(s1)
-    o = trimesh.creation.cylinder(radius=r_out, segment=[a, b], sections=240)
-    i = trimesh.creation.cylinder(radius=r_in, segment=[a - YAW, b + YAW], sections=240)
-    return _mf(o) - _mf(i)
-
-
-def _boss(axis_pt, axis_dir, r, t0, t1):
-    a = np.asarray(axis_pt, float); d = np.asarray(axis_dir, float) / np.linalg.norm(axis_dir)
-    return _mf(trimesh.creation.cylinder(radius=r, segment=[a + t0 * d, a + t1 * d], sections=64))
+    return K.tube(yaw_point(s0), yaw_point(s1), r_in, r_out, axis=YAW)
 
 
 LOWER_TAB = 1.5     # lower-cover tab under each elbow-case screw head (on the washer): the screw's stack grows by this
@@ -417,9 +256,7 @@ def lower_screw_mesh(m):
     return screw_plan.screw_mesh(plan)
 
 
-def _tube(a, d, t0, t1, od, bore):
-    """Sleeve solid on the axis a + t d, t0..t1 (manifold)."""
-    return _boss(a, d, od / 2.0, t0, t1) - _boss(a, d, bore / 2.0, t0 - 1.0, t1 + 1.0)
+_tube = K.sleeve_tube   # sleeve solid on the axis a + t d, t0..t1 (manifold)
 
 
 def fore_mounts(body):
@@ -515,45 +352,12 @@ def build(body, st=None):
 # ---------------------------------------------------------------------------------------------- measures
 def spine_smoothness(st=None, dt=0.5):
     """Spine curvature (1/mm) and its change per mm along the centre curve; ring-value slopes."""
-    tk, _ = _knots(st)
-    t = np.arange(0.0, tk[-1] + 1e-9, dt)
-    C, _, _, _, prm = stations(t, st)
-    d1 = np.gradient(C, dt, axis=0); d2 = np.gradient(d1, dt, axis=0)
-    k = np.linalg.norm(np.cross(d1, d2), axis=1) / np.linalg.norm(d1, axis=1) ** 3
-    dk = np.gradient(k, dt)
-    W = prm[:, :4]; dW = np.gradient(W, dt, axis=0); ddW = np.gradient(dW, dt, axis=0)
-    return dict(length_mm=round(float(tk[-1]), 1), max_curvature_per_mm=round(float(k.max()), 5),
-                min_bend_radius_mm=round(float(1.0 / k.max()), 1), max_curvature_change_per_mm2=round(float(np.abs(dk).max()), 6),
-                max_half_width_slope=round(float(np.abs(dW).max()), 3), max_half_width_curvature_per_mm=round(float(np.abs(ddW).max()), 4),
-                exponent_range=[round(float(prm[:, 4].min()), 2), round(float(prm[:, 4].max()), 2)])
+    return (sweep(st) if st else SWEEP).smoothness(dt)
 
 
 def growth(src, outer):
-    """Outward growth of the new outer skin (the master's outer solid) against today's covers (source manifest): from each
-    point of today's outer skin along today's outward normal to the new skin (+ = the new skin lies outside), mm."""
-    out = {}
-    rx = trimesh.ray.ray_pyembree.RayMeshIntersector(outer)
-    for n in COVERS:
-        c = src.mesh(n)
-        P, fi = trimesh.sample.sample_surface(c, 30000, seed=1)
-        Nn = c.face_normals[fi]
-        own = trimesh.ray.ray_pyembree.RayMeshIntersector(c)
-        far = ~own.intersects_any(P + Nn * 0.05, Nn)                    # outer skin: nothing of the cover outside it
-        P, Nn = P[far], Nn[far]
-        ins = outer.contains(P)
-        d = np.full(len(P), np.nan)
-        for sgn, sel in ((1.0, ins), (-1.0, ~ins)):
-            if not sel.any():
-                continue
-            loc, ir, _ = rx.intersects_location(P[sel], Nn[sel] * sgn, multiple_hits=False)
-            idx = np.flatnonzero(sel)[ir]
-            d[idx] = sgn * np.linalg.norm(loc - P[idx], axis=1)
-        ok = np.isfinite(d) & (np.abs(d) < 40.0)
-        d, Pk = d[ok], P[ok]
-        out[n] = dict(points=int(len(d)), p05_p50_p95_mm=np.round(np.percentile(d, [5, 50, 95]), 2).tolist(),
-                      max_outward_mm=round(float(d.max()), 2), at=np.round(Pk[int(np.argmax(d))], 1).tolist(),
-                      max_inward_mm=round(float(d.min()), 2))
-    return out
+    """Outward growth of the new outer skin (the master's outer solid) against today's covers (source manifest), mm."""
+    return K.growth(outer, {n: src.mesh(n) for n in COVERS})
 
 
 # ---------------------------------------------------------------------------------------------- apply
@@ -655,66 +459,24 @@ FIT = dict(n_max=3.4, n_min=2.2, n_pref=2.4, n_weight=0.5, w_min=12.0, w_max=48.
 
 def fit(verbose=True):
     """The half-widths and exponents of every station (centres, tilts, the hood's x half-widths and the seam circle are
-    set by rule): the least section area (sum over a dense sampling of (a_out + a_in) (b_front + b_back)) plus a
-    smoothing term (integrated squared second derivative of every half-width along the arm, weight FIT["smooth"]) and a
-    pull of the exponents toward FIT["n_pref"] (rounder sections), with
-    every requirement point inside with its need. The elbow's two stations are tied (a constant band about the axis)."""
-    from scipy.interpolate import CubicSpline
-    from scipy.optimize import minimize
+    set by rule): design_kit.shell.Sweep.fit, least section area + smoothing (weight FIT["smooth"]) + a pull of the
+    exponents toward FIT["n_pref"], every requirement point inside with its need. The elbow's two stations are tied (a
+    constant band about the axis)."""
     body = F.Body(json.loads(CANDIDATE.read_text()))
-    req = requirements(body)
-    names = [s[0] for s in STATIONS]
-    fixed = {"seam top", "seam"}
-    P = np.vstack([r[0] for r in req.values()]); need = np.concatenate([np.full(len(r[0]), r[1]) for r in req.values()])
-    sg = np.concatenate([np.full(len(r[0]), -1.0 if k.startswith("EXCLUDE") else 1.0) for k, r in req.items()])
-    t, th, rho, rs0, h = local(P)
-    keep = (sg * (rs0 - rho) - need < 8.0) & (h < 1.0)
-    P, need, t, th, rho, h, sg = P[keep], need[keep], t[keep], th[keep], rho[keep], h[keep], sg[keep]
-    tk, Vk = _knots()
-    B = np.stack([CubicSpline(tk, np.eye(len(tk))[i], bc_type="natural")(np.clip(t, tk[0], tk[-1])) for i in range(len(tk))], -1)
-    td = np.linspace(0, tk[-1], 400)
-    Bd = np.stack([CubicSpline(tk, np.eye(len(tk))[i], bc_type="natural")(td) for i in range(len(tk))], -1)
-    Bdd = np.stack([CubicSpline(tk, np.eye(len(tk))[i], bc_type="natural")(td, 2) for i in range(len(tk))], -1)
-    hood = names.index("hood"); e0, e1 = names.index("elbow top"), names.index("elbow")
-    free = [i for i, n in enumerate(names) if n not in fixed and n != "elbow"]
-    cols = list(range(4, 9))                                     # a_out, a_in, b_front, b_back, n (in Vk: 3 + 1 + ...)
-    V0 = Vk[:, 4:].copy()                                       # (stations, 5)
+    names = SWEEP.names
+    hood = names.index("hood")
 
-    def unpack(x):
-        V = V0.copy(); k = 0
-        for i in free:
-            for c in range(5):
-                V[i, c] = x[k]; k += 1
-        V[e1] = V[e0]
-        return V
-
-    x0, bnd = [], []
-    for i in free:
-        for c in range(5):
-            x0.append(V0[i, c])
-            bnd.append(((FIT["n_min"], FIT["hood_n_max"] if i == hood else FIT["n_max"]) if c == 4 else FIT["hood_a"][c] if (i == hood and c < 2)
-                       else (FIT["w_min"], FIT["hood_b_max"]) if i == hood else (FIT["w_min"], FIT["w_max"])))
-    x0 = np.array(x0)
-
-    def obj(x):
-        V = unpack(x); W = Bd @ V
-        area = np.mean((W[:, 0] + W[:, 1]) * (W[:, 2] + W[:, 3]))
-        dd = Bdd @ V[:, :4]
-        return float(area / 100.0 + FIT["smooth"] * np.mean(dd ** 2) * 100.0 + FIT["n_weight"] * np.sum((V[:, 4] - FIT["n_pref"]) ** 2))
-
-    def cons(x):
-        prm = B @ unpack(x)
-        return sg * (ring_r(th, prm) - rho) - need
-    r = minimize(obj, x0, method="SLSQP", bounds=bnd, constraints=[dict(type="ineq", fun=cons)],
-                 options=dict(maxiter=400, ftol=1e-8))
-    V = unpack(r.x); m = cons(r.x)
+    def bounds(i, c):
+        if c == 4:
+            return (FIT["n_min"], FIT["hood_n_max"] if i == hood else FIT["n_max"])
+        if i == hood:
+            return FIT["hood_a"][c] if c < 2 else (FIT["w_min"], FIT["hood_b_max"])
+        return (FIT["w_min"], FIT["w_max"])
+    V, r, m = SWEEP.fit(requirements(body), bounds, fixed=("seam top", "seam"), tied=(("elbow top", "elbow"),),
+                        smooth=FIT["smooth"], n_pref=FIT["n_pref"], n_weight=FIT["n_weight"])
     if verbose:
         print(f"fit: {r.message}; worst margin {m.min():.3f} mm over {len(m)} points; objective {r.fun:.3f}")
-        print("STATIONS = (")
-        for i, s in enumerate(STATIONS):
-            c = s[1]
-            print(f'    ("{s[0]}", ({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}), {s[2]}, ' + ", ".join(f"{v:.2f}" for v in V[i]) + "),")
-        print(")")
+        print(SWEEP.stations_text(V))
     return V, r
 
 
