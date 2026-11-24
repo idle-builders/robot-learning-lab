@@ -100,7 +100,14 @@ def save_npz(name, mesh):
 
 
 OLD_KNEE_SCREWS = "A9_BPA2x3_proposal_"     # the old C047 knee's 4 PA2x3 per leg (shell-pass manifest)
-STEEL = 7.85e-3                             # g/mm3
+def _screw_steel_g_mm3():
+    """g/mm3 of the generated screws: the materials.json entry data/hardware.json screw_standards names (screw_plan.standards())."""
+    sys.path.insert(0, str(ROOT / "robot/body/fastening"))
+    import screw_plan as SP
+    return SP.standards()["density_g_cm3"] * 1e-3
+
+
+STEEL = _screw_steel_g_mm3()                # g/mm3 (7.85e-3 for Steel 304 sleeve, 2026-11-24)
 
 
 def _generated(name):
@@ -170,7 +177,7 @@ def hip_screws(parts, man, only=None):
                                           f"{pl['point_mm']} mm point (envelope)",
                                  color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                                  overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                                 inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                                 inspection_reference=False, mass_basis=f"mesh volume x {STEEL * 1e3:g} g/cm3",
                                  roll_flip="generated from its defined hole by robot/body/fastening/screw_plan.py",
                                  screw_plan={k: (round(float(v), 3) if isinstance(v, (float, np.floating)) else v) for k, v in pl.items()
                                              if k in ("hole_id", "thread_label", "head_standard", "length_mm", "stack_mm", "head_gap_mm",

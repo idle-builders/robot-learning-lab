@@ -19,9 +19,9 @@
   90
  ],
  "screw_standards": {
-  "_doc": "Dimensions and length series of the head standards, per thread (a thread the standard does not cover has no row; no rows by analogy) (mm). dk = head diameter max, k = head height max (standard values). lengths = nominal screw length l (under the head to the tip) of the standard's preferred series for that thread. lengths_status: the series were transcribed by the builder from the standards' tables and are NOT re-checked against the paywalled texts: treat them as an assumption until compared with the supplier's list (edit them here and every generated screw follows). point_mm: length of the tip cone the engagement counts as not threaded into the hole (assumption, as mount_check.match_screw). density_g_cm3: A2 / 8.8 steel (assumption) for the mass of a generated screw (volume of the modelled envelope x density).",
+  "_doc": "Dimensions and length series of the head standards, per thread (a thread the standard does not cover has no row; no rows by analogy) (mm). dk = head diameter max, k = head height max (standard values). lengths = nominal screw length l (under the head to the tip) of the standard's preferred series for that thread. lengths_status: the series were transcribed by the builder from the standards' tables and are NOT re-checked against the paywalled texts: treat them as an assumption until compared with the supplier's list (edit them here and every generated screw follows). point_mm: length of the tip cone the engagement counts as not threaded into the hole (assumption, as mount_check.match_screw). material: the data/materials.json entry whose density gives the mass of a generated screw (volume of the modelled envelope x density; robot/body/fastening/screw_plan.standards() resolves it as density_g_cm3, the one steel density the steel sleeves and the builders' HARDWARE_MATERIAL use too; 2026-11-24, T-q2aqps: was its own density_g_cm3 7.85, A2 / 8.8 steel, assumption).",
   "point_mm": 0.5,
-  "density_g_cm3": 7.85,
+  "material": "Steel 304 sleeve",
   "lengths_status": "assumption: transcribed from the standards' length tables, not re-checked against the standard text",
   "head_types": {
    "ISO 7380-1": {

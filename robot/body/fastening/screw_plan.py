@@ -35,7 +35,11 @@ REACH_MM = 40.0
 
 
 def standards() -> dict:
-    return json.loads(HARDWARE.read_text())["screw_standards"]
+    """data/hardware.json screw_standards, with density_g_cm3 resolved from the materials.json entry it names (`material`;
+    the same data folder, so LAB_CHECKS_DATA steers both): the screws' steel density has one source."""
+    st = json.loads(HARDWARE.read_text())["screw_standards"]
+    st["density_g_cm3"] = float(json.loads((HARDWARE.parent / "materials.json").read_text())[st["material"]]["density_g_cm3"])
+    return st
 
 
 def connectors() -> dict:

@@ -310,6 +310,461 @@ parts:
     part, sku).'
   heat_source: *id001
   section: Knee
+- match: R_thigh_combined
+  kind: printed
+  line: print:R_thigh_combined
+  name: R_thigh_combined
+  make_buy: make
+  notes: FEM baseline of robot/body/leg/roll_flip_checks.py fem stage4_selected on the motor-refit manifest (artifacts/robot/body/motor-refit/assembly-parts.json);
+    intentionally absent from the selected body (hip session, 2026-11-22). Settings moved from checks/data/part_settings.json 2026-11-24 (T-q2aqps).
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - x
+  fem:
+    _doc: 'Motor-refit thigh (old fem_refit PARTS[''thigh''], fem_upper_hip stage 4). Supports: the hip-roll horn / idler A9 M3x4 screws (4 +
+      4); load: the knee servo case (ST3025). Manifest frame = old r1 frame + 4 mm in x.'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: R_thigh_combined_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_knee
+      offset_mm:
+      - -20.0
+      - 0.0
+      - 18.65
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    supports:
+      hip_roll_horn_screws:
+        contact:
+        - R_A9_hip_M3x4_0_0
+        - R_A9_hip_M3x4_0_1
+        - R_A9_hip_M3x4_0_2
+        - R_A9_hip_M3x4_0_3
+        gap_mm: 2.0
+      hip_roll_idler_screws:
+        contact:
+        - R_A9_hip_M3x4_1_0
+        - R_A9_hip_M3x4_1_1
+        - R_A9_hip_M3x4_1_2
+        - R_A9_hip_M3x4_1_3
+        gap_mm: 2.0
+    load:
+      holes:
+        mate:
+        - R_knee_ST3025_case
+        gap_mm: 2.0
+        r_max_mm: 2.0
+        rim_mm: 2.3
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 1960.0
+        - 680.0
+        - 140.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 20.0
+        - -25.0
+        - 58.84
+        - 2940.0
+        - 1380.0
+        - 480.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 15.0
+        - -18.75
+        - 44.13
+        - 2205.0
+        - 1035.0
+        - 360.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 30.0
+        - -37.5
+        - 88.26
+        - 4410.0
+        - 2070.0
+        - 720.0
+      servo_stall:
+        stall:
+          joint: R_knee
+          torque_Nmm: 3922.7
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 44.0
+        - 4.0
+        - 141.65
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 61.0
+                - 190.0
+              - - 75.0
+                - 190.0
+              - - 68.0
+                - 183.0
+              - - 68.0
+                - 197.0
+              radius_mm: 4.2
+              where:
+                axis: y
+                max: -11.5
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 61.0
+                - 190.0
+              - - 75.0
+                - 190.0
+              - - 68.0
+                - 183.0
+              - - 68.0
+                - 197.0
+              radius_mm: 4.2
+              where:
+                axis: y
+                min: 24.8
+        load:
+          rings:
+            axes:
+            - 1
+            - 2
+            sites:
+            - - 7.68
+              - 150.17
+            - - 0.31999999999999984
+              - 150.17
+            - - 11.17
+              - 146.68
+            - - -3.17
+              - 146.68
+            - - 12.0
+              - 151.0
+            - - -4.0
+              - 151.0
+            radius_mm: 3.5
+            where:
+              axis: x
+              min: 41.0
+              max: 46.0
+      stored_load_legacy_supports:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        supports:
+          main:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 61.0
+                - 190.0
+              - - 75.0
+                - 190.0
+              - - 68.0
+                - 183.0
+              - - 68.0
+                - 197.0
+              radius_mm: 4.2
+              where:
+                axis: y
+                max: -11.5
+          idler:
+            rings:
+              axes:
+              - 0
+              - 2
+              sites:
+              - - 61.0
+                - 190.0
+              - - 75.0
+                - 190.0
+              - - 68.0
+                - 183.0
+              - - 68.0
+                - 197.0
+              radius_mm: 4.2
+              where:
+                axis: y
+                min: 24.8
+        origin_mm:
+        - 44.0
+        - 4.0
+        - 141.65
+    open_difference: 'legacy_coordinates reproduces the old run (p99 -0.7..+1.1 %, peak -2.2..+0.5 %, disp 0.0..+0.4 %). Stored differs: p99 +23..+45
+      %, peak +22..+58 %, displacement +50..+79 %. One-change solve (stored load + legacy supports) gives the same numbers, so the cause is the
+      load patch: holes next to the knee case (717 mm2, 36 hole faces) vs old rings (410 mm2); supports are equal (738 / 742 vs 729 / 729 mm2).
+      Not chased further.'
+- match: R_hip_pitch_to_roll_combined
+  kind: printed
+  line: print:R_hip_pitch_to_roll_combined
+  name: R_hip_pitch_to_roll_combined
+  make_buy: make
+  notes: FEM baseline of robot/body/leg/roll_flip_checks.py fem stage5_selected on the motor-refit manifest (artifacts/robot/body/motor-refit/assembly-parts.json);
+    intentionally absent from the selected body (hip session, 2026-11-22). Settings moved from checks/data/part_settings.json 2026-11-24 (T-q2aqps).
+  process:
+    printer: Bambu X2D
+    material: Bambu PAHT-CF
+    layer_normal_axes:
+    - z
+  fem:
+    _doc: 'Motor-refit hip pitch to roll (old fem_refit PARTS[''hip_pitch_to_roll''], fem_upper_hip stage 5). Support: the 4 pitch-horn screws;
+      load: the roll servo case''s 8 ear screws (A13 PA2x3). Manifest frame = old r1 frame + 4 mm in x.'
+    mesh_h_mm: 2.2
+    bonded:
+    - part: R_hip_pitch_to_roll_combined_steel_sleeves
+      material: Steel 304 sleeve
+    origin_mm:
+      joint: R_hip_roll
+      offset_mm:
+      - -19.0
+      - 19.2
+      - 0.0
+    materials:
+    - Bambu PAHT-CF
+    - legacy_fdm_PAHT_CF_dry
+    - legacy_fdm_PETG_CF
+    supports:
+      pitch_horn_screws:
+        contact:
+        - R_A13_pitch_horn_M3x12_0
+        - R_A13_pitch_horn_M3x12_1
+        - R_A13_pitch_horn_M3x12_2
+        - R_A13_pitch_horn_M3x12_3
+        gap_mm: 2.0
+    load:
+      contact:
+      - R_A13_roll_face0_PA2x3_0
+      - R_A13_roll_face0_PA2x3_1
+      - R_A13_roll_face0_PA2x3_2
+      - R_A13_roll_face0_PA2x3_3
+      - R_A13_roll_face1_PA2x3_0
+      - R_A13_roll_face1_PA2x3_1
+      - R_A13_roll_face1_PA2x3_2
+      - R_A13_roll_face1_PA2x3_3
+      gap_mm: 2.0
+    load_cases:
+      stance_4kg_1g:
+        wrench_N_Nmm:
+        - 0.0
+        - -6.0
+        - 39.23
+        - 2150.0
+        - 790.0
+        - 165.0
+      recovery_4kg_1p5g:
+        wrench_N_Nmm:
+        - 22.0
+        - -26.0
+        - 58.84
+        - 3300.0
+        - 1650.0
+        - 580.0
+      light_3kg_1p5g:
+        wrench_N_Nmm:
+        - 16.5
+        - -19.5
+        - 44.13
+        - 2475.0
+        - 1237.5
+        - 435.0
+      heavy_6kg_1p5g:
+        wrench_N_Nmm:
+        - 33.0
+        - -39.0
+        - 88.26
+        - 4950.0
+        - 2475.0
+        - 870.0
+      servo_stall:
+        stall:
+          joint: R_hip_roll
+          torque_Nmm: 4900.0
+    variants:
+      legacy_coordinates:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 49.0
+        - 7.2
+        - 190.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 2.0
+                - 212.0
+              - - 2.0
+                - 226.0
+              - - -5.0
+                - 219.0
+              - - 9.0
+                - 219.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                min: 62.5
+        load:
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 39.0
+              - 179.75
+            - - 39.0
+              - 200.25
+            - - 59.7
+              - 179.75
+            - - 59.7
+              - 200.25
+            radius_mm: 3.8
+            where:
+              axis: y
+              max: -8.0
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 35.25
+              - 179.75
+            - - 35.25
+              - 200.25
+            - - 59.7
+              - 179.75
+            - - 59.7
+              - 200.25
+            radius_mm: 3.8
+            where:
+              axis: y
+              min: 22.5
+      legacy_coordinates_raw_sleeves:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        origin_mm:
+        - 49.0
+        - 7.2
+        - 190.0
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 2.0
+                - 212.0
+              - - 2.0
+                - 226.0
+              - - -5.0
+                - 219.0
+              - - 9.0
+                - 219.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                min: 62.5
+        load:
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 39.0
+              - 179.75
+            - - 39.0
+              - 200.25
+            - - 59.7
+              - 179.75
+            - - 59.7
+              - 200.25
+            radius_mm: 3.8
+            where:
+              axis: y
+              max: -8.0
+        - rings:
+            axes:
+            - 0
+            - 2
+            sites:
+            - - 35.25
+              - 179.75
+            - - 35.25
+              - 200.25
+            - - 59.7
+              - 179.75
+            - - 59.7
+              - 200.25
+            radius_mm: 3.8
+            where:
+              axis: y
+              min: 22.5
+        bonded:
+        - part: R_hip_pitch_to_roll_combined_steel_sleeves
+          material: Steel 304 sleeve
+          step_offset_mm:
+          - 0.0
+          - 0.0
+          - 0.0
+      stored_load_legacy_supports:
+        materials:
+        - legacy_fdm_PAHT_CF_dry
+        - legacy_fdm_PETG_CF
+        supports:
+          main:
+            rings:
+              axes:
+              - 1
+              - 2
+              sites:
+              - - 2.0
+                - 212.0
+              - - 2.0
+                - 226.0
+              - - -5.0
+                - 219.0
+              - - 9.0
+                - 219.0
+              radius_mm: 4.2
+              where:
+                axis: x
+                min: 62.5
+        origin_mm:
+        - 49.0
+        - 7.2
+        - 190.0
+    open_difference: 'Old stored refit run is not reproducible on today''s inputs (old p99 30.4 / peak 584 / disp 4.69 for recovery; the old pipeline
+      run again on today''s STEP gives 26.36 / 223 / 2.42). legacy_coordinates_raw_sleeves (sleeves STEP unshifted as the old code did, ignoring
+      native_step_offset_mm) reproduces that re-run (26.36 / 215 / 2.45); legacy_coordinates (sleeves aligned by the manifest offset) gives 24.06
+      / 115 / 2.18. Stored vs legacy_coordinates: p99 -1.2..+1.0 %, peak -0.1..+0.8 %, disp 0.0..+2.4 %. So the open difference to the old numbers
+      is the old run''s input (4 mm misplaced sleeves and a changed part), not the patches.'
 assembly:
   steps:
   - id: torso:p004
