@@ -877,7 +877,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     axes[2].grid(axis="y", alpha=0.3)
 
     fig.suptitle(
-        "Cove-50 4-Stage Center-Body Torso FDM Carriers — Matched 3D Tetrahedral FEM (Combined Multi-Limb Stall)",
+        "APE0 4-Stage Center-Body Torso FDM Carriers — Matched 3D Tetrahedral FEM (Combined Multi-Limb Stall)",
         fontsize=12,
         fontweight="bold",
     )
@@ -953,7 +953,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     cb_mass_g = man_cb["total_4stage_mass_paht_cf_g"]
     mass_red_pct = 100.0 * (base_mass_g - cb_mass_g) / base_mass_g
     fig.suptitle(
-        f"Cove-50 Honeycomb Torso — {mass_red_pct:.1f}% Mass Reduction ({base_mass_g:.2f} g -> {cb_mass_g:.2f} g), Chain Deflection & FDM Bed Fit",
+        f"APE0 Honeycomb Torso — {mass_red_pct:.1f}% Mass Reduction ({base_mass_g:.2f} g -> {cb_mass_g:.2f} g), Chain Deflection & FDM Bed Fit",
         fontsize=11,
         fontweight="bold",
     )

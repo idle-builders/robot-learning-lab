@@ -280,7 +280,7 @@ def run_step(sid: str) -> int:
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(s.get("limit_gb", mg["limit_gb"])),
            "--timeout-s", str(s.get("timeout_s", mg["timeout_s"])), "--"] + s["command"]
     if shutil.which("caffeinate"):
-        # macOS: keep the machine awake while the step runs. memguard's timeout is wall time, so a step that ran while
+        # macOS: keep the machine awake while the step runs. memguard's timeout is awake time (sleep not counted, since 2026-11-23), so a step that ran while
         # the laptop slept was stopped with almost no CPU time (2026-11-20, roll-flip-cad: 997 s wall, asleep 18:06-18:21).
         cmd = ["caffeinate", "-i", "-s"] + cmd
     logs = WORK / "logs"; logs.mkdir(parents=True, exist_ok=True)

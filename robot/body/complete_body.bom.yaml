@@ -23,7 +23,7 @@ study:
   - Hand / wrist
   - Electronics
   workspace: Body
-  summary: 'The selected Cove-50 body (robot/design.json body_manifest): every part with its BOM line, files, generator, assembly step and latest
+  summary: 'The selected APE0 body (robot/design.json body_manifest): every part with its BOM line, files, generator, assembly step and latest
     check measurements, generated from the body definitions.'
   maturity: CAD of the selected body with design-check measurements; printed and assembled hardware unmeasured.
   version_note: 'Selected complete printed body, generated from the body definitions. Earlier versions stay in the version menu: r1 (commit 48c38ceda,

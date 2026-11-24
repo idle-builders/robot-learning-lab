@@ -684,7 +684,7 @@ def render_upper_and_complete_figures(full_6stage_summary: dict):
     fig = plt.figure(figsize=(16, 13.5), dpi=180)
     fig.patch.set_facecolor("#0f141c")
     fig.suptitle(
-        "Cove-50 Upper-Leg & Hip Connectors (Stages 4–6) Mated to Fixed C047 Actuators (Knee -> Hip Roll -> Hip Pitch -> Hip Yaw)",
+        "APE0 Upper-Leg & Hip Connectors (Stages 4–6) Mated to Fixed C047 Actuators (Knee -> Hip Roll -> Hip Pitch -> Hip Yaw)",
         color="#f0f4f8",
         fontsize=13.8,
         fontweight="bold",

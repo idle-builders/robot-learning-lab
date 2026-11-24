@@ -1,7 +1,7 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "$id": "cove50-body-definition/1",
- "title": "Cove-50 body definition (<builder>.bom.yaml)",
+ "title": "APE0 body definition (<builder>.bom.yaml)",
  "description": "One annotated definition per builder, next to its script (robot/body/**/<script>.bom.yaml). The agents who own the builder decide everything in it: what the builder generates and from what, which manifest parts it owns and what they are (make / buy, spec, supplier), and how they go together. robot/body/bom/build.py and the checks only read these files, resolve the globs against the selected manifest, add what they can read from files (existence, sha256, solids, volume, mass), and report what is missing. Example and field guide: robot/body/bom/README.md.",
  "type": "object",
  "required": [

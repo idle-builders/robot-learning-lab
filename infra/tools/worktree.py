@@ -16,17 +16,10 @@ one APFS clone of the main checkout's, made in one clonefile call (13 s for 111k
 load): no disk until a file changes, and nothing the worktree writes reaches main. The check caches and the generator
 cache (robot/body/bom/gencache.py) are shared, so the first build or check in the worktree reuses what any checkout made.
 
-land, run by the worktree's own agent when its work is committed (owner 2026-11-22):
-  1. refuses while the worktree has uncommitted changes (naming them);
-  2. `make.py` in the worktree: every generator whose inputs changed runs there, so its outputs are in the shared cache;
-  3. under main's land lock (one land at a time; a second waits), merges the branch into main (`Merge NAME: <subject>`).
-     Refuses, changing nothing, when main has uncommitted edits in files the branch changes (another session's work in
-     progress), and aborts a conflicting merge (merge main into the branch in the worktree, resolve, land again). Checks
-     afterwards that main contains the branch;
-  4. `make.py --report` in main: the selected body brought up to date from the cache (the generators this worktree ran
-     are reused; only what main changed meanwhile runs), then the BOM, the bom check and the BOM findings that changed;
-     scores, never a gate;
-  5. removes the worktree and its branch (--keep keeps them), and runs the generator cache gc.
+land, run by the worktree's own agent when its work is committed: merges the branch into main (`Merge NAME: <subject>`;
+a conflict leaves main unchanged: `git merge main` in the worktree, resolve, land again), removes the worktree and its
+branch (--keep keeps them) and runs the generator cache gc. Seconds; it builds nothing (owner 2026-11-24: generated files
+are built on demand with `robot/body/bom/make.py TARGET` by whoever needs them, and cached for every checkout).
 Main stays open for small edits (docs, Idle bookkeeping); work that runs builders or checks belongs in a worktree.
 
 adopt (owner 2026-11-23: "push other sessions into worktrees"): work in progress that sits uncommitted in main blocks
@@ -137,8 +130,9 @@ def add(name, rev):
     secs, how = clone_tree(MAIN / "artifacts", dest / "artifacts")
     print(f"{dest}: branch {name} from {rev}; links {', '.join(LINKS)}; artifacts cloned in {secs:.0f} s ({how}); "
           f"check and generator caches shared with {MAIN.name}")
-    print("next: work and commit here; `.venv/bin/python -B robot/body/bom/make.py` brings this checkout's body up to date "
-          "(reusing every unchanged output); `python3 infra/tools/worktree.py land` when done")
+    print("next: work and commit here; build what you need when you need it, `.venv/bin/python -B robot/body/bom/make.py "
+          "TARGET` (a generator, `body`, a path or a part; `status TARGET` shows what is out of date; cached outputs are "
+          "reused); `python3 infra/tools/worktree.py land` when done (merge only, builds nothing)")
     others = [(p, b) for p, b in worktrees() if p != dest]
     touched = {}
     for p, b in others:
@@ -202,53 +196,35 @@ def gc():
 
 
 def land(name, keep):
+    """Merge the worktree's committed branch into main and clean up; nothing is built (owner 2026-11-24: generated files are
+    built on demand, `robot/body/bom/make.py TARGET`, and cached; the scripts are the source of truth). Before, land ran
+    the whole generator chain in the worktree and again in main under the land lock: 8.7 h of worktree makes, 2.7 h of
+    main rebuilds and 2.75 h of lock queueing over 2026-11-22..24."""
+    t0 = time.time()
     path, branch = resolve(name)
     d = dirty(path)
     if d:
         sys.exit(f"{path.name}: commit (or remove) these first, land takes committed work only:\n  " + "\n  ".join(d[:30]))
-    if git("rev-parse", "--abbrev-ref", "HEAD", cwd=MAIN) != "main":
-        sys.exit(f"the main checkout is not on branch main; nothing done")
-    print(f"== 1/4 bring {path.name}'s body up to date (its generator runs go into the shared cache)")
-    if run([".venv/bin/python", "-B", "robot/body/bom/make.py"], path):
-        sys.exit("make failed in the worktree (log above); fix and land again. Nothing was merged.")
-    lockf = MAIN / ".cache/land.lock"
+    lockf = MAIN / ".cache/land.lock"                       # two merges into main at once would race on its index
     lockf.parent.mkdir(parents=True, exist_ok=True)
     with open(lockf, "a+") as lk:
-        try:
-            fcntl.flock(lk, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
-            lk.seek(0)
-            print(f"waiting for another land ({lk.read().strip()}) ...", flush=True)
-            fcntl.flock(lk, fcntl.LOCK_EX)
-        lk.seek(0); lk.truncate(); lk.write(f"{branch} pid {os.getpid()} since {time.strftime('%H:%M:%S')}\n"); lk.flush()
-        print(f"== 2/4 merge {branch} into main")
-        mine = set(changed_files(branch))
-        theirs = {l[3:].split(" -> ")[-1] for l in dirty(MAIN)}
-        clash = sorted(mine & theirs)
-        if clash:
-            sys.exit("main has uncommitted edits (another session's work in progress) in files this branch changes; nothing "
-                     "merged. Wait until they are committed, then land again:\n  " + "\n  ".join(clash))
-        subj = git("log", "-1", "--format=%s", branch, cwd=MAIN)
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        subj = (git("log", "-1", "--no-merges", "--format=%s", f"main..{branch}", cwd=MAIN)
+                or git("log", "-1", "--format=%s", branch, cwd=MAIN))
         r = git("merge", "--no-ff", "-m", f"Merge {branch}: {subj}", branch, cwd=MAIN, check=False)
         if r.returncode:
-            conflicts = git("diff", "--name-only", "--diff-filter=U", cwd=MAIN, check=False).stdout.split()
             git("merge", "--abort", cwd=MAIN, check=False)
-            sys.exit(f"merge of {branch} failed; main is unchanged. {('Conflicts: ' + ', '.join(conflicts)) if conflicts else r.stderr.strip()}\n"
+            sys.exit(f"merge of {branch} into main did not go through; main is unchanged:\n{(r.stderr or r.stdout).strip()}\n"
                      f"In the worktree: `git merge main`, resolve, commit, then land again.")
-        if git("merge-base", "--is-ancestor", branch, "HEAD", cwd=MAIN, check=False).returncode:
-            sys.exit(f"main does not contain {branch} after the merge; check `git log` in main")
-        print(git("log", "-1", "--format=%h %s", cwd=MAIN))
-        print("== 3/4 bring main's body up to date, BOM, bom check")
-        rc = run([".venv/bin/python", "-B", "robot/body/bom/make.py", "--report"], MAIN)
-    if rc:
-        print(f"make --report in main returned {rc} (log above): the merge stands; fix the failing generator in a new worktree")
-    print("== 4/4 clean up")
+    print(git("log", "-1", "--format=%h %s", cwd=MAIN))
     if keep:
         print(f"kept {path.name} (--keep)")
     else:
         remove(path, branch)
     gc()
-    return rc
+    print(f"landed in {time.time() - t0:.0f} s. Nothing was built: generated files are made on demand "
+          f"(`.venv/bin/python -B robot/body/bom/make.py status body` shows what is out of date, `make.py body` builds it)")
+    return 0
 
 
 def prune(yes):

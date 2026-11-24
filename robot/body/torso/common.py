@@ -1,4 +1,4 @@
-"""Shared geometry, material properties, and interface helpers for the Cove-50 Center-Body Torso Base Plate & Electronics Carrier FDM Redesign Study."""
+"""Shared geometry, material properties, and interface helpers for the APE0 Center-Body Torso Base Plate & Electronics Carrier FDM Redesign Study."""
 from __future__ import annotations
 
 import json

@@ -1,6 +1,13 @@
-"""Bring this checkout's body up to date from the declared generators, reusing every output whose inputs have not changed.
+"""Build generated files on demand from the declared generators, reusing every output whose inputs have not changed.
 
-  .venv/bin/python -B robot/body/bom/make.py status          # per generator: reused / runs, and why (seconds, runs nothing)
+The scripts are the source of truth; generated files are momentary, built when someone needs them and cached (owner
+2026-11-24). Nothing builds them eagerly (not land, not worktree add): ask for what you need.
+
+  .venv/bin/python -B robot/body/bom/make.py status TARGET   # what TARGET needs: reused / out of date, and why (seconds)
+  .venv/bin/python -B robot/body/bom/make.py TARGET ...      # restore or run only TARGET and the generators it needs
+     TARGET: a generator id (neck-collar), `body` (the selected body manifest), an artifact path, or a part name of the
+     selected body (R_thigh_shell_front); checks/run.py prints the out-of-date generators behind the manifest it checks
+  .venv/bin/python -B robot/body/bom/make.py status          # every generator
   .venv/bin/python -B robot/body/bom/make.py                 # restore or run every generator in order, in this checkout
   .venv/bin/python -B robot/body/bom/make.py --report        # ... then the BOM, the bom check, and the findings that changed
   .venv/bin/python -B robot/body/bom/make.py --run ID[,ID]   # also run these section builders (rebuild: false) here
@@ -42,6 +49,17 @@ import gencache as GC  # noqa: E402
 
 GENSITE = HERE / "gensite"
 DEFAULT_RES = dict(limit_gb=6, timeout_s=900)
+
+
+def learned_timeout(gid, floor=900, factor=4, cap=7200):
+    """A generator without a declared timeout_s: factor x its longest recorded successful run (gencache entries), at
+    least `floor`, at most `cap` seconds of awake time (memguard). roll-flip-cad ran up to 645 s recorded and 1450 s
+    under load against the old flat 900 s (2026-11-23); a declared resources.timeout_s always wins."""
+    try:
+        secs = [e.get("seconds") or 0 for _, e in zip(range(50), GC.entries(gid))]
+    except Exception:  # noqa: BLE001
+        secs = []
+    return int(min(cap, max(floor, factor * max(secs, default=0))))
 # blob-store indexes only say where a missing file is restored from (the file then read is recorded itself); as inputs they
 # would invalidate every entry whenever any session uploads anything (same rule as checks/resultcache.py)
 IGNORE_READS = ("infra/tools/memguard.py", "data/private-archive.json", "data/regenerable-artifacts.json", "data/blob-store")
@@ -100,6 +118,8 @@ def run_one(g, log_dir: Path):
     pre_sha = {r: GC.file_state(ROOT, r) for r in before}
     GC.idx().flush()
     res = {**DEFAULT_RES, **(g.get("resources") or {})}
+    if "timeout_s" not in (g.get("resources") or {}):
+        res["timeout_s"] = learned_timeout(g["id"])
     rec = Path(tempfile.mkdtemp(prefix=f"gen-{g['id']}-", dir=GC.store()))
     cmd = ["python3", "infra/tools/memguard.py", "--limit-gb", str(res["limit_gb"]), "--timeout-s", str(res["timeout_s"]), "--"] + g["command"]
     if shutil.which("caffeinate"):
@@ -178,7 +198,7 @@ def late_reads(reads, pos, plan):
     return [f"reads {len(v)} file(s) that {k} (runs later) writes, e.g. {', '.join(v[:2])}" for k, v in by.items()]
 
 
-def lock():
+def lock(wait=False):
     p = ROOT / ".cache/make.lock"
     p.parent.mkdir(parents=True, exist_ok=True)
     fh = open(p, "a+")
@@ -186,7 +206,11 @@ def lock():
         fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
         fh.seek(0)
-        sys.exit(f"make.py: another make holds {p} in this checkout ({fh.read().strip() or 'pid unknown'}); wait for it to finish")
+        held = fh.read().strip() or "pid unknown"
+        if not wait:
+            sys.exit(f"make.py: another make holds {p} in this checkout ({held}); wait for it to finish (or pass --wait)")
+        print(f"make.py: waiting for the make in this checkout ({held}); this one then starts from what it left", flush=True)
+        fcntl.flock(fh, fcntl.LOCK_EX)
     fh.seek(0); fh.truncate(); fh.write(f"pid {os.getpid()} since {time.strftime('%H:%M:%S')}\n"); fh.flush()
     return fh
 
@@ -261,6 +285,101 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False, 
     return 0, summary
 
 
+# ------------------------------------------------------------------------------------------------ targets
+def DEF_ORDER():
+    return DEF.load().generator_order()
+
+
+def producer(path: str, D) -> str | None:
+    """The rebuild generator whose declared outputs (or in-place edits) cover the repository-relative path, else the one
+    whose newest cache entry wrote it; None when no generator makes it."""
+    order = D.generator_order()
+    for gid in reversed(order):                          # the last writer: an in-place edit after the first write
+        g = D.generator(gid)
+        if any(covers(x, path) for x in g.get("outputs", []) + g.get("in_place_edits", [])):
+            return gid
+    for gid in reversed(order):
+        if path in GC.newest_outputs(gid):
+            return gid
+    return None
+
+
+def generator_deps(D) -> dict:
+    """{generator id: the rebuild generators it needs first}: what D.generator_order() orders by, kept here because every
+    generator reads definitions.py, so an edit there reruns the whole chain: declared `after`, a generator reading or
+    editing a file another declares as output or in-place edit, a composing generator after what its entries need."""
+    gens = [g for g in D.generators if g.get("rebuild", True)]
+    ids = {g["id"] for g in gens}
+    decl = {g["id"]: [a for a in g.get("after", []) if a in ids] for g in gens}
+
+    def closure(i, seen):
+        for a in decl.get(i, []):
+            if a not in seen:
+                seen.add(a); closure(a, seen)
+        return seen
+    clo = {i: closure(i, set()) for i in ids}
+    writes = {g["id"]: g.get("outputs", []) + g.get("in_place_edits", []) for g in gens}
+    deps = {i: set(decl[i]) for i in ids}
+    for c in D.contributions:
+        for g in gens:
+            if g.get("composes") == c["into"]:
+                deps[g["id"]] |= {n for n in c.get("needs", []) if n in ids and n != g["id"] and g["id"] not in clo[n]}
+    for g in gens:
+        for inp in g.get("inputs", []) + g.get("in_place_edits", []):
+            for h in gens:
+                if h["id"] != g["id"] and g["id"] not in clo[h["id"]] and any(covers(o, inp) for o in writes[h["id"]]):
+                    deps[g["id"]].add(h["id"])
+    return deps
+
+
+def targets(words):
+    """({generator ids incl. everything upstream}, [what each word resolved to]). A word is a generator id, `body` (the
+    selected body manifest of robot/design.json), a repository path (file or folder) or a part name of the selected body."""
+    D = DEF.load()
+    order = D.generator_order()
+    deps = generator_deps(D)
+    body = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    parts = None
+    want, named = set(), []
+    for w in words:
+        gid = None
+        if w in deps:
+            gid = w
+        elif w == "body":
+            gid, w = producer(body, D), f"body ({body})"
+        else:
+            ab = Path(os.path.normpath(w if os.path.isabs(w) else os.path.join(os.getcwd(), w)))   # no resolve: artifacts/ are links
+            rel = str(ab.relative_to(ROOT)) if ab.is_relative_to(ROOT) else w
+            gid = producer(rel.rstrip("/"), D)
+            if gid is None:
+                if parts is None:
+                    parts = {p["name"]: p for p in json.loads((ROOT / body).read_text()).get("parts", [])}
+                p = parts.get(w)
+                files = [p.get(k) for k in ("native_step", "mesh")] if p else []
+                gid = next((g for g in (producer(f, D) for f in files if f) if g), None)
+                if p and gid:
+                    w = f"part {w}"
+        if gid is None:
+            sys.exit(f"make.py: no generator makes {w!r} (generator ids: {', '.join(order)}; or `body`, a path, a part name)")
+        named.append(f"{w} -> {gid}")
+        stack = [gid]
+        while stack:
+            i = stack.pop()
+            if i not in want:
+                want.add(i); stack += list(deps.get(i, ()))
+    return want, named
+
+
+def stale(words=("body",)):
+    """[(generator id, why)] of the generators the targets need whose outputs here are out of date (would run); quiet, runs
+    nothing. For tools that read generated files (checks/run.py) to say what they read is stale."""
+    import contextlib, io
+    with contextlib.redirect_stdout(io.StringIO()):
+        ids, _ = targets(list(words))
+        _, st = make(status_only=True, only=ids, quiet=True)
+    return [(s["id"], s.get("why", "")) for s in st if s["action"] == "runs"]
+
+
 # ------------------------------------------------------------------------------------------------ report
 def bom_findings():
     f = ROOT / ".cache/work/bom/findings.json"
@@ -295,38 +414,50 @@ def report():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", nargs="?", default="make", choices=["make", "status", "gc"])
+    ap.add_argument("words", nargs="*", metavar="[make|status|gc] [TARGET ...]",
+                    help="targets: generator ids, `body` (the selected body manifest), artifact paths or manifest part names; "
+                         "each brings in the generators it needs; none = every generator")
     ap.add_argument("--run", default="", help="section builders (rebuild false) to run here too, comma-separated ids")
     ap.add_argument("--only", default="", help="only these generator ids (assumes the others are current)")
     ap.add_argument("--upto", help="stop after this generator")
     ap.add_argument("--rerun", default="", help="run these generator ids even when an entry could be reused (a fresh entry "
                     "after make or gensite changed what is recorded); the ones after them are reused when its outputs match")
     ap.add_argument("--report", action="store_true", help="after make: BOM, bom check, changed findings")
+    ap.add_argument("--wait", action="store_true", help="wait for another make in this checkout instead of exiting")
     ap.add_argument("--dry-run", action="store_true", help="gc: list only")
     ap.add_argument("--grace-days", type=float, default=GC.GRACE_DAYS)
     a = ap.parse_args()
-    if a.action == "gc":
+    words = list(a.words)
+    action = words.pop(0) if words and words[0] in ("make", "status", "gc") else "make"
+    if action == "gc":
         GC.gc(dry_run=a.dry_run, grace_days=a.grace_days)
         return 0
-    only = set(x for x in a.only.split(",") if x) or None
     runs = tuple(x for x in a.run.split(",") if x)
-    if a.action == "status":
+    only = set(x for x in a.only.split(",") if x) or None
+    if words:
+        try:
+            ids, named = targets(words)
+        except ValueError as ex:
+            sys.exit(f"make.py: {ex}")
+        only = (only or set()) | ids
+        print(f"targets {', '.join(named)}: {len(ids)} generator(s) with what they need: {', '.join(i for i in DEF_ORDER() if i in ids)}")
+    if action == "status":
         rc, _ = make(status_only=True, run_sections=runs, only=only)
         return rc
-    _lk = lock()
+    _lk = lock(wait=a.wait)
     rc, summary = make(run_sections=runs, only=only, upto=a.upto, rerun=set(x for x in a.rerun.split(",") if x))
     # the chain has loops (generators that read what a later one rewrites, see the findings): a pass that ran something may
     # leave earlier generators out of date; repeat until a pass runs nothing, at most MAX_PASSES
     n = 1
-    while rc == 0 and not only and not a.upto and any(s["action"] == "ran" for s in summary) and n < MAX_PASSES:
-        _, st = make(status_only=True, run_sections=runs, quiet=True)
+    while rc == 0 and not a.upto and any(s["action"] == "ran" for s in summary) and n < MAX_PASSES:
+        _, st = make(status_only=True, run_sections=runs, only=only, quiet=True)
         if not any(s["action"] == "runs" for s in st):
             break
         n += 1
         print(f"pass {n}: {', '.join(s['id'] for s in st if s['action'] == 'runs')} read files the previous pass changed")
-        rc, summary = make(run_sections=runs)
+        rc, summary = make(run_sections=runs, only=only)
     if rc == 0 and n > 1:
-        _, st = make(status_only=True, run_sections=runs, quiet=True)
+        _, st = make(status_only=True, run_sections=runs, only=only, quiet=True)
         left = [s["id"] for s in st if s["action"] == "runs"]
         print(f"settled after {n} passes" if not left else
               f"NOT settled after {n} passes: {', '.join(left)} still see changed inputs (a builder that writes different "

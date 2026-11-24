@@ -1,4 +1,4 @@
-"""Regenerate or clean disposable scratch STL files for the Cove-50 Center-Body Torso FDM Carrier Study."""
+"""Regenerate or clean disposable scratch STL files for the APE0 Center-Body Torso FDM Carrier Study."""
 from __future__ import annotations
 
 import argparse

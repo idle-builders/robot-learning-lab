@@ -535,7 +535,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     axes[2].set_xticks(x, short_labels, rotation=15)
     axes[2].grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Cove-50 4-Stage Neck & Head FDM Connectors — Matched 3D Tetrahedral FEM (Dual-Axis Stall Wrench)", fontsize=12, fontweight="bold")
+    fig.suptitle("APE0 4-Stage Neck & Head FDM Connectors — Matched 3D Tetrahedral FEM (Dual-Axis Stall Wrench)", fontsize=12, fontweight="bold")
     fig.tight_layout()
     fig.savefig(renders_dir / "fem-stress-displacement-comparison.png")
     plt.close(fig)
@@ -579,7 +579,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     for i, v in enumerate(rss_u):
         axes[1].text(i, v + 0.02, f"{v:.3f} mm", ha="center", fontweight="bold", fontsize=9)
 
-    fig.suptitle("Cove-50 Neck & Head Architecture — Mass Savings (14 Legacy Parts -> 4 Monocoque Stages) & Chain Deflection", fontsize=11, fontweight="bold")
+    fig.suptitle("APE0 Neck & Head Architecture — Mass Savings (14 Legacy Parts -> 4 Monocoque Stages) & Chain Deflection", fontsize=11, fontweight="bold")
     fig.tight_layout()
     fig.savefig(renders_dir / "weight-to-strength-chart.png")
     plt.close(fig)

@@ -1,4 +1,4 @@
-"""Phase 1: Audit the 4-stage Cove-50 Neck & Head baseline connectors (`fixed_neck_ribbon_anchor_v21`,
+"""Phase 1: Audit the 4-stage APE0 Neck & Head baseline connectors (`fixed_neck_ribbon_anchor_v21`,
 `one_piece_bent_neck_L`, `compact_neck_U_strap_v23`, `single_shared_carrier_v23` + `microphone_compact_tab_v23`),
 their exact screw-hole coordinates, and the active `neck_yaw` x `neck_pitch` flexion clearance space.
 """

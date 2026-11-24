@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit exact geometry, mating planes, fastener axes, and hard-shell mounts of the 4 Cove-50 arm connector stages."""
+"""Audit exact geometry, mating planes, fastener axes, and hard-shell mounts of the 4 APE0 arm connector stages."""
 from __future__ import annotations
 
 import hashlib

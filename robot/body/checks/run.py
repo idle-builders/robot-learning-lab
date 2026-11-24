@@ -395,6 +395,18 @@ def manifest_freshness(man):
                                 later_by_s=round(p.stat().st_mtime - t_man), written_at=time.strftime("%m-%d %H:%M", time.localtime(p.stat().st_mtime))))
     except Exception as exc:  # noqa: BLE001  the definitions are another session's; a broken one must not stop a check run
         out.append(dict(kind="declared upstream not read", error=_why(exc)))
+    try:                                         # generators are built on demand (owner 2026-11-24): say which are out of date
+        if man.is_relative_to(ROOT):
+            import make as MK                    # robot/body/bom/make.py (on sys.path above)
+            rel = str(man.relative_to(ROOT))
+            st = MK.stale([rel])
+            if st:
+                out.append(dict(kind="generators out of date", path=rel, generators=[g for g, _ in st],
+                                why={g: w for g, w in st}, command=f".venv/bin/python -B robot/body/bom/make.py {rel}"))
+    except SystemExit:
+        pass                                     # no generator makes this manifest (a scratch copy): nothing to say
+    except Exception as exc:  # noqa: BLE001
+        out.append(dict(kind="generator status not read", error=_why(exc)))
     return out
 
 
@@ -595,6 +607,10 @@ def main(argv=None):
             print(f"manifest freshness: upstream {x['path']} ({', '.join(x['by_generators'])}) was written {x['later_by_s'] // 60} min "
                   f"after the checked manifest ({x['written_at']}): the checked body may lack its changes; rerun the generators after it "
                   "(robot/body/bom/rebuild_chain.py --dry-run lists the order)", file=sys.stderr, flush=True)
+        elif x["kind"] == "generators out of date":
+            print(f"OUT OF DATE: {len(x['generators'])} generator(s) behind {x['path']} have changed inputs, so this checks an older "
+                  f"body: {', '.join(f'{g} ({w})' for g, w in list(x['why'].items())[:6])}{' ...' if len(x['why']) > 6 else ''}; "
+                  f"build it with `{x['command']}` (cached outputs are reused)", file=sys.stderr, flush=True)
     cached = {n: c for n, c in pl.get("cached", {}).items() if n in run}
     if cached:
         print(f"cached (inputs unchanged): " + ", ".join(f"{n} (from {c['at'][11:16]}, {c['inputs']} inputs)" for n, c in cached.items())

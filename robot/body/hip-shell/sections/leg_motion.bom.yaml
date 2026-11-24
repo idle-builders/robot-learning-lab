@@ -1,4 +1,4 @@
-# Cove-50 body definition for robot/body/hip-shell/sections/leg_motion.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# APE0 body definition for robot/body/hip-shell/sections/leg_motion.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
 # The leg pose library: the A-11 library poses, the key poses and the grid the hip / thigh shells and the design checks sweep
 # (checks core.py, leg/thigh_shell.py, leg/roll_flip_checks.py import leg_motion). It owns no parts and runs no generator; its
 # configured values are the single source of those poses. Poses beyond the declared joint ranges are stress cases, reported

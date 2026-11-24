@@ -1,4 +1,4 @@
-# Cove-50 body definition for robot/body/standard-hardware/generate.py (schema robot/body/bom/schema.json).
+# APE0 body definition for robot/body/standard-hardware/generate.py (schema robot/body/bom/schema.json).
 # Generates STEP / STL of every part a definition declares as standard hardware (spec kind screw / nut / washer / spacer),
 # from the declared spec, at the placement measured on its mesh. Derived output only (.cache): not part of the body rebuild.
 schema: cove50-body-definition/1

@@ -1,4 +1,4 @@
-# Cove-50 body definition for robot/body/arm/arm_shell.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# APE0 body definition for robot/body/arm/arm_shell.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
 # The arm shell: the whole arm's covers as one parametric surface (superellipse sections on natural cubic splines along the
 # arm, route D's hood about the shoulder roll axis), cut at the shoulder-yaw seam and the elbow into four covers per arm.
 # Owner-approved 2026-11-24 (candidate arm-shell-3, decision M-eb6cxz, Idle T-tph7xb). The eight covers, their sleeve sets
