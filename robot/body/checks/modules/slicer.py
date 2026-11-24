@@ -29,7 +29,6 @@ from checks.core import ROOT, tick
 from checks.registry import register
 
 TIMEOUT_S = 300
-FILAMENT_D_MM = 1.75
 SLICER_INTERNAL_LOG = (r"the parent path .* is not there, create it", r"ZFiller: encounter idx from clip")   # the slicer's own diagnostics
 
 
@@ -49,8 +48,9 @@ def flat_profile(base, kind, name):
     return out
 
 
-def support_grams(gcode, density):
-    """Net filament (g) extruded inside '; FEATURE: Support...' sections (support and support interface)."""
+def support_grams(gcode, density, filament_d_mm):
+    """Net filament (g) extruded inside '; FEATURE: Support...' sections (support and support interface); filament_d_mm = the
+    filament profile's filament_diameter (the slicer's own value), density = the material's materials.json density_g_cm3."""
     e_sup, feat, absolute, last = 0.0, "", False, 0.0
     for ln in gcode.splitlines():
         if ln.startswith("; FEATURE:"):
@@ -66,7 +66,7 @@ def support_grams(gcode, density):
                 de = v - last if absolute else v
                 last = v if absolute else last
                 e_sup += de                # net: retractions cancel their un-retractions (sum of all features = the G-code total)
-    return e_sup * math.pi * FILAMENT_D_MM ** 2 / 4 * density * 1e-3
+    return e_sup * math.pi * filament_d_mm ** 2 / 4 * density * 1e-3
 
 
 def slice_part(ctx, n, out_dir):
@@ -85,9 +85,9 @@ def slice_part(ctx, n, out_dir):
     wd = out_dir / "slicer" / n
     wd.mkdir(parents=True, exist_ok=True)
     names = dict(machine=bs["machine"].format(nozzle=noz), process=bs["process"][noz], filament=fil)
-    prof, hashes = {}, {}
+    prof, hashes, flat = {}, {}, {}
     for kind, nm in names.items():
-        d = flat_profile(base, kind, nm)
+        d = flat_profile(base, kind, nm); flat[kind] = d
         if kind in ("machine", "process"):
             d.update(curr_bed_type=bs["bed_type"], default_bed_type=bs["bed_type"])
         if kind == "process":
@@ -125,7 +125,11 @@ def slice_part(ctx, n, out_dir):
         txt = g.read_text(errors="ignore")
         m = re.search(r"; total layer number: (\d+)", txt)
         r["layers"] = int(m.group(1)) if m else None
-        r["support_filament_g"] = round(support_grams(txt, mat.get("density_g_cm3", 1.0)), 2)
+        fd = flat["filament"].get("filament_diameter")
+        fd = float(fd[0] if isinstance(fd, list) else fd) if fd else None
+        rho = mat.get("density_g_cm3")
+        r["support_filament_g"] = round(support_grams(txt, rho, fd), 2) if fd and rho else None     # no invented density / diameter
+        r["support_filament_basis"] = dict(filament_diameter_mm=fd, density_g_cm3=rho, source="filament profile filament_diameter; data/materials.json density_g_cm3")
     r["seconds"] = round(time.time() - t0, 1)
     tick("slicer", t0)
     return r

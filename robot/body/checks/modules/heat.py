@@ -74,7 +74,7 @@ def measure(ctx, n, pts, areas, tab=None, srcs=None):
         if np.any(c.min(0) > hi) or np.any(c.max(0) < lo):
             continue
         loc = (pw - Tk[:3, 3]) @ Tk[:3, :3]
-        d = _surface_tree(ctx, k).query(loc, distance_upper_bound=srch)[0]
+        d = _surface_tree(ctx, k)[0].query(loc, distance_upper_bound=srch)[0]   # (tree, normals) since the print-check fix
         if not np.isfinite(d).any():
             continue
         i = int(np.argmin(d))
