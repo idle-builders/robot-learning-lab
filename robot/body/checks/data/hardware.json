@@ -28,7 +28,38 @@
     "name": "hex socket button head",
     "drive": "hex_key",
     "tool_head_type": "button",
-    "source": "ISO 7380-1:2011 covers M3 and up; it has no M2 / M2.5 (https://fasten.it/en/norms/norm/din_en_iso_7380-1, https://www.fasteners.eu/standards/ISO/7380/): a screw declared ISO 7380-1 M2 / M2.5 is no standard part, declare a real head standard (ISO 14580, ISO 7045, ISO 4762)",
+    "source": "ISO 7380-1:2011 covers M3 and up (https://fasten.it/en/norms/norm/din_en_iso_7380-1, https://www.fasteners.eu/standards/ISO/7380/); the M2 / M2.5 rows are vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range, each citing its vendor part series",
+    "M2": {
+     "source": "vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range: Aspen Fasteners ME125 series (ME125-204X5, https://www.aspenfasteners.com/m2-0-4-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a2-stainless-steel/): head diameter 3.5-3.8, head height 1.16-1.3, hex 1.3. dk = 3.8 (max; the former analogy row had 3.5), k = 1.3 (as before). lengths: the former series, not re-checked against the vendor's stock list",
+     "dk": 3.8,
+     "k": 1.3,
+     "s": 1.3,
+     "lengths": [
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20
+     ]
+    },
+    "M2.5": {
+     "source": "vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range: Aspen Fasteners ME482 series (ME482-25045X5, https://www.aspenfasteners.com/m2-5-0-45-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a4-stainless-steel): head diameter 4.6, head height 1.36-1.5, hex 1.5 (dk / k as the former row). lengths: the former series, not re-checked against the vendor's stock list",
+     "dk": 4.6,
+     "k": 1.5,
+     "s": 1.5,
+     "lengths": [
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20
+     ]
+    },
     "M3": {
      "dk": 5.7,
      "k": 1.65,
