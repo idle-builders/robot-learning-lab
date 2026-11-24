@@ -1,6 +1,6 @@
 ---
 name: ape-design-studio
-description: Run or contribute to a Cove-50 joint design studio (hip, knee, ankle/foot, shoulder, elbow, neck) — three competing designers, graded evidence cards, user look reviews, requirement challenges. Use for any joint mechanism design, round, or review on the classic body.
+description: Run or contribute to an APE0 joint design studio (hip, knee, ankle/foot, shoulder, elbow, neck) — three competing designers, graded evidence cards, user look reviews, requirement challenges. Use for any joint mechanism design, round, or review on the classic body.
 ---
 
 # Ape joint design studio

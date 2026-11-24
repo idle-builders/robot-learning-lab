@@ -13,6 +13,8 @@
 
 `physics-ledger.yaml` records the mass and physics assumptions. The text below is the model's history as built.
 
+The robot is called APE0 (owner, 2026-11-24; formerly Cove-50). The sealed model revisions keep their old file names (`cove50.urdf`, `cove50-rigid.xml`, `cove50-compliant.xml`, the `cove50_description` package, its `cove50_r3_runtime` module and `COVE50_MODEL_DIR`), because `current-model.json`, the skill setups and the evidence seals pin them by path and sha256. The next model revision writes the new names: `ape0.urdf`, `ape0.ros.urdf`, `ape0.srdf`, `ape0-rigid.xml`, `ape0-compliant.xml`, package `ape0_description`, `APE0_MODEL_DIR`. Consumers move to the new names when they move to the new revision's folder.
+
 
 `current-model.json` identifies the provisional physics and sensor model for the
 selected V24 sensing / R23 compute / R33 power composition and upper V5 / lower

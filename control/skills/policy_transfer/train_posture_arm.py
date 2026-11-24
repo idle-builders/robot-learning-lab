@@ -546,9 +546,9 @@ def main() -> None:
             params={"sensor_name": "hand_ground_contact", "force_threshold": 1.0},
         )
     agent = deepcopy(load_rl_cfg(TASKS[args.lesson]))
-    agent.experiment_name = ("ape_cove50_seated_rise" if args.seated_rise_stage
-                             else f"ape_cove50_{args.lesson.replace('-', '_')}")
-    task_id = "Mjlab-Cove50-seated-rise" if args.seated_rise_stage else f"Mjlab-Cove50-{args.lesson}"
+    agent.experiment_name = ("ape0_seated_rise" if args.seated_rise_stage
+                             else f"ape0_{args.lesson.replace('-', '_')}")
+    task_id = "Mjlab-APE0-seated-rise" if args.seated_rise_stage else f"Mjlab-APE0-{args.lesson}"
     ape.register_mjlab_task(task_id=task_id, env_cfg=cfg, play_env_cfg=cfg,
                             rl_cfg=agent, runner_cls=ape.VelocityOnPolicyRunner)
     train = TrainConfig.from_task(task_id)

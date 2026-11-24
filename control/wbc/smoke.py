@@ -1,4 +1,4 @@
-"""Local CPU smoke of the Cove-50 R3 port of the native MJLab tracking task.
+"""Local CPU smoke of the APE0 R3 port of the native MJLab tracking task.
 
     infra/lab storage run cove50-wbc-port-smoke -- .venv-control/bin/python \
       control/wbc/smoke.py --scratch '{work}' --output '{evidence}'

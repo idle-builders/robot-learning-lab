@@ -46,7 +46,7 @@ Its R3 fields are unchanged, so frozen runs and the boundary's R3 hash check
 still hold. New work opts in with `robot_cfg(dynamics=dynamics.resolve(servo),
 peak=True)`, or `tracking.env_cfg(dynamics='r4')` in the WBC track.
 
-Limits: no value here is measured on a Cove-50 part:
+Limits: no value here is measured on an APE0 part:
 - BAM measured a 7.4 V STS3215 and an ST3025, not a 12 V C047 or an STS3250.
 - Load-dependent friction, thermal behaviour, overload protection and voltage
   sag are not modelled.

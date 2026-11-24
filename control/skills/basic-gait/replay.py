@@ -103,7 +103,7 @@ def command_observations(cached, requested):
 def load_native():
     """Load existing task/recorder without copying or editing their code."""
     sys.path.insert(0, str(TASK))
-    spec = importlib.util.spec_from_file_location('cove50_original_gait_launcher', TASK / 'run.py')
+    spec = importlib.util.spec_from_file_location('ape0_original_gait_launcher', TASK / 'run.py')
     native = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(native)
     return native
@@ -120,7 +120,7 @@ def verify_inputs(method_path=None):
     if ref(CHECKPOINT)['sha256'] != CHECKPOINT_SHA:
         raise ValueError('Candidate identity changed')
     pointer = ROOT / 'robot/model/current-model.json'
-    if Path(os.environ.get('COVE50_MODEL_POINTER', pointer)).resolve() != pointer.resolve():
+    if Path(os.environ.get('APE0_MODEL_POINTER', pointer)).resolve() != pointer.resolve():
         raise ValueError('This preparation pins the selected model pointer')
     selected = json.loads(pointer.read_text())
     seal = json.loads((ROOT / selected['rigid_MJCF']['path']).with_name('evidence-seal.json').read_text())

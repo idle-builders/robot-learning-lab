@@ -2,7 +2,7 @@
 
 ## 1. Objective & Scope
 
-Redesign the three anatomical lower-leg structural connector stages of `Cove-50` (`R`/`L` bilateral symmetry across `Plane.YZ`) for home-lab **FDM 3D printing**, starting from the accepted complete-body mechanical baseline (`cove50-electronics-integrated-r1-20261026` / lower-body `cove50-simple-sheet-leg-chains-v16`):
+Redesign the three anatomical lower-leg structural connector stages of `APE0` (`R`/`L` bilateral symmetry across `Plane.YZ`) for home-lab **FDM 3D printing**, starting from the accepted complete-body mechanical baseline (`cove50-electronics-integrated-r1-20261026` / lower-body `cove50-simple-sheet-leg-chains-v16`):
 
 1. **Stage 1 — Knee-to-Ankle Shin Connector (`R_shin` / `L_shin`)**:
    - **Replaces**: `R/L_B13R14_short_inner_shin_plate` ($7.13\text{ g}$), `R/L_B13R14_short_outer_shin_plate` ($7.13\text{ g}$), and 4 loose cut-tube spacers (`R/L_B13R14_raised_B11_{inner,outer}_cut_spacer_{0,1}`, $4 \times 0.07\text{ g}$) — baseline structural mass **$14.54\text{ g/leg}$** ($29.08\text{ g}$ bilateral).

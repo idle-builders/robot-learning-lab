@@ -1,4 +1,4 @@
-# Cove-50 whole-body controller (WBC)
+# APE0 whole-body controller (WBC)
 
 Idle root `T-xjjwrs`. The WBC is the bridge layer between slower upstream
 sources (skill policies, VLAs, teleop, world-model planners) and the servos'
@@ -323,7 +323,7 @@ is what `restore` reads.
 
 ## Step 9: agility motion set and servo demand (`T-hw56vg`, local CPU)
 
-Before more GPU training, `agility/` asks what an agile, playful Cove-50 needs
+Before more GPU training, `agility/` asks what an agile, playful APE0 needs
 from its servos, independent of any learned controller.
 
 - `agility/library.py` builds a fixed motion set at two to four tempos each:
@@ -769,8 +769,8 @@ The next source of character is acted video of a person moving like an ape:
 2. GVHMR (zju3dv/GVHMR) recovers world-grounded SMPL-X motion per frame,
    with gravity up and a floor.
 3. GMR (YanjieZe/GMR) retargets SMPL-X to a robot by inverse kinematics.
-   Cove-50 needs its own IK configuration: which human bodies map to which
-   Cove-50 bodies, with scale and offsets for the shorter legs and longer
+   APE0 needs its own IK configuration: which human bodies map to which
+   APE0 bodies, with scale and offsets for the shorter legs and longer
    arms.
 4. The result is written as a library motion (an `npz` with the same fields
    as `library.py`). It is screened by `agility/demand.py` and the selection
@@ -1002,7 +1002,7 @@ agility lens `agility/agility_metrics.py` adds, per segment:
 - **Parallel springs at knee, hip and ankle pitch:** RMS leg torque falls 18–36% (less heat in the crouched stance),
   but peaks are unchanged.
 - **Ankle servo moved up to the knee:** no gain. The servos' own rotor inertia dominates, not link mass.
-- **Feet 1.3× longer and wider** (sole 86 × 60 → 112 × 78 mm; `tracking.scale_feet`, `COVE50_FEET_SCALE`): with the
+- **Feet 1.3× longer and wider** (sole 86 × 60 → 112 × 78 mm; `tracking.scale_feet`, `APE0_FEET_SCALE`): with the
   motions regenerated (`cove50-agility-allocation-feet-20261106`), the 24 V set keeps 64 motions, adding the 1.5, 2
   and 4 cm hops and the 3.5 Hz bounce. The 12 V set keeps 50.
 - **Reference preview** (`tracking.reference_preview`, `preview_steps`): the actor and critic see the reference 1, 2
@@ -1033,7 +1033,7 @@ agility lens `agility/agility_metrics.py` adds, per segment:
     - Taking the same reach mostly in the upper arm costs the least inertia: shoulder 68–72 kg cm² against 74 for
       both segments and 80 for the forearm alone, and the elbow keeps today's inertia.
     - The chosen body (`arm_scale=[1.6, 1.27]`, `fist=[0.03, 0.01]`) has an upper arm 1.6× and a forearm 1.27×, plus
-      a 30 mm, 10 g knuckle fist (`tracking.add_fists`, `COVE50_FIST`). It reaches 0.265 m, weighs 3.97 kg and has a
+      a 30 mm, 10 g knuckle fist (`tracking.add_fists`, `APE0_FIST`). It reaches 0.265 m, weighs 3.97 kg and has a
       shoulder inertia of 78 kg cm² (today 35, 1.7× arms 118).
     - Knuckle stance (`library.KNUCKLE`): 68° lean, hips about 102° flexed, knuckles 30 mm ahead of the shoulders.
       That puts about 55% of the way from heels to knuckles; knuckles directly under the shoulders put 90% toward the

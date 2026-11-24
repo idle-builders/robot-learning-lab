@@ -1,4 +1,4 @@
-# Cove-50 Complete 4-Stage Blank-State 3D Generative Arm FDM Connector Study (`r12` — Locked-In Selected Arm FDM Connectors)
+# APE0 Complete 4-Stage Blank-State 3D Generative Arm FDM Connector Study (`r12` — Locked-In Selected Arm FDM Connectors)
 
 - **Idle Task:** `T-zw7f7t`
 - **Idle Decision:** `M-d34p89`

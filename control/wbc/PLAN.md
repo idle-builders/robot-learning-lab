@@ -1,4 +1,4 @@
-# Cove-50 WBC and servo selection: review and plan (2026-11-07)
+# APE0 WBC and servo selection: review and plan (2026-11-07)
 
 ## 1. The intent
 

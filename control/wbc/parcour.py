@@ -1,4 +1,4 @@
-"""Cove-50 obstacle world: a grid of terrain tiles, each parallel world spawning on one, sized for a 50 cm ape.
+"""APE0 obstacle world: a grid of terrain tiles, each parallel world spawning on one, sized for a 50 cm ape.
 
 As in Microduck's training world (pollen-robotics/microduck_rl, microduck_velocity_env_cfg.py, commit cb70b792), every
 tile draws its type and difficulty at random (mjlab TerrainGeneratorCfg, curriculum off), so the parallel worlds see
@@ -457,7 +457,7 @@ def place_eval_worlds(env):
 
 
 def render(out, size=900):
-    """PNG views for review: the whole grid, then each element at its hardest setting with the long-arm Cove-50
+    """PNG views for review: the whole grid, then each element at its hardest setting with the long-arm APE0
     standing on the spawn square (kinematic stand pose, not a controller)."""
     import sys
     from pathlib import Path
@@ -523,6 +523,6 @@ def render(out, size=900):
 
 if __name__ == '__main__':
     import argparse
-    p = argparse.ArgumentParser(description='Render the Cove-50 obstacle world for review')
+    p = argparse.ArgumentParser(description='Render the APE0 obstacle world for review')
     p.add_argument('--render', required=True, help='output folder for PNG views')
     print(render(p.parse_args().render))

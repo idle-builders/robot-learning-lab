@@ -12,10 +12,10 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
-MODEL_POINTER = Path(os.environ.get('COVE50_MODEL_POINTER', ROOT / 'robot/model/current-model.json'))
+MODEL_POINTER = Path(os.environ.get('APE0_MODEL_POINTER', ROOT / 'robot/model/current-model.json'))
 SELECTED_MODEL = json.loads(MODEL_POINTER.read_text())
 MODEL_DIR = (ROOT / SELECTED_MODEL['rigid_MJCF']['path']).parent
-OUT = Path(os.environ.get('COVE50_FORWARD_OUT', ROOT / 'artifacts/cove50-forward-walk' / SELECTED_MODEL['version']))
+OUT = Path(os.environ.get('APE0_FORWARD_OUT', ROOT / 'artifacts/cove50-forward-walk' / SELECTED_MODEL['version']))
 OLD_BODY = ROOT / 'artifacts/ape-cove50-transfer-20261008/cove50-direct-training.xml'
 CHECKPOINT = ROOT / 'artifacts/ape-low-level-training-20261015/shared-forward-turn/native/bc/bc-best.pt'
 TEACHER_TRACE = ROOT / 'artifacts/ape-low-level-training-20261015/shared-forward-turn/native/score/development/forward-62101-bc.npz'
@@ -127,7 +127,7 @@ def build_contract():
         claim='Zero-update transfer/model diagnosis only. Historical walking and high-duty source scores are provenance, not current-body qualification.')
     path = OUT / 'transfer-contract.json'
     if path.exists() and read(path) != contract:
-        raise FileExistsError('Existing transfer contract differs; use a fresh COVE50_FORWARD_OUT directory')
+        raise FileExistsError('Existing transfer contract differs; use a fresh APE0_FORWARD_OUT directory')
     write(path, contract)
     return old, current, rows, contract
 

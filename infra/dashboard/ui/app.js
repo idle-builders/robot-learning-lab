@@ -112,8 +112,8 @@ function syncPageChrome() {
 function shortBody(bodyText) {
   const text = String(bodyText || '');
   if (!text) return 'Simulator body';
-  if (/r3-20261026|cove50_description|r3-urdf|Cove-50 R3|Selected R3|cove50-rigid\.xml/i.test(text)) return 'Cove-50 R3';
-  if (/Cove-50/i.test(text)) return 'Cove-50';
+  if (/r3-20261026|cove50_description|r3-urdf|APE0 R3|Cove-50 R3|Selected R3|cove50-rigid\.xml/i.test(text)) return 'APE0 R3';
+  if (/APE0|Cove-50/i.test(text)) return 'APE0';
   if (/ape_sourced_v3|35 cm|v3/i.test(text)) return '35 cm shelf body';
   return shortText(text, 28);
 }
@@ -230,9 +230,9 @@ function renderList() {
         </div>
         <div class="tier-filter-row" role="group" aria-label="Filter by readiness tier">
           <button type="button" data-tier="all" class="${qualityTier === 'all' ? 'active' : ''}">All (${categoryFiltered.length})</button>
-          <button type="button" data-tier="close" class="${qualityTier === 'close' ? 'active' : ''}" title="3.8–5.0 / 5: Close to viable on Cove-50 R3">Close ≥3.8 (${tierCounts.close})</button>
-          <button type="button" data-tier="workable" class="${qualityTier === 'workable' ? 'active' : ''}" title="3.0–3.7 / 5: Workable on Cove-50 R3">Workable 3.0–3.7 (${tierCounts.workable})</button>
-          <button type="button" data-tier="gaps" class="${qualityTier === 'gaps' ? 'active' : ''}" title="2.0–2.9 / 5: Major gaps on Cove-50 R3">Gaps 2.0–2.9 (${tierCounts.gaps})</button>
+          <button type="button" data-tier="close" class="${qualityTier === 'close' ? 'active' : ''}" title="3.8–5.0 / 5: Close to viable on APE0 R3">Close ≥3.8 (${tierCounts.close})</button>
+          <button type="button" data-tier="workable" class="${qualityTier === 'workable' ? 'active' : ''}" title="3.0–3.7 / 5: Workable on APE0 R3">Workable 3.0–3.7 (${tierCounts.workable})</button>
+          <button type="button" data-tier="gaps" class="${qualityTier === 'gaps' ? 'active' : ''}" title="2.0–2.9 / 5: Major gaps on APE0 R3">Gaps 2.0–2.9 (${tierCounts.gaps})</button>
           <button type="button" data-tier="early" class="${qualityTier === 'early' ? 'active' : ''}" title="<2.0 / 5: Still on 35 cm body only">35 cm only (${tierCounts.early})</button>
         </div>
       </div>`;
@@ -697,7 +697,7 @@ async function setMode(next) {
   }
   if (isDesign && next==='published' && !requested) {
     $('results').innerHTML='<p class="muted">Choose a body section to see its design studies.</p>';
-    $('detail').innerHTML='<div class="design-welcome"><span class="eyebrow">DESIGN EXPLORER</span><h2>Start with a part of the robot.</h2><p>Select a joint or body part on the drawing, or choose its name in the section list.</p><div class="cards"><div class="card"><strong>Current body</strong>Design studies show the selected complete printed body and its electronics. Studies marked Selected are the owner’s choice for that part.</div><div class="card"><strong>Versions from Git</strong>Each study opens its current version. Earlier versions are named by date and commit.</div><div class="card"><strong>History</strong>Earlier bodies, finished earlier designs and alternatives are in Archive, each with its reason.</div></div><img src="/body-map.png" alt="Cove-50 aesthetic reference, showing front, side and articulated views"></div>';
+    $('detail').innerHTML='<div class="design-welcome"><span class="eyebrow">DESIGN EXPLORER</span><h2>Start with a part of the robot.</h2><p>Select a joint or body part on the drawing, or choose its name in the section list.</p><div class="cards"><div class="card"><strong>Current body</strong>Design studies show the selected complete printed body and its electronics. Studies marked Selected are the owner’s choice for that part.</div><div class="card"><strong>Versions from Git</strong>Each study opens its current version. Earlier versions are named by date and commit.</div><div class="card"><strong>History</strong>Earlier bodies, finished earlier designs and alternatives are in Archive, each with its reason.</div></div><img src="/body-map.png" alt="APE0 aesthetic reference, showing front, side and articulated views"></div>';
     return;
   }
   const initial = records().find(row => row.id === requested) || (isDesign && workspace !== 'All' ? records().find(row => belongs(row, workspace)) : null) || (next === 'published' ? results.find(row => row.id === 'cove50-cad-competition-20261016') : null) || records()[0];

@@ -1,6 +1,6 @@
 # Mechanical design: frame, joints, packaging and printable structure
 
-Results for the 50 cm ape (Cove-50). Every number is a CAD, FEM or simulation measurement. No printed part has been
+Results for the 50 cm ape (APE0). Every number is a CAD, FEM or simulation measurement. No printed part has been
 built, weighed or loaded. The check tool and its per-check results are in `design-checks.md`; the hip shell look and
 its references are in `hip-shell-covering.md`; motors, power and electronics are in
 `actuators-power-and-electronics.md`.

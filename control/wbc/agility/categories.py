@@ -1,4 +1,4 @@
-"""Choose 2-3 actuator categories for the Cove-50 body joints against per-joint demand and cost.
+"""Choose 2-3 actuator categories for the APE0 body joints against per-joint demand and cost.
 
 Inputs: demand traces from requirements.py (rigid-body torque, joint speed and acceleration per motion), the sourced
 actuator catalogue (robot/actuators/category-round/catalogue.json) and the tape's motion split. For every

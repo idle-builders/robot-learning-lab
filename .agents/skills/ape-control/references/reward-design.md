@@ -1,11 +1,11 @@
 # Reward design is a design loop
 
 A reward is a design artefact like a mechanism. It needs evidence, iteration and review. It is not a constant
-copied from an upstream task. Most Cove-50 whole-body-controller (WBC) setbacks so far were reward failures, not
+copied from an upstream task. Most APE0 whole-body-controller (WBC) setbacks so far were reward failures, not
 body, simulation or training-length failures. Treat the reward as the first suspect whenever a policy survives but
 avoids what its reference asks for.
 
-## What went wrong so far (Cove-50 WBC, 2026-11)
+## What went wrong so far (APE0 WBC, 2026-11)
 
 | Symptom seen in native traces | Reward cause | Fix that worked (record) |
 |---|---|---|
@@ -63,14 +63,14 @@ avoids what its reference asks for.
    Prefer a penalty curriculum, ramping up from 0.1× (ASAP, PBHC).
 7. **Termination risk.** With γ 0.99 at 50 Hz, a termination forfeits about 100 steps of reward, while skipping
    a short flight costs a few. A strict termination therefore teaches the policy to stay on the ground.
-   - Our 5 cm torso tolerance is twice as strict as BeyondMimic's 0.25 m scaled to Cove-50.
+   - Our 5 cm torso tolerance is twice as strict as BeyondMimic's 0.25 m scaled to APE0.
    - Loosen terminations around dynamic moves, or tighten them on a curriculum.
    - Do not penalise both feet in the air (HOVER's −200 does exactly that).
    - Sample starts by error, not only by failures (GMT, EGM, `ErrorAwareMotionCommand`): a skipped hop never
      terminates.
 8. **Timing.** Check which reference frame each term compares the robot state with. mjlab computes rewards after
    the physics step and before the command advances, so it compares the robot at t + dt with the reference at t,
-   and pays for a one-frame lag (20 ms at 50 Hz). On Cove-50 every trained policy settled at that lag, also on a
+   and pays for a one-frame lag (20 ms at 50 Hz). On APE0 every trained policy settled at that lag, also on a
    plant with half the delay; at 13 rad/s one frame is 0.26 rad. Use `reference_lead=1`, which makes the command
    and every term use the reference for the robot state's time, and log evaluation traces at the true time
    (`ErrorAwareMotionCommand.reference_now`).
