@@ -98,13 +98,16 @@ def audit(step, offset):
         poly = np.array([[q.X(), q.Y(), q.Z()] for q in (c.Value(t) for t in np.linspace(c.FirstParameter(), c.LastParameter(), 13))])
         edges.append(dict(p=np.array([pm.X(), pm.Y(), pm.Z()]), a=np.array([pa.X(), pa.Y(), pa.Z()]), b=np.array([pb.X(), pb.Y(), pb.Z()]),
                           poly=poly, length=L, dev=dev, f=(i1, i2)))
-    # chamfer faces: planar strips <= CHAMFER_MAX_MM wide whose two neighbour edges both deviate (a bevel between two faces)
+    # chamfer faces: planar strips <= CHAMFER_MAX_MM wide whose two neighbour edges both deviate (a bevel between two faces). A
+    # bevel ramped off a corner splits it unevenly (72 + 18 deg): its gentle edge is a soft kink, not a sharp one, so an edge counts
+    # as deviating from SOFT_DEG on (it was SHARP_DEG: the 72 deg edge of such a strip read sharp, CHAMFER_MAX_MM never applied)
     devs_by_face = {}
     for e in edges:
         for fi in e["f"]:
             devs_by_face.setdefault(fi, []).append(e["dev"])
     chamfer = {fi for fi, inf in finfo.items() if inf["planar"] and inf["width"] <= CHAMFER_MAX_MM
-               and sum(1 for d in devs_by_face.get(fi, []) if SHARP_DEG < d < 80.0) >= 2}
+               and sum(1 for d in devs_by_face.get(fi, []) if SOFT_DEG <= d < 80.0) >= 2
+               and any(SHARP_DEG < d < 80.0 for d in devs_by_face.get(fi, []))}
     fillet = {fi for fi, inf in finfo.items() if not inf["planar"] and inf["radius"] is not None and inf["radius"] <= 10.0
               and any(d < SOFT_DEG for d in devs_by_face.get(fi, []))}
     for e in edges:
@@ -167,7 +170,8 @@ def run(ctx):
         if sharp:
             pts = np.array([e["p"] for e in sharp])
             cvx = convexity(m, pts)
-            d, who = _neighbour_distance(ctx, n, pts)
+            # the nearest neighbour surface of any direction (the last pair; the facing / pressed pairs need the edge's normal)
+            *_, d, who = _neighbour_distance(ctx, n, pts, np.zeros_like(pts))
             es = ctx.settings(n).get("edges") or {}
             ok_parts = set(es.get("sharp_ok_near_parts", []))
             ok_regions = [(np.asarray(r["centre_mm"], float), float(r["radius_mm"])) for r in es.get("sharp_ok_regions", [])]
@@ -214,5 +218,5 @@ def run(ctx):
     cases.sort(key=lambda c: -c["value"])
     return dict(per_part=per, worst_cases=cases, bad_events=ev, evidence=evidence,
                 notes=f"B-rep edges; dihedral deviation between face normals at the edge midpoint: smooth < {SOFT_DEG:g}, soft kink < {SHARP_DEG:g}, sharp above; "
-                      f"chamfer = planar strip <= {CHAMFER_MAX_MM:g} mm wide between two deviating edges; mating = within {MATE_MM} mm of a neighbour at standing; "
+                      f"chamfer = planar strip <= {CHAMFER_MAX_MM:g} mm wide between two edges deviating >= {SOFT_DEG:g} deg, one of them > {SHARP_DEG:g} and < 80 deg; mating = within {MATE_MM} mm of a neighbour at standing; "
                       "convexity from the mesh crease at the edge; corner = >= 3 free sharp edges at one vertex")
