@@ -25,6 +25,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import bodylib as F  # noqa: E402
+from design_kit import connector as KC  # noqa: E402
 
 MANIFEST = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
 WORK = ROOT / ".cache/work/shoulder-clevis"
@@ -330,60 +331,10 @@ HEAD_POCKET_R = 2.25                   # head counterbore r (PA2x9.2 head dk 3.5
                                        # its inner face at 61 deg (a dia 3.2 channel would leave a 47 deg wedge)
 
 
-def _occ():
-    from build123d import Solid, Compound
-    from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse, BRepAlgoAPI_Common
-    from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder
-    from OCP.gp import gp_Ax2, gp_Dir, gp_Pnt
-    return locals()
-
-
-def occ_box(x0, x1, y0, y1, z0, z1):
-    o = _occ()
-    return o["Solid"](o["BRepPrimAPI_MakeBox"](o["gp_Pnt"](min(x0, x1), min(y0, y1), min(z0, z1)),
-                                               o["gp_Pnt"](max(x0, x1), max(y0, y1), max(z0, z1))).Shape())
-
-
-def occ_cyl(p0, p1, r):
-    o = _occ()
-    v = np.asarray(p1, float) - np.asarray(p0, float); L = float(np.linalg.norm(v)); d = v / L
-    ax = o["gp_Ax2"](o["gp_Pnt"](*map(float, p0)), o["gp_Dir"](*map(float, d)))
-    return o["Solid"](o["BRepPrimAPI_MakeCylinder"](ax, float(r), L).Shape())
-
-
-def _bool(kind, a, others):
-    o = _occ()
-    op = {"fuse": o["BRepAlgoAPI_Fuse"], "cut": o["BRepAlgoAPI_Cut"], "common": o["BRepAlgoAPI_Common"]}[kind]
-    cur = a.wrapped
-    for s in others:
-        b = op(cur, s.wrapped); b.Build(); cur = b.Shape()
-    return o["Compound"](cur)
-
-
-def largest(sh):
-    return max(sh.solids(), key=lambda s: s.volume)
-
-
-def transformed(shape, T):
-    """shape moved by the 4x4 rigid transform T (rotation orthonormalised)."""
-    from build123d import Compound
-    from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
-    from OCP.gp import gp_Trsf
-    U, _, Vt = np.linalg.svd(T[:3, :3]); R = U @ Vt; t = T[:3, 3]
-    tr = gp_Trsf()
-    tr.SetValues(*[float(v) for v in (R[0, 0], R[0, 1], R[0, 2], t[0], R[1, 0], R[1, 1], R[1, 2], t[1], R[2, 0], R[2, 1], R[2, 2], t[2])])
-    return largest(Compound(BRepBuilderAPI_Transform(shape.wrapped, tr, True).Shape()))
-
-
-def mirror_x(sh):
-    from build123d import Plane
-    return sh.mirror(Plane.YZ)
-
-
-def sleeve(p_in, p_out, ro, ri):
-    """Steel sleeve from p_in to p_out (flush with both faces of the part)."""
-    a, b = np.asarray(p_in, float), np.asarray(p_out, float); d = (b - a) / np.linalg.norm(b - a)
-    return largest(_bool("cut", occ_cyl(a, b, ro), [occ_cyl(a - 0.5 * d, b + 0.5 * d, ri)]))
+# B-rep building pieces: design_kit.connector (docs/design/design-kit.md section 3); the names here stay for the
+# builders that use them (shoulder_shells.py)
+occ_box, occ_cyl, _bool, largest = KC.box, KC.cyl, KC.boolean, KC.largest
+transformed, mirror_x, sleeve = KC.transformed, KC.mirror_x, KC.sleeve
 
 
 def _common_mod():
@@ -428,8 +379,6 @@ def build_idler(T):
 def build_stage1(holes):
     """Blue U (pitch link): today's pitch interface + bar along y at x 86..90 + horn / idler arms, and a solid pitch hub
     disc (r PITCH_HUB_R about the pitch axis, horn face .. bar face) around today's 4 pitch sleeve sites."""
-    from build123d import Circle, Polygon, Pos
-    C = _common_mod()
     rx, rz = ROLL_XZ
     hy0, hy1 = HORN_FACE_Y, HORN_FACE_Y + HORN_ARM_T
     iy1, iy0 = IDLER_FACE_Y, IDLER_FACE_Y - IDLER_ARM_T
@@ -439,16 +388,11 @@ def build_stage1(holes):
     # horn arm's outer face
     ro = ARC_R + ARC_T
 
-    t = np.radians(np.linspace(ARC_PSI[0], ARC_PSI[1], 7))
-    wedge = Polygon(*([(rx, rz)] + [(rx + 2 * ro * np.sin(a), rz + 2 * ro * np.cos(a)) for a in t]), align=None)
-    band = (Pos(rx, rz) * Circle(ro) - Pos(rx, rz) * Circle(ARC_R)) & wedge
-    band = C.fillet_2d_face(band.faces()[0], ARC_FILLET, r_inner=ARC_FILLET)
-    bar = C.extrude_xy_to_y(band, iy0, hy1)
+    bar = KC.extrude_y(KC.arc_band(rx, rz, ARC_R, ARC_T, *ARC_PSI, corner_r=ARC_FILLET), iy0, hy1)
     # 3. arms (x-z profile): hub r HUB_R about the roll axis + the fan out to the arc's outer radius over ARC_PSI
-    fan = (Pos(rx, rz) * Circle(ro)) & wedge
-    prof = C.fillet_2d_face((fan + Pos(rx, rz) * Circle(HUB_R)).clean().faces()[0], 2.0, r_inner=4.0)
-    arm_h = C.extrude_xy_to_y(prof, hy0, hy1)
-    arm_i = C.extrude_xy_to_y(prof, iy0, iy1)
+    prof = KC.hub_fan(rx, rz, HUB_R, ro, *ARC_PSI, r=2.0, r_inner=4.0)
+    arm_h = KC.extrude_y(prof, hy0, hy1)
+    arm_i = KC.extrude_y(prof, iy0, iy1)
     # 4. pitch hub: a solid disc about the pitch axis from the horn face to x BAR_X[1] (fills the kept B-rep's breakout at
     # sleeve 2 and its open counter faces), then cut back to the arc's inner radius between the arms (nothing of the pitch
     # link reaches inside rho ARC_R there: the roll case turns in it); the sleeve bores, counterbores and centre are cut below
@@ -497,14 +441,13 @@ def build_stage2(T, holes):
     pad, the axis-boss hole, and per yaw site its sleeve bore and one head / driver bore (opened toward the case above the
     plate top at the two sites under the +y arm).
     Print direction intended: plate bottom on the bed (up = YAW_N, the yaw-local normal, 9.5 deg off +z)."""
-    from build123d import Polygon, Pos, RectangleRounded
+    from build123d import Polygon
     C = _common_mod()
     Ti = np.linalg.inv(T)
     to_c = lambda p: Ti[:3, :3] @ np.asarray(p, float) + Ti[:3, 3]
     M_yaw = np.eye(4); M_yaw[:3, 0], M_yaw[:3, 1], M_yaw[:3, 2], M_yaw[:3, 3] = YAW_V, (0.0, 1.0, 0.0), YAW_N, YAW_P
 
-    def rrect(a0, a1, b0, b1, r):
-        return (Pos(0.5 * (a0 + a1), 0.5 * (b0 + b1)) * RectangleRounded(a1 - a0, b1 - b0, r)).faces()[0]
+    rrect = KC.rounded_rect
 
     case_side = transformed(occ_box(-100.0, G_END_PLANE, -100.0, 100.0, -100.0, 100.0), T)     # case side of the plate top
     # 1. arms, case frame: x-z outline extruded across y. The +z edge runs parallel to the yaw axis, 0.5 mm clear of the
@@ -530,10 +473,7 @@ def build_stage2(T, holes):
     # 3. root fillets (case frame): the corner between each arm's inner face and the plate top, along z over the arm
     roots = []
     for y_face, s, r in ((G_PY[0], 1.0, G_ROOT_R[0]), (G_NY[1], -1.0, G_ROOT_R[1])):
-        xc, yc = G_END_PLANE - r, y_face - s * r
-        blk = occ_box(xc, G_END_PLANE, yc, y_face, G_Z[0], G_Z[1])
-        roots.append(largest(_bool("common", transformed(largest(_bool("cut", blk, [occ_cyl((xc, yc, G_Z[0] - 1.0), (xc, yc, G_Z[1] + 1.0), r)])), T),
-                                   [arm_xz])))
+        roots.append(largest(_bool("common", transformed(KC.root_fillet(G_END_PLANE, y_face, s, r, *G_Z), T), [arm_xz])))
     body = largest(_bool("fuse", plate, [largest(_bool("cut", a, [below])) for a in arms] + roots))
     # 4. cutters
     cut = [transformed(C.extrude_xy_to_z(rrect(*POCKET["v"], *POCKET["w"], POCKET["r"]), PLATE_N[0] - 1.0, POCKET["n_top"]), M_yaw),

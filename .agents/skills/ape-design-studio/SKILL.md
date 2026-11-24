@@ -46,6 +46,14 @@ The sheet-metal studios' tools are in history (`git checkout history/design-fitk
 
 The reference body is `classic`. Soft ivory covers are allowed on every joint.
 
+## Design kit: how parts look and are built
+
+Before designing or redesigning a shell or a connector, read the [design kit](../../../docs/design/design-kit.md) (owner, 2026-11-24). It holds the owner's aesthetic and robustness rules, so the owner does not have to explain them again:
+- **Shells:** calm, continuous parametric surfaces that look closed. Each is one surface per limb or region (superellipse sections on C2 splines, fitted to requirement point sets), cut into parts at analytic seams about the joint axes. No bulges, plates, pods or dark gaps. Template: `robot/body/arm/arm_shell.py`.
+- **Connectors:** U / H / I / Y shapes that grip every actuator from two sides (horn and idler, 2 + 2 screws), with flat members, arcs about the axis, rounded corners, pressable 304 sleeves, 1.5-2 mm between moving bodies and never a slit under 1 mm. Template: `robot/body/arm/shoulder_clevis.py`.
+- **Code:** build on `robot/body/design_kit/` (`shell.Sweep`, the seam cutters, `connector` pieces) instead of copying functions.
+- **Candidates:** report the measurements the kit lists for each kind of part, and show the owner, next to the renders, every place where the candidate departs from the kit and why. The kit is a starting point, not a gate. When the owner approves or rejects a new pattern, add it to the kit.
+
 ## Rules that matter
 - Three genuinely different solutions per joint (lenses A Packager / B Mass Centraliser / C Mechanism
   Inventor). Borrow pieces, not architectures.
