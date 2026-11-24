@@ -1,4 +1,4 @@
-"""Assemble, verify, render, and package the Complete Cove-50 FDM Ape Body (`cove50-complete-fdm-body-r1`).
+"""Assemble, verify, render, and package the Complete APE0 FDM Ape Body (`cove50-complete-fdm-body-r1`).
 
 Combines all four completed 3D-printable FDM structural subsystems (28 printed FDM parts + 316 pressed-in 304 SS sleeves):
   1. Lower Body (`cove50-complete-leg-hip-fdm-combined-r10`, T-f39h6b, M-y8acff):
@@ -3172,7 +3172,7 @@ def build_complete_assembly() -> dict:
     if "--no-renders" in sys.argv:
         # presentation figures only (renders/): no generator reads them; the body rebuild runs the data at its own size
         # (the render phase holds every mesh in mm plus a posed copy per panel: 10.4 GB peak on 747 rows, 2026-11-22)
-        print(f"Completed Complete Cove-50 FDM Ape Body build and verification (renders skipped) in {time.monotonic() - t0:.2f}s")
+        print(f"Completed Complete APE0 FDM Ape Body build and verification (renders skipped) in {time.monotonic() - t0:.2f}s")
         return verification_report
     print("Rendering high-resolution whole-body Z-buffer and engineering figures...")
     wb_box = [[-210.0, -140.0, -5.0], [210.0, 140.0, 495.0]]
@@ -3304,7 +3304,7 @@ def build_complete_assembly() -> dict:
     legend_handles = [patches.Patch(facecolor=c, edgecolor="#1e242b", label=lbl) for lbl, c in sub_colors.items()]
     fig3.legend(handles=legend_handles, loc="lower center", ncol=4, frameon=True, fontsize=8.8)
     fig3.suptitle(
-        "Complete Cove-50 FDM Ape Body — Home-Lab Build-Plate Nesting Audit (28 Printed Structural Parts)",
+        "Complete APE0 FDM Ape Body — Home-Lab Build-Plate Nesting Audit (28 Printed Structural Parts)",
         fontsize=13.0,
         fontweight="bold",
         y=0.98,
@@ -3392,7 +3392,7 @@ def build_complete_assembly() -> dict:
     fig4.savefig(fig4_path, dpi=160)
     plt.close(fig4)
 
-    print(f"Completed Complete Cove-50 FDM Ape Body build, verification & renders in {time.monotonic() - t0:.2f}s")
+    print(f"Completed Complete APE0 FDM Ape Body build, verification & renders in {time.monotonic() - t0:.2f}s")
     return verification_report
 
 

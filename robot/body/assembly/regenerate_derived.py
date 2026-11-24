@@ -1,4 +1,4 @@
-"""Regenerate or clean disposable scratch files for the Complete Cove-50 FDM Ape Body Study (`cove50-complete-fdm-body-r1`)."""
+"""Regenerate or clean disposable scratch files for the Complete APE0 FDM Ape Body Study (`cove50-complete-fdm-body-r1`)."""
 from __future__ import annotations
 
 import argparse

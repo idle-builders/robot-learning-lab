@@ -542,7 +542,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict):
     axes[2].set_xticks(x, short_labels, rotation=15)
     axes[2].grid(axis="y", alpha=0.3)
 
-    fig.suptitle("Cove-50 4-Stage Arm FDM Connectors — Matched 3D Tetrahedral FEM (4 kg @ 1.5g Recovery Wrench)", fontsize=12, fontweight="bold")
+    fig.suptitle("APE0 4-Stage Arm FDM Connectors — Matched 3D Tetrahedral FEM (4 kg @ 1.5g Recovery Wrench)", fontsize=12, fontweight="bold")
     fig.tight_layout()
     fig.savefig(renders_dir / "fem-stress-displacement-comparison.png")
     plt.close(fig)
@@ -570,7 +570,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict):
     for i, v in enumerate(rss_u):
         axes[1].text(i, v + 0.02, f"{v:.3f} mm", ha="center", fontweight="bold", fontsize=9)
 
-    fig.suptitle("Cove-50 Arm Architecture — Mass Savings (Eliminating Separate Carriers) & Chain Deflection", fontsize=11, fontweight="bold")
+    fig.suptitle("APE0 Arm Architecture — Mass Savings (Eliminating Separate Carriers) & Chain Deflection", fontsize=11, fontweight="bold")
     fig.tight_layout()
     fig.savefig(renders_dir / "weight-to-strength-chart.png")
     plt.close(fig)

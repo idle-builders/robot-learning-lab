@@ -1,4 +1,4 @@
-"""Refit the complete Cove-50 FDM body (r1, commit 48c38ceda) to the locked three-tier motor set M-44khpr.
+"""Refit the complete APE0 FDM body (r1, commit 48c38ceda) to the locked three-tier motor set M-44khpr.
 
 Idle task T-jrnxfn. Decisions: M-jrrxya (owner: combine a small hip shift with a pelvis battery rework, keep the V body)
 and M-jxjse2 (4 mm hip pitch shift per side, pelvis cells laid horizontally on the midline).

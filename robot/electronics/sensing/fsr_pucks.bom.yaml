@@ -1,4 +1,4 @@
-# Cove-50 body definition for robot/electronics/sensing/fsr_pucks.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
+# APE0 body definition for robot/electronics/sensing/fsr_pucks.py (schema robot/body/bom/schema.json, guide robot/body/bom/README.md).
 # The foot FSR actuator pucks: one 10 x 0.5 mm silicone disc per FSR site, written as native STEPs from the coupon's sites.
 # Moved here from robot/body/ape-proportions/build.bom.yaml (Idle T-d98ff3), where the STEPs of 5 of the 6 pucks were missing.
 schema: cove50-body-definition/1

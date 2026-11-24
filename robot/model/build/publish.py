@@ -39,7 +39,7 @@ def main():
         body='Selected V24/R23/R33 CAD; '+r['variant'],observation='Assumed closed-loop servos follow a retargeted old attained-position trace; no new actor inference.',
         source_path=rel(OUT/'replay'/f"{r['id']}.mp4"),report_path=r['trace']['path'].replace('.npz','.json'),trace_path=r['trace']['path'])for r in replay['episodes']]
     limits='Provisional model: estimated mass/internal inertia, unknown hip stops/zeros, unmeasured servo/contact/thermal/latency/calibration. Flexible numerical/contact reduction remains sensitive. No transferred walking policy, physical localization or qualification.'
-    record=dict(id=RESULT,title='Selected Cove-50 learning and perception model',dashboard='learning',workspace='Control',
+    record=dict(id=RESULT,title='Selected APE0 learning and perception model',dashboard='learning',workspace='Control',
         area='CAD-to-learning body transfer and perception frames',status='provisional_model',observation=report['observation'],
         measurements=f"22 actuators; 13 sensor frames; 16 active coupled FEM interfaces; estimated {report['mass']['total_mass_kg']:.4f} kg; 6 primary episodes plus 3 numerical probes; 0 new policies.",
         limitations=limits,body='Selected electronics V24/R23/R33; upper V5/lower V16',provenance=[rel(OUT/'source-lock.json')],

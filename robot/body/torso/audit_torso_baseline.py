@@ -1,4 +1,4 @@
-"""Step 1 — Baseline Audit & Print-Bed Envelope Analysis for the Cove-50 Center-Body Torso Base Plate & Electronics Carrier System."""
+"""Step 1 — Baseline Audit & Print-Bed Envelope Analysis for the APE0 Center-Body Torso Base Plate & Electronics Carrier System."""
 from __future__ import annotations
 
 import json

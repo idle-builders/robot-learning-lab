@@ -661,7 +661,7 @@ def generate_figures():
     fig = plt.figure(figsize=(16, 13.5), dpi=180)
     fig.patch.set_facecolor("#0f141c")
     fig.suptitle(
-        "Cove-50 Lower-Leg Connectors Mated to Fixed C047 Actuators (Slate=Motor Case, Gold=Horn/Idler, Silver=SS Sleeves)",
+        "APE0 Lower-Leg Connectors Mated to Fixed C047 Actuators (Slate=Motor Case, Gold=Horn/Idler, Silver=SS Sleeves)",
         color="#f0f4f8",
         fontsize=14.2,
         fontweight="bold",

@@ -426,7 +426,7 @@ def render_thermal_figure(report: dict, out_png: Path) -> None:
     ax4.legend(fontsize=7.8, loc="lower left")
 
     fig.suptitle(
-        "Cove-50 9-Cell Honeycomb Battery Carrier — Chimney Convection + 9x Direct-on-Battery Aluminum Heat Fins & Polymer HDT",
+        "APE0 9-Cell Honeycomb Battery Carrier — Chimney Convection + 9x Direct-on-Battery Aluminum Heat Fins & Polymer HDT",
         fontsize=12.2,
         fontweight="bold",
     )
