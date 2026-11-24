@@ -3,8 +3,8 @@ against the CAD. Reports what the definitions do not say yet, each finding namin
 parts no definition claims, entries / globs matching nothing, parts claimed twice, declared quantity vs manifest count,
 declared files that resolve nowhere, hardware without a declared spec, printed parts without a print setup, generator
 inputs no generator writes, parts without an assembly step, stale steps, declared sleeve contents vs the sleeves in each
-sleeve STEP (one solid per sleeve; solids over 5 mm outer or under 1.8 mm long are not sleeves). Plus supplier coverage and
-hardware variety by declared spec kind. Manifest-wide (the scope does not filter it). Measurements and counts only."""
+sleeve STEP (one solid per sleeve, every solid counted whatever its size; each solid matched to the declared size it
+measures, the sizes no declaration has listed). Plus supplier coverage and hardware variety by declared spec kind. Manifest-wide (the scope does not filter it). Measurements and counts only."""
 from __future__ import annotations
 
 import sys
@@ -45,14 +45,33 @@ def sleeve_sizes(p, q=0.05):
     return [(r(od), r(idd), r(L)) for _, _, L, od, idd in tubes(BL.load_mesh(p["mesh"]))]
 
 
-SLEEVE_MAX_OD_MM, SLEEVE_MIN_LEN_MM = 5.0, 1.8
+# How closely a STEP solid's measured size (rounded to sleeve_sizes' 0.05 mm) must agree with a declared spec (outer, inner,
+# length) to count as that declared sleeve: a measurement tolerance, not a size limit. Which solids are sleeves comes from the
+# declarations (contains: spec outer_dia_mm / inner_dia_mm / length_mm), never from a fixed diameter (the old 5 mm outer limit
+# left the head carrier's 6.1-6.7 mm steel rings and the thigh's 1.25-1.6 mm sleeves uncounted, 2026-11-24).
+MATCH_TOL_MM = 0.1
 
 
-def _is_sleeve(x):
-    """A compression-limit sleeve: outer diameter at most SLEEVE_MAX_OD_MM and at least SLEEVE_MIN_LEN_MM long (the rings
-    of 6-7 mm x 1.5 mm in some sleeve STEPs are not sleeves)."""
-    od, idd, L = x
-    return od is not None and od <= SLEEVE_MAX_OD_MM and L >= SLEEVE_MIN_LEN_MM and idd < od
+def match_sleeves(sizes, declared):
+    """Solids of a sleeve STEP against its declared contents. sizes: [(outer, inner, length)] per solid; declared:
+    [(line, quantity, spec)]. Each solid goes to the declared line whose spec it measures within MATCH_TOL_MM on every declared
+    dimension (an insert without inner_dia_mm matches on outer and length), the closest line with quantity left first.
+    Returns ({line: solids matched}, [(outer, inner, length) of solids matching no declaration])."""
+    left = {ln: q for ln, q, _ in declared}
+    got, other = {ln: 0 for ln, _, _ in declared}, []
+    for x in sizes:
+        cands = []
+        for ln, _, sp in declared:
+            dif = [abs(a - float(sp[k])) for a, k in zip(x, ("outer_dia_mm", "inner_dia_mm", "length_mm"))
+                   if a is not None and (sp or {}).get(k) is not None]
+            if dif and max(dif) <= MATCH_TOL_MM + 1e-9:
+                cands.append((left[ln] <= 0, max(dif), ln))
+        if cands:
+            ln = min(cands)[2]
+            got[ln] += 1; left[ln] -= 1
+        else:
+            other.append(x)
+    return got, other
 
 
 @register("bom", lambda ctx: bool(ctx.body.parts))
@@ -74,12 +93,24 @@ def run(ctx):
             decl = sum(x["quantity"] for x in l.get("contains_per_part", {}).get(p["part"], []))
             if not decl:
                 continue
+            spec = {x["id"]: x.get("spec") or {} for x in lines}
+            declared = [(x["line"], x["quantity"], spec.get(x["line"], {})) for x in l.get("contains_per_part", {}).get(p["part"], [])]
             try:
-                cad = sum(1 for x in sleeve_sizes(ctx.body.parts[p["part"]]) if _is_sleeve(x))
+                sizes = sleeve_sizes(ctx.body.parts[p["part"]])
             except Exception as e:  # noqa: BLE001
                 findings.append(dict(kind="contains_not_counted", file=p["definition"], entry=l["id"], what=f"{p['part']}: STEP not read ({e})", part=p["part"])); continue
+            cad = len(sizes)
+            got, other = match_sleeves(sizes, declared)
             if cad != decl:
-                findings.append(dict(kind="contains_differs_from_cad", file=p["definition"], entry=l["id"], what=f"{p['part']}: declared {decl} sleeves, STEP holds {cad}", part=p["part"], declared=decl, cad=cad))
+                findings.append(dict(kind="contains_differs_from_cad", file=p["definition"], entry=l["id"], what=f"{p['part']}: declared {decl} sleeves, STEP holds {cad} solids", part=p["part"], declared=decl, cad=cad))
+            off = {ln: (q, got[ln]) for ln, q, _ in declared if got[ln] != q}
+            if off or other:
+                sz = Counter(other)
+                findings.append(dict(kind="contains_size_differs_from_cad", file=p["definition"], entry=l["id"], part=p["part"],
+                                     what=f"{p['part']}: " + "; ".join([f"{ln} declared {q}, STEP {g}" for ln, (q, g) in off.items()]
+                                                                     + [f"{n} solid(s) of no declared size {o} x {i} x {L} mm (outer x inner x length)" for (o, i, L), n in sz.items()]),
+                                     declared_vs_cad={ln: dict(declared=q, cad=g) for ln, (q, g) in off.items()},
+                                     undeclared_sizes=[dict(outer_mm=o, inner_mm=i, length_mm=L, solids=n) for (o, i, L), n in sz.items()]))
     kinds = Counter(f["kind"] for f in findings)
     hw = [l for l in lines if l["kinds"] == ["hardware"] and l["make_buy"] == "buy"]
     spec_kinds = Counter((l.get("spec") or {}).get("kind") for l in hw)
