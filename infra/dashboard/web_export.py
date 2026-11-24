@@ -146,7 +146,8 @@ class Index:
             taken.add(name)
             self.files[folder + name] = ("design", path, sha)
             earlier = self.manifest["assets"].get(path)
-            if earlier and earlier != folder + name:
+            earlier_sha = self.files.get(earlier, (None, None, None))[2] if earlier else None
+            if earlier and earlier != folder + name and earlier_sha and sha and earlier_sha != sha:
                 # The remote view maps a file by its local path, so the last study wins (T-8prn3q): say so.
                 print(f"warning: {path} is a design file of two studies ({earlier}, {folder + name}); the remote view "
                       "shows the later one for both. Give each study its own file.", file=sys.stderr, flush=True)
