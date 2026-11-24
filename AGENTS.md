@@ -18,6 +18,7 @@ The goal is a 50 cm ape robot that moves in an agile, playful way, like a little
   - a new or changed target;
   - spending beyond the set limits;
   - a step that is hard to undo.
+- **Ask every question to the owner through the agent's questionnaire tool** (Claude: `AskUserQuestion`), never as a question in prose at the end of a reply. One decision per question, with concrete options.
 - **Work toward an owner-approved target.** A target names concretely what the robot actually needs to do and how well. Never invent harder versions, or rules like "everything must be covered", and then chase them. A stress test shows where the limits are. It is never a requirement and never drives cost.
 - **Think realistically.** Check every ambition against physics, budget and what a hobby robot can really do.
 - **Before spending GPU time or money, or proposing hardware,** write down:
