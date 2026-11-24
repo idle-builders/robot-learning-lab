@@ -33,7 +33,7 @@ CFG = BOM_CONFIG.section("motor-refit")   # configured values: robot/body/motor-
 
 AX = CFG["AX"]
 BIG = CFG["BIG"]
-FUZZY = CFG["FUZZY"]
+FUZZY = 1e-4
 
 
 def box(lo, hi):

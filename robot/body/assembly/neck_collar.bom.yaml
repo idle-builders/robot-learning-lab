@@ -566,8 +566,6 @@ compose:                           # edits of the manifest composed by roll_flip
   notes: head_neck_collar screwed to the yaw-to-pitch link; after neck-parts, which edits the link (T-a2mt33)
 config:
   # robot/body/assembly/neck_collar.py module constants (moved 2026-11-24)
-  TASK:
-    value: T-a2mt33
   COLLAR:
     value: head_neck_collar
   LINK:

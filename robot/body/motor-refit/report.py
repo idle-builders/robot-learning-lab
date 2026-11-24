@@ -70,7 +70,7 @@ def verify_sweeps():
                     limits.append(dict(joint_swept=j, **row))
             out[j] = dict(poses=d["poses"], adjacent=d["adjacent"], pairs=rows)
     return out, limits
-IGNORE = CFG["IGNORE"]
+IGNORE = ("finger", "palm", "TPU_pad", "sole_pad", "sensor_pocket")
 INTERFACES = list(CFG["INTERFACES"])
 
 

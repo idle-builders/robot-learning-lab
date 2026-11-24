@@ -32,7 +32,22 @@ BASELINE_STEPS = {
 }
 
 # Legacy sheet-metal and boxy PA12 neck/head brackets & obsolete v21 ribbon clamp hardware replaced by the 4-stage FDM connectors
-REPLACED_NECK_HEAD_PARTS = set(CFG["REPLACED_NECK_HEAD_PARTS"])
+REPLACED_NECK_HEAD_PARTS = {
+    "fixed_neck_ribbon_anchor_v21",
+    "fixed_neck_ribbon_cap_v21",
+    "fixed_neck_ribbon_pad_rear_v21",
+    "fixed_neck_ribbon_pad_front_v21",
+    "fixed_ribbon_M2x8_0_v21",
+    "fixed_ribbon_M2_washer_0_v21",
+    "fixed_ribbon_M2x8_1_v21",
+    "fixed_ribbon_M2_washer_1_v21",
+    "upper__one_piece_bent_neck_L",
+    "compact_neck_U_strap_v23",
+    "single_shared_carrier_v23",
+    "microphone_compact_tab_v23",
+    "mic_foot_M2x3_0",
+    "mic_foot_M2x3_1",
+}
 
 # Exact neck joint origins and axes in world neutral coordinates (mm)
 P_NECK_YAW = np.array(CFG["P_NECK_YAW"], dtype=float)

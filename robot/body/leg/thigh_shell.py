@@ -73,7 +73,7 @@ Z0, TOP_Z = CFG["Z0"], CFG["TOP_Z"]
 WINDOW = CFG["WINDOW"]
 ROLL_RANGE = tuple(BOM_CONFIG.value("thigh-shell", "ROLL_SWEEP_DEG"))   # design sweep of the Stage 5 slot, not the joint range
 CLEAR = CFG["CLEAR"]
-NTH = CFG["NTH"]
+NTH = 144
 CENTRE = np.array(CFG["CENTRE"])
 COVERED = CFG["COVERED"]
 # (the knee output horn is on R_shin and ends at z 132.4, below Z0: it is not covered; hulling it made a lip at the knee end)
@@ -137,7 +137,7 @@ SURF = CFG["SURF"]
 RING = CFG["RING"]
 SURF_Z_MID = CFG["SURF_Z_MID"]
 SURF_N = dict(min=2.05, round_max=2.6, front_max=3.6, back_max=4.2, cy=(4.5, 6.7))
-DZ_ST = CFG["DZ_ST"]
+DZ_ST = 1.0                        # ring spacing (and requirement stations) along z
 
 
 def station_hull(body, z):
@@ -313,7 +313,7 @@ def top_free_limit(body, th, zz, r_skin, z_top):
     return lim
 
 
-FIT_MAX_CHANGE = CFG["FIT_MAX_CHANGE"]
+FIT_MAX_CHANGE = 8.0               # fit-surface refuses a result that moves any control value further (mm / exponent units)
 
 
 def fit_surface():
@@ -669,15 +669,15 @@ TOP_RING_Z = CFG["TOP_RING_Z"]
 # it it rises along the shin back cover's radial top edge (COVER_CUT_DEG) turned to full flexion, so at 95 deg the back
 # seam is one even gap along its length; at standing the joint shows only as the V between the two radial edges at the
 # back of the knee.
-EDGE_NTH = CFG["EDGE_NTH"]
+EDGE_NTH = 360
 COVER_GAP = CFG["COVER_GAP"]
-COVER_STEP_DEG = CFG["COVER_STEP_DEG"]
+COVER_STEP_DEG = 0.5              # knee step of the cover sweep (point clouds; chord 0.5 mm at 60 mm from the axis)
 KNEE_EDGE_KNOTS = CFG["KNEE_EDGE_KNOTS"]
                                   # (the shell's bottom spans y -18.8 .. 35; constant beyond the end knots)
 KNEE_EDGE_CURV = CFG["KNEE_EDGE_CURV"]
                                   # (0.25 hugged the requirement closer, median excess 0.71 vs 1.11 mm, with an S-wave about the hub)
 KNEE_EDGE_Z = CFG["KNEE_EDGE_Z"]
-KNEE_EDGE_DZ = CFG["KNEE_EDGE_DZ"]
+KNEE_EDGE_DZ = 0.1                # ring spacing in z there (the requirement is the highest wall point closer than COVER_GAP)
 
 
 def shin_sweep(body):
@@ -1619,8 +1619,8 @@ def cover_sleeve_rows(solids):
     return rows
 
 
-VOX_H, VOX_R, VOX_FACES = CFG["VOX_H"], CFG["VOX_R"], CFG["VOX_FACES"]
-VOX_SMOOTH = CFG["VOX_SMOOTH"]
+VOX_H, VOX_R, VOX_FACES = 0.15, 0.4, 250000   # voxel pitch, opening / closing radius (mm), faces kept after decimation
+VOX_SMOOTH = 12                   # Taubin iterations on the marching-cubes surface (stair steps of the grid)
 
 
 def voxel_clean(m, h=VOX_H, r=VOX_R, faces=VOX_FACES):

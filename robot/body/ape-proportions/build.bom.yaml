@@ -2469,10 +2469,6 @@ config:
     doc: 'forward: the clevis sits 5 mm forward of the upper cover''s centre'
   SKIN_WALL:
     value: 1.5
-  SKIN_N:
-    value: 160
-  SKIN_RINGS:
-    value: 48
   SKIN_HOLD:
     value: 30.0
     doc: mm below the gap with exactly the upper-arm section, then the blend

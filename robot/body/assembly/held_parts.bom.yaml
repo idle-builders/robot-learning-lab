@@ -223,8 +223,6 @@ compose:                           # edits of the manifest composed by roll_flip
   notes: fan bridge plate, chest indicator, R roll case, stale screws (T-3npyjq)
 config:
   # robot/body/assembly/held_parts.py module constants (moved 2026-11-24)
-  TASK:
-    value: T-3npyjq
   PLATE_Y:
     value: [8.6, 10.6]
     doc: fan bridge plate (manifest frame, head link at standing = neutral) standoff end faces / bridge nut faces and the fan's front flange

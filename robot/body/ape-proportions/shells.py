@@ -53,7 +53,7 @@ HIP_LINKS = CFG["HIP_LINKS"]
 TORSO_SHELLS = CFG["TORSO_SHELLS"]
 ANKLE = dict(pitch=np.arange(-35.0, 27.6, 2.5), roll=np.arange(-25.0, 25.1, 5.0))
 ANKLE_LINKS = CFG["ANKLE_LINKS"]
-SKIP = CFG["SKIP"]
+SKIP = ("cut_material", "adhesive_allocation", "authored_harness")
 BOOT_STATIC_CLEARANCE = CFG["BOOT_STATIC_CLEARANCE"]
                               # eat part of it: measured 2026-11-23 (review rv-6c2e93) min 0.13 mm heel cap to monocoque, 0.36 mm toe part
 BOOT_SPLIT_Y = CFG["BOOT_SPLIT_Y"]

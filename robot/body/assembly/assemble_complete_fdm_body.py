@@ -1770,7 +1770,62 @@ PALETTE = BOM_CONFIG.unfrozen(CFG["PALETTE"])
 
 
 # Replaced legacy sheet-metal / LPBF / PA12 carrier sets across all 4 structural redesigns
-REPLACED_LEGACY_PARTS = set(CFG["REPLACED_LEGACY_PARTS"])
+REPLACED_LEGACY_PARTS = {
+    # Lower body (32 parts/leg = 64 parts)
+    "R_A1_ankle_C047_direct_mount", "L_A1_ankle_C047_direct_mount",
+    "R_B13_direct_horn_coupler", "L_B13_direct_horn_coupler",
+    "R_B13_sole_plate", "L_B13_sole_plate",
+    "R_B13_front_case_tab", "L_B13_front_case_tab",
+    "R_B13_rear_case_tab", "L_B13_rear_case_tab",
+    "R_A10_one_piece_direct_upper", "L_A10_one_piece_direct_upper",
+    "R_A13_pitch_roll_negative_L", "L_A13_pitch_roll_negative_L",
+    "R_A13_pitch_roll_positive_L", "L_A13_pitch_roll_positive_L",
+    "R_A13_pitch_output_ring8", "L_A13_pitch_output_ring8",
+    "R_A14_plain3_inside_yaw_pitch", "L_A14_plain3_inside_yaw_pitch",
+    "R_C_hip_yaw_ring_8mm_0", "L_C_hip_yaw_ring_8mm_0",
+    "R_A14_yaw_flat_shim1_0", "L_A14_yaw_flat_shim1_0",
+    "R_A14_yaw_flat_shim1_1", "L_A14_yaw_flat_shim1_1",
+    "R_A14_yaw_flat_shim1_2", "L_A14_yaw_flat_shim1_2",
+    "R_A14_yaw_flat_shim1_3", "L_A14_yaw_flat_shim1_3",
+    "R_Thigh_carrier", "L_Thigh_carrier",
+    "R_Thigh_rear_carrier", "L_Thigh_rear_carrier",
+    "R_Shin_carrier", "L_Shin_carrier",
+    "R_Shin_rear_carrier", "L_Shin_rear_carrier",
+    # Arms (12 parts)
+    "upper__R_pitch_to_roll_one_piece", "upper__L_pitch_to_roll_one_piece",
+    "upper__R_roll_to_yaw_one_piece", "upper__L_roll_to_yaw_one_piece",
+    "R_S_yaw_to_elbow", "L_S_yaw_to_elbow",
+    "R_forearm_frame_drilled", "L_forearm_frame_drilled",
+    "upper__R_forearm_wrist_one_piece", "upper__L_forearm_wrist_one_piece",
+    "R_shoulder_carrier", "L_shoulder_carrier",
+    "R_fore_carrier", "L_fore_carrier",
+    # Neck & Head (16 parts)
+    "upper__neck_root_bracket",
+    "upper__neck_yaw_to_pitch_bracket",
+    "compact_neck_U_strap_v23",
+    "single_shared_carrier_v23",
+    "microphone_compact_tab_v23",
+    "fixed_neck_ribbon_anchor_v21",
+    "fixed_neck_ribbon_cap_v21",
+    "fixed_neck_ribbon_pad_rear_v21",
+    "fixed_neck_ribbon_pad_front_v21",
+    "fixed_ribbon_M2x8_0_v21", "fixed_ribbon_M2_washer_0_v21",
+    "fixed_ribbon_M2x8_1_v21", "fixed_ribbon_M2_washer_1_v21",
+    "flush_skin_M2x8_-1", "flush_skin_M2x8_1",
+    "upper__simple_continuous_rear_neck_cowl",
+    "upper__cowl_M2x10_countersunk_0", "upper__cowl_M2x10_countersunk_1",
+    # Torso & Pelvis (27 parts)
+    "Common_power_carrier_mounting_r33",
+    "A1_integral_pelvis_flat_mate_r2",
+    "lower_cradle_lugs_224_with_waist_guard_r18",
+    "lower_cradle_lugs_252_retained_outer_r18",
+    "Power_supervisor_PA12_open_tray",
+    "Main_precharge_PA12_open_tray",
+    "IMU_ADC_carrier_v17",
+    "pelvis_front_carrier", "pelvis_back_carrier", "T02_back_lower_carrier",
+    "ape_body_shell__torso_front_relief4_r33", "ape_body_shell__torso_back_relief4_r33",
+    "ape_body_shell__pelvis_front", "ape_body_shell__pelvis_back",
+}
 
 
 def classify_overlay_and_group(name: str, role: str, default_dg: str) -> tuple[str, str | None, bool]:
