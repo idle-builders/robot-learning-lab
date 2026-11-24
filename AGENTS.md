@@ -48,4 +48,6 @@ Never produce a yes/no result in any domain: design, mechanics, looks, electroni
 
 ## Operations
 
+Generated files are built on demand and may be out of date: before using one, check `.venv/bin/python -B robot/body/bom/make.py status TARGET` (a generator, `body`, a path or a part) and build what you need with `make.py TARGET` (owner, 2026-11-24).
+
 The working procedures for the current tools and layout are in `docs/operations/working-rules.md`: planning in Idle, the selected design pointer, storage and cleanup, publishing results, and the dashboards. Follow them. They change with the architecture; the intent above does not.
