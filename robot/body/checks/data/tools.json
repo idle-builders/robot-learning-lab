@@ -1,10 +1,10 @@
 {
- "_doc": "Screw drivers as data for the driver_access check (mm). The tool path is a cylinder of the tool's blade (shaft) diameter along the screw axis from the head top outward. head_types: how a screw head is told from the manifest (name and mesh) and which drive it has; tools: drive size -> bit across-flats (or tip size) and the blade diameter of a precision driver that carries it. 'standard' values come from the named standard, 'assumption' values are typical precision-screwdriver blades, not measured on the owner's set: replace them with the owner's driver and every number follows.",
+ "_doc": "Screw drivers as data for the driver_access and assembly checks (mm). The tool path is a cylinder of the tool's swept diameter along the screw axis from the head top outward. head_types: how a screw head is told from its declared head standard (screw_plan / body definition; else the mesh) and which drive it has; tools: drive size per head type and thread (from the head standard), and per drive the tool variants with their swept diameter per drive size, each from a cited standard or catalogue. `use` picks the variant a run measures with (hex_key: precision_driver = round-shank precision driver, l_key = ISO 2936 L-key, swept diameter = its across-corners e max). Per run without editing this file: copy the folder, change `use` (or a diameter) in the copy and run with LAB_CHECKS_DATA=<copy> (child processes inherit it; the result cache is off for such runs). A drive size with no row in the chosen variant is reported as not measured, never guessed. blade_dia_mm (hex_key: up_to_af_2.0 / above_af_2.0) is the precision_driver variant in the shape screwlib.tool_for reads.",
  "path": {
   "min_length_mm": 40.0,
   "max_length_mm": 100.0,
   "start_offset_mm": 0.05,
-  "_doc": "The path runs from start_offset_mm above the head top to the larger of min_length_mm (straight access behind the head for a driver blade plus fingers, as the mount check's DRIVER_L) and the distance at which the axis leaves the body's bounding box, capped at max_length_mm. max_length_mm 100 = the blade of a long precision driver (assumption: catalogue precision drivers carry 40-100 mm blades; the handle behind it can tilt and is not modelled); was 250 (the body box), which counted parts no driver blade reaches. Parts on another limb than the screw's (the other leg, an arm) are left out of the path: that limb is posed away or not yet attached while the screw is driven."
+  "_doc": "The path runs from start_offset_mm above the head top to the larger of min_length_mm (straight access behind the head for a driver blade plus fingers, as the mount check's DRIVER_L) and the distance at which the axis leaves the body's bounding box, capped at max_length_mm. max_length_mm 100 = the blade of a long precision driver (Wera 2054 carries 40-60 mm blades, Wiha 267P 40-60 mm; 100 mm = a long-series blade, assumption; the handle behind it is not modelled); was 250 (the body box), which counted parts no driver blade reaches. Parts on another limb than the screw's (the other leg, an arm) are left out of the path: that limb is posed away or not yet attached while the screw is driven."
  },
  "head_types": {
   "countersunk": {
@@ -28,7 +28,7 @@
   "flange_button": {
    "drive": "hex_key",
    "match": "head standard ISO 7380-2, else name contains NBK",
-   "source": "assumption: hex socket as the button head (head-type recognition; drive sizes: see tools)",
+   "source": "ISO 7380-2 hex socket flanged button head, M3 to M16 (https://www.westfieldfasteners.co.uk/Standards/ScrewBolt_SHBtnFlg_M.html)",
    "standards": [
     "ISO 7380-2"
    ]
@@ -36,7 +36,7 @@
   "button": {
    "drive": "hex_key",
    "match": "head standard ISO 7380-1, else metric thread, head height under 0.7 x thread diameter",
-   "source": "ISO 7380-1 hex socket button head (head-type recognition; drive sizes: see tools)",
+   "source": "ISO 7380-1 hex socket button head, M3 and up (https://fasten.it/en/norms/norm/din_en_iso_7380-1); M2 / M2.5 from a vendor catalogue, ISO 7380-1 style (see tools.hex_key.size_source)",
    "standards": [
     "ISO 7380-1"
    ]
@@ -47,6 +47,30 @@
    "source": "ISO 4762 hex socket head cap (head-type recognition; drive sizes: see tools)",
    "standards": [
     "ISO 4762"
+   ]
+  },
+  "cheese_hexalobular": {
+   "drive": "hexalobular",
+   "match": "head standard ISO 14580",
+   "source": "ISO 14580:2011 hexalobular socket cheese head, M2 to M10 (https://cdn.standards.iteh.ai/samples/56456/88025f720d57423b9e2c1ceb78304eec/ISO-14580-2011.pdf, Table 1)",
+   "standards": [
+    "ISO 14580"
+   ]
+  },
+  "low_head_cap": {
+   "drive": "hex_key",
+   "match": "head standard DIN 7984",
+   "source": "DIN 7984 hex socket low head cap, M3 and up (https://fasten.it/en/norms/norm/din_7984, https://www.fasteners.eu/standards/DIN/7984/)",
+   "standards": [
+    "DIN 7984"
+   ]
+  },
+  "cheese_slotted": {
+   "drive": "slotted",
+   "match": "head standard ISO 1207",
+   "source": "ISO 1207 slotted cheese head, M1.6 to M10 (https://www.fasteners.eu/standards/ISO/1207/)",
+   "standards": [
+    "ISO 1207"
    ]
   }
  },
@@ -60,31 +84,98 @@
      "M4": 3.0
     },
     "button": {
-     "M2": 1.5,
+     "M2": 1.3,
      "M2.5": 1.5,
      "M3": 2.0,
      "M4": 2.5
     },
     "flange_button": {
-     "M2": 1.5,
+     "M2": 1.3,
      "M2.5": 1.5,
      "M3": 2.0,
      "M4": 2.5
     },
     "countersunk": {
-     "M2": 1.5,
+     "M2": 1.3,
      "M2.5": 1.5,
+     "M3": 2.0,
+     "M4": 2.5
+    },
+    "low_head_cap": {
      "M3": 2.0,
      "M4": 2.5
     }
    },
    "size_unit": "across flats (mm)",
-   "size_source": "socket_cap M2 1.5 / M2.5 2.0 mm: ASME B18.3.1M metric socket head cap screw table (same sizes as ISO 4762), https://torqbolt.com/asme-b18-3-1m-socket-head-cap-screws-dimensions-standards-specifications; socket_cap M3 2.5 / M4 3.0 and every button, flange_button and countersunk size: assumption (common values, not checked against the standard texts). ISO 7380-1 button heads start at M3 (https://fasten.it/en/norms/norm/din_en_iso_7380-1): the M2 / M2.5 button sizes are non-standard parts, assumption",
+   "size_source": "socket_cap ISO 4762 M2 1.5 / M2.5 2 / M3 2.5 / M4 3 (https://www.fasteners.eu/standards/ISO/4762/); button ISO 7380-1 M3 2 / M4 2.5 (https://www.fasteners.eu/standards/ISO/7380/, the standard has no M2 / M2.5); flange_button ISO 7380-2 M3 2 / M4 2.5 (https://www.westfieldfasteners.co.uk/Standards/ScrewBolt_SHBtnFlg_M.html); countersunk ISO 10642 M3 2 / M4 2.5 (https://www.fasteners.eu/standards/ISO/10642/); low_head_cap DIN 7984 M3 2 / M4 2.5 (https://fasten.it/en/norms/norm/din_7984). A thread a head standard does not cover has no row: such a screw is reported as not measured; vendor catalogue rows outside the standards' M3+ ranges: button (ISO 7380-1 style) M2 1.3 (Aspen Fasteners ME125-204X5, https://www.aspenfasteners.com/m2-0-4-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a2-stainless-steel/; the former analogy row said 1.5) / M2.5 1.5 (Aspen ME482-25045X5, https://www.aspenfasteners.com/m2-5-0-45-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a4-stainless-steel); flange_button (ISO 7380-2 style) M2 1.3 (Aspen ME337-204X3, https://www.aspenfasteners.com/m2-0-4-x-3mm-iso-7380-2-metric-flanged-button-head-hex-socket-cap-screws-a2-stainless-steel; former row 1.5) / M2.5 1.5 (Aspen ME484-25045X6, https://www.aspenfasteners.com/m2-5-0-45-x-6mm-iso-7380-2-metric-flanged-button-head-hex-socket-cap-screws-a4-stainless-steel); countersunk (DIN 7991 / ISO 10642 style) M2 1.3 (Kent 1333727, https://www.kent-automotive.com/products/flat-head-socket-cap-screw-steel-m2-0-4-x-10mm-1333727; Aspen ME300 lists 1.25; former row 1.5) / M2.5 1.5 (Aspen ME300-25045X6, https://www.aspenfasteners.com/m2-5-0-45-x-6mm-din-7991-iso-10642-metric-flat-head-socket-cap-screws-a4-stainless-steel/)",
    "blade_dia_mm": {
     "up_to_af_2.0": 3.0,
     "above_af_2.0": 4.0
    },
-   "blade_source": "assumption: precision hex driver blade, typical 3 mm to 2 mm AF and 4 mm above"
+   "blade_source": "precision_driver variant (Wera 2054: 1.3 / 1.5 / 2.0 -> 3.0 mm, 2.5 / 3.0 -> 4.0 mm); driver_access reads the variant table, not these two keys",
+   "use": "precision_driver",
+   "variants": {
+    "precision_driver": {
+     "what": "round-shank precision driver with a hex tip; swept diameter = the shank diameter",
+     "dia_mm_by_size": {
+      "1.3": 3.0,
+      "1.5": 3.0,
+      "2.0": 3.0,
+      "2.5": 4.0,
+      "3.0": 4.0
+     },
+     "blade_length_mm_by_size": {
+      "1.3": 40,
+      "1.5": 60,
+      "2.0": 60,
+      "2.5": 60,
+      "3.0": 60
+     },
+     "source": "Wera 2054 Kraftform Micro hex screwdriver, blade diameter / length per size (https://www.wera.de/en/tools/2054-screwdriver-for-hexagon-socket-screws-for-electronic-applications; round blade: https://rapidonline.com/catalogue/product/50-4270)"
+    },
+    "l_key": {
+     "what": "ISO 2936 hexagon socket screw key (L-key, also the ball-end keys): the hex bar itself enters the path; swept diameter = across corners e max",
+     "dia_mm_by_size": {
+      "1.3": 1.42,
+      "1.5": 1.68,
+      "2.0": 2.25,
+      "2.5": 2.82,
+      "3.0": 3.39,
+      "4.0": 4.53
+     },
+     "long_arm_l1_mm_by_size": {
+      "1.3": 41,
+      "1.5": 46.5,
+      "2.0": 52,
+      "2.5": 58.5,
+      "3.0": 66,
+      "4.0": 74
+     },
+     "short_arm_l2_mm_by_size": {
+      "1.3": 13,
+      "1.5": 15.5,
+      "2.0": 18,
+      "2.5": 20.5,
+      "3.0": 23,
+      "4.0": 29
+     },
+     "source": "ISO 2936:2014 Table 1, e max and standard-series l1 / l2 (https://cdn.standards.iteh.ai/samples/60231/7332b2e7eb6c448b9f8ca6c6ed518206/ISO-2936-2014.pdf)"
+    }
+   },
+   "ball_end": {
+    "max_tilt_deg": 25.0,
+    "tilt_steps_deg": [
+     0,
+     5,
+     10,
+     15,
+     20,
+     25
+    ],
+    "azimuth_steps": 8,
+    "what": "a ball-end L-key (ISO 2936 bar, the l_key diameter) drives a hex socket up to max_tilt_deg off the screw axis: driver_access sweeps that cone (tilt_steps_deg x azimuth_steps directions) for every screw whose straight path is obstructed within path.min_length_mm and reports the least obstructed direction",
+    "source": "Bondhus ball-end hex keys: 25 deg angle of entry, sizes 1.5-10 mm (https://docs.rs-online.com/efc1/A700000015447143.pdf; https://www.mcmaster.com/products/ball-end-driver-sets)"
+   }
   },
   "phillips": {
    "by_head_type_and_thread": {
@@ -97,13 +188,48 @@
      "M3": "PH1"
     }
    },
-   "size_source": "M2 PH0 / M2.5 PH1 / M3 PH1: ISO 7045 cross-recess numbers (0 for M2, 1 for M2.5 / M3, type Z table, https://cdefasteners.com/sites/default/files/product-specs/meti7045pozi.pdf; the H recess of the same numbers is assumed). PA2 / PA2.5 / PA3: assumption by analogy with ISO 7045; the PA self-tapping screws are not ISO 7045 parts, so their recess sizes are an assumption until the screws' own data sheet or a measurement replaces them",
+   "size_source": "M2 PH0 / M2.5 PH1 / M3 PH1: ISO 7045 cross-recess numbers (type Z table, https://cdefasteners.com/sites/default/files/product-specs/meti7045pozi.pdf; the H recess of the same numbers is assumed). PA2.5 PH1 / PA3 PH1: Westfield Fasteners thread forming screws for plastics, Phillips pan head, 30 deg thread, Table 1 (2.5: dk 4.4 k 1.7 recess 1; 3: dk 5.3 k 2.0 recess 1; https://westfieldfasteners.co.uk/Standards/ThreadForming-PhilPan30.pdf). PA2 PH0: source unverified (former analogy value; the Westfield series starts at 2.5)",
    "blade_dia_mm": {
     "PH0": 3.0,
-    "PH1": 4.0,
-    "PH2": 5.0
+    "PH1": 4.0
    },
-   "blade_source": "assumption: precision Phillips driver blade"
+   "blade_source": "Wera 2050 PH screwdriver for electronic applications: PH0 blade 3.0 mm, PH1 4.0 mm (https://www.wera.de/en/tools/2050-ph-screwdriver-for-phillips-screws-for-electronic-applications)",
+   "unverified": [
+    "pan_phillips PA2"
+   ]
+  },
+  "hexalobular": {
+   "by_head_type_and_thread": {
+    "cheese_hexalobular": {
+     "M2": "T6",
+     "M2.5": "T8",
+     "M3": "T10",
+     "M4": "T20"
+    }
+   },
+   "size_source": "ISO 14580:2011 Table 1: M2 T6, M2.5 T8, M3 T10, M4 T20 (https://cdn.standards.iteh.ai/samples/56456/88025f720d57423b9e2c1ceb78304eec/ISO-14580-2011.pdf)",
+   "tip_A_mm": {
+    "T6": 1.75,
+    "T8": 2.4,
+    "T10": 2.8,
+    "T15": 3.35,
+    "T20": 3.95
+   },
+   "tip_source": "ISO 10664:2014 nominal A (point-to-point) per hexalobular size (https://cdn.standards.iteh.ai/samples/63207/b0c723df4cff4b6290d6d6fd8938e84c/ISO-10664-2014.pdf)",
+   "blade_dia_mm": {
+    "T6": 2.5,
+    "T8": 2.5,
+    "T10": 3.0,
+    "T15": 3.5,
+    "T20": 4.0
+   },
+   "blade_source": "Wiha PicoFinish 267P hexalobular precision driver, round blade: T6 / T8 2.5 mm, T10 3.0, T15 3.5, T20 4.0 (https://wiha.com/gb/en/detail/6958f0d4fc4cb5180ea9c16f31391cd1)"
+  },
+  "slotted": {
+   "by_head_type_and_thread": {},
+   "blade_dia_mm": {},
+   "size_source": "ISO 1207 slot width n: M2 0.5, M2.5 0.6, M3 0.8, M4 1.2 (https://www.fasteners.eu/standards/ISO/1207/); no slotted driver catalogue data yet: an ISO 1207 screw is reported as not measured",
+   "blade_source": "none yet"
   }
  }
 }

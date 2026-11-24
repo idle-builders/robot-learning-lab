@@ -12,7 +12,8 @@ toward tip of each screw), and either `seeded` (drafted by checks/assembly_seed.
 supports it: the check measurement or the designer) with `derived` (how it was drafted).
 Frame: standing pose (link transforms at standing), which is the manifest frame.
 
-Part step: the group is translated back along -direction in 1 mm samples (0 < t <= max_mm, data defaults) and its overlap volume
+Part step: the group is translated back along -direction in 1 mm samples (0 < t <= its own travel: until its box clears every
+assembled part's box, capped at PATH_CAP_MM) and its overlap volume
 (exact boolean of the coarse screening solids, checks/screwlib.screen, as connectivity: an unscoped run would otherwise
 tessellate every supplier STEP at 0.03 mm, T-c4sy9d) is measured against every part assembled before it; a sample is only
 booleaned against parts whose box it reaches. Reported: first_contact_mm (the largest sampled t with overlap, refined by
@@ -20,7 +21,9 @@ bisection to 0.01 mm: where the part first touches coming in from outside), the 
 part that has it, and the overlap at the final position (seat, t = 0: interference by design, not a path finding); apart from
 the seat: path_first_contact_mm (first touch of a part that does not overlap at the seat) and seat_parts_released_at_mm (where
 the seat-overlapping parts let go; = max_mm when they never do). Thin
-obstacles thinner than the sample step can be stepped over.
+obstacles thinner than the sample step can be stepped over. Seat overlaps and the first path contact apart from the seat are
+confirmed by the exact OCC common of the two STEPs where both parts have one (confirm_exact; coarse values kept beside it).
+A subassembly whose parts all enter another assembly in one step (a bench unit, units()) is built before that assembly.
 Screw step: driver path (driver_access.measure_screw: tool blade cylinder from the head outward, data/tools.json) against the
 parts assembled at that step only; `closed_in_by` lists parts named later (this assembly's later steps and every later
 assembly) that would block the same path within the driver's reach (data/tools.json path min_length_mm from the head: the blade
@@ -36,6 +39,7 @@ import fnmatch
 import json
 import sys
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -46,6 +50,8 @@ from checks.registry import register
 
 EPS_MM3 = 1e-3
 COVER_ROLE = "body_shell"
+EXACT_MIN_MM3 = 0.01     # an exact OCC common at or below this is contact, not overlap
+PATH_CAP_MM = 300.0      # the longest insertion path measured (mm): a part travels until its box clears every assembled part's box, at most this
 
 
 def definitions():
@@ -60,7 +66,29 @@ def load_order(names, defs=None):
     D = defs or definitions().load()
     order = D.order(list(names))
     order["definition_findings"] = [f for f in D.findings if f["kind"].startswith(("step_", "subassembly_"))]
+    order["entered_as_unit"] = units(order, list(names))
     return order
+
+
+def units(order, names):
+    """Subassemblies built apart (a bench) that enter another assembly as one step: B enters A at step s when every part B
+    names (base and part steps) is in s's part / with lists, and neither is built before the other through `after`. From the
+    declared data only (no schema field says it). Returns {B: [{into: A, step: id}]}."""
+    asm, out = order["assemblies"], {}
+    for b, B in asm.items():
+        pb = set(resolve(names, B.get("base", [])))
+        for st in B.get("steps", []):
+            pb |= set(resolve(names, st.get("part")))
+        if not pb:
+            continue
+        for a, A in asm.items():
+            if a == b or b in prerequisites(order, a) or a in prerequisites(order, b):
+                continue
+            for st in A.get("steps", []):
+                if "part" in st and pb <= set(resolve(names, st.get("part"))) | set(resolve(names, st.get("with"))):
+                    out.setdefault(b, []).append(dict(into=a, step=st.get("id")))
+                    break
+    return out
 
 
 def names_of(spec):
@@ -76,16 +104,21 @@ def resolve(parts, spec):
 
 
 def build_order(order):
-    """Assembly names in build order: file order, moved after the assemblies each names in `after`."""
+    """Assembly names in build order: file order, moved after the assemblies each names in `after` and after the bench
+    subassemblies that enter it as one step (units)."""
     asm = order["assemblies"]
     out, seen = [], set()
+    before = {}
+    for b, into in order.get("entered_as_unit", {}).items():
+        for e in into:
+            before.setdefault(e["into"], []).append(b)
 
     def visit(n, stack=()):
         if n in seen or n not in asm:
             return
         if n in stack:
             raise ValueError(f"assembly order: cycle in `after` through {n}")
-        for m in asm[n].get("after", []):
+        for m in asm[n].get("after", []) + before.get(n, []):
             visit(m, stack + (n,))
         seen.add(n); out.append(n)
     for n in asm:
@@ -156,13 +189,30 @@ def _moved(m, d, t):
     return m.translate([float(x) for x in (-t * np.asarray(d))])
 
 
-def sweep_insertion(moving, direction, obstacles, max_mm=60.0, step_mm=1.0, refine_mm=0.01):
+def box_clear_mm(lo, hi, d, olo, ohi):
+    """Largest t >= 0 at which the box [lo, hi] moved by -t x d (unit) still meets the box [olo, ohi]; 0 when it never does for t > 0."""
+    t0, t1 = 0.0, np.inf
+    for i in range(3):
+        if abs(d[i]) < 1e-12:
+            if lo[i] > ohi[i] or hi[i] < olo[i]:
+                return 0.0
+            continue
+        a, b = (lo[i] - ohi[i]) / d[i], (hi[i] - olo[i]) / d[i]      # lo - t d <= ohi and hi - t d >= olo
+        t0, t1 = max(t0, min(a, b)), min(t1, max(a, b))
+    return float(t1) if t1 >= t0 and t1 > 0 else 0.0
+
+
+def sweep_insertion(moving, direction, obstacles, max_mm=PATH_CAP_MM, step_mm=1.0, refine_mm=0.01):
     """Straight insertion of `moving` (manifold, final position) along `direction` against `obstacles` {name: manifold}, same frame.
-    The part sits at final position - t x direction for t = 0 .. max_mm. Returns dict(seat_overlap_mm3 (t = 0), max_overlap_mm3,
-    max_overlap_at_mm, max_overlap_part, first_contact_mm (None = free path), first_part, blocked_samples, samples, by_part)."""
+    The part sits at final position - t x direction for t = 0 .. L, L = its own travel: where its box clears the box of every
+    obstacle (path_needed_mm), at most max_mm (path_capped). Returns dict(seat_overlap_mm3 (t = 0), max_overlap_mm3,
+    max_overlap_at_mm, max_overlap_part, first_contact_mm (None = free path), first_part, blocked_samples, samples, by_part, path_mm)."""
     d = np.asarray(direction, float)
     d = d / np.linalg.norm(d)
     lo, hi = _aabb(moving)
+    need = max([box_clear_mm(lo, hi, d, *_aabb(o)) for o in obstacles.values()], default=0.0)
+    cap = max_mm
+    max_mm = min(cap, float(np.ceil(need / step_mm) * step_mm) + step_mm) if need > 0 else step_mm
     obs, boxes = {}, {}
     for n, o in obstacles.items():
         olo, ohi = _aabb(o)
@@ -228,7 +278,193 @@ def sweep_insertion(moving, direction, obstacles, max_mm=60.0, step_mm=1.0, refi
                 seat_parts_released_at_mm=None if seat_release is None else min(float(max_mm), seat_release),
                 max_overlap_mm3=round(best[0], 3), max_overlap_at_mm=best[1], max_overlap_part=best[2], overlap_at_max_mm3=round(sum(hits[-1][1].values()), 3) if hits and hits[-1][0] >= max_mm - 1e-9 else 0.0,
                 first_contact_mm=first_t, first_part=first_part, blocked_samples=len(hits), samples=len(ts),
+                path_mm=float(max_mm), path_needed_mm=round(need, 2), path_capped=bool(need >= max_mm),
                 by_part=sorted(({"part": n, "max_mm3": round(v, 3), "at_mm": a} for n, (v, a) in by_part.items()), key=lambda r: -r["max_mm3"]))
+
+
+# ------------------------------------------------------------------------------------------------ exact confirmation
+def step_frame(ctx, n):
+    """(STEP path, 4x4 manifest-frame placement of its solids) of part n as screen_solid places it (native_step_offset_mm, the
+    roll-flip turn), or (None, why) when the part has no usable STEP."""
+    from checks.core import R
+    p = ctx.body.parts[n]
+    st = p.get("native_step")
+    if not st or not BL.src(st).exists():
+        return None, "no STEP"
+    if p.get("placement_offset_mm"):
+        return None, "STEP placed by placement_offset_mm (not reproduced here)"
+    M = np.eye(4)
+    M[:3, 3] = np.asarray(p.get("native_step_offset_mm") or (0, 0, 0), float)
+    if str(p.get("roll_flip", "")).startswith("turned"):
+        b = np.array(p["bounds_mm"], float)
+        M = np.asarray(R.turn_T_at(0.5 * (b[0][0] + b[1][0])), float) @ M
+    return str(BL.src(st)), M
+
+
+EXACT_QUERY_S = 30.0     # seconds of OCC work one exact common may take (the STEP import of a 44 MB board takes about 9 s); over it: timed out
+
+
+EXACT_VERSION = "v1"
+
+
+def _exact_key(q):
+    """Content key of an exact query: both STEPs' sha256 (header-free, core.sha) and their placements (rounded to 1e-6)."""
+    import hashlib
+    from checks.core import sha
+    parts = [EXACT_VERSION] + [f"{sha(Path(st))}:{np.round(np.asarray(M, float), 6).tolist()}" for st, M in (q["a"], q["b"])]
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()
+
+
+def exact_commons(queries, per_query_s=EXACT_QUERY_S):
+    """exact_commons_uncached through a content-addressed cache (core.CACHE/exact-common, shared with the worktrees): a value
+    is reused only for the same STEP contents and placements; errors and timeouts are not stored."""
+    from checks import cachefs
+    from checks.core import CACHE
+    f = CACHE / "exact-common" / "values.json"
+    known = cachefs.read_json(f, {}) or {}
+    keys = [_exact_key(q) for q in queries]
+    todo = [i for i, k in enumerate(keys) if k not in known]
+    got = exact_commons_uncached([queries[i] for i in todo], per_query_s)
+    secs = getattr(exact_commons_uncached, "seconds", [])
+    out, s_out = [known.get(k) for k in keys], [0.0] * len(keys)
+    new = {}
+    for j, i in enumerate(todo):
+        out[i], s_out[i] = got[j], secs[j] if j < len(secs) else None
+        if isinstance(got[j], float):
+            new[keys[i]] = got[j]
+    if new:
+        cachefs.update_json(f, new)
+    exact_commons.seconds, exact_commons.cached = s_out, len(keys) - len(todo)
+    return out
+
+
+def exact_commons_uncached(queries, per_query_s=EXACT_QUERY_S):
+    """Exact OCC common volumes (mm3, checks/brep.common_volume_mm3 of the STEP solids) for [{a: [step, 4x4], b: [step, 4x4]}],
+    in a child process so the STEP imports (supplier boards up to 44 MB, about 1 GB) leave the walk's memory. Each query has
+    per_query_s (its STEP imports included): one over it is killed with its child, reported as timed out, and a new child takes
+    the rest. A failed query is returned as its error text."""
+    import os
+    import select
+    import subprocess
+    out, secs, i = [], [], 0
+    code = "import sys; sys.path.insert(0, %r); from checks.modules import assembly as A; A._exact_child()" % str(ROOT / "robot/body")
+    while i < len(queries):
+        cp = subprocess.Popen([sys.executable, "-B", "-c", code], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        cp.stdin.write(json.dumps(queries[i:]).encode()); cp.stdin.close()
+        fd, buf, alive = cp.stdout.fileno(), b"", True
+        while alive and i < len(queries):
+            deadline = time.time() + per_query_s
+            while b"\n" not in buf:
+                left = deadline - time.time()
+                ready = select.select([fd], [], [], max(0.0, left))[0] if left > 0 else []
+                chunk = os.read(fd, 65536) if ready else b""
+                if not chunk:
+                    cp.kill(); cp.wait()
+                    out.append(f"timed out after {per_query_s:g} s" if not ready else "exact child ended without a result"); secs.append(None)
+                    i += 1; alive = False
+                    break
+                buf += chunk
+            while alive and b"\n" in buf and i < len(queries):
+                line, buf = buf.split(b"\n", 1)
+                out.append(json.loads(line)[0]); secs.append(json.loads(line)[1]); i += 1
+        if alive:
+            cp.wait()
+    exact_commons_uncached.seconds = secs
+    return out
+
+
+def _exact_child():
+    """Reads [{a: [step, 4x4], b: [step, 4x4]}] on stdin, prints [mm3 or error text, seconds] per query. Only the solids whose
+    (fast, non-optimal) box reaches the other part's box go to brep.common_volume_mm3: a supplier board holds hundreds of
+    solids and their optimal boxes alone cost 48 s (ROCK4D, 624 solids)."""
+    from build123d import Compound, Location, import_step
+    from OCP.gp import gp_Trsf
+    from checks import brep as L
+    qs = json.loads(sys.stdin.read())
+    cache = {}
+
+    def solids(path):
+        if path not in cache:
+            if len(cache) >= 3:
+                cache.pop(next(iter(cache)))
+            ss = import_step(path).solids()
+            boxes = []
+            for x in ss:
+                bb = x.bounding_box(optimal=False)
+                boxes.append(np.array([[bb.min.X, bb.min.Y, bb.min.Z], [bb.max.X, bb.max.Y, bb.max.Z]]))
+            cache[path] = (ss, boxes)
+        return cache[path]
+
+    def world_box(b, M):
+        c = np.array([[b[i][0], b[j][1], b[k][2]] for i in (0, 1) for j in (0, 1) for k in (0, 1)]) @ M[:3, :3].T + M[:3, 3]
+        return np.array([c.min(0), c.max(0)])
+
+    def near(path, M, other):
+        ss, boxes = solids(path)
+        if not ss:
+            raise ValueError(f"{path}: the STEP holds no solid")
+        tr = gp_Trsf(); tr.SetValues(*[float(x) for x in M[:3, :4].ravel()])
+        keep = [x.moved(Location(tr)) for x, b in zip(ss, boxes) if other is None or L.aabb_gap(world_box(b, M), other) <= 0.1]
+        return keep, (np.array([np.min([world_box(b, M)[0] for b in boxes], 0), np.max([world_box(b, M)[1] for b in boxes], 0)]))
+    for q in qs:
+        t0 = time.time()
+        try:
+            Ma, Mb = np.asarray(q["a"][1], float), np.asarray(q["b"][1], float)
+            _, box_a = near(q["a"][0], Ma, np.array([[-1e9] * 3, [1e9] * 3]))
+            sb, box_b = near(q["b"][0], Mb, box_a)
+            sa, _ = near(q["a"][0], Ma, box_b)
+            v = round(float(L.common_volume_mm3(Compound(children=sa), Compound(children=sb))), 4) if sa and sb else 0.0
+        except Exception as e:  # noqa: BLE001
+            v = f"{type(e).__name__}: {e}"
+        print(json.dumps([v, round(time.time() - t0, 1)]), flush=True)
+
+
+def confirm_exact(ctx, T, rows):
+    """Confirm the coarse overlaps of part steps with the exact OCC common of the STEPs where both parts have one: every seat
+    overlap (t = 0) and the first path contact apart from the seat (at the sample of its largest overlap). Adds per step
+    seat_overlap_exact_by_part / seat_overlap_exact_mm3 (None when a part has no STEP: the coarse value stands) and
+    path_first_exact_mm3; the coarse values stay as they are."""
+    qs, where = [], []
+    frames = {}
+
+    def fr(n):
+        if n not in frames:
+            frames[n] = step_frame(ctx, n)
+        return frames[n]
+    for row in rows:
+        if row.get("kind") != "part" or "members" not in row:
+            continue
+        d = np.asarray(row["direction"], float); d = d / np.linalg.norm(d)
+        for n, r in row["members"].items():
+            pairs = [("seat", o, 0.0) for o in r["seat_overlap_by_part"]]
+            if r.get("path_first_part"):
+                at = next((b["at_mm"] for b in r["by_part"] if b["part"] == r["path_first_part"]), None)
+                if at is not None:
+                    pairs.append(("path", r["path_first_part"], float(at)))
+            for what, o, t in pairs:
+                (sa, Ma), (sb, Mb) = fr(n), fr(o)
+                if sa is None or sb is None:
+                    where.append((row, n, what, o, f"not confirmed: {Ma if sa is None else Mb} ({n if sa is None else o})")); continue
+                sh = np.eye(4); sh[:3, 3] = -t * d
+                Ta, Tb = T[ctx.body.parts[n]["owning_link"]], T[ctx.body.parts[o]["owning_link"]]
+                qs.append(dict(a=[sa, (sh @ Ta @ Ma).tolist()], b=[sb, (Tb @ Mb).tolist()]))
+                where.append((row, n, what, o, len(qs) - 1))
+    t0 = time.time()
+    res = exact_commons(qs)
+    secs = getattr(exact_commons, "seconds", [])
+    for row, n, what, o, i in where:
+        v = res[i] if isinstance(i, int) else i
+        if what == "seat":
+            row.setdefault("seat_overlap_exact_by_part", {})[f"{n} x {o}"] = v
+        else:
+            row.setdefault("path_first_exact_mm3", {})[f"{n} x {o}"] = v
+    for row in rows:
+        ex = row.get("seat_overlap_exact_by_part")
+        if ex is not None:
+            row["seat_overlap_exact_mm3"] = round(sum(v for v in ex.values() if isinstance(v, float)), 3) if all(isinstance(v, float) for v in ex.values()) else None
+    slow = sorted(((secs[i] or 1e9, f"{n} x {o} ({what})") for row, n, what, o, i in where if isinstance(i, int) and i < len(secs)), reverse=True)[:5]
+    return dict(queries=len(qs), cached=getattr(exact_commons, "cached", 0), seconds=round(time.time() - t0, 1), timed_out=sum(1 for v in res if isinstance(v, str) and v.startswith("timed out")),
+                slowest=[dict(pair=p, seconds=None if s_ >= 1e9 else s_) for s_, p in slow])
 
 
 # ------------------------------------------------------------------------------------------------ the walk
@@ -258,6 +494,14 @@ class World:
             f = SL.screen(self.ctx, n)[2]
             self.c[n] = f.transform(self.T[self.ctx.body.parts[n]["owning_link"]][:3, :4])
         return self.c[n]
+
+
+def _summed(dicts):
+    out = {}
+    for dd in dicts:
+        for k, v in dd.items():
+            out[k] = round(out.get(k, 0.0) + v, 3)
+    return out
 
 
 def _screw_info(ctx, T, k, node_names, WB):
@@ -322,7 +566,7 @@ class Walker:
         order, parts = self.order, self.parts
         asm = order["assemblies"][name]
         dflt = order.get("defaults", {})
-        max_mm = max_mm or dflt.get("max_mm", 60.0)
+        max_mm = max_mm or PATH_CAP_MM            # a cap: each part travels until it clears what is assembled (the definitions' 60 mm default was too short)
         step_mm = step_mm or dflt.get("step_mm", 1.0)
         res = self.resolved(asm)
         pre = prerequisites(order, name)
@@ -351,11 +595,12 @@ class Walker:
                 row.update(members=per, first_contact_mm=worst["first_contact_mm"], first_part=worst["first_part"],
                            max_overlap_mm3=max(r["max_overlap_mm3"] for r in per.values()), overlap_at_max_mm3=max(r["overlap_at_max_mm3"] for r in per.values()),
                            seat_overlap_mm3=round(sum(r["seat_overlap_mm3"] for r in per.values()), 3),
-                           seat_overlap_by_part={k: v for r in per.values() for k, v in r["seat_overlap_by_part"].items()},
+                           seat_overlap_by_part=_summed(r["seat_overlap_by_part"] for r in per.values()),
                            path_first_contact_mm=max((r["path_first_contact_mm"] for r in per.values() if r["path_first_contact_mm"] is not None), default=None),
                            path_first_part=next((r["path_first_part"] for r in sorted(per.values(), key=lambda r: -(r["path_first_contact_mm"] or 0)) if r["path_first_part"]), None),
                            seat_parts_released_at_mm=max((r["seat_parts_released_at_mm"] for r in per.values() if r["seat_parts_released_at_mm"] is not None), default=None),
-                           blocked_samples=max(r["blocked_samples"] for r in per.values()), path_mm=max_mm)
+                           blocked_samples=max(r["blocked_samples"] for r in per.values()), path_mm=max(r["path_mm"] for r in per.values()),
+                           path_needed_mm=max(r["path_needed_mm"] for r in per.values()), path_capped=any(r["path_capped"] for r in per.values()))
                 assembled += [n for n in ns if n not in assembled]
             else:
                 later = [n for n in named_parts if n not in assembled] + [n for n in later_other if n not in assembled]
@@ -365,8 +610,8 @@ class Walker:
                         info = _screw_info(self.ctx, self.T, k, self.nodes, self.WB)
                     except Exception as e:  # noqa: BLE001
                         screws[k] = dict(error=f"screw geometry: {e}", touches_not_yet_assembled=[]); continue
-                    r = DA.measure_screw(self.coarse, k, info, self.T, assembled, self.WB, self.box, self.tdata)
-                    rl = DA.measure_screw(self.coarse, k, info, self.T, assembled + later, self.WB, self.box, self.tdata) if "error" not in r else None
+                    r = DA.measure_screw(self.coarse, k, info, self.T, assembled, self.WB, self.box, self.tdata)    # with the ball-end tilt where blocked
+                    rl = DA.measure_screw(self.coarse, k, info, self.T, assembled + later, self.WB, self.box, self.tdata, tilt=False) if "error" not in r else None
                     if "error" not in r:
                         new = {b["part"] for b in rl.get("by_part", [])} - {b["part"] for b in r.get("by_part", [])}
                         # a cover going on over its screws is the order working; measure_screw reports body shells apart (shell_by_part)
@@ -394,7 +639,8 @@ class Walker:
             row["seconds"] = round(time.time() - t0, 2)
             out.append(row)
         links = sorted({parts[n]["owning_link"] for n in named_parts})
-        return dict(steps=out, after=pre, assembled_at_start=start, links=links, seconds=round(time.time() - t_start, 1),
+        exact = confirm_exact(self.ctx, self.T, out)
+        return dict(steps=out, after=pre, assembled_at_start=start, links=links, seconds=round(time.time() - t_start, 1), exact_confirmation=exact,
                     seeded_steps=sum(1 for r in out if r["seeded"]), confirmed_steps=sum(1 for r in out if r["confirmed"]))
 
 
@@ -427,8 +673,28 @@ def coverage(ctx, order):
         total[c] = total.get(c, 0) + 1
         if n not in where:
             missing.setdefault(c, []).append(n)
+    # a part of a bench subassembly is named again where the bench enters as one step: that is the unit, not a second home
+    into = {b: {e["into"] for e in v} for b, v in order.get("entered_as_unit", {}).items()}
+
+    def receivers(b, seen=()):
+        r = set(into.get(b, ()))
+        for a in list(r):
+            if a not in seen:
+                r |= receivers(a, seen + (b,))
+        return r
+    twice, as_unit = [], {}
+    for n, w in where.items():
+        w = set(w)
+        if len(w) < 2:
+            continue
+        home = {b for b in w if not any(b in receivers(o) for o in w if o != b)}
+        if len(home) == 1 and w - home <= receivers(next(iter(home))):
+            as_unit[n] = sorted(w)
+        else:
+            twice.append(n)
     return dict(total=total, not_named={k: sorted(missing.get(k, [])) for k in ("part", "screw", "hardware")},
-                named_in_two_assemblies=sorted(n for n, w in where.items() if len(set(w)) > 1), per_assembly=per, matching_nothing=nothing)
+                named_in_two_assemblies=sorted(twice), named_again_where_its_bench_enters_as_unit=as_unit,
+                per_assembly=per, matching_nothing=nothing)
 
 
 def _selected(ctx, order, scope):
@@ -484,6 +750,13 @@ def run(ctx):
                                 part_steps_touching_a_part_not_in_the_seat=sum(1 for r in steps if r.get("path_first_contact_mm")),
                                 part_steps_seat_not_released_within_path=sum(1 for r in steps if (r.get("seat_parts_released_at_mm") or 0) >= (r.get("path_mm") or 60) - 1e-9),
                                 part_steps_with_seat_overlap=sum(1 for r in steps if r.get("seat_overlap_mm3", 0) > 0),
+                                part_steps_with_seat_overlap_after_exact=sum(1 for r in steps if r.get("seat_overlap_mm3", 0) > 0
+                                                                            and (r.get("seat_overlap_exact_mm3") is None or r["seat_overlap_exact_mm3"] > EXACT_MIN_MM3)),
+                                part_steps_touching_a_part_not_in_the_seat_after_exact=sum(1 for r in steps if r.get("path_first_contact_mm") and any(
+                                    not isinstance(v, float) or v > EXACT_MIN_MM3 for v in (r.get("path_first_exact_mm3") or {"": None}).values())),
+                                subassemblies_entered_as_unit=len(order.get("entered_as_unit", {})),
+                                part_steps_path_capped=sum(1 for r in steps if r.get("path_capped")),
+                                parts_named_in_two_assemblies=len(cov["named_in_two_assemblies"]),
                                 screw_steps_with_obstruction=sum(1 for r in steps if r.get("obstruction_mm3", 0) > 0),
                                 screw_steps_closed_in_by_later_part=sum(1 for r in steps if r.get("closed_in_by")),
                                 screw_steps_covered_later_by_shell=sum(1 for r in steps if r.get("covered_later_by")),
@@ -494,6 +767,9 @@ def run(ctx):
                                 definition_findings=len(order["definition_findings"]),
                                 scoped_parts_in_no_assembly=sum(1 for n in ctx.scope if not per[n]["named_in_assembly"])),
                 evidence=[], assemblies=evidence_rows, per_assembly=per_asm, coverage=cov, definition_findings=order["definition_findings"],
-                notes="straight insertion along each step's direction in 1 mm samples to 60 mm (definitions.DEFAULTS), exact booleans of the coarse screening solids "
+                entered_as_unit=order.get("entered_as_unit", {}), build_order=W.seq,
+                notes=f"straight insertion along each step's direction in 1 mm samples until the part's box clears every assembled part's box (capped at {PATH_CAP_MM:g} mm: path_capped), exact booleans of the coarse screening solids "
                       "against the parts assembled earlier (this assembly's base and steps, plus every assembly in its `after`); screw steps = driver_access path against the "
-                      "assembled parts only; standing pose; coverage over every manifest part; seeded steps are drafts, confirmed steps name what supports them")
+                      "assembled parts only (with a ball-end key tilt sweep where blocked, driver_access tilt_sweep); standing pose; coverage over every manifest part; seeded steps are drafts, confirmed steps name what supports them; "
+                      "seat overlaps and the first path contact apart from the seat confirmed by the exact OCC common of the STEPs where both parts have one (seat_overlap_exact_mm3, path_first_exact_mm3; the coarse values kept); "
+                      "a subassembly whose parts all enter another assembly in one step is a bench unit: built before it (build_order), its parts not counted as named twice (entered_as_unit)")

@@ -19,7 +19,7 @@
   90
  ],
  "screw_standards": {
-  "_doc": "Dimensions and length series of the three head standards used in the body, per thread (mm). dk = head diameter max, k = head height max (standard values). lengths = nominal screw length l (under the head to the tip) of the standard's preferred series for that thread. lengths_status: the series were transcribed by the builder from the standards' tables and are NOT re-checked against the paywalled texts: treat them as an assumption until compared with the supplier's list (edit them here and every generated screw follows). point_mm: length of the tip cone the engagement counts as not threaded into the hole (assumption, as mount_check.match_screw). density_g_cm3: A2 / 8.8 steel (assumption) for the mass of a generated screw (volume of the modelled envelope x density).",
+  "_doc": "Dimensions and length series of the head standards, per thread (a thread the standard does not cover has no row; no rows by analogy) (mm). dk = head diameter max, k = head height max (standard values). lengths = nominal screw length l (under the head to the tip) of the standard's preferred series for that thread. lengths_status: the series were transcribed by the builder from the standards' tables and are NOT re-checked against the paywalled texts: treat them as an assumption until compared with the supplier's list (edit them here and every generated screw follows). point_mm: length of the tip cone the engagement counts as not threaded into the hole (assumption, as mount_check.match_screw). density_g_cm3: A2 / 8.8 steel (assumption) for the mass of a generated screw (volume of the modelled envelope x density).",
   "point_mm": 0.5,
   "density_g_cm3": 7.85,
   "lengths_status": "assumption: transcribed from the standards' length tables, not re-checked against the standard text",
@@ -28,11 +28,12 @@
     "name": "hex socket button head",
     "drive": "hex_key",
     "tool_head_type": "button",
-    "source": "ISO 7380-1:2011 covers M3 to M16 only",
+    "source": "ISO 7380-1:2011 covers M3 and up (https://fasten.it/en/norms/norm/din_en_iso_7380-1, https://www.fasteners.eu/standards/ISO/7380/); the M2 / M2.5 rows are vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range, each citing its vendor part series",
     "M2": {
-     "source": "not in ISO 7380-1 (it starts at M3): M2 / M2.5 button heads are sold by analogy; dk, k and lengths are an assumption until compared with the supplier's list",
-     "dk": 3.5,
+     "source": "vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range: Aspen Fasteners ME125 series (ME125-204X5, https://www.aspenfasteners.com/m2-0-4-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a2-stainless-steel/): head diameter 3.5-3.8, head height 1.16-1.3, hex 1.3. dk = 3.8 (max; the former analogy row had 3.5), k = 1.3 (as before). lengths: the former series, not re-checked against the vendor's stock list",
+     "dk": 3.8,
      "k": 1.3,
+     "s": 1.3,
      "lengths": [
       4,
       5,
@@ -45,9 +46,10 @@
      ]
     },
     "M2.5": {
-     "source": "not in ISO 7380-1 (it starts at M3): M2 / M2.5 button heads are sold by analogy; dk, k and lengths are an assumption until compared with the supplier's list",
+     "source": "vendor catalogue, ISO 7380-1 style, outside the standard's M3+ range: Aspen Fasteners ME482 series (ME482-25045X5, https://www.aspenfasteners.com/m2-5-0-45-x-5mm-iso-7380-1-metric-button-head-hex-socket-cap-screws-a4-stainless-steel): head diameter 4.6, head height 1.36-1.5, hex 1.5 (dk / k as the former row). lengths: the former series, not re-checked against the vendor's stock list",
      "dk": 4.6,
      "k": 1.5,
+     "s": 1.5,
      "lengths": [
       5,
       6,
@@ -71,7 +73,13 @@
       20,
       25,
       30
-     ]
+     ],
+     "source": "https://www.fasteners.eu/standards/ISO/7380/ (dk 5.7, k 1.65)"
+    },
+    "M4": {
+     "dk": 7.6,
+     "k": 2.2,
+     "source": "https://www.fasteners.eu/standards/ISO/7380/ (lengths not transcribed)"
     }
    },
    "ISO 4762": {
@@ -125,6 +133,11 @@
       35,
       40
      ]
+    },
+    "M4": {
+     "dk": 7.0,
+     "k": 4.0,
+     "source": "ISO 4762 M4 dk 7.0 / k 4.0 (https://www.fasteners.eu/standards/ISO/4762/; lengths not transcribed)"
     }
    },
    "ISO 7045": {
@@ -200,6 +213,122 @@
       30
      ]
     }
+   },
+   "ISO 14580": {
+    "name": "hexalobular socket cheese head",
+    "drive": "hexalobular",
+    "tool_head_type": "cheese_hexalobular",
+    "source": "ISO 14580:2011 Table 1 (https://cdn.standards.iteh.ai/samples/56456/88025f720d57423b9e2c1ceb78304eec/ISO-14580-2011.pdf), M2 to M10. lengths = the standard's nominal lengths within the range its table gives for the thread; the preferred (bold) series is not marked in the sample text",
+    "M2": {
+     "dk": 3.8,
+     "k": 1.55,
+     "socket": "T6",
+     "lengths": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20
+     ]
+    },
+    "M2.5": {
+     "dk": 4.5,
+     "k": 1.85,
+     "socket": "T8",
+     "lengths": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20,
+      25
+     ]
+    },
+    "M3": {
+     "dk": 5.5,
+     "k": 2.4,
+     "socket": "T10",
+     "lengths": [
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20,
+      25,
+      30
+     ]
+    },
+    "M4": {
+     "dk": 7.0,
+     "k": 3.1,
+     "socket": "T20",
+     "lengths": [
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20,
+      25,
+      30,
+      35,
+      40
+     ]
+    }
+   },
+   "DIN 7984": {
+    "name": "hex socket low head cap screw",
+    "drive": "hex_key",
+    "tool_head_type": "low_head_cap",
+    "source": "DIN 7984, M3 and up, no M2 / M2.5 (https://fasten.it/en/norms/norm/din_7984, https://www.fasteners.eu/standards/DIN/7984/); length series not found in a public source: no lengths (a builder choosing a length needs the supplier's list)",
+    "M3": {
+     "dk": 5.5,
+     "k": 2.0,
+     "s": 2.0
+    },
+    "M4": {
+     "dk": 7.0,
+     "k": 2.8,
+     "s": 2.5
+    }
+   },
+   "ISO 1207": {
+    "name": "slotted cheese head",
+    "drive": "slotted",
+    "tool_head_type": "cheese_slotted",
+    "source": "ISO 1207, M1.6 to M10 (https://www.fasteners.eu/standards/ISO/1207/): dk max, k max, slot width n nominal; lengths not transcribed",
+    "M2": {
+     "dk": 3.8,
+     "k": 1.4,
+     "n": 0.5
+    },
+    "M2.5": {
+     "dk": 4.5,
+     "k": 1.8,
+     "n": 0.6
+    },
+    "M3": {
+     "dk": 5.5,
+     "k": 2.0,
+     "n": 0.8
+    },
+    "M4": {
+     "dk": 7.0,
+     "k": 2.6,
+     "n": 1.2
+    }
    }
   },
   "families_by_terminal_material": {
@@ -215,11 +344,89 @@
   "nut_standards": {
    "_doc": "Nuts a generated screw ends in (mm). s = width across flats, m = height (max). reference_engagement_mm: the thread length inside the nut that counts as fully engaged = m (the thread end at least at the nut's far face); thread past the far face is reported, not required.",
    "ISO 4032": {
+    "source": "ISO 4032 s, m max, e min (https://www.fasteners.eu/standards/ISO/4032/)",
+    "M2": {
+     "s": 4.0,
+     "m": 1.6,
+     "e_min": 4.32,
+     "reference_engagement_mm": 1.6
+    },
+    "M2.5": {
+     "s": 5.0,
+     "m": 2.0,
+     "e_min": 5.45,
+     "reference_engagement_mm": 2.0
+    },
     "M3": {
      "s": 5.5,
      "m": 2.4,
      "e_min": 6.01,
      "reference_engagement_mm": 2.4
+    },
+    "M4": {
+     "s": 7.0,
+     "m": 3.2,
+     "e_min": 7.66,
+     "reference_engagement_mm": 3.2
+    }
+   }
+  },
+  "washer_standards": {
+   "_doc": "Plain washers (mm): d1 min = hole, d2 max = outer diameter, h = thickness (ISO 7089: min-max as the source gives it, h = its middle; ISO 7092: nominal).",
+   "ISO 7089": {
+    "name": "plain washer, normal series",
+    "source": "https://www.fasteners.eu/standards/ISO/7089/",
+    "M2": {
+     "d1": 2.2,
+     "d2": 5.0,
+     "h_min": 0.25,
+     "h_max": 0.35,
+     "h": 0.3
+    },
+    "M2.5": {
+     "d1": 2.7,
+     "d2": 6.0,
+     "h_min": 0.45,
+     "h_max": 0.55,
+     "h": 0.5
+    },
+    "M3": {
+     "d1": 3.2,
+     "d2": 7.0,
+     "h_min": 0.45,
+     "h_max": 0.55,
+     "h": 0.5
+    },
+    "M4": {
+     "d1": 4.3,
+     "d2": 9.0,
+     "h_min": 0.7,
+     "h_max": 0.9,
+     "h": 0.8
+    }
+   },
+   "ISO 7092": {
+    "name": "plain washer, small series",
+    "source": "https://www.fasteners.eu/standards/ISO/7092/",
+    "M2": {
+     "d1": 2.2,
+     "d2": 4.5,
+     "h": 0.3
+    },
+    "M2.5": {
+     "d1": 2.7,
+     "d2": 5.0,
+     "h": 0.5
+    },
+    "M3": {
+     "d1": 3.2,
+     "d2": 6.0,
+     "h": 0.5
+    },
+    "M4": {
+     "d1": 4.3,
+     "d2": 8.0,
+     "h": 0.5
     }
    }
   }
