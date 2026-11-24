@@ -220,13 +220,8 @@ def build():
             sh = r[key] if side == "R" else C.mirror_x(r[key])
             nm = f"{side}_{base}"
             rec = MR.save(nm, sh, kind)
-            if kind == "printed":   # the refit writes 1.22 g/cm3; the printed material's density is in the checks' materials table (PAHT-CF 1.06)
-                rho = json.loads((ROOT / "robot/body/checks/data/materials.json").read_text())["Bambu PAHT-CF"]["density_g_cm3"]
-                rec["mass_kg"] = round(C.volume(sh) * rho * 1e-6, 6)
-                rec["mass_basis"] = f"native STEP volume x {rho} g/cm3 (Bambu PAHT-CF, checks/data/materials.json)"
-            if kind == "purchased":
-                rec["mass_kg"] = round(C.volume(sh) * 7.85e-6, 6)
-                rec["mass_basis"] = "native STEP volume x 7.85 g/cm3 (304 SS)"
+            rec.update(BOM_CONFIG.mass_record(nm, C.volume(sh), "hip-yaw-screws", basis="native STEP volume",
+                                              fallback="PRINTED_MATERIAL" if kind == "printed" else "HARDWARE_MATERIAL"))
             recs[nm] = rec
     (OUT / "records.json").write_text(json.dumps(dict(plan=r["plan"], records=recs), indent=1) + "\n")
     print("wrote", OUT / "records.json", flush=True)

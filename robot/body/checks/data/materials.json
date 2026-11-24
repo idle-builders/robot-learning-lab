@@ -313,6 +313,15 @@
   },
   "source": "torso/common.py MATERIALS (sigma_*_allow used as reference strengths); same names, different values than the leg/arm/neck set; which is right is open"
  },
+ "Aluminium 6061-T6": {
+  "density_g_cm3": 2.7,
+  "fem": {
+   "E_MPa": 68900.0,
+   "nu": 0.33,
+   "reference_strength_MPa": 276.0
+  },
+  "source": "handbook values as in leg/common.py MATERIALS Al6061_T6 (baseline flat plate / sole), moved here 2026-11-24"
+ },
  "Aluminium 5052-H32": {
   "density_g_cm3": 2.68,
   "fem": {

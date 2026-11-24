@@ -698,3 +698,6 @@ config:
   SCREW_YZ:
     value: [[9.0, 399.8]]
     doc: '(y, z) of the screw axis (along x): the collar''s mid height, so the dia 10 press counter disc stays on the tab face'
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

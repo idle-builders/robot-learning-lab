@@ -1827,8 +1827,12 @@ config:
   # robot/body/neck-head/neck_parts.py module constants (moved 2026-11-24)
   STAGE:
     value: {neck_root_cradle: stage1_neck_root_cradle, neck_yaw_to_pitch_link: stage2_neck_yaw_to_pitch_link, neck_pitch_to_head_cradle: stage3_neck_pitch_to_head_cradle, head_sensor_compute_carrier: stage4_head_sensor_compute_carrier}
-  STEEL_G_MM3:
-    value: 0.00785
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of the steel screws, washers and sleeves the neck scripts write (was STEEL_G_MM3 7.85e-3).
+  INSERT_MATERIAL:
+    value: Brass CuZn39Pb3 (CW614N)
+    doc: Material of the knurled heat-set inserts (was 8.5 g/cm3 in code; the table's datasheet value is 8.47).
   LEGACY:
     value: {neck_root_cradle: [neck_root_M2x6_, neck_root_M2_washer_], neck_yaw_to_pitch_link: [neck_yaw_horn_M2x5_, neck_pitch_horn_M2x5_], neck_pitch_to_head_cradle: [neck_head_M2x5_, neck_head_M2_washer_], head_sensor_compute_carrier: []}
   # robot/body/neck-head/package_and_render.py module constants (moved 2026-11-24)
@@ -1845,7 +1849,8 @@ config:
     value: [compact_neck_U_strap_v23, fixed_neck_ribbon_anchor_v21, fixed_neck_ribbon_cap_v21, fixed_neck_ribbon_pad_front_v21, fixed_neck_ribbon_pad_rear_v21, fixed_ribbon_M2_washer_0_v21, fixed_ribbon_M2_washer_1_v21, fixed_ribbon_M2x8_0_v21, fixed_ribbon_M2x8_1_v21, mic_foot_M2x3_0, mic_foot_M2x3_1, microphone_compact_tab_v23, single_shared_carrier_v23, upper__one_piece_bent_neck_L]
     doc: Legacy sheet-metal and boxy PA12 neck/head brackets & obsolete v21 ribbon clamp hardware replaced by the 4-stage FDM connectors
   MATERIALS:
-    value: {Al5052_H32: {name: Aluminium 5052-H32 (baseline sheet), density_g_cm3: 2.68, E_MPa: 68300.0, nu: 0.33, reference_strength_MPa: 193.0}, PAHT_CF_dry: {name: 'Bambu PAHT-CF / PA12-CF (dry, FDM)', density_g_cm3: 1.22, E_inplane_MPa: 7550.0, E_layer_MPa: 3290.0, G_MPa: 1100.0, nu: 0.35, tensile_XY_MPa: 92.0, tensile_Z_layer_MPa: 43.0}, PAHT_CF_wet: {name: 'Bambu PAHT-CF / PA12-CF (moisture-conditioned, FDM)', density_g_cm3: 1.22, E_inplane_MPa: 6570.0, E_layer_MPa: 2700.0, G_MPa: 950.0, nu: 0.35, tensile_XY_MPa: 71.0, tensile_Z_layer_MPa: 37.0}, PETG_CF: {name: PETG-CF / PLA-CF (home-lab standard CF filament), density_g_cm3: 1.25, E_inplane_MPa: 5800.0, E_layer_MPa: 2850.0, G_MPa: 1000.0, nu: 0.35, tensile_XY_MPa: 68.0, tensile_Z_layer_MPa: 34.0}, Steel_Sleeve: {name: 304 Stainless Steel compression sleeve, density_g_cm3: 7.85, E_MPa: 200000.0, nu: 0.29}}
+    value: {Al5052_H32: Aluminium 5052-H32, PAHT_CF_dry: legacy_fdm_PAHT_CF_dry, PAHT_CF_wet: legacy_fdm_PAHT_CF_wet, PETG_CF: legacy_fdm_PETG_CF, Steel_Sleeve: Steel 304 sleeve}
+    doc: Material of each legacy FEM / mass key of this section's scripts, as its entry in robot/body/checks/data/materials.json (values there; same numbers as the table this replaced, 2026-11-24)
   MIC_TAPER:
     value: {x0: 47.8, z0: 467.2, z1: 472.4}
     doc: '@lore Sleeve length = plate thickness at an XM335 screw site, chosen so a standard screw length reaches the hole''s reference engagement with the tip inside the hole (screw_plan.choose_length): the case M2 holes are 1.8 mm deep from a seat 0.2 mm outside the opening, so a 2.5 mm sleeve took M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep, reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6). The pitch-case cradle has no sleeves since T-acpw7j: plain holes, an ISO 7089 washer under the head, the plate as thick as pitch_case_joint() derives (2.5 mm with M2x5: the full thread ends 0.3 mm short of the 2.0 mm tap bottom, 1.5 mm engaged below the 0.2 mm mouth chamfer; review rv-acpw7j). Head-skin taper cut of the microphone wing''s top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it'

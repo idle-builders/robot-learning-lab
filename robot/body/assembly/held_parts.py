@@ -159,8 +159,7 @@ def build_plate(MR, by):
                for (x, z), (od, idd) in holes]
     rec = MR.save(PLATE, s, "printed")
     srec = MR.save(PLATE_SLEEVES, MR.compound(sleeves), "purchased")
-    srec["mass_kg"] = round(srec["volume_mm3"] * 7.93e-6, 6)
-    srec["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    srec.update(BOM_CONFIG.mass_record(PLATE_SLEEVES, srec["volume_mm3"], "held-parts", fallback="HARDWARE_MATERIAL", basis="native STEP volume"))
     print(PLATE, rec["volume_mm3"], "mm3;", len(sleeves), "sleeves", flush=True)
     return rec, srec, dict(holes=[dict(at_xz=list(c), sleeve_od_id_mm=list(sz)) for c, sz in holes], bosses=bosses)
 

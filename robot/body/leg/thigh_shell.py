@@ -66,6 +66,8 @@ if os.environ.get("THIGH_SHELL_OUT"):
     R.OUT, R.REPORT = OUT.parent, OUT.parent / "report.json"     # R.merge writes the report there
     R.MOVED = OUT / "moved"                                       # screw / nut / sleeve npz (R.save_npz) stay there too
 CFG = BOM_CONFIG.section("thigh-shell")   # configured values: robot/body/leg/thigh_shell.bom.yaml config:
+STEEL = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"])   # g/mm3 of the screws, washers and sleeves this builder writes
+STEEL_BASIS = f"mesh volume x {STEEL * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']}, robot/body/leg/thigh_shell.bom.yaml config HARDWARE_MATERIAL)"
 GAP, WALL = CFG["GAP"], CFG["WALL"]
 Z0, TOP_Z = CFG["Z0"], CFG["TOP_Z"]
 WINDOW = CFG["WINDOW"]
@@ -1276,12 +1278,12 @@ def post_screws(posts, body):
             ms = mir(sm)
             rows.append(dict(name=sn, physical_part_id=sn, bom_group=f"{side}_thigh_shell_{lbl}_countersunk", owning_link=f"{side}_roll_link",
                              role="fastener_proxy", **R.save_npz(sn, ms), volume_mm3=round(float(ms.volume), 3),
-                             mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(ms.volume) * STEEL / 1000.0, 7),
                              material=f"{CS_HEAD} {lbl} (hex socket countersunk, head flush with the shell skin) into the {NUT_STD} M3 nut in the "
                                       f"Stage 4 post; head dk {head['dk']} (theoretical) x k {head['k']}, shank dia 3, {pt} mm point (envelope)",
                              color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip="generated from the shell's countersink and the post's nut by thigh_shell.py post_screws",
                              screw_plan=dict(hole_id=f"{q['stem']}: nut in the Stage 4 post", thread_label="M3", head_standard=CS_HEAD,
                                              length_mm=L, stack_mm=round(dist, 3), engagement_mm=round(eng, 3),
@@ -1292,11 +1294,11 @@ def post_screws(posts, body):
             mn = mir(nm)
             rows.append(dict(name=nn, physical_part_id=nn, bom_group=f"{side}_thigh_shell_nut_M3", owning_link=f"{side}_roll_link",
                              role="fastener_proxy", **R.save_npz(nn, mn), volume_mm3=round(float(mn.volume), 3),
-                             mass_kg=round(float(mn.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(mn.volume) * STEEL / 1000.0, 7),
                              material=f"{NUT_STD} M3 hex nut (s {nut['s']}, m {nut['m']}) in the Stage 4 post's captive-nut pocket, against its tip wall",
                              color=[220, 185, 75, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip="generated at the post by thigh_shell.py post_screws"))
     for half in ("front", "back"):
         sm = kit.tm(M.Manifold.batch_boolean(sleeves[half], M.OpType.Add))
@@ -1304,8 +1306,8 @@ def post_screws(posts, body):
             nm_ = f"{side}_thigh_shell_{half}_steel_sleeves"
             ms = kit.mirror_x(sm) if side == "L" else sm
             rows.append(dict(name=nm_, owning_link=f"{side}_roll_link", role="compression_limit_sleeves", **R.save_npz(nm_, ms),
-                             volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 6),
-                             color=[215, 222, 230, 255], mass_basis="304 SS sleeves, mesh volume x 7.85 g/cm3",
+                             volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * STEEL / 1000.0, 6),
+                             color=[215, 222, 230, 255], mass_basis="304 SS sleeves, " + STEEL_BASIS,
                              material=f"304 stainless tube dia {2 * SLEEVE_R:g} / {2 * SLEEVE_BORE_R:g}, pressed into the shell boss, outer end "
                                       "countersunk 90 deg (hand countersink to the OD) so the screw head bears on it",
                              roll_flip="generated at the posts by thigh_shell.py post_screws"))
@@ -1609,8 +1611,8 @@ def cover_sleeve_rows(solids):
         nm = f"{side}_shin_back_hard_cover_steel_sleeves"
         ms = kit.mirror_x(sm) if side == "L" else sm
         rows.append(dict(name=nm, owning_link=f"{side}_shin", role="compression_limit_sleeves", **R.save_npz(nm, ms),
-                         volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * R.STEEL / 1000.0, 6),
-                         color=[215, 222, 230, 255], mass_basis="304 SS sleeves, mesh volume x 7.85 g/cm3",
+                         volume_mm3=round(float(ms.volume), 3), mass_kg=round(float(ms.volume) * STEEL / 1000.0, 6),
+                         color=[215, 222, 230, 255], mass_basis="304 SS sleeves, " + STEEL_BASIS,
                          material=f"304 stainless tube dia {SLV_D:g} / {SLV_BORE_D:g}, pressed into the cover's side bosses from the "
                                   "counterbore floor to the boss end; the PA2 head bears on it, its far end on the shin frame's wall",
                          roll_flip="generated at the shin back cover's side mounts by thigh_shell.py shin-cover"))
@@ -1776,12 +1778,12 @@ def mount_screws(sites):
             nm = f"{s}_shin_back_cover_PA2x8_{i}"
             rows.append(dict(name=nm, physical_part_id=nm, bom_group=f"{s}_shin_back_cover_PA2x8", owning_link=f"{s}_shin",
                              role="fastener_proxy", **R.save_npz(nm, m), volume_mm3=round(float(m.volume), 3),
-                             mass_kg=round(float(m.volume) * R.STEEL / 1000.0, 7),
+                             mass_kg=round(float(m.volume) * STEEL / 1000.0, 7),
                              material="PA2x8 self-tapping, through the shin back cover's side boss into a dia 1.7 pilot hole in "
                                       "the shin frame's side wall (PA2 family envelope: head dia 3.5 x 1.3, shank dia 2, 0.6 mm point)",
                              color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                              overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-                             inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3",
+                             inspection_reference=False, mass_basis=STEEL_BASIS,
                              roll_flip=f"shin back cover side mount, {st['side']} wall (y {st['y']}, z {st['z']})"))
     return rows
 

@@ -145,8 +145,7 @@ def build():
             nm = f"{side}_{base}"
             rec = MR.save(nm, sh, kind)
             if kind == "purchased":
-                rec["mass_kg"] = round(C.volume(sh) * 7.85e-6, 6)
-                rec["mass_basis"] = "native STEP volume x 7.85 g/cm3 (304 SS)"
+                rec.update(BOM_CONFIG.mass_record(nm, C.volume(sh), "foot-screws", fallback="HARDWARE_MATERIAL", basis="native STEP volume"))
             recs[nm] = rec
     (OUT / "records.json").write_text(json.dumps(dict(plan=r["plan"], records=recs), indent=1) + "\n")
     print("wrote", OUT / "records.json", flush=True)

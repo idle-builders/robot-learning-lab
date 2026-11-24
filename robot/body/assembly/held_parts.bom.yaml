@@ -277,3 +277,6 @@ config:
     value: 0.4
   CASE:
     value: R_roll_servo_case_reference
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

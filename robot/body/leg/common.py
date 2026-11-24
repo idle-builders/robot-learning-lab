@@ -82,7 +82,7 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
 # - PAHT-CF / PA12-CF dry & conditioned (orthotropic FDM, print layer normal customizable per part)
 # - PETG-CF / PLA-CF home-lab stiff filament sensitivity
 # - 304 Stainless / Alloy Steel compression sleeves & cross-bolts
-MATERIALS = CFG["MATERIALS"]
+MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):

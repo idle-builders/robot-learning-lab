@@ -449,3 +449,6 @@ config:
   EAR_CHAMFER:
     value: 0.6
     doc: 'the ear''s outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room'
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

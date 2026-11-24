@@ -41,6 +41,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
 import bom_config as BOM_CONFIG  # noqa: E402
 CFG = BOM_CONFIG.section("ape-proportions-shells")   # configured values: robot/body/ape-proportions/shells.bom.yaml config:
+HW_RHO = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"]) * 1e-3   # kg/mm3 of the steel screws and washers this pass adds
+HW_BASIS = f"mesh volume x {HW_RHO * 1e6:g} g/cm3 ({CFG['HARDWARE_MATERIAL']}, robot/body/ape-proportions/shells.bom.yaml config HARDWARE_MATERIAL)"
 
 CLEARANCE = CFG["CLEARANCE"]
 PITCH = CFG["PITCH"]
@@ -483,23 +485,23 @@ def apply(new, h):
             w = BOOT_WASHER
             extra.append(dict(name=wn, physical_part_id=wn, owning_link=boot["owning_link"], role="standard_nominal", hardware_kind="washer",
                               **h["save_mesh"](wn, washer), volume_mm3=round(float(washer.volume), 3),
-                              mass_kg=round(float(washer.volume) * 7.85e-6, 7), color=[128, 136, 146, 255], display_group="mechanism",
+                              mass_kg=round(float(washer.volume) * HW_RHO, 7), color=[128, 136, 146, 255], display_group="mechanism",
                               display_groups=["mechanism"], overlay_id="actuators_and_hardware",
                               parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"), inspection_reference=False,
-                              mass_basis="mesh volume x 7.85 g/cm3",
+                              mass_basis=HW_BASIS,
                               material=(f"{w['standard']} M2 washer d1 {w['d1']:g} / d2 {w['d2']:g} x {w['h']:g} under the retention screw's head, "
                                         f"in the dia {BOOT_CB_D:g} counterbore of the {st['half']} of the boot, on the printed tab (shells.py, T-jh7fcm)")))
             cn = f"{s}_foot_boot_{st['half']}_PA2x8"
             sm = boot_screw_mesh(rec)
             extra.append(dict(name=cn, physical_part_id=cn, bom_group=cn, owning_link=boot["owning_link"], role="fastener_proxy",
-                              **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * 7.85e-6, 7),
+                              **h["save_mesh"](cn, sm), volume_mm3=round(float(sm.volume), 3), mass_kg=round(float(sm.volume) * HW_RHO, 7),
                               material=(f"PA2x8 self-tapping, ISO 7380-1 button head, on an ISO 7089 M2 washer through the {st['half']} of the boot's "
                                         f"dia {BOOT_HOLE_D:g} clearance hole into a "
                                         f"dia {BOOT_PILOT[0]:g} pilot in the foot monocoque's boss (PA2 family envelope: head dia 3.5 x 1.3, "
                                         "shank dia 2, 0.6 mm point)"),
                               color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
                               overlay_id="actuators_and_hardware", parent_assembly=boot.get("parent_assembly", "complete_fdm_ape_body_assembly"),
-                              inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3"))
+                              inspection_reference=False, mass_basis=HW_BASIS))
             notes.append(f"{part['name']}: retention tab {rec['tab_volume_mm3']} mm3, head under skin {rec['head_under_skin_min_mm']} mm")
             part.update(h["save_mesh"](part["name"], half))
             part["mesh_note"] = ("boot collar cut by the shin and ankle swept over the target ankle ranges, the foot's own parts cut out with a "

@@ -532,3 +532,6 @@ config:
   POCKET_H:
     value: 16.0
     doc: 'pocket cut height above the head seat: the heated tip length (press_lib TIP_L 15) + 1'
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of steel hardware this builder writes (sleeves, screws, washers) when the part's entry names none.

@@ -45,7 +45,8 @@ DH = _own("defined_holes", "neck_head_defined_holes")
 
 ROOT = C.ROOT
 STAGE = CFG["STAGE"]
-STEEL_G_MM3 = CFG["STEEL_G_MM3"]
+STEEL_G_MM3 = BOM_CONFIG.density_g_mm3(CFG["HARDWARE_MATERIAL"])   # steel screws, washers and sleeves
+BRASS_G_MM3 = BOM_CONFIG.density_g_mm3(CFG["INSERT_MATERIAL"])     # heat-set inserts
 LEGACY = CFG["LEGACY"]
 
 
@@ -287,7 +288,7 @@ def _add_hardware(man: dict, name: str, m, kind: str, material: str) -> None:
         bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()], volume_mm3=round(float(m.volume), 3),
         mass_kg=round(float(m.volume) * STEEL_G_MM3 / 1000.0, 7), material=material, color=[128, 136, 146, 255], display_group="mechanism",
         display_groups=["mechanism"], overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly",
-        inspection_reference=False, mass_basis="mesh volume x 7.85 g/cm3", hardware_kind=kind))
+        inspection_reference=False, mass_basis=f"mesh volume x {STEEL_G_MM3 * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']})", hardware_kind=kind))
     print(f"{name}: {material}")
 
 
@@ -306,12 +307,12 @@ def carrier_sleeve_entry(e: dict, mesh) -> None:
     mass, n_brass, n_steel = 0.0, 0, 0
     for c in mesh.split(only_watertight=False):
         brass = bool(np.allclose(np.sort(c.extents), np.sort([float(ins["length"]), 2 * float(ins["ro"]), 2 * float(ins["ro"])]), atol=0.15))
-        mass += abs(float(c.volume)) * (8.5e-6 if brass else STEEL_G_MM3 * 1e-3)
+        mass += abs(float(c.volume)) * (BRASS_G_MM3 * 1e-3 if brass else STEEL_G_MM3 * 1e-3)
         n_brass += brass; n_steel += not brass
-    steel = f" + {n_steel} x unrecognised component counted as 304 steel (7.85 g/cm3)" if n_steel else ""
-    e.update(material=f"{n_brass} x brass M2 x {ins['length']:g} knurled heat-set inserts ({n_cam} camera, {n_mic} mic; 8.5 g/cm3; modelled at the "
+    steel = f" + {n_steel} x unrecognised component counted as {CFG['HARDWARE_MATERIAL']} ({STEEL_G_MM3 * 1e3:g} g/cm3)" if n_steel else ""
+    e.update(material=f"{n_brass} x brass M2 x {ins['length']:g} knurled heat-set inserts ({n_cam} camera, {n_mic} mic; {BRASS_G_MM3 * 1e3:g} g/cm3; modelled at the "
                       f"{2 * ins['ro']:g} mm hole, catalogue knurl OD {ins['catalogue_od']:g}){steel}",
-             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass)" + (", other x 7.85 g/cm3" if n_steel else ""),
+             mass_kg=round(mass, 6), mass_basis=f"per component: inserts x {BRASS_G_MM3 * 1e3:g} g/cm3 ({CFG['INSERT_MATERIAL']})" + (f", other x {STEEL_G_MM3 * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']})" if n_steel else ""),
              neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_brass} brass heat-set inserts, no steel sleeves (T-5bqc3m)")
 
 
@@ -324,12 +325,12 @@ def cradle_sleeve_entry(e: dict, mesh) -> None:
     mass, n_brass, n_steel = 0.0, 0, 0
     for c in mesh.split(only_watertight=False):
         brass = bool(np.allclose(np.sort(c.extents), np.sort([float(ins["length"]), 2 * float(ins["ro"]), 2 * float(ins["ro"])]), atol=0.15))
-        mass += abs(float(c.volume)) * (8.5e-6 if brass else STEEL_G_MM3 * 1e-3)
+        mass += abs(float(c.volume)) * (BRASS_G_MM3 * 1e-3 if brass else STEEL_G_MM3 * 1e-3)
         n_brass += brass; n_steel += not brass
-    steel = f" + {n_steel} x unrecognised component counted as 304 steel (7.85 g/cm3)" if n_steel else ""
-    e.update(material=f"{n_brass} x brass {ins['thread']} x {ins['length']:g} knurled heat-set inserts (8.5 g/cm3; modelled at the "
+    steel = f" + {n_steel} x unrecognised component counted as {CFG['HARDWARE_MATERIAL']} ({STEEL_G_MM3 * 1e3:g} g/cm3)" if n_steel else ""
+    e.update(material=f"{n_brass} x brass {ins['thread']} x {ins['length']:g} knurled heat-set inserts ({BRASS_G_MM3 * 1e3:g} g/cm3; modelled at the "
                       f"{2 * ins['ro']:g} mm hole, carrier tongue, T-9wjdqc){steel}; the pitch case M2 holes are plain (T-acpw7j)",
-             mass_kg=round(mass, 6), mass_basis="per component: inserts x 8.5 g/cm3 (brass)" + (", other x 7.85 g/cm3" if n_steel else ""),
+             mass_kg=round(mass, 6), mass_basis=f"per component: inserts x {BRASS_G_MM3 * 1e3:g} g/cm3 ({CFG['INSERT_MATERIAL']})" + (f", other x {STEEL_G_MM3 * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']})" if n_steel else ""),
              neck_parts=f"built by robot/body/neck-head/neck_parts.py connectors (T-6dvwjq); {n_brass} brass heat-set inserts, no steel sleeves (T-acpw7j)")
 
 
@@ -349,7 +350,7 @@ def _add_screw(man: dict, pl: dict) -> dict:
                  f"{pl['head_dia_mm']} x {pl['head_height_mm']}, shank dia {pl['thread'].lstrip('M')}, {pl['point_mm']} mm point (envelope)",
         color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
         overlay_id="actuators_and_hardware", parent_assembly="complete_fdm_ape_body_assembly", inspection_reference=False,
-        mass_basis="mesh volume x 7.85 g/cm3",
+        mass_basis=f"mesh volume x {STEEL_G_MM3 * 1e3:g} g/cm3 ({CFG['HARDWARE_MATERIAL']})",
         screw_plan={k: (round(float(v), 3) if isinstance(v, (float, np.floating)) else v) for k, v in pl.items()
                     if k in ("hole_id", "thread_label", "head_standard", "length_mm", "stack_mm", "head_gap_mm", "engagement_mm",
                              "reference_engagement_mm", "hole_depth_mm", "tip_margin_mm", "shortfall_mm", "overrun_mm",

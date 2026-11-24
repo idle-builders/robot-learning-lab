@@ -96,7 +96,7 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
     return D
 
 
-MATERIALS = CFG["MATERIALS"]
+MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):
@@ -785,7 +785,7 @@ def build_stage_sleeves(stage_key: str) -> list[dict]:
                 slv = Solid((slv - cone).wrapped)
             name = f"{STAGE_PART_BASENAMES[stage_key]}__{grp['name']}_sleeve_{idx + 1}"
             vol = float(slv.volume)
-            rho = 8.5 if grp.get("threaded") else MATERIALS["Steel_Sleeve"]["density_g_cm3"]     # brass heat-set insert / 304 sleeve
+            rho = BOM_CONFIG.material_row(CFG["INSERT_MATERIAL"])["density_g_cm3"] if grp.get("threaded") else MATERIALS["Steel_Sleeve"]["density_g_cm3"]     # brass heat-set insert / 304 sleeve
             mass_g = vol * (rho * 1e-3)
             out.append({
                 "name": name,

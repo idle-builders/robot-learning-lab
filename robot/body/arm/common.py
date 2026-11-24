@@ -108,7 +108,7 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
     return D
 
 
-MATERIALS = CFG["MATERIALS"]
+MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):

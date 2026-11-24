@@ -390,3 +390,6 @@ config:
   WING_CORNER:
     value: 2.5
     doc: 'mm above the lower edge: the corner bump (the rest of the free edge is beyond)'
+  HARDWARE_MATERIAL:
+    value: Steel 304 sleeve
+    doc: Material (robot/body/checks/data/materials.json entry) of the steel screws, washers and sleeves this builder writes.
