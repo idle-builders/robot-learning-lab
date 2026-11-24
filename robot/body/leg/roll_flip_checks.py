@@ -325,34 +325,90 @@ def fit_poses():
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import cachefs  # noqa: E402
 from checks.relations import ROLES as _ROLES  # noqa: E402   (role classes: which roles are a servo case)
-SOLIDS = cachefs.work() / "roll-flip/solids"    # keyed by the part name and its mesh sha256: shared with the worktrees
+SOLIDS = cachefs.work() / "roll-flip/solids"    # keyed by what the solid is made from (_closed_key), shared with the worktrees
 VOX = 0.4
+CLOSED_VERSION = "c2"   # 2026-11-24: content key (no part name) and seeded surface samples. c1 entries ({name}-{mesh sha}.npz) were
+                        # keyed by the part name and filled from unseeded random samples: the same open mesh (SameSky_4010_fan)
+                        # filled to 6996-7002 mm3 and came out trimesh-watertight on one run and not on another, real vs renamed body.
+_SEED = 0               # surface samples of the voxel fills: fixed, so one mesh always gives one solid. The fill still depends on
+                        # the samples: on the fan, 11 of 14 seeds 6994-6998 mm3, 3 seeds 6440-6465 (a pocket seals or not); 0 is typical
+
+
+def _file_sha(path):
+    import hashlib
+    try:
+        return hashlib.sha256(F.src(path).read_bytes()).hexdigest()[:16]
+    except (OSError, TypeError, KeyError):
+        return None
+
+
+def _closed_key(p):
+    """What closed() builds a part's solid from, never its name: the mesh file's content, the role (servo case: hull; printed
+    connector: gmsh surface of the STEP), the STEP's content, offset and volume for the gmsh path, the voxel size."""
+    import hashlib
+    step = p.get("native_step") if p.get("role") == "printed_structural_connector" else None
+    made = dict(v=CLOSED_VERSION, mesh=kit.mesh_tag(p), role=p.get("role"), servo=p.get("role") in _ROLES["classes"]["servo_case"]["roles"],
+                step=_file_sha(step) if step else None, offset=p.get("native_step_offset_mm") if step else None,
+                volume=p.get("volume_mm3") if step else None, vox=VOX)
+    return hashlib.sha256(json.dumps(made, sort_keys=True, default=str).encode()).hexdigest()[:24]
+
+
+def _samples(full, count):
+    """Surface samples of a mesh plus its vertices, from a fixed seed (trimesh's Trimesh.sample draws fresh entropy)."""
+    import trimesh
+    return np.vstack([trimesh.sample.sample_surface(full, int(count), seed=_SEED)[0], full.vertices])
+
+
+def _lm_solid(body, n):
+    """leg_motion.solid() (robot/body/hip-shell/sections/leg_motion.py) with seeded samples and no cache of its own (closed()
+    caches the result by content): the decimated CAD mesh when watertight, else its voxel fill (0.75 mm), else the hull."""
+    import trimesh
+    from leg_motion import VOX as LVOX
+    m = kit._mesh(body, n, 6000)
+    if not m.is_watertight:
+        from scipy.ndimage import binary_closing, binary_fill_holes
+        from skimage.measure import marching_cubes
+        full = body.mesh(n)
+        lo = full.bounds[0] - 2 * LVOX; shape = np.ceil((full.bounds[1] - lo) / LVOX).astype(int) + 3
+        pts = _samples(full, min(3e6, max(5e4, full.area / (0.35 * LVOX) ** 2)))
+        idx = np.clip(np.round((pts - lo) / LVOX).astype(int), 0, shape - 1)
+        g = np.zeros(shape, bool); g[tuple(idx.T)] = True
+        g = binary_fill_holes(binary_closing(g, iterations=1))
+        v, fc, _, _ = marching_cubes(np.pad(g, 1).astype(np.float32), 0.5)
+        m = trimesh.Trimesh((v - 1) * LVOX + lo, fc, process=True)
+        if len(m.faces) > 8000:
+            m = m.simplify_quadric_decimation(face_count=8000)
+        if not m.is_watertight:
+            m = m.convex_hull
+    return m
 
 
 def closed(body, n):
     """Closed mesh of a part for volume overlaps. leg_motion.solid() falls back to the convex hull when its voxel fill
     does not come out watertight; that happens for the shin, the battery cradle, the selected Stage 5 and the new
     parts (hull / true volume up to 7x). Here the voxel field is smoothed before marching cubes so the surface comes
-    out manifold; genuinely convex parts (motor boxes, cells) keep leg_motion's solid."""
+    out manifold; genuinely convex parts (motor boxes, cells) keep leg_motion's solid. Deterministic and keyed by content
+    (_closed_key): a renamed part reads the same solid."""
     import trimesh
     p = body.parts[n]
-    tag = (p.get("mesh_sha256") or p.get("native_step_sha256") or "nohash")[:12]
-    f = SOLIDS / f"{n}-{tag}.npz"
+    f = SOLIDS / f"{_closed_key(p)}.npz"
     d = cachefs.load_npz(f) if f.exists() else None
     if d is not None:
         return trimesh.Trimesh(d["v"], d["f"], process=False)
-    s = solid(body, n)
+    s = _lm_solid(body, n)
     if p.get("role") in _ROLES["classes"]["servo_case"]["roles"]:   # a servo case (role class, checks/data/roles.json) is box-like:
+        cachefs.savez(f, v=np.asarray(s.vertices), f=np.asarray(s.faces))
         return s                                                      # leg_motion's solid (its hull), as in F-03
     hull = s.convex_hull
     m = s
     if s.is_watertight and s.volume < 0.98 * hull.volume:   # leg_motion's solid is already a real (non-hull) closed mesh
+        cachefs.savez(f, v=np.asarray(s.vertices), f=np.asarray(s.faces))
         return s
     step = p.get("native_step")
     g = None
     if p.get("role") == "printed_structural_connector" and step:   # gmsh conforming surface of the native STEP,
         import subprocess                                           # in a subprocess under a hard 300 s limit
-        tmp = SOLIDS / f"{n}-gmsh-{os.getpid()}.npz"; SOLIDS.mkdir(parents=True, exist_ok=True)
+        tmp = SOLIDS / f"gmsh-{os.getpid()}-{f.stem}.npz"; SOLIDS.mkdir(parents=True, exist_ok=True)
         code = ("import sys, numpy as np; sys.path.insert(0, %r); from surface_mesh import step_to_closed_mesh; "
                 "from build123d import import_step; "
                 "g = step_to_closed_mesh(%r, 1.0); vs = sum(s.volume for s in import_step(%r).solids()); "
@@ -378,7 +434,7 @@ def closed(body, n):
         from skimage.measure import marching_cubes
         full = body.mesh(n)
         lo = full.bounds[0] - 3 * VOX; shape = np.ceil((full.bounds[1] - lo) / VOX).astype(int) + 4
-        pts = np.vstack([full.sample(int(min(4e6, max(5e4, full.area / (0.3 * VOX) ** 2)))), full.vertices])
+        pts = _samples(full, min(4e6, max(5e4, full.area / (0.3 * VOX) ** 2)))
         idx = np.clip(np.round((pts - lo) / VOX).astype(int), 0, shape - 1)
         g = np.zeros(shape, bool); g[tuple(idx.T)] = True
         g = binary_fill_holes(binary_closing(g, iterations=1))
