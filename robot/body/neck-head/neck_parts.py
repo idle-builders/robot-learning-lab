@@ -19,6 +19,10 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
@@ -40,14 +44,9 @@ C = _own("common", "neck_head_common")
 DH = _own("defined_holes", "neck_head_defined_holes")
 
 ROOT = C.ROOT
-STAGE = {"neck_root_cradle": "stage1_neck_root_cradle", "neck_yaw_to_pitch_link": "stage2_neck_yaw_to_pitch_link",
-         "neck_pitch_to_head_cradle": "stage3_neck_pitch_to_head_cradle",
-         "head_sensor_compute_carrier": "stage4_head_sensor_compute_carrier"}
-STEEL_G_MM3 = 7.85e-3
-LEGACY = {"neck_root_cradle": ("neck_root_M2x6_", "neck_root_M2_washer_"),
-          "neck_yaw_to_pitch_link": ("neck_yaw_horn_M2x5_", "neck_pitch_horn_M2x5_"),
-          "neck_pitch_to_head_cradle": ("neck_head_M2x5_", "neck_head_M2_washer_"),
-          "head_sensor_compute_carrier": ()}
+STAGE = CFG["STAGE"]
+STEEL_G_MM3 = CFG["STEEL_G_MM3"]
+LEGACY = CFG["LEGACY"]
 
 
 def _sha(f: Path) -> str:

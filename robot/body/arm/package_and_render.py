@@ -41,23 +41,13 @@ from common import (
     write_json,
 )
 
-STAGE_COLORS = {
-    "stage1_shoulder_pitch_to_roll": [42, 138, 184, 255],
-    "stage2_shoulder_roll_to_yaw": [28, 164, 142, 255],
-    "stage3_upper_arm_yaw_to_elbow": [212, 134, 52, 255],
-    "stage4_forearm_elbow_to_wrist": [64, 156, 212, 255],
-    "sleeve": [215, 222, 230, 255],
-    "nut": [220, 185, 75, 255],
-    "screw": [210, 218, 226, 255],
-    "hard_cover": [231, 222, 201, 255],
-}
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-arm-connectors")   # configured values: robot/body/arm/build_arm_connectors.bom.yaml config:
 
-PRINT_ORIENTATIONS = {
-    "stage1_shoulder_pitch_to_roll": "XZ Roll-Case Flange Bed (layer normal Y)",
-    "stage2_shoulder_roll_to_yaw": "XZ Roll-Horn Flange Bed (layer normal Y)",
-    "stage3_upper_arm_yaw_to_elbow": "YZ Elbow-Ear Flange Bed (layer normal X)",
-    "stage4_forearm_elbow_to_wrist": "YZ Medial-Spine Bed (layer normal X)",
-}
+STAGE_COLORS = BOM_CONFIG.unfrozen(CFG["STAGE_COLORS"])
+
+PRINT_ORIENTATIONS = CFG["PRINT_ORIENTATIONS"]
 
 CPP_RENDERER = ROOT / "robot/electronics/power/cad/zbuffer_renderer.cpp"
 EXE_RENDERER = ART / "zbuffer_renderer_bin"

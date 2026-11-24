@@ -48,21 +48,10 @@ from common import (
     write_json,
 )
 
-STAGE_COLORS = {
-    "stage1_neck_root_cradle": [42, 138, 184, 255],
-    "stage2_neck_yaw_to_pitch_link": [28, 164, 142, 255],
-    "stage3_neck_pitch_to_head_cradle": [212, 134, 52, 255],
-    "stage4_head_sensor_compute_carrier": [64, 156, 212, 255],
-    "sleeve": [215, 222, 230, 255],
-    "shell": [231, 222, 201, 255],
-}
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
+STAGE_COLORS = BOM_CONFIG.unfrozen(CFG["STAGE_COLORS"])
 
-PRINT_ORIENTATIONS = {
-    "stage1_neck_root_cradle": "XZ Cradle & Spine Frame on Build Plate (layer normal Y)",
-    "stage2_neck_yaw_to_pitch_link": "XZ 90-Degree L-Bend & Gusset Webs on Build Plate (layer normal Y)",
-    "stage3_neck_pitch_to_head_cradle": "XY Right-Side U-Cradle Loop on Build Plate (layer normal Z)",
-    "stage4_head_sensor_compute_carrier": "XZ Carrier Plate & Dorsal Ribs Flat on Build Plate (layer normal Y)",
-}
+PRINT_ORIENTATIONS = CFG["PRINT_ORIENTATIONS"]
 
 CPP_RENDERER = ROOT / "robot/electronics/power/cad/zbuffer_renderer.cpp"
 EXE_RENDERER = ART / "zbuffer_renderer_bin"

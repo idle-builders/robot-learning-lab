@@ -53,6 +53,11 @@ from common import (
     make_captive_nut_pocket,
 )
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-upper-hip-connectors")   # configured values: robot/body/leg/build_upper_hip_connectors.bom.yaml config:
+
 
 def mirror_x(s):
     return s.mirror(Plane.YZ)
@@ -671,40 +676,40 @@ def build_all_upper_hip():
 # ----------------------------------------------------------------------------------------------------------------------
 RF_ART = ART / "roll-flip"
 RF_SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
-RF_AX, RF_AZ = 56.0, 190.0          # roll axis (current frame): along y through (x 56, z 190)
-RF_R2_AX = 64.0                     # the same axis in this builder's r2 frame (old Stage 5 cradle data below)
-RF_TURN_DEG = -90.0
+RF_AX, RF_AZ = CFG["RF_AX"], CFG["RF_AZ"]
+RF_R2_AX = CFG["RF_R2_AX"]
+RF_TURN_DEG = CFG["RF_TURN_DEG"]
 # Old Stage 5 roll-case cradle (build_stage5_pitch_to_roll, r2 frame): ear bolts (x, z), ear faces (y)
 RF_OLD_FRONT_BOLTS = [(35.0, 179.75), (35.0, 200.25), (55.7, 179.75), (55.7, 200.25)]
 RF_OLD_REAR_BOLTS = [(31.25, 179.75), (31.25, 200.25), (55.7, 179.75), (55.7, 200.25)]
-RF_Y_F_IN, RF_Y_F_CLAMP, RF_Y_F_OUT = -8.80, -10.80, -11.75      # front ear face, sleeve clamp, plate outer face
-RF_Y_R_IN, RF_Y_R_CLAMP, RF_Y_R_OUT = 23.20, 25.20, 25.20        # rear ear face, sleeve clamp, plate outer face
-RF_RIB = 2.0                        # outward rib on both plates below RF_RIB_TOP (outside the arms' sweep)
-RF_RIB_F = 1.2                      # front rib (H-cage): plate + rib = 4.15 + 0.2 from the defined M2 hole opening
+RF_Y_F_IN, RF_Y_F_CLAMP, RF_Y_F_OUT = CFG["RF_Y_F_IN"], CFG["RF_Y_F_CLAMP"], CFG["RF_Y_F_OUT"]
+RF_Y_R_IN, RF_Y_R_CLAMP, RF_Y_R_OUT = CFG["RF_Y_R_IN"], CFG["RF_Y_R_CLAMP"], CFG["RF_Y_R_OUT"]
+RF_RIB = CFG["RF_RIB"]
+RF_RIB_F = CFG["RF_RIB_F"]
                                     # (3.9 mm deep): an M2x8 then engages 3.15 mm with the tip 0.75 short of the bottom
-RF_RIB_TOP = 176.0
-RF_RIB_LIFT = 0.5                    # rib bottom this far above the plate's lower edge (flush, the edge bevel met the rib ends in
+RF_RIB_TOP = CFG["RF_RIB_TOP"]
+RF_RIB_LIFT = CFG["RF_RIB_LIFT"]
                                      # 0.07 mm2 faces and 0.09-0.21 mm edges)
 # Old thigh arm layers and horn / idler bolt circle. The Stage 5 arms now follow the defined holes and screw lengths
 # (rf5_screws: front y -16.6 .. -11.6, rear 25.0 .. 30.4); these values stay as the arm faces the committed thigh-shell skin
 # was fitted around (thigh_shell.py arm_hub_points / station_hull: RF_ARM_F/R with RF_ARM_THICKEN).
-RF_ARM_F = (-15.30, -14.10, -12.10)  # out, clamp, in
-RF_ARM_R = (25.35, 27.35, 28.55)     # in, clamp, out
+RF_ARM_F = CFG["RF_ARM_F"]
+RF_ARM_R = CFG["RF_ARM_R"]
 RF_HORN_BOLTS = [(RF_AX - 7.0, RF_AZ), (RF_AX + 7.0, RF_AZ), (RF_AX, RF_AZ - 7.0), (RF_AX, RF_AZ + 7.0)]
-RF_PITCH_HUB = (2.0, 219.0)          # hip pitch axis (y, z); ST3025 output wheel face at x 63.0
+RF_PITCH_HUB = CFG["RF_PITCH_HUB"]
 RF_PITCH_BOLTS = [(2.0, 212.0), (2.0, 226.0), (-5.0, 219.0), (9.0, 219.0)]
-RF_PLATE_X = (63.0, 71.0)
-RF_PITCH_HUB_R = 12.6                # pitch-wheel hub: the dia 10 anvil disc of each wheel sleeve stays on the part
-RF_ROLL_HUB_R = 12.4                 # roll horn / idler hub of the arms (was 10.8), same reason
-RF_FRONT_HUB_TOP = 201.45              # front arm hub top inboard of the neck (yaw-link column at hip pitch -90)
-RF_ROLL_CENTRE_R = 3.2               # front arm centre hole: horn screw head (was 4.2), keeps the anvil discs on material
-RF_ROLL_CENTRE_R_REAR = 3.3          # rear arm centre hole: 0.3 mm radial clearance to the case's rear stub (r 3.0); 3.6 left
+RF_PLATE_X = CFG["RF_PLATE_X"]
+RF_PITCH_HUB_R = CFG["RF_PITCH_HUB_R"]
+RF_ROLL_HUB_R = CFG["RF_ROLL_HUB_R"]
+RF_FRONT_HUB_TOP = CFG["RF_FRONT_HUB_TOP"]
+RF_ROLL_CENTRE_R = CFG["RF_ROLL_CENTRE_R"]
+RF_ROLL_CENTRE_R_REAR = CFG["RF_ROLL_CENTRE_R_REAR"]
                                      # 1.15 mm webs to the idler sleeve bores (walls check: under two lines of the 0.6 nozzle)
-RF_ARM_THICKEN = 1.5                # Stage 5 arms grow outward (away from the thigh) beyond the old 3.2 mm layers
-RF_WING_TOP = 220.0                 # top of the Stage 5 plate wings at the arm layers (was z_low + 7.5)
-RF_CLEAR_R = 18.0                    # Stage 5 stays outside this radius about the roll axis where the case can swing
+RF_ARM_THICKEN = CFG["RF_ARM_THICKEN"]
+RF_WING_TOP = CFG["RF_WING_TOP"]
+RF_CLEAR_R = CFG["RF_CLEAR_R"]
                                      # (rotated case corners reach r 16.0; 2 mm clearance)
-RF_KNEE_KEEP = (20.0, 42.9, -16.5, 30.0, 155.5, 162.8)  # box of the current thigh kept: end-block end only, above the
+RF_KNEE_KEEP = CFG["RF_KNEE_KEEP"]
                                                         # old C047 cheek bores (z <= 154.35); the cheek below is new; top at the
                                                         # block's crossbar top (162.8), not 0.2 mm above it (no 0.2 mm ledges)
 # Knee ST3025 (R_knee_ST3025_case, axis along x through y 4, z 123): its medial face is the plane x 33.15 (case y -6..14,
@@ -712,26 +717,26 @@ RF_KNEE_KEEP = (20.0, 42.9, -16.5, 30.0, 155.5, 162.8)  # box of the current thi
 # x 33.15 to 37.65): the two upper corner holes and the three holes on a 7 mm radius about (y 4, z 143). The motor refit's
 # "far group" (16 mm circle about (4, 143)) only matches dia 2.0 holes inside the case, behind its 2.35 mm medial wall
 # (x 35.5..37.3); a screw there meets solid wall, so the cheek no longer has those four holes.
-RF_KNEE_AXIS = (4.0, 123.0)
+RF_KNEE_AXIS = CFG["RF_KNEE_AXIS"]
 RF_KNEE_SCREWS = [(-4.0, 151.0), (12.0, 151.0), (4.0, 150.0), (-3.0, 143.0), (11.0, 143.0)]   # history: the five medial holes the U cradle used
-RF_KNEE_FACE_X = 33.15               # clamping face of the cheek = the knee case's medial face
-RF_KNEE_SLIT_X1 = 34.175             # medial wall of the end block's knee-case pocket (x; the motor-refit thigh's value)
-RF_END_X0 = 31.0                     # medial face of the kept end block (and of the motor-refit cheek)
-RF_CHEEK_X0 = 29.0                   # medial face of the new cheek (4.15 mm thick; roll-stall bending); the screw heads seat
+RF_KNEE_FACE_X = CFG["RF_KNEE_FACE_X"]
+RF_KNEE_SLIT_X1 = CFG["RF_KNEE_SLIT_X1"]
+RF_END_X0 = CFG["RF_END_X0"]
+RF_CHEEK_X0 = CFG["RF_CHEEK_X0"]
                                      # in spot faces at rf_med_seat_x(), the mirror of the lateral seat (owner 2026-11-20)
-RF_CHEEK_Y = (-6.5, 14.5)            # cheek width below the knee case top: case y -6..14 plus 0.5 mm
-RF_CHEEK_Z0 = 139.5                  # cheek lower edge (lowest screw hole edge z 141.8)
+RF_CHEEK_Y = CFG["RF_CHEEK_Y"]
+RF_CHEEK_Z0 = CFG["RF_CHEEK_Z0"]
 # Shell posts: (x, z), tip y (the shell boss sits on it), nut y (make_captive_nut_pocket centre: the pocket spans
 # RF_NUT_POCKET_H from 0.10 behind it towards the tip). The nut sits behind a solid wall at the tip (the pocket used to open
 # through the tip, so under pull-off the nut left with the shell): moved RF_POST_NUT_SHIFT deeper (front, rear). The rear
 # shift is smaller: the rear screw bore cannot go deeper than y 26.0 (the rear ear-boss key pocket floor at y 25.5 overlaps
 # the bore's edge in x), and a full nut plus a tip margin needs >= 3.2 mm of bore beyond the nut's near face. The insertion
 # slot of each pocket opens upward (+z) through the post top, into free space above the post.
-RF_NUT_POCKET_H = 2.60
-RF_POST_NUT_SHIFT = (2.60, 1.60)      # rear 1.60 (was 2.00): the bore beyond the nut ends RF_POST_BORE_FREE past the nut face, and
+RF_NUT_POCKET_H = CFG["RF_NUT_POCKET_H"]
+RF_POST_NUT_SHIFT = CFG["RF_POST_NUT_SHIFT"]
                                      # its blind end then keeps 1.32 mm (was 0.5, under one line) over the rear key pocket floor
-RF_POST_BORE_FREE = 3.20             # bore beyond the nut's tip-side face: a full nut (2.4) + point (0.5) + tip margin (0.3)
-RF_POST_BORE_INTO_PLATE = 1.0        # front posts: the screw bore runs this far into the plate (was 0.2 short of its outer face):
+RF_POST_BORE_FREE = CFG["RF_POST_BORE_FREE"]
+RF_POST_BORE_INTO_PLATE = CFG["RF_POST_BORE_INTO_PLATE"]
                                      # 5.02 mm beyond the nut, so the front shell screws stay M3x16 with the heads sunk wholly under
                                      # the sloping skin (thigh_shell.post_fit; 1.95 mm of plate left to the case-ear face, the posts
                                      # lie outside the ear-boss key pocket in x)
@@ -746,12 +751,12 @@ RF_POSTS_R = [((45.75, 171.5), 31.60, 28.92 - RF_POST_NUT_SHIFT[1]), ((66.25, 17
 #   case-z.1 / .2 are all at (y -3 / 11, z 143); both cheeks seat the heads in dia RF_SPOT_D spot faces at the same
 #   stack from the case face (the lateral one, set by the shell), so all four are one screw. Every screw has a steel
 #   sleeve; the screw sites are the defined holes of connector_screws.json (rf_defined_holes), threads and lengths come from screw_plan.py.
-RF_PLATE_Z0 = 153.4                  # plate / rib / walls lower edge: knee case top (z 153) + 0.4, so the knee case (with the
+RF_PLATE_Z0 = CFG["RF_PLATE_Z0"]
                                      # shin on its output) slides in along y between the cheeks
-RF_CASE_END_X = 68.36                # turned roll case's outboard end face
-RF_OUT_WALL_X = (68.6, 73.6)         # outboard wall on that face (0.24 mm off it); reaches 0.45 mm into the lateral cheek
+RF_CASE_END_X = CFG["RF_CASE_END_X"]
+RF_OUT_WALL_X = CFG["RF_OUT_WALL_X"]
                                      # (x 73.15 ..): a 73.0 face left a 0.15 mm slit beside the bridge (49 MPa FEM peak)
-RF_PLATE_TOP = 177.0                 # top of the H-cage plates and both end walls (owner 2026-11-20: the plates reached up
+RF_PLATE_TOP = CFG["RF_PLATE_TOP"]
                                      # to the yellow arms while only the lower ear screws connect). What still has a function
                                      # above the lower ear screws: the shell posts (z 171.5 + r 4.8 = 176.3), the front
                                      # ear-boss key pocket walls (the boss reaches z 181.0; the swept-arm keep-out arc capped
@@ -761,10 +766,10 @@ RF_PLATE_TOP = 177.0                 # top of the H-cage plates and both end wal
                                      # junction across the pocket's side walls (slivers; the 3D bevel crashed on them).
 RF_OUT_WALL_TOP = RF_PLATE_TOP - 1.0  # both end walls stop 1 mm under the plates' top: a flush top put a 3-face corner
                                      # (plate inner face, wall face, shared top) under the 3D bevel, which crashed OCC
-RF_BRIDGE_Z1 = 159.0                 # bridge over the knee case top: z RF_PLATE_Z0 .. this, outboard wall -> lateral cheek
-RF_KNEE_LAT_FACE_X = 73.15           # knee case's lateral face = clamping face of the lateral cheek
-RF_LAT_CHEEK_X1 = 79.4               # lateral cheek block before rf_lat_cheek_section() cuts its outer side
-RF_SHELL_CLEAR = 0.42                # cage to the blue thigh shell's inner wall (same link, static; lead 2026-11-20; 0.5 until
+RF_BRIDGE_Z1 = CFG["RF_BRIDGE_Z1"]
+RF_KNEE_LAT_FACE_X = CFG["RF_KNEE_LAT_FACE_X"]
+RF_LAT_CHEEK_X1 = CFG["RF_LAT_CHEEK_X1"]
+RF_SHELL_CLEAR = CFG["RF_SHELL_CLEAR"]
                                      # 2026-11-22 left the flat knee cheeks 1.17 / 1.18 mm = 1.9 lines under the heads, 0.42 gives
                                      # >= 1.24 = 2 lines of the 0.6 nozzle; knee screws M2x5 keep 3.25 of the 3.0 reference): the
                                      # lateral cheek stays inside the committed shell skin (thigh_shell.SURF) minus WALL + this
@@ -776,36 +781,36 @@ RF_SHELL_CLEAR = 0.42                # cage to the blue thigh shell's inner wall
 # and a straight 45 deg chamfer back in to the outboard wall's outer face (RF_OUT_WALL_X[1]) at the bridge top
 # RF_BRIDGE_Z1 (self-supporting for print up -z; it stays under the outboard window, z 160). Every corner of the section
 # stays inside the shell envelope (rf_lat_cheek_envelope_margin()); no lateral spot faces (the face is the seat).
-RF_LAT_BAND = (147.5, 1.8)           # (z where the outward chamfer starts: above the dia 8 press-tip landing about the
+RF_LAT_BAND = CFG["RF_LAT_BAND"]
                                      # screws at z 143; chamfer leg / band thickness over the seat plane, mm; FEM-sized)
-RF_LAT_HEAD_K = 1.3                  # head height of the lateral screws (ISO 7380-1-style M2 button head, assumption):
+RF_LAT_HEAD_K = CFG["RF_LAT_HEAD_K"]
                                      # the head seats in a dia RF_SPOT_D spot face so its top stays inside the envelope
-RF_SPOT_D = 8.0                      # = the press tool's heated tip (press_lib TIP_D): flat landing for pressing the sleeve
-RF_SHIN_CHAMFER = 2.4                # cheeks' rear-lower corner (y max, z min): chamfer leg, clear of the shin swept to knee 110
+RF_SPOT_D = CFG["RF_SPOT_D"]
+RF_SHIN_CHAMFER = CFG["RF_SHIN_CHAMFER"]
                                      # (was 3.0: 0.84 / 1.03 mm walls from the rear knee sleeve bores; 2.4 adds 0.42 mm)
-RF_EAR_TEAR_TOP = 0.15               # teardrop roof of the case-ear sleeve bores (r + this; RF5_TEAR_TOP 0.4 left 1.15 mm to the
+RF_EAR_TEAR_TOP = CFG["RF_EAR_TEAR_TOP"]
                                      # rear rib's lower edge, under two lines of the 0.6 nozzle)
-RF_PRINT_UP = (0.0, 0.0, -1.0)       # Stage 4 print direction (part_settings process.up -z): teardrop roofs of the y bores
-RF_ROLL_SWEEP = (-45.0, 25.0)        # hip roll the plates leave room for (manifest -30..25; library poses reach -45)
-RF_YELLOW_MARGIN = 1.3               # plates to the swept Stage 5 arms (the 2D inner fillets of the cut eat ~0.2)
-RF_NECK_FILLET_ALLOW = 0.5           # the arms' r 5 inner fillet (hub -> neck) reaches below the neck's lower edge z RF_AZ + 2
-RF_KEY_CLEAR = 0.05                  # case ear-boss pockets: CAD clearance per side (printers.json hole_offset_mm not
+RF_PRINT_UP = CFG["RF_PRINT_UP"]
+RF_ROLL_SWEEP = CFG["RF_ROLL_SWEEP"]
+RF_YELLOW_MARGIN = CFG["RF_YELLOW_MARGIN"]
+RF_NECK_FILLET_ALLOW = CFG["RF_NECK_FILLET_ALLOW"]
+RF_KEY_CLEAR = CFG["RF_KEY_CLEAR"]
                                      # measured yet; tune to the coupon). The bosses key the roll torque.
-RF_IN_WALL_X = (40.4, 43.45)         # inboard wall (outer x = the case-envelope cut, computed: 0.05 past it left micro-edges) on the case's inboard end face (old Stage 5 deck, turned); 3 mm
+RF_IN_WALL_X = CFG["RF_IN_WALL_X"]
                                      # (lightening, FEM 2026-11-20: was 5.4 mm, p95 2.5 MPa at 6 kg x 1.5 g). It ends 0.05
                                      # past the case-envelope cut (x 43.45), which then forms its face: a 43.4 face left
                                      # 0.05 mm edges, at the flush top too since the plates and the wall share their top
 RF_IN_WINDOW = (22.0, 160.5, RF_OUT_WALL_TOP - 3.0)   # inboard wall window: y size, z from .. to (rounded 3.5)
-RF_OUT_WINDOW = (21.0, 13.0)         # outboard wall window (its lower edge 1 mm above the bridge, 3 mm under the wall top)
-RF_KEY_CORNER_R = 1.0               # (history) pocket corner radius; the key pockets now have square corners with reliefs
-RF_BED_EDGE_CHAMFER = 0.45          # 45 deg chamfer on the plates' top inner edges (bed side, on the case-ear faces)
-RF_KEY_RELIEF_R = 0.45              # dog-bone relief radius at the key pockets' lower corners (about the corner point)
-RF_KEY_RELIEF_UP_REAR = True        # rear pocket: the reliefs run up the side walls (centre r above the corner, the corner on
+RF_OUT_WINDOW = CFG["RF_OUT_WINDOW"]
+RF_KEY_CORNER_R = CFG["RF_KEY_CORNER_R"]
+RF_BED_EDGE_CHAMFER = CFG["RF_BED_EDGE_CHAMFER"]
+RF_KEY_RELIEF_R = CFG["RF_KEY_RELIEF_R"]
+RF_KEY_RELIEF_UP_REAR = CFG["RF_KEY_RELIEF_UP_REAR"]
                                      # the circle; T-bone) instead of about the corner: the corner-centred relief came 0.89 mm
                                      # from the rear lower case-ear sleeve bores below it (x 45.75 / 66.25, z 157.25; walls
                                      # check 0.90 / 0.69 mm, holes 0.915 mm boss wall), side reliefs leave 1.32 mm
-RF_FLOOR_WINDOW_INSET = 2.0          # windows through the boss-pocket floors, this far inside the boss outline (None: closed)
-RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (as the roll-case sleeves)
+RF_FLOOR_WINDOW_INSET = CFG["RF_FLOOR_WINDOW_INSET"]
+RF_SLEEVE_R, RF_SLEEVE_BORE_R = CFG["RF_SLEEVE_R"], CFG["RF_SLEEVE_BORE_R"]
 # Stage 5 screw connections (Idle T-sgms6h, screw check hip-screws-s1). Every Stage 5 screw sits at its defined hole
 # (connector_screws.json hip_pitch_to_roll_roll_flip, rf_defined_holes) and its standard length (data/hardware.json) is
 # chosen here; the clamped stack along the hole axis is then the one that gives exactly the hole's reference engagement:
@@ -816,17 +821,17 @@ RF_SLEEVE_R, RF_SLEEVE_BORE_R = 1.80, 1.10   # 304 sleeve dia 3.6 / 2.2 for M2 (
 #     thick as its stack there (horn 5.0, idler 5.4: one screw kind, M3x8, for both; horn 2.5 and idler 2.1 engaged = the
 #     flange thickness, tip at the flange's back). Outside the discs the arms keep their old faces (RF_ARM_F / RF_ARM_R with
 #     RF_ARM_THICKEN), so the H-cage plates keep their y offset from the swept arm necks and the thigh shell its fit.
-RF5_SCREW_L = {"A13_pitch_horn": 12.0, "A9_roll_horn": 8.0, "A9_roll_idler": 8.0}   # ISO 7380-1 M3 lengths
-RF5_LAND_R = 11.0                    # land on the pitch wheel face (wheel face dia ~18.8, overhangs it 1.6 mm, 0.9 mm
+RF5_SCREW_L = CFG["RF5_SCREW_L"]
+RF5_LAND_R = CFG["RF5_LAND_R"]
                                      # above the pitch case face x 60.05); r <= 11.3 keeps it outside RF_CLEAR_R + 0.4 of the roll axis
-RF5_HUB_R, RF5_HUB_TOP_X = 4.0, 63.0  # the wheel's raised hub (ST3025 output, r 4.0 up to x 63.0)
-RF5_HUB_CLEAR = (0.2, 0.3)           # hub pocket clearance: radial, beyond the hub top
-RF5_CENTRE_HEAD_X, RF5_CENTRE_ACCESS_R = 64.0, 1.75   # output wheel centre screw: the head (inside the hub's bore, top at
+RF5_HUB_R, RF5_HUB_TOP_X = CFG["RF5_HUB_R"], CFG["RF5_HUB_TOP_X"]
+RF5_HUB_CLEAR = CFG["RF5_HUB_CLEAR"]
+RF5_CENTRE_HEAD_X, RF5_CENTRE_ACCESS_R = CFG["RF5_CENTRE_HEAD_X"], CFG["RF5_CENTRE_ACCESS_R"]
                                      # most the hub top x 63.0) keeps r 3.25 up to x 64.0, a driver hole r 1.75 runs on through the
                                      # plate; r 3.25 all through left 0.70 mm webs to the four counterbores (under two lines)
-RF5_CBORE_R = 3.05                   # counterbore for the M3 button head (dk 5.7: 0.2 radial clearance) on the plate's
+RF5_CBORE_R = CFG["RF5_CBORE_R"]
                                      # outer face; 2.2 mm web to the centre driver hole (RF5_CENTRE_ACCESS_R)
-RF5_SLEEVE_R, RF5_SLEEVE_BORE_R = 2.25, 1.60   # 304 sleeve dia 4.5 / 3.2 for M3
+RF5_SLEEVE_R, RF5_SLEEVE_BORE_R = CFG["RF5_SLEEVE_R"], CFG["RF5_SLEEVE_BORE_R"]
 RF5_CLAMP_R = RF_ROLL_HUB_R          # inner clamp disc on the horn / idler face (0.5 mm) and the rear outer head-seat pad
 RF5_SEAT_R = RF_ROLL_HUB_R           # (0.35 mm): run out to the arm hub's edge (r 12.4; at r 12.1 they left 0.3 mm rims,
                                      # under one line); the necks keep the old faces (H-cage plate, shell clearance). The front
@@ -835,9 +840,9 @@ RF5_SEAT_R = RF_ROLL_HUB_R           # (0.35 mm): run out to the arm hub's edge 
 # outer face is y -12.0 (holes open at -11.6, 0.4 mm into it), the idler's y 25.25 (holes at 25.0), the ST3025 output
 # wheel face x 61.0 (holes at 60.93..60.96); largest flat face of each shell-pass mesh, the horn mesh matches the official
 # STS3250 model to 0.04 mm RMS. Arms built on the openings made the U 0.65 mm narrower than the horn + idler stack.
-RF5_HORN_FACE_Y, RF5_IDLER_FACE_Y = -12.0, 25.25
-RF5_WHEEL_FACE_X = 61.0
-RF5_RUN_FIT = 0.10                   # free-state gap per side between each arm and the horn / idler face, so the servo +
+RF5_HORN_FACE_Y, RF5_IDLER_FACE_Y = CFG["RF5_HORN_FACE_Y"], CFG["RF5_IDLER_FACE_Y"]
+RF5_WHEEL_FACE_X = CFG["RF5_WHEEL_FACE_X"]
+RF5_RUN_FIT = CFG["RF5_RUN_FIT"]
                                      # horn + idler unit slides into the U (0.20 mm over the 37.25 mm stack covers the
                                      # printer's +-0.1 mm on the two inner faces); the screws close it, so the whole arm
                                      # (inner face and head seat) is built 0.10 further out and the head lands on the nominal
@@ -846,18 +851,18 @@ RF5_RUN_FIT = 0.10                   # free-state gap per side between each arm 
                                      # step left on them). Closing it bends each arm about 0.1 mm: about 20-25 N per arm
                                      # (cantilever estimate, PETG/PAHT-CF E 2.5-4 GPa, neck 10.5 x 5 mm, 17 mm long) and about
                                      # 8-9 MPa at the neck root; 0.2 mm would double both.
-RF5_HUB_RECESS_R = 6.8               # hub recess of the plate's land: the hub (r 4.0) needs r 4.2, which left 0.53 mm webs to
+RF5_HUB_RECESS_R = CFG["RF5_HUB_RECESS_R"]
                                      # the four dia 4.5 sleeve bores (r 7); a larger recess opens into the bores over its depth.
                                      # r 6.0 met them in 73 deg wedges (walls check 0.02 mm at the knife edge); from r 6.66 the
                                      # wedge is >= 90 deg: r 6.8 gives 93.5 deg (2.3 mm of the 8.5 mm sleeves lose a 150 deg sector)
-RF5_HUB_FLAT_FILLET = 1.5            # inside corner of the front hub flat at the neck's inboard edge (x 60.5, z 201.45):
+RF5_HUB_FLAT_FILLET = CFG["RF5_HUB_FLAT_FILLET"]
                                      # the flat cut it sharp (FEM peak 81-98 MPa there)
 # Rear top corner of the plate wing vs the torso's center_back_shell over hip pitch -58..45 x yaw -30..30 (pitch-link
 # frame, 2026-11-20 envelope sampled at 0.5 deg pitch, 2.5 deg yaw: its lower edge z 222.9 / 219.1 / 217.4 / 216.8 /
 # 215.5 / 214.3 / 213.3 / 212.3 at y 21 / 21.5 / 22.5 / 23.5 / 25.5 / 27.5 / 28.5 / 30): two flat chamfers 0.8 mm under it
 RF5_REAR_CHAMFER_YZ = [(31.5, 210.49), (22.0, 216.75), (19.5, 224.5)]
-RF5_REAR_RELIEF_DEG = 35.0           # its slope (deg from horizontal, falling toward the arm's inner face)
-RF5_REAR_RELIEF_W = 0.8              # the rear chamfer crossed the rear arm's gusset top at x 62.6..63 (the plate's inner face)
+RF5_REAR_RELIEF_DEG = CFG["RF5_REAR_RELIEF_DEG"]
+RF5_REAR_RELIEF_W = CFG["RF5_REAR_RELIEF_W"]
                                      # and met the arm's inner face y RF_ARM_R[0] in a 57 deg knife edge (walls 0.03-0.75 mm
                                      # by sampling): over x < RF_PLATE_X[0] a counter-chamfer falls from the chamfer this far
                                      # behind the inner face down to it (a 112 deg ridge, 125 deg at the inner face), cut before
@@ -865,19 +870,19 @@ RF5_REAR_RELIEF_W = 0.8              # the rear chamfer crossed the rear arm's g
                                      # with the gusset was a 0.27 mm2 B-spline patch OCC left untriangulated at 0.5 mm; w 0.9..1.5
                                      # left a 0.07-0.15 mm slit where the floor meets the gusset's fillet into the plate face;
                                      # w <= 0.65 a sub-0.25 mm2 planar face; cut after the bevel, a 0.04 mm2 sliver past x 63
-RF5_PRINT_UP = (-1.0, 0.0, 0.0)       # Stage 5 print direction (part_settings process.up -x)
-RF5_ARM_CORNER_CHAMFER = 3.0        # lower outboard corner of each arm (x RF_PLATE_X[1], z RF_AZ + 2): 45 deg chamfer leg
-RF5_ARM_GUSSET = 2.5                 # 45 deg gusset leg between each arm's top and the plate's inner face (0 = none); part of the
+RF5_PRINT_UP = CFG["RF5_PRINT_UP"]
+RF5_ARM_CORNER_CHAMFER = CFG["RF5_ARM_CORNER_CHAMFER"]
+RF5_ARM_GUSSET = CFG["RF5_ARM_GUSSET"]
                                      # arm's XZ profile, both ends rounded tangent (RF5_GUSSET_ENDS_R): a separate prism left a 135 deg
                                      # concave edge ending on the outer face between two bevelled convex edges, whose corner patch
                                      # (0.27 mm2 B-spline) OCC could not triangulate (STEP tessellation not closed at any tolerance)
-RF5_GUSSET_ENDS_R = (1.5, 2.0)       # 2D fillet radii at the gusset's foot (convex, x 60.5) and at the plate face (concave)
-RF5_TEAR_TOP = 0.4                   # horizontal sleeve bores: flat-topped teardrop, roof this far above the circle (print up)
+RF5_GUSSET_ENDS_R = CFG["RF5_GUSSET_ENDS_R"]
+RF5_TEAR_TOP = CFG["RF5_TEAR_TOP"]
 # Rear stub insertion slot (rf5_stub_slot, owner 2026-11-22): the turned case's rear stub is a disc r 3.0 about the roll
 # axis, y 25.55..25.80 (shell-pass case mesh), 0.45 mm past the rear arm's inner face (RF5_IDLER_FACE_Y + RF5_RUN_FIT).
-RF5_STUB_R, RF5_STUB_Y = 3.0, 25.80
-RF5_STUB_CLEAR = (0.2, 0.15)         # slot half width = stub r + [0]; floor [1] beyond the stub tip (0.60 mm deep)
-RF5_SLOT_FLARE = 0.6                 # lead-in at the arm's lower edge: the slot widens this much per side
+RF5_STUB_R, RF5_STUB_Y = CFG["RF5_STUB_R"], CFG["RF5_STUB_Y"]
+RF5_STUB_CLEAR = CFG["RF5_STUB_CLEAR"]
+RF5_SLOT_FLARE = CFG["RF5_SLOT_FLARE"]
 
 
 def rf5_screws() -> dict:

@@ -508,3 +508,27 @@ compose:                           # edits of the manifest composed by roll_flip
   after: [torso-screws]
   needs: [foot-screws]
   notes: the edited foot monocoque + sleeves (T-rptay5)
+config:
+  # robot/body/leg/foot_screws.py module constants (moved 2026-11-24)
+  CONNECTOR:
+    value: foot_monocoque_combined
+  PART:
+    value: foot_monocoque_combined
+  SLEEVES:
+    value: foot_monocoque_combined_steel_sleeves
+  CASE:
+    value: B13_C047_foot_roll_case
+  OLD_SCREWS:
+    value: [B13_front_PA2x6_, B13_rear_PA2x6_]
+  POCKET_R:
+    value: 4.05
+    doc: '= 8.0 / 2 + 0.05. pocket radius around each head: the heated press tip (checks/press_lib.py TIP_D / 2) + clearance, so the tip reaches the sleeve'
+  EAR_R:
+    value: 5.1
+    doc: '= 10.0 / 2 + 0.1. printed ear from the case face to the part''s back: the flat counter face the anvil annulus rests on'
+  EAR_H:
+    value: 0.5
+    doc: ear height above the case face (the case face stands 0.2 mm off the hole opening); ends inside the part
+  POCKET_H:
+    value: 16.0
+    doc: 'pocket cut height above the head seat: the heated tip length (press_lib TIP_L 15) + 1'

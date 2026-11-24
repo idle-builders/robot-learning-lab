@@ -22,6 +22,12 @@ from __future__ import annotations
 import numpy as np
 import trimesh
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("ape-proportions-build")   # configured values: robot/body/ape-proportions/build.bom.yaml config:
+
 
 def flip_motor_sign(j):
     """The case turns 180 deg about the elbow axis itself, so the servo axis keeps its direction, but the horn moves from
@@ -36,26 +42,26 @@ def flip_motor_sign(j):
                              f"reversal (refit value {j['motor_command_sign_refit']:+d}); do not apply servo_mount_reversed again")
 
 # Heights are measured from the elbow axis (mm), so the flip follows any upper-arm length.
-Z3 = 36.17          # stage 3 split: the beam starts 0.5 mm above it, 1.6 mm above the turned case top
-Z4 = -41.33         # stage 4 split: clean two-rail section below the case clamp
+Z3 = CFG["Z3"]
+Z4 = CFG["Z4"]
 FOREARM_BEAM = dict(x=(109.0, 117.0), y=(-12.5, 4.0), z=(-45.33, -10.83))   # medial, clear of the horn and its screws
 FOREARM_BRIDGE = dict(x=(109.0, 135.0), y=(-12.5, 4.0), z=(-46.33, -37.33))  # beam foot onto the rails
-SLEEVE_BOTTOM = -6.0         # the lower cover's rim is first carried down to here, then cut by the slanted edge below
+SLEEVE_BOTTOM = CFG["SLEEVE_BOTTOM"]
 UPPER_EDGE = (3.0, float(__import__("os").environ.get("APE_UPPER_FRONT", 18.0)))     # lower cover bottom edge above the elbow axis: (back, front); the front clears the forearm swing
-LATERAL_WINDOW_R = 18.0      # round window in the lower cover's outer wall around the idler-side cheek (radius 15)
-FOREARM_COVER_TOP = -15.33   # (superseded by the continuous skin below)
+LATERAL_WINDOW_R = CFG["LATERAL_WINDOW_R"]
+FOREARM_COVER_TOP = CFG["FOREARM_COVER_TOP"]
 # Forearm skin (owner 2026-11-13: upper and lower arm shells should read as one form with a gap at the elbow): the
 # forearm shell starts at the upper-arm cover's own bottom section and blends to the old forearm section at the wrist.
-SKIN_TOP = -4.0              # forearm shell top edge at the back, from the elbow axis (the front drops to SKIN_FRONT_DROP)
-SKIN_TOP_SHIFT_X = 4.0       # lateral, so the idler-side cheek (outer face x 158.5) fits inside
-SKIN_TOP_SHIFT_Y = -2.0      # forward: the clevis sits 5 mm forward of the upper cover's centre
-SKIN_WALL = 1.5
-SKIN_N, SKIN_RINGS = 160, 48
-SKIN_HOLD = 30.0            # mm below the gap with exactly the upper-arm section, then the blend
+SKIN_TOP = CFG["SKIN_TOP"]
+SKIN_TOP_SHIFT_X = CFG["SKIN_TOP_SHIFT_X"]
+SKIN_TOP_SHIFT_Y = CFG["SKIN_TOP_SHIFT_Y"]
+SKIN_WALL = CFG["SKIN_WALL"]
+SKIN_N, SKIN_RINGS = CFG["SKIN_N"], CFG["SKIN_RINGS"]
+SKIN_HOLD = CFG["SKIN_HOLD"]
 SKIN_FRONT_DROP = float(__import__('os').environ.get('APE_SKIN_FRONT_DROP', -28.0))  # top edge height at the front, from the elbow axis
-SKIN_WRIST_Z = 160.0         # the old forearm section here (it wrapped the wrist block's shell-mount bosses) and below
-CAP_CUT_Z = 285.0           # where the yaw-axis-normal cut crosses the yaw axis (just below the yaw horn)
-CAP_GAP = 1.5               # mm between the turning sleeve and the fixed cap
+SKIN_WRIST_Z = CFG["SKIN_WRIST_Z"]
+CAP_CUT_Z = CFG["CAP_CUT_Z"]
+CAP_GAP = CFG["CAP_GAP"]
 
 
 def r180(o):

@@ -40,3 +40,13 @@ joints:
 - match: [R_ankle_roll, L_ankle_roll]
   range_deg: [-20.0, 20.0]
   doc: Ankle roll, accepted range.
+config:
+  # robot/body/leg/package_complete_leg_hip.py module constants (moved 2026-11-24)
+  STAGE_COLORS:
+    value: {stage1_shin: [42, 138, 184, 255], stage2_ankle_coupler: [28, 164, 142, 255], stage3_foot_monocoque: [212, 134, 52, 255], stage4_thigh: [64, 156, 212, 255], stage5_hip_pitch_to_roll: [228, 118, 68, 255], stage6_hip_yaw_to_pitch: [46, 178, 136, 255], sleeve: [215, 222, 230, 255]}
+  PRINT_ORIENTATIONS:
+    value: {stage1_shin: YZ Cheek / Oblique Bed (layer normal Z/X), stage2_ankle_coupler: YZ Oblique Arch Bed (layer normal X), stage3_foot_monocoque: XY Flat Sole Bed (layer normal Z), stage4_thigh: YZ Medial Cheek Bed (layer normal X), stage5_hip_pitch_to_roll: XY Corridor Bridge Bed (layer normal Z), stage6_hip_yaw_to_pitch: YZ Lateral Wall / XY Top Deck Bed (layer normal X)}
+  # robot/body/leg/common.py module constants (moved 2026-11-24)
+  MATERIALS:
+    value: {Al5052_H32: {name: Aluminium 5052-H32 (baseline sheet), density_g_cm3: 2.68, E_MPa: 68300.0, nu: 0.33, reference_strength_MPa: 193.0}, Al6061_T6: {name: Aluminium 6061-T6 (baseline flat plate/sole), density_g_cm3: 2.7, E_MPa: 68900.0, nu: 0.33, reference_strength_MPa: 276.0}, PAHT_CF_dry: {name: 'Bambu PAHT-CF / PA12-CF (dry, FDM)', density_g_cm3: 1.22, E_inplane_MPa: 7550.0, E_layer_MPa: 3290.0, G_MPa: 1100.0, nu: 0.35, tensile_XY_MPa: 92.0, tensile_Z_layer_MPa: 43.0}, PAHT_CF_wet: {name: 'Bambu PAHT-CF / PA12-CF (moisture-conditioned, FDM)', density_g_cm3: 1.22, E_inplane_MPa: 6570.0, E_layer_MPa: 2700.0, G_MPa: 950.0, nu: 0.35, tensile_XY_MPa: 71.0, tensile_Z_layer_MPa: 37.0}, PETG_CF: {name: PETG-CF / PLA-CF (home-lab standard CF filament), density_g_cm3: 1.25, E_inplane_MPa: 5800.0, E_layer_MPa: 2850.0, G_MPa: 1000.0, nu: 0.35, tensile_XY_MPa: 68.0, tensile_Z_layer_MPa: 34.0}, Steel_Sleeve: {name: 304 Stainless Steel compression sleeve / cross-bolt, density_g_cm3: 7.85, E_MPa: 200000.0, nu: 0.29}}
+    doc: 'Material definitions used across matched FEM comparisons: - Aluminium 5052-H32 / 6061-T6 baseline sheet/plate - PAHT-CF / PA12-CF dry & conditioned (orthotropic FDM, print layer normal customizable per part) - PETG-CF / PLA-CF home-lab stiff filament sensitivity - 304 Stainless / Alloy Steel compression sleeves & cross-bolts'

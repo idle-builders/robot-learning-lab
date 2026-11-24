@@ -564,3 +564,133 @@ compose:                           # edits of the manifest composed by roll_flip
   after: [neck-parts]
   needs: [neck-collar]
   notes: head_neck_collar screwed to the yaw-to-pitch link; after neck-parts, which edits the link (T-a2mt33)
+config:
+  # robot/body/assembly/neck_collar.py module constants (moved 2026-11-24)
+  TASK:
+    value: T-a2mt33
+  COLLAR:
+    value: head_neck_collar
+  LINK:
+    value: combined__neck_yaw_to_pitch_link
+  SLEEVES:
+    value: head_neck_collar_steel_sleeves
+  BED_Z:
+    value: 393.0
+    doc: 'the ring''s bed plane: 0.6 mm under the old flange (394.2); with the inner wall 1.4 mm further in it takes the notch floor band (z BED_Z .. 395.1) to 1.5 x 6.6 mm (FEM, was 0.9 x 5.2)'
+  RIDGE_Y:
+    value: [4.6, 16.5]
+    doc: locating ridge on the tab face (trapezoid, 45 deg flanks, base z 395.6..397.6, 0.8 high, merges into the wall at its +y end) in a groove of the link boss
+  RIDGE_Z:
+    value: [395.6, 397.6]
+    doc: locating ridge on the tab face (trapezoid, 45 deg flanks, base z 395.6..397.6, 0.8 high, merges into the wall at its +y end) in a groove of the link boss
+  RIDGE_H:
+    value: 0.8
+    doc: locating ridge on the tab face (trapezoid, 45 deg flanks, base z 395.6..397.6, 0.8 high, merges into the wall at its +y end) in a groove of the link boss
+  GROOVE_CLEAR:
+    value: 0.25
+    doc: groove = ridge + this much on every flank and at the tip (FDM slip fit)
+  ROOF:
+    value: true
+    doc: teardrop roof on the horizontal sleeve bore (print up +z)
+  WEDGE_R:
+    value: 0.7
+    doc: fillet on the channel flank's top edge
+  BED_R:
+    value: 0.5
+    doc: bed-edge fillet of the tab and ridge
+  SLEEVE_OD:
+    value: 3.6
+    doc: kind already in the body (bore_for M2 2.2..2.4)
+  SLEEVE_ID:
+    value: 2.2
+    doc: kind already in the body (bore_for M2 2.2..2.4)
+  CHANNEL_Y:
+    value: [4.95, 13.05]
+    doc: 'spot-face channel: the screw at y 9 +- 4.05 (the heated press tip is dia 8, checks/press_lib.TIP_D)'
+  TRIM_Z:
+    value: 395.6
+    doc: the head cut never leaves a wall under 1.4 mm over the flange (perpendicular >= 2 lines on the 50 deg slope)
+  SWEEP_MARGIN:
+    value: 0.5
+    doc: mm around the swept overlap of the moving parts
+  FLOOR_X:
+    value: -29.1
+    doc: flat head seat = sleeve outer end
+  BOSS_T:
+    value: 1.1
+    doc: 'link boss on the plate''s outer face (x -24.5 -> -25.5): thread depth 3.5 -> 4.6: engagement 4.1 with the 0.5 mm tip margin (reference 4.0)'
+  BOSS_Y:
+    value: [5.0, 13.3]
+    doc: solid plate zone (the plate has lightening windows at y 4..6, z < 402)
+  BOSS_Z:
+    value: [394.4, 405.4]
+    doc: solid plate zone (the plate has lightening windows at y 4..6, z < 402)
+  FILL_Y:
+    value: [5.0, 8.5]
+    doc: lightening window of the plate (y 2.5..7.5, z up to 400.5) filled from y 5.0 on
+  FILL_Z:
+    value: [394.4, 402.5]
+    doc: lightening window of the plate (y 2.5..7.5, z up to 400.5) filled from y 5.0 on
+  PILOT_D:
+    value: 1.6
+    doc: M2 tap diameter (standard-parts screw_families)
+  SCREW_NAME:
+    value: head_neck_collar_M2x8_{i}
+  CENTRE:
+    value: [-0.8, 3.5]
+  SCALE_XY:
+    value: [1.04, 0.94]
+  PEAK_CAP_Z:
+    value: 0.0
+    doc: the front-right rim peak (theta 6-12) is cut flat here, in its own sector only
+  PEAK_CAP_SECTOR:
+    value: [-10.0, 40.0]
+    doc: theta range of that cut
+  NOTCH_MIN:
+    value: 395.1
+    doc: 'lowest notch floor: 0.9 mm over the bed (the swept floor went down to 394.76: a 0.56 mm foot band, under two lines)'
+  FOOT_R:
+    value: 31.6
+    doc: 'radius of the vertical foot (before the xy scale): 0.8 mm wider than the old 30.77 (the old flange cone, trimmed at z 395.6), so the 0.4 mm bed roundings keep the flat contact over 4 mm'
+  ROUND_R:
+    value: 0.25
+    doc: edge break on the cut edges (head cut rim, notch, tab, bore, channel)
+  TAB_LOWER:
+    value: 0.1
+    doc: the tab's top lies this far under the head cut (the ring's rim is rounded before the tab is fused on)
+  TAB_EDGE_R:
+    value: 0.4
+    doc: edge break of the tab block
+  TAB_BED_R:
+    value: 0.7
+    doc: 'bed edge of the tab (not the ring''s 0.4: two equal roundings meeting at the wall leave 0.01 mm edges)'
+  TAB_R:
+    value: 1.0
+    doc: plan radius of the tab's two vertical edges at the plate face
+  PLAN_SKEW:
+    value: 0.0
+    doc: 'mm: the channel mouth arcs are tangent to the foot and flank this far inside them (they cross the real faces at about 10 deg: a tangent boolean there left slivers that no fillet rolled)'
+  END_OFF:
+    value: 0.7
+    doc: mm, see _round_bed_plan
+  PLAN_R_MOUTH:
+    value: 1.3
+    doc: 'the channel mouth''s upper corner: its arc ends where the floor corner''s 0.4 mm round starts (1.7 left a 0.12 mm2 sliver of the flank)'
+  PLAN_R_MOUTH_LOW:
+    value: 1.8
+    doc: the channel mouth's lower corner (1.7 leaves edges no fillet rolls along, 1.5 and 2.1 build)
+  PLAN_R:
+    value: 1.7
+    doc: plan radius of the foot's end and channel-mouth corners (the bed outline keeps 1.3 mm after the 0.4 mm bed rounding; 1.6 and 1.8 leave edges OCC cannot roll)
+  PLAN_R_INNER:
+    value: 2.6
+    doc: 'plan radius of the inner ring-end bed corners: they sit hidden behind the mouth corner, a larger round leaves no sharp bed corner'
+  BED_ROUND:
+    value: 0.4
+    doc: rounding of the ring's two bed edges (elephant foot), in the section
+  R_IN0:
+    value: 25.0
+    doc: 'inner wall radius at z 393 (before the xy scale): was 26.4; the wall grows inward 1.4 mm, the outside does not change'
+  KEEP_OUT:
+    value: [[106.0, 132.0], [140.0, 215.0]]
+    doc: 'elliptic angle ranges where the inner wall stays at 26.4: the neck pitch cradle and servo case sweep into the first, the link plate stands in the second'

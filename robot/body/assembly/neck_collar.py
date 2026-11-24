@@ -54,32 +54,36 @@ sys.path.insert(0, str(ROOT / "robot/body"))
 sys.path.insert(0, str(ROOT / "robot/body/fastening"))
 
 import os
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("neck-collar")   # configured values: robot/body/assembly/neck_collar.bom.yaml config:
 OUT = ROOT / os.environ.get("NECK_COLLAR_OUT", "artifacts/robot/body/assembly/neck-collar")   # NECK_COLLAR_OUT: scratch folder inside the repo for iterations
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"   # unedited sources
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
-TASK = "T-a2mt33"
+TASK = CFG["TASK"]
 
-COLLAR, LINK = "head_neck_collar", "combined__neck_yaw_to_pitch_link"
-SLEEVES = "head_neck_collar_steel_sleeves"
+COLLAR, LINK = CFG["COLLAR"], CFG["LINK"]
+SLEEVES = CFG["SLEEVES"]
 LINK_SRC = "artifacts/robot/body/neck-head/parts/combined__neck_yaw_to_pitch_link.step"   # neck_parts output, never edited in place
 SCREW_YZ = [(9.0, 399.8)]                         # (y, z) of the screw axis (along x): the collar's mid height, so the dia 10 press counter disc stays on the tab face
-BED_Z = 393.0                                      # the ring's bed plane: 0.6 mm under the old flange (394.2); with the inner wall 1.4 mm further in it takes the notch floor band (z BED_Z .. 395.1) to 1.5 x 6.6 mm (FEM, was 0.9 x 5.2)
+BED_Z = CFG["BED_Z"]
 TAB_Y, TAB_Z = (2.8, 14.8), (BED_Z, 412.0)          # tab runs into the ring wall at y 14.8 and out through the head cut at the top (no tab edge meets the cut at a grazing angle)
-RIDGE_Y, RIDGE_Z, RIDGE_H = (4.6, 16.5), (395.6, 397.6), 0.8   # locating ridge on the tab face (trapezoid, 45 deg flanks, base z 395.6..397.6, 0.8 high, merges into the wall at its +y end) in a groove of the link boss
-GROOVE_CLEAR = 0.25                                # groove = ridge + this much on every flank and at the tip (FDM slip fit)
-ROOF = True                                        # teardrop roof on the horizontal sleeve bore (print up +z)
-WEDGE_R = 0.7                                      # fillet on the channel flank's top edge
-BED_R = 0.5                                        # bed-edge fillet of the tab and ridge
-SLEEVE_OD, SLEEVE_ID = 3.6, 2.2                    # kind already in the body (bore_for M2 2.2..2.4)
-CHANNEL_Y = (4.95, 13.05)                          # spot-face channel: the screw at y 9 +- 4.05 (the heated press tip is dia 8, checks/press_lib.TIP_D)
-TRIM_Z = 395.6                                     # the head cut never leaves a wall under 1.4 mm over the flange (perpendicular >= 2 lines on the 50 deg slope)
-SWEEP_MARGIN = 0.5                                 # mm around the swept overlap of the moving parts
-FLOOR_X = -29.1                                    # flat head seat = sleeve outer end
-BOSS_T = 1.1                                       # link boss on the plate's outer face (x -24.5 -> -25.5): thread depth 3.5 -> 4.6: engagement 4.1 with the 0.5 mm tip margin (reference 4.0)
-BOSS_Y, BOSS_Z = (5.0, 13.3), (394.4, 405.4)       # solid plate zone (the plate has lightening windows at y 4..6, z < 402)
-FILL_Y, FILL_Z = (5.0, 8.5), (394.4, 402.5)        # lightening window of the plate (y 2.5..7.5, z up to 400.5) filled from y 5.0 on
-PILOT_D = 1.6                                      # M2 tap diameter (standard-parts screw_families)
-SCREW_NAME = "head_neck_collar_M2x8_{i}"
+RIDGE_Y, RIDGE_Z, RIDGE_H = CFG["RIDGE_Y"], CFG["RIDGE_Z"], CFG["RIDGE_H"]
+GROOVE_CLEAR = CFG["GROOVE_CLEAR"]
+ROOF = CFG["ROOF"]
+WEDGE_R = CFG["WEDGE_R"]
+BED_R = CFG["BED_R"]
+SLEEVE_OD, SLEEVE_ID = CFG["SLEEVE_OD"], CFG["SLEEVE_ID"]
+CHANNEL_Y = CFG["CHANNEL_Y"]
+TRIM_Z = CFG["TRIM_Z"]
+SWEEP_MARGIN = CFG["SWEEP_MARGIN"]
+FLOOR_X = CFG["FLOOR_X"]
+BOSS_T = CFG["BOSS_T"]
+BOSS_Y, BOSS_Z = CFG["BOSS_Y"], CFG["BOSS_Z"]
+FILL_Y, FILL_Z = CFG["FILL_Y"], CFG["FILL_Z"]
+PILOT_D = CFG["PILOT_D"]
+SCREW_NAME = CFG["SCREW_NAME"]
 
 
 def _src():
@@ -102,8 +106,8 @@ def _plate_faces(link_mesh):
 
 
 ENVELOPE = HERE / "neck_collar_envelope.json"
-CENTRE = (-0.8, 3.5)
-SCALE_XY = (1.04, 0.94)
+CENTRE = CFG["CENTRE"]
+SCALE_XY = CFG["SCALE_XY"]
 
 
 def _loft(r0, r1, h, z0):
@@ -183,8 +187,8 @@ def _smooth_floor(z):
     return np.maximum(f - lift, NOTCH_MIN)                             # the foot band under the floor is at least two lines (0.84 mm) thick (walls check); sweep() measures the head clearance against it
 
 
-PEAK_CAP_Z = 0.0                                # the front-right rim peak (theta 6-12) is cut flat here, in its own sector only
-PEAK_CAP_SECTOR = (-10.0, 40.0)                    # theta range of that cut
+PEAK_CAP_Z = CFG["PEAK_CAP_Z"]
+PEAK_CAP_SECTOR = CFG["PEAK_CAP_SECTOR"]
 
 
 def _peak_cap():
@@ -214,27 +218,27 @@ def collar_ring_cutters(base=False, lower=0.0):
     return head, notch
 
 
-NOTCH_MIN = 395.1                                  # lowest notch floor: 0.9 mm over the bed (the swept floor went down to 394.76: a 0.56 mm foot band, under two lines)
-FOOT_R = 31.6                                      # radius of the vertical foot (before the xy scale): 0.8 mm wider than the old 30.77 (the old flange cone, trimmed at z 395.6), so the 0.4 mm bed roundings keep the flat contact over 4 mm
+NOTCH_MIN = CFG["NOTCH_MIN"]
+FOOT_R = CFG["FOOT_R"]
 FOOT_H = 395.6 - BED_Z                             # height of the vertical foot (BED_Z .. 395.6)
-ROUND_R = 0.25                                     # edge break on the cut edges (head cut rim, notch, tab, bore, channel)
-TAB_LOWER = 0.1                                    # the tab's top lies this far under the head cut (the ring's rim is rounded before the tab is fused on)
-TAB_EDGE_R = 0.4                                   # edge break of the tab block
-TAB_BED_R = 0.7                                    # bed edge of the tab (not the ring's 0.4: two equal roundings meeting at the wall leave 0.01 mm edges)
-TAB_R = 1.0                                        # plan radius of the tab's two vertical edges at the plate face
-PLAN_SKEW = 0.0                                    # mm: the channel mouth arcs are tangent to the foot and flank this far inside them (they cross the real faces at about 10 deg: a tangent boolean there left slivers that no fillet rolled)
-END_OFF = 0.7                                     # mm, see _round_bed_plan
-PLAN_R_MOUTH = 1.3                                 # the channel mouth's upper corner: its arc ends where the floor corner's 0.4 mm round starts (1.7 left a 0.12 mm2 sliver of the flank)
-PLAN_R_MOUTH_LOW = 1.8                             # the channel mouth's lower corner (1.7 leaves edges no fillet rolls along, 1.5 and 2.1 build)
-PLAN_R = 1.7                                       # plan radius of the foot's end and channel-mouth corners (the bed outline keeps 1.3 mm after the 0.4 mm bed rounding; 1.6 and 1.8 leave edges OCC cannot roll)
-PLAN_R_INNER = 2.6                                # plan radius of the inner ring-end bed corners: they sit hidden behind the mouth corner, a larger round leaves no sharp bed corner
-BED_ROUND = 0.4                                    # rounding of the ring's two bed edges (elephant foot), in the section
+ROUND_R = CFG["ROUND_R"]
+TAB_LOWER = CFG["TAB_LOWER"]
+TAB_EDGE_R = CFG["TAB_EDGE_R"]
+TAB_BED_R = CFG["TAB_BED_R"]
+TAB_R = CFG["TAB_R"]
+PLAN_SKEW = CFG["PLAN_SKEW"]
+END_OFF = CFG["END_OFF"]
+PLAN_R_MOUTH = CFG["PLAN_R_MOUTH"]
+PLAN_R_MOUTH_LOW = CFG["PLAN_R_MOUTH_LOW"]
+PLAN_R = CFG["PLAN_R"]
+PLAN_R_INNER = CFG["PLAN_R_INNER"]
+BED_ROUND = CFG["BED_ROUND"]
 
 
-R_IN0 = 25.0                                       # inner wall radius at z 393 (before the xy scale): was 26.4; the wall grows inward 1.4 mm, the outside does not change
+R_IN0 = CFG["R_IN0"]
 
 
-KEEP_OUT = ((106.0, 132.0), (140.0, 215.0))   # elliptic angle ranges where the inner wall stays at 26.4: the neck pitch cradle and servo case sweep into the first, the link plate stands in the second
+KEEP_OUT = CFG["KEEP_OUT"]
 
 
 def _r_in(z):

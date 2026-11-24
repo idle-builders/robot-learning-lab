@@ -5,6 +5,11 @@ import importlib.util
 import json
 import numpy as np
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("package-complete-leg-hip")   # configured values: robot/body/leg/package_complete_leg_hip.bom.yaml config:
+
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "AGENTS.md").exists())
 STUDY = Path(__file__).resolve().parent
 ART = ROOT / "artifacts/robot/body/leg"
@@ -77,58 +82,7 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
 # - PAHT-CF / PA12-CF dry & conditioned (orthotropic FDM, print layer normal customizable per part)
 # - PETG-CF / PLA-CF home-lab stiff filament sensitivity
 # - 304 Stainless / Alloy Steel compression sleeves & cross-bolts
-MATERIALS = {
-    "Al5052_H32": {
-        "name": "Aluminium 5052-H32 (baseline sheet)",
-        "density_g_cm3": 2.68,
-        "E_MPa": 68300.0,
-        "nu": 0.33,
-        "reference_strength_MPa": 193.0,
-    },
-    "Al6061_T6": {
-        "name": "Aluminium 6061-T6 (baseline flat plate/sole)",
-        "density_g_cm3": 2.70,
-        "E_MPa": 68900.0,
-        "nu": 0.33,
-        "reference_strength_MPa": 276.0,
-    },
-    "PAHT_CF_dry": {
-        "name": "Bambu PAHT-CF / PA12-CF (dry, FDM)",
-        "density_g_cm3": 1.22,
-        "E_inplane_MPa": 7550.0,
-        "E_layer_MPa": 3290.0,
-        "G_MPa": 1100.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 92.0,
-        "tensile_Z_layer_MPa": 43.0,
-    },
-    "PAHT_CF_wet": {
-        "name": "Bambu PAHT-CF / PA12-CF (moisture-conditioned, FDM)",
-        "density_g_cm3": 1.22,
-        "E_inplane_MPa": 6570.0,
-        "E_layer_MPa": 2700.0,
-        "G_MPa": 950.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 71.0,
-        "tensile_Z_layer_MPa": 37.0,
-    },
-    "PETG_CF": {
-        "name": "PETG-CF / PLA-CF (home-lab standard CF filament)",
-        "density_g_cm3": 1.25,
-        "E_inplane_MPa": 5800.0,
-        "E_layer_MPa": 2850.0,
-        "G_MPa": 1000.0,
-        "nu": 0.35,
-        "tensile_XY_MPa": 68.0,
-        "tensile_Z_layer_MPa": 34.0,
-    },
-    "Steel_Sleeve": {
-        "name": "304 Stainless Steel compression sleeve / cross-bolt",
-        "density_g_cm3": 7.85,
-        "E_MPa": 200000.0,
-        "nu": 0.29,
-    },
-}
+MATERIALS = CFG["MATERIALS"]
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):

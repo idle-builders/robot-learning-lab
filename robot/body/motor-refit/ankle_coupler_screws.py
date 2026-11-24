@@ -55,28 +55,32 @@ sys.path.insert(0, str(ROOT / "robot/body"))
 import cad_ops as C  # noqa: E402
 import motor_refit as MR  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("ankle-coupler-screws")   # configured values: robot/body/motor-refit/ankle_coupler_screws.bom.yaml config:
+
 OUT = ROOT / "artifacts/robot/body/leg/ankle-coupler-screws"
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
 VARIANT = SHELL_PASS.with_name("assembly-parts-roll-flip.json")
-CONNECTOR = "ankle_coupler_combined"
-PART, SLEEVES = "ankle_coupler_combined", "ankle_coupler_combined_steel_sleeves"
-HORN = "B13_C047_foot_roll_main_horn"
+CONNECTOR = CFG["CONNECTOR"]
+PART, SLEEVES = CFG["PART"], CFG["SLEEVES"]
+HORN = CFG["HORN"]
 
-R_SLEEVE = (4.5 / 2, 3.2 / 2)       # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
-EAR_LIP = 0.5                       # ear top above the floor plane (no coplanar fuse: the floor is made by the pocket cut alone)
-FILLET_R = 0.6                      # concave edges where a head pocket wall meets its floor (stress concentration, poor to print)
-TIP_R = 8.0 / 2 + 0.05              # heated press tip (checks/press_lib.py TIP_D) + clearance: pocket radius around each head
-EAR_R = 10.0 / 2 + 0.1              # printed ear around each sleeve from the horn face to the floor: the flat counter face the anvil
+R_SLEEVE = CFG["R_SLEEVE"]
+EAR_LIP = CFG["EAR_LIP"]
+FILLET_R = CFG["FILLET_R"]
+TIP_R = CFG["TIP_R"]
+EAR_R = CFG["EAR_R"]
                                     # annulus (press_lib ANVIL_D) rests on, where the 19.8 mm horn disc outline ends before it
-CENTRE_R = 3.2                      # horn centre pocket after closing (was 4.5; centre of the bolt circle 7 mm from each hole)
-CENTRE_OLD_R = 4.5
-WHEEL_CENTRE_R = 3.4                # wheel side: central hole after closing: 7 - 2.25 - 3.4 = 1.35 mm wall = 2 lines of the 0.62 mm line (0.6 nozzle)
-ANVIL_R = 10.0 / 2 + 0.3           # anvil annulus radius of checks/press_lib.py (ANVIL_D / 2) + clearance
-RIM_NOTCH_L = 4.0                   # notch depth below the wheel face (the rim ends 0.4 mm below it on the horn side, 3 mm on the idler side)
-SHIN_CLEAR = 0.39                   # boss stays this far inside the own shin's bore (the old coupler cleared it by 0.48 / 0.39 mm)
-HUB_CLEAR = 0.05                    # horn hub: printed boss stays this far from the hub
-POCKET_TOP = 3.0                    # pocket cut runs this far above the pad's outer face
-BACK_PAD_TOP = 23.8                 # outer face of the motor-refit pad (motor_refit.py: pad 20.8 -> 23.8)
+CENTRE_R = CFG["CENTRE_R"]
+CENTRE_OLD_R = CFG["CENTRE_OLD_R"]
+WHEEL_CENTRE_R = CFG["WHEEL_CENTRE_R"]
+ANVIL_R = CFG["ANVIL_R"]
+RIM_NOTCH_L = CFG["RIM_NOTCH_L"]
+SHIN_CLEAR = CFG["SHIN_CLEAR"]
+HUB_CLEAR = CFG["HUB_CLEAR"]
+POCKET_TOP = CFG["POCKET_TOP"]
+BACK_PAD_TOP = CFG["BACK_PAD_TOP"]
 
 
 def bbox(s):
@@ -171,8 +175,8 @@ def pocket_along_x(x_seat, s, y, z, x_end, r, fr):
     return mk.Shape()
 
 
-WHEEL = "ankle_pitch_ST3025_output"
-WHEEL_GROUPS = (("ST3025_horn", "horn"), ("ST3025_idler", "idler"))
+WHEEL = CFG["WHEEL"]
+WHEEL_GROUPS = CFG["WHEEL_GROUPS"]
 
 
 def shin_bore_r(shin, cy, cz, x0=72.0, x1=80.0):

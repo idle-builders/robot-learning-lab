@@ -52,33 +52,37 @@ sys.path.insert(0, str(ROOT / "robot/body"))
 import cad_ops as C  # noqa: E402
 import motor_refit as MR  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("hip-yaw-screws")   # configured values: robot/body/motor-refit/hip_yaw_screws.bom.yaml config:
+
 OUT = ROOT / "artifacts/robot/body/leg/hip-yaw-screws"
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
 VARIANT = SHELL_PASS.with_name("assembly-parts-roll-flip.json")
-PART, SLEEVES = "hip_yaw_to_pitch_combined", "hip_yaw_to_pitch_combined_steel_sleeves"
+PART, SLEEVES = CFG["PART"], CFG["SLEEVES"]
 
-R_SLEEVE_YAW = (4.5 / 2, 3.2 / 2)        # OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
-R_SLEEVE_FRONT = (3.6 / 2, 2.2 / 2)      # M2
-COLLAR_R = 4.9                           # printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press
-COLLAR_DISC_R = 9.0                      # joins the four collars into one layer (diagonal pairs stand 9.9 apart: 0.1 mm slots); 0.85 mm inside the window walls (9.85 off the hub axis), so it meets each collar clear of a wall
-DECK_BOTTOM = 262.75
-FRONT_PAD_R = 3.05       # pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)
-LATTICE_TOP, FRONT_TOP = 250.0, 250.056   # the refit's flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves
-YAW_NOTCH_R, YAW_NOTCH_Z = 3.25, (258.25, 261.75)   # window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar's underside
-WINDOW_WALL_Y = (-7.85, 11.85)           # the refit's key-window walls (inner faces), 9.85 off the hub axis on each side; the window-side yaw screws stand 2.85 inside them
-REFIT_WALL_X = 55.8                      # the refit's -x face of those walls (and of the deck's corners beside them)
-COLLAR_BOSS_H = 1.0                      # the -x collar stands 1.35 mm past the deck disc: raised this much above the deck bottom, it is a 2.0 mm wall there (1.0 mm lip before)
-HUB_R, DECK_R = 3.45, 10.55              # deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis
-HUB = (59.0, 2.0)
-YAW_TOP = 274.75
-FILL_TOP = 251.5   # the tongues' root: a 1.6 mm thick step (x 57.2-58.8) up from the lattice top, the ramp of the refit's wall ends 0.4 mm thick at 251.5 is part of it
+R_SLEEVE_YAW = CFG["R_SLEEVE_YAW"]
+R_SLEEVE_FRONT = CFG["R_SLEEVE_FRONT"]
+COLLAR_R = CFG["COLLAR_R"]
+COLLAR_DISC_R = CFG["COLLAR_DISC_R"]
+DECK_BOTTOM = CFG["DECK_BOTTOM"]
+FRONT_PAD_R = CFG["FRONT_PAD_R"]
+LATTICE_TOP, FRONT_TOP = CFG["LATTICE_TOP"], CFG["FRONT_TOP"]
+YAW_NOTCH_R, YAW_NOTCH_Z = CFG["YAW_NOTCH_R"], CFG["YAW_NOTCH_Z"]
+WINDOW_WALL_Y = CFG["WINDOW_WALL_Y"]
+REFIT_WALL_X = CFG["REFIT_WALL_X"]
+COLLAR_BOSS_H = CFG["COLLAR_BOSS_H"]
+HUB_R, DECK_R = CFG["HUB_R"], CFG["DECK_R"]
+HUB = CFG["HUB"]
+YAW_TOP = CFG["YAW_TOP"]
+FILL_TOP = CFG["FILL_TOP"]
 # the refit's bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick
 # stay; a box per yaw axis takes them off in clean planes: -y to the old hole's centre plane (-8.25), +y to the refit's own inner face beside
 # the hole (y 12.1519, x 55.8-57.55; a cut at 11.6 left a 0.55 mm web, one at the centre 12.25 a 0.1 mm step against that face)
-RIB_LEN, RIB_Z, RIB_X = 7.0, (244.0, 250.0), (56.8, 58.8)                # flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends
-FOOT_CUTS = (((55.0, -8.25, 223.0), (60.5, -3.0, 230.0)), ((56.0, 7.0, 223.0), (60.5, 12.1519, 230.0)))
+RIB_LEN, RIB_Z, RIB_X = CFG["RIB_LEN"], CFG["RIB_Z"], CFG["RIB_X"]
+FOOT_CUTS = CFG["FOOT_CUTS"]
 
-EAR_CORNER, EAR_CHAMFER = (55.8, 19.0), 0.6   # the ear's outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room
+EAR_CORNER, EAR_CHAMFER = CFG["EAR_CORNER"], CFG["EAR_CHAMFER"]
 
 
 def ear_chamfer_tool():

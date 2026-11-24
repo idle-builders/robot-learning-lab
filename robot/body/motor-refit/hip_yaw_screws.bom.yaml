@@ -375,3 +375,77 @@ compose:                           # edits of the manifest composed by roll_flip
   after: [foot-screws]
   needs: [hip-yaw-screws]
   notes: the edited hip yaw-to-pitch connector + sleeves (T-v3kzs4)
+config:
+  # robot/body/motor-refit/hip_yaw_screws.py module constants (moved 2026-11-24)
+  PART:
+    value: hip_yaw_to_pitch_combined
+  SLEEVES:
+    value: hip_yaw_to_pitch_combined_steel_sleeves
+  R_SLEEVE_YAW:
+    value: [2.25, 1.6]
+    doc: = (4.5 / 2, 3.2 / 2). OD / ID of the 304 tube for M3 (standard-parts sleeve.bore_for)
+  R_SLEEVE_FRONT:
+    value: [1.8, 1.1]
+    doc: = (3.6 / 2, 2.2 / 2). M2
+  COLLAR_R:
+    value: 4.9
+    doc: 'printed collar under the deck: carries the lower end of a yaw sleeve, flat counter face to R 5 for the press'
+  COLLAR_DISC_R:
+    value: 9.0
+    doc: 'joins the four collars into one layer (diagonal pairs stand 9.9 apart: 0.1 mm slots); 0.85 mm inside the window walls (9.85 off the hub axis), so it meets each collar clear of a wall'
+  DECK_BOTTOM:
+    value: 262.75
+  FRONT_PAD_R:
+    value: 3.05
+    doc: 'pad wall round the sleeve: 3.05 - 1.8 = 1.25 mm >= 2 lines (0.62)'
+  LATTICE_TOP:
+    value: 250.0
+    doc: 'the refit''s flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves'
+  FRONT_TOP:
+    value: 250.056
+    doc: 'the refit''s flat top of the front lattice (250.0012) is raised to the crown of the outer front pads (z 247.006 + 3.05): one plane, 1.25 mm over the sleeves'
+  YAW_NOTCH_R:
+    value: 3.25
+    doc: 'window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar''s underside'
+  YAW_NOTCH_Z:
+    value: [258.25, 261.75]
+    doc: 'window edges at y -7.85 / 11.85 sit 0.1 mm off a yaw screw head (R 2.75): a 0.5 mm clear pocket in the wall, up to the collar''s underside'
+  WINDOW_WALL_Y:
+    value: [-7.85, 11.85]
+    doc: the refit's key-window walls (inner faces), 9.85 off the hub axis on each side; the window-side yaw screws stand 2.85 inside them
+  REFIT_WALL_X:
+    value: 55.8
+    doc: the refit's -x face of those walls (and of the deck's corners beside them)
+  COLLAR_BOSS_H:
+    value: 1.0
+    doc: 'the -x collar stands 1.35 mm past the deck disc: raised this much above the deck bottom, it is a 2.0 mm wall there (1.0 mm lip before)'
+  HUB_R:
+    value: 3.45
+    doc: 'deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis'
+  DECK_R:
+    value: 10.55
+    doc: 'deck: hub pocket (refit 4.2) and outer disc (refit 10.0) leave 1.30 mm walls (>= 2 lines) round the yaw bores, which sit 7.0 from the hub axis'
+  HUB:
+    value: [59.0, 2.0]
+  YAW_TOP:
+    value: 274.75
+  FILL_TOP:
+    value: 251.5
+    doc: 'the tongues'' root: a 1.6 mm thick step (x 57.2-58.8) up from the lattice top, the ramp of the refit''s wall ends 0.4 mm thick at 251.5 is part of it'
+  RIB_LEN:
+    value: 7.0
+    doc: 'the refit''s bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick stay; a box per yaw axis takes them off in clean planes: -y to the old hole''s centre plane (-8.25), +y to the refit''s own inner face beside the hole (y 12.1519, x 55.8-57.55; a cut at 11.6 left a 0.55 mm web, one at the centre 12.25 a 0.1 mm step against that face) flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends'
+  RIB_Z:
+    value: [244.0, 250.0]
+    doc: 'the refit''s bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick stay; a box per yaw axis takes them off in clean planes: -y to the old hole''s centre plane (-8.25), +y to the refit''s own inner face beside the hole (y 12.1519, x 55.8-57.55; a cut at 11.6 left a 0.55 mm web, one at the centre 12.25 a 0.1 mm step against that face) flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends'
+  RIB_X:
+    value: [56.8, 58.8]
+    doc: 'the refit''s bottom bar (Z 224.2-230) is cut by its own old R 1.7 driver channel and R 1.8 holes at the yaw axes: crescent fins 0.02-0.3 mm thick stay; a box per yaw axis takes them off in clean planes: -y to the old hole''s centre plane (-8.25), +y to the refit''s own inner face beside the hole (y 12.1519, x 55.8-57.55; a cut at 11.6 left a 0.55 mm web, one at the centre 12.25 a 0.1 mm step against that face) flat tab beside each outer front boss (z.1 / z.2), away from the hub axis: more flat counter face for the press anvil (dia 10) where the slab ends'
+  FOOT_CUTS:
+    value: [[[55.0, -8.25, 223.0], [60.5, -3.0, 230.0]], [[56.0, 7.0, 223.0], [60.5, 12.1519, 230.0]]]
+  EAR_CORNER:
+    value: [55.8, 19.0]
+    doc: 'the ear''s outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room'
+  EAR_CHAMFER:
+    value: 0.6
+    doc: 'the ear''s outer vertical edge stands 0.30 mm off the spine chassis tab at standing: a 0.6 mm chamfer along the whole edge (no local step) gives the print room'

@@ -41,3 +41,15 @@ parts:
   material: Polymax1001526 silicone60ShA
   notes: Cut from 0.5 mm stock, 10 mm discs; STEPs written by robot/electronics/sensing/fsr_pucks.py.
   section: Ankle / foot
+config:
+  # robot/electronics/sensing/fsr_pucks.py module constants (moved 2026-11-24)
+  SHEET_THICKNESS_MM:
+    value: 0.5
+    doc: selected silicone sheet (the coupon's 0.6 mm actuator is not sold)
+  TOP_Z_MM:
+    value: 1.2708
+    doc: pocket floor of the v17 sensor pocket pad = top of the v4 puck it replaced
+  V17_EXPORT_TIME:
+    value: '2026-10-24T13:19:23'
+  V17_OCCURRENCE:
+    value: {R_toe_lateral: 409, R_heel_lateral: 410, R_mid_medial: 411, L_toe_lateral: 413, L_heel_lateral: 414, L_mid_medial: 415}

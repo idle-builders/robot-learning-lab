@@ -47,8 +47,13 @@ from common import (
     write_json,
 )
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-neck-head-connectors")   # configured values: robot/body/neck-head/build_neck_head_connectors.bom.yaml config:
 
-RIB_HEIGHT = 3.5   # dorsal rib height above the 2.5 mm rear plate (was 1.5): recovers the strength the thinner plate cost
+
+RIB_HEIGHT = CFG["RIB_HEIGHT"]
 
 
 def _seat(connector: str, group: str) -> float:
@@ -425,9 +430,9 @@ def build_stage2(family: str) -> Solid:
 # its front face, so the tongue is exactly one insert long; its -x edge at -5.0 keeps 2.15 mm round the 4.0 mm holes at x -0.85 (the front
 # corner there is rounded 0.8, not 1.6: a 1.6 corner left 0.55 mm at the front lip); its top at 423.0 keeps 2.0 mm over the upper hole
 # (z 419): the carrier is all behind y -12.9 there and the bridge behind the tongue stays at 421.2 under the carrier plate (z >= 422).
-TONGUE_X_MIN, TONGUE_TOP, TONGUE_CORNER_R = -5.0, 423.0, 0.8
-PLATE_Z_BOTTOM = 388.5     # the U-profile's (rear plate's) bottom face
-X_BRIDGE = 8.8             # the U-profile's +x face (right bridge)
+TONGUE_X_MIN, TONGUE_TOP, TONGUE_CORNER_R = CFG["TONGUE_X_MIN"], CFG["TONGUE_TOP"], CFG["TONGUE_CORNER_R"]
+PLATE_Z_BOTTOM = CFG["PLATE_Z_BOTTOM"]
+X_BRIDGE = CFG["X_BRIDGE"]
 
 
 def _fillet_vertex(face, xy, r: float):

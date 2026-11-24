@@ -61,6 +61,41 @@ def values(definition, defs=None):
     return {k: v["value"] for k, v in _defs(defs, f"values:config:{definition}").config.get(definition, {}).items()}
 
 
+def _frozen(v):
+    if isinstance(v, list):
+        return tuple(_frozen(x) for x in v)
+    if isinstance(v, dict):
+        return {k: _frozen(x) for k, x in v.items()}
+    return v
+
+
+def unfrozen(v):
+    """A configured value with its lists as lists (for constants that were lists of lists / dicts of lists)."""
+    if isinstance(v, (list, tuple)):
+        return [unfrozen(x) for x in v]
+    if isinstance(v, dict):
+        return {k: unfrozen(x) for k, x in v.items()}
+    return v
+
+
+class Section(dict):
+    """A definition's `config:` values, lists as tuples (the builders' constants were tuples); a missing NAME raises
+    Undeclared naming the file to declare it in."""
+
+    def __init__(self, definition, vals):
+        super().__init__({k: _frozen(v) for k, v in vals.items()})
+        self.definition = definition
+
+    def __missing__(self, name):
+        raise Undeclared(f"{self.definition}: config {name!r} is not declared in its <builder>.bom.yaml")
+
+
+def section(definition, defs=None):
+    """All configured values of definition id `definition`, for a builder's module constants:
+    `CFG = BOM_CONFIG.section("thigh-shell")`, then `WINDOW = CFG["WINDOW"]`."""
+    return Section(definition, values(definition, defs))
+
+
 def apply_joint_ranges(manifest, defs=None, strict=True):
     """Set manifest joints[].range_deg and controls[].range_deg from the declarations (driven joints untouched).
     Returns log lines. strict: an undriven manifest joint without a declaration raises."""

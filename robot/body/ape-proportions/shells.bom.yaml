@@ -213,3 +213,74 @@ assembly:
     status: designer
     notes: 'T-jh7fcm: the heel cap''s retention screw, driven from behind along -y on its ISO 7089 washer (put on the shank first) through the
       tab''s clearance hole into the monocoque''s heel boss.'
+config:
+  # robot/body/ape-proportions/shells.py module constants (moved 2026-11-24)
+  CLEARANCE:
+    value: 2.0
+  PITCH:
+    value: 0.75
+  HIP_LINKS:
+    value: [pitch_link, roll_link, shin]
+  TORSO_SHELLS:
+    value: [center_front_shell, center_back_shell]
+  ANKLE_LINKS:
+    value: [shin, ankle_pitch]
+  SKIP:
+    value: [cut_material, adhesive_allocation, authored_harness]
+  BOOT_STATIC_CLEARANCE:
+    value: 1.0
+    doc: mm keep-out round the foot's own parts (a cover, not a fit); the 0.75 mm voxel grid and the smoothing
+  BOOT_SPLIT_Y:
+    value: 15.5
+    doc: 'eat part of it: measured 2026-11-23 (review rv-6c2e93) min 0.13 mm heel cap to monocoque, 0.36 mm toe part mm, manifest frame: toe part (y < split) slides on along +y, heel cap along -y (T-6c2e93);'
+  BOOT_SPLIT_GAP:
+    value: 0.4
+    doc: 'measured 2026-11-23 on the selected body: both halves free along their paths for a split between y 14.8 and 16.3 (below it the heel cap meets the ankle coupler, above it the toe part the monocoque) mm seam between the two halves (butt joint). Each half is located by its own screw tab at the far end'
+  BOOT_MIN_BODY_MM3:
+    value: 200.0
+    doc: '(toe face y -63.25, heel face y 44.35), so the seam takes the length error of the monocoque between the boss faces (107.6 mm) and of both halves (78.7 + 28.8 mm): about +-0.3 mm in FDM (review rv-jh7fcm); 0.2 could close before a tab seats, 0.4 keeps both halves'' ends inside the split window above bodies smaller than this left over by the voxel cuts are loose crumbs, dropped'
+  BOOT_SCREW_POINT:
+    value: 0.5
+    doc: tip length the engagement counts as not threaded (robot/body/checks/data/hardware.json point_mm)
+  BOOT_HOLE_D:
+    value: 2.4
+    doc: plain clearance hole through the tab (ISO 273 medium for M2 / PA2)
+  BOOT_TAB_T:
+    value: 2.9
+    doc: printed tab under the washer, from the boss face to the washer seat
+  BOOT_TAB_TOL:
+    value: 0.2
+    doc: FDM tolerance on the tab thickness the stack is checked over
+  BOOT_CB_D:
+    value: 5.4
+    doc: 'washer counterbore: d2 5.0 + 2 x 0.2 radial clearance (as the head carrier''s washer counterbores)'
+  BOOT_BOSS_HW:
+    value: 4.0
+    doc: boss half width (x)
+  BOOT_TAB_HW:
+    value: 4.6
+    doc: 'tab half width (x): counterbore r 2.7 + 1.9 wall, wider than the boss so the countersink keeps'
+  BOOT_TAB_HH:
+    value: 4.0
+    doc: 'tab half width (x): counterbore r 2.7 + 1.9 wall, wider than the boss so the countersink keeps'
+  BOOT_CSK_HALF_ANGLE:
+    value: 45.0
+    doc: 'its side walls (at 4.0 the walls beside a 0.8-1.1 toe countersink came to 0.7-1.0 mm); tab depth below the axis (z): r 2.7 + 1.3 wall; the tab runs up to the skin above it (fills the toe tip / heel, no slot) Countersink at the counterbore mouth (review rv-jh7fcm): the toe skin slopes back over the bore (about 50 deg in the x = axis section), so the plain dia 5.4 bore left a feather edge at the top of its rim (2.7 / 4.2 mm2 under one 0.62 mm line R / L, down to 0.003 mm). A 90 deg countersink whose axis is the normal of the skin round the rim (plane fitted to the skin crossings at the counterbore radius) meets the skin at 135 deg all round and the bore at an obtuse angle; it stays BOOT_CSK_SEAT_KEEP outward of the washer seat, so seat and stack do not change. Measured 2026-11-23 on the pre-tab halves (reviewer''s local ray-cast, rim within r 6 mm): chamfer 0.5 / 0.7 / 0.9 / 1.0 / 1.1 -> thinnest rim wall R 0.61 / 0.80 / 1.02 / 0.98 / 0.90, L 0.48 / 0.68 / 0.82 / 0.92 / 1.03 mm (tab half width 4.6); the rest under 2 lines is the roof between the bore top and the skin above it, which rises at about 50 deg. Heels: nothing under one line without it, and a countersink adds nothing measurable there (left plain). deg from the countersink axis (90 deg included)'
+  BOOT_CSK_SEAT_KEEP:
+    value: 0.3
+    doc: mm the countersink stays outward of the washer seat
+  BOOT_BOSS_LEN:
+    value: 7.5
+    doc: boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
+  BOOT_BOSS_TOP:
+    value: 2.6
+    doc: boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
+  BOOT_BOSS_Z0:
+    value: 2.0
+    doc: boss depth behind its face, boss top above the axis (pilot r 0.85 + 1.75), boss base (plate bottom)
+  BOOT_PILOT:
+    value: [1.7, 6.0]
+    doc: pilot dia (85 % of the PA2 major) and depth from the boss face (1.5 mm of boss behind it)
+  BOOT_SKIN_SINK:
+    value: 0.4
+    doc: the tab starts this far under the outer skin (no outward change)
