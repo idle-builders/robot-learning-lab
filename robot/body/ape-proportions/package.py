@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent / "motor-refit"))
-import fit_check as F  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
 from package import scene, project  # noqa: E402  (motor-refit packager)
 
 REFIT = ROOT / "artifacts/robot/body/motor-refit/assembly-parts.json"

@@ -540,7 +540,8 @@ def main():
     from pathlib import Path
     here = Path(__file__).resolve().parent; root = here.parents[2]
     sys.path.insert(0, str(here.parent / "motor-refit"))
-    import fit_check as F
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+    from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
     src, out = Path(sys.argv[1]), Path(sys.argv[2]).resolve()
     parts = out / "parts"; parts.mkdir(parents=True, exist_ok=True)
     new = json.load(open(src)); log = []

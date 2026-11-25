@@ -40,7 +40,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
 sys.path.insert(0, str(HERE))
-import fit_check as F  # noqa: E402  (Body, load_mesh, src)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
 import interfaces as I  # noqa: E402  (standard-part instances and their defined holes)
 
 DEFAULT_MANIFEST = ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
@@ -52,7 +53,6 @@ def _roles_class(c):
     return json.loads((CHECKS_DATA / "roles.json").read_text())["classes"].get(c, {}).get("roles", [])
 HARDWARE = json.loads((CHECKS_DATA / "hardware.json").read_text())
 FASTENER_KINDS = ("screw", "washer", "nut", "spacer")
-NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I)
 DT = 0.25            # radial probe step along the axis (mm)
 N_DIR = 24           # radial rays per depth
 R_MAX = 8.0          # radial probe range (mm)
@@ -153,20 +153,6 @@ def kind(p) -> str | None:
     if p.get("screw_plan"):
         return "screw"
     return geometry_kind(p) or "unknown"
-
-
-def nominal(name: str) -> dict:
-    """Thread family and nominal length from a name token such as R_knee_ST3025_PA2x8_0. Not used by the checks here (a name
-    says nothing to them; screw_spec reads the screw_plan and the definition); kept for older callers."""
-    m = NOMINAL_RE.search(name)
-    if not m:
-        return {}
-    g = m.group(1).upper()
-    fam = g.replace("P", ".") if g.startswith("M") else g.lstrip("B")
-    d = dict(thread=fam)
-    if m.group(2):
-        d["nominal_length_mm"] = float(m.group(2).replace("p", "."))
-    return d
 
 
 def screw_spec(p) -> dict:

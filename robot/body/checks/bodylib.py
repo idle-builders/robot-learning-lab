@@ -1,10 +1,9 @@
 """Body model helpers shared by the checks and the body builders: manifest meshes with placement, forward kinematics from
 joints[] (Body.link_T), part preparation for overlap / distance (Prepped, measure), fastener detection, per-joint pose sets.
-Moved from motor-refit/fit_check.py without changing the maths; that module re-exports from here."""
+The body model every check and builder imports as `from checks import bodylib`."""
 from __future__ import annotations
 
 import math
-import re
 import sys
 from pathlib import Path
 
@@ -26,10 +25,6 @@ def src(path) -> Path:
 
 
 RELATIONS = None      # the run's checks.relations.Relations (set by checks.ctx.Ctx): what a part is, from its definition
-# kept for the builders that import them (motor-refit/fit_check.py); the checks no longer decide anything from them
-FASTENER_ROLES = {"fastener", "standard_fastener_reference", "nominal_fastener", "fastener_proxy", "standard_nominal",
-                  "nominal_hardware", "compression_limit_sleeves", "spacer", "case_mount_spacer"}
-FASTENER_NAME = re.compile(r"(screw|bolt|nut|sleeve|M[23]p?\d*x|washer|spacer|PA2x)", re.I)
 
 
 def load_mesh(path: str) -> trimesh.Trimesh:

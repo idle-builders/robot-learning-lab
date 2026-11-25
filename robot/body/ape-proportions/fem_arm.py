@@ -33,10 +33,8 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "robot/body/arm"))
 import fem_evaluate as FE  # noqa: E402
-import importlib.util  # noqa: E402
-
-_spec = importlib.util.spec_from_file_location("refit_fit_check", HERE.parent / "motor-refit" / "fit_check.py")
-F = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(F)  # the arm study has its own fit_check
+sys.path.insert(0, str(ROOT / "robot/body"))
+from checks import bodylib as F  # noqa: E402  (body model: load_mesh, src)
 
 REFIT = ROOT / "artifacts/robot/body/motor-refit/assembly-parts.json"
 APE = ROOT / "artifacts/robot/body/ape-proportions/assembly-parts.json"

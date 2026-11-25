@@ -31,7 +31,8 @@ import trimesh
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
-import fit_check as F  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
 
 BASE = ROOT / "artifacts/robot/body/ape-proportions/assembly-parts.json"  # uncut shells, reviewed (T-gqwdrn, T-xdcjn9)
 SKETCH = ROOT / "robot/shell/sketch/reference/sketch.png"

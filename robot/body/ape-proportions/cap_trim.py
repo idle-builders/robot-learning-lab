@@ -118,7 +118,8 @@ if __name__ == "__main__":
     here = Path(__file__).resolve().parent
     sys.path.insert(0, str(here.parent / "motor-refit"))
     import json
-    import fit_check as F
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+    from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
     man = json.load(open(sys.argv[1])); outdir = Path(sys.argv[2]); outdir.mkdir(parents=True, exist_ok=True)
     m, info = trim(F.Body(man), F)
     m.export(outdir / f"{CAP}.stl"); print(json.dumps(info, indent=1))
