@@ -14,7 +14,7 @@ Stop provider requests on HTTP 429 / `rate_limited`. Honor `Retry-After` or the 
 
 For the selected assembled robot, resolve `robot/model/current-model.json` and read the [current URDF and native-model reference](references/selected-model.md). It identifies `cove50_description`, the corrected motor visuals, shell-free view and exact actuator/sensor contracts. Historical policy body overrides remain their original sources.
 
-Work from the repository root, its active goal and relevant Idle state. The 50 cm ape is the target; retained 35 cm policies are baselines. `robot/design.json` is the selected mechanical candidate and records why its older physics body is not yet matched. Read [references/body-contract.md](references/body-contract.md) and the task's selected body/manifest before running anything. Use [ape-control](../ape-control/SKILL.md) for native policy execution.
+Work from the repository root, its active goal and relevant Idle state. The 50 cm ape is the target; retained 35 cm policies are baselines. The mechanical body is the BOM body declared in `body:` in `robot/body/complete_body.bom.yaml`; the physics model (`robot/model/current-model.json`) is still built from the older Oct-26 scene, not from it (Idle task to regenerate it from the BOM). Read [references/body-contract.md](references/body-contract.md) and the task's selected body/manifest before running anything. Use [ape-control](../ape-control/SKILL.md) for native policy execution.
 
 For scale, contact, actuator or system-identification claims, read [dynamics and identification](references/dynamics-and-identification.md). It distinguishes physical knowledge from unmeasured ape parameters and preserves the decision to drop the ToddlerBot-shaped exterior.
 

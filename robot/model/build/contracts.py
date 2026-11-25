@@ -84,6 +84,8 @@ def main():
         simulation_noise=dict(equivalent_bandwidth_Hz=52,accel_bias_sensitivity_m_s2=[-.196133,.196133],gyro_bias_sensitivity_rad_s=[-np.pi/180,np.pi/180]),
         transport_latency_ms=[1,12], measured_latency_ms=None,
         magnetometer='LIS3MDL physically on module; no trusted heading observation near motors without calibration',
+        # BROKEN (2026-11-25, Idle T-6s22d8): this script was deleted with the pre-BOM sensing studies; the model is to be
+        # generated from the BOM body instead.
         source_refs=[ref(ROOT/'robot/electronics/sensing/studies/purchasable/build.py')])
     sensor('foot_adc_board','torso',[-12.,42.,339.],rxminus90,part_name='foot_ADC_6494',kind='adc',
         nominal_rate_Hz=200,rate_basis='200Hz/channel simulation acquisition choice, not demonstrated serial scan timing',calibration_status='Raw voltage/counts only; FSR force curve not calibrated')

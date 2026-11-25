@@ -5,8 +5,8 @@ with which print setup, and in which order it goes together (owner 2026-11-20 / 
 
 **The BOM tool knows no part.** What goes into the BOM is decided by the agents working on the body, in one annotated
 definition file per builder, next to its script: `robot/**/<builder>.bom.yaml` (schema [schema.json](schema.json)). The
-tool only finds those files, resolves them against the selected body (`body_manifest` in
-[robot/design.json](../../design.json)), adds what it can read from files, writes the BOM, and reports what is missing,
+tool only finds those files, resolves them against the body manifest (`body.manifest`, declared once in
+[robot/body/complete_body.bom.yaml](../complete_body.bom.yaml), read through `bom_config.body_manifest()`), adds what it can read from files, writes the BOM, and reports what is missing,
 naming the definition file to fix. Nothing is filled in for you.
 
 ## Regenerate
@@ -55,8 +55,7 @@ compose:
 
 The design dashboard's view of the selected body is generated from the same source, so it cannot drift: `publish_body.py`
 (no part or study knowledge, like build.py) builds the record of a study from its `study` block (in any definition; the
-selected body's is [robot/body/complete_body.bom.yaml](../complete_body.bom.yaml), the study selected for Whole robot in
-robot/design.json), the manifest, every definition, the BOM and assembly order of `build.build()`, and the newest complete
+body's is [robot/body/complete_body.bom.yaml](../complete_body.bom.yaml), named by `body.study`), the manifest, every definition, the BOM and assembly order of `build.build()`, and the newest complete
 check report per check and part on the same manifest sha256. The record's `body_view` section feeds the study page (the
 subassemblies in assembly order with their steps; per part its BOM line, STEP / mesh and how they resolve, generator and
 regenerate command, assembly step and direction, print setup, check worst cases, BOM findings and the definition file to
@@ -64,7 +63,7 @@ fix), the CAD panel's BOM table and the part card shown when a CAD part is click
 BOM & costs. Without `--publish` it writes `.cache/work/bom/<study_id>-record.json` (the rebuild copy does only this; it
 refuses `--publish` outside the main checkout). `--publish` packages the display GLB
 (`artifacts/robot/body/studies/<study_id>/assembly.glb`, one per study, one named node per manifest part) under memguard when the manifest changed,
-then runs `results_hub.py publish`; the record's sources (definitions, generator scripts, these tools, robot/design.json)
+then runs `results_hub.py publish`; the record's sources (definitions, generator scripts, these tools)
 must be committed: their last commit is the version. `--study ID` publishes another declared study (e.g.
 `shoulder-shells-parametric`, scoped to its own definition's parts); `--definitions F... --manifest M` builds from copies
 (replay tests). Study text changes go into the study block, never into a publisher.
@@ -96,6 +95,9 @@ generators:                        # what the builder writes from what; the rebu
   after: [shell-pass]              # only where the files alone do not order it (several writers of one file)
   resources: {limit_gb: 6, timeout_s: 900}
   # rebuild: false                 # a section builder whose outputs the rebuild links read-only
+# pinned:                          # a file the body reads that no generator can recreate (its producer's inputs are gone)
+# - {path: artifacts/..., producer: 'script, commit', doc: 'which inputs are gone'}
+# body: {manifest: ..., study: ...}  # declared once (robot/body/complete_body.bom.yaml): the body every tool uses by default
 parts:                             # which manifest parts this builder owns, and what each is
 - match: [R_foot_monocoque_combined, L_foot_monocoque_combined]    # names or globs
   kind: printed                    # printed | purchased | hardware | included | made | other

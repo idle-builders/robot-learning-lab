@@ -1,6 +1,6 @@
 """The design-dashboard record of a body study, generated from the same source as the BOM: the body definitions
-(robot/**/<builder>.bom.yaml, with the study's `study` block), the study's manifest (default robot/design.json
-body_manifest, the selected body) and the rebuild's outputs (the BOM and assembly order built by build.py, the latest
+(robot/**/<builder>.bom.yaml, with the study's `study` block), the study's manifest (default the declared body
+manifest, `body:` in robot/body/complete_body.bom.yaml) and the rebuild's outputs (the BOM and assembly order built by build.py, the latest
 complete check reports on the same manifest sha256). Like build.py it knows no part and no study: what the dashboard says
 about a part is what its definition declares plus what the files and checks measured, so a redesign or a renamed part
 shows up without editing a publisher.
@@ -16,7 +16,7 @@ and the definition file to fix. design.bom is the BOM of the same build (robot B
                                                                          # display GLB of the manifest (when it changed)
   .venv/bin/python -B robot/body/bom/publish_body.py --publish          # main checkout only: package if stale, then
                                                                          # results_hub.py publish (sources must be committed)
-  --study ID          another declared study (default: the study selected for "Whole robot" in robot/design.json)
+  --study ID          another declared study (default: the body's study, `body.study` of the definitions)
   --manifest PATH     another manifest (default: the study's `manifest`, else body_manifest)
   --definitions F...  explicit definition files (replay tests on temporary copies; robot/body/bom/definitions.py)
   --checks-dir DIR    check reports (default .cache/work/cad-speed/checks)
@@ -40,6 +40,7 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import build as BUILD  # noqa: E402
 import definitions as DEF  # noqa: E402
+import bom_config  # noqa: E402
 
 CHECKS = ROOT / ".cache/work/cad-speed/checks"
 OUT = ROOT / ".cache/work/bom"                     # default record file: OUT/<study_id>-record.json
@@ -66,12 +67,8 @@ def rel(p):
     return str(p.relative_to(ROOT)) if p.is_absolute() and p.is_relative_to(ROOT) else str(p)
 
 
-def design():
-    return json.loads((ROOT / "robot/design.json").read_text())
-
-
 def pick_study(D, study_id=None):
-    sid = study_id or design()["selected"].get("Whole robot")
+    sid = study_id or bom_config.body(D).get("study")
     if sid not in D.studies:
         raise SystemExit(f"study {sid!r} is declared in no definition (`study` block); declared: {sorted(D.studies)}")
     return D.studies[sid]
@@ -241,7 +238,7 @@ def sources(D, study):
     for g in D.generators:
         cmd = g["command"] if isinstance(g["command"], list) else g["command"].split()
         src += [c for c in cmd if c.endswith(".py") and (ROOT / c).exists()]
-    src += ["robot/design.json", rel(HERE / "publish_body.py"), rel(HERE / "build.py"), rel(HERE / "definitions.py")]
+    src += [rel(HERE / "publish_body.py"), rel(HERE / "display_glb.py"), rel(HERE / "build.py"), rel(HERE / "definitions.py")]
     return sorted(dict.fromkeys(s for s in src if not Path(s).is_absolute()))
 
 
@@ -306,7 +303,7 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
     if overlays:
         cad["overlays"] = overlays
     rec = dict(study_id=sid, id=sid, title=study["title"], source=sources(D, study), dashboard="design",
-               workspace=study.get("workspace") or "Body", robot_sections=study["robot_sections"],
+               workspace=study.get("workspace") or "Body", robot_sections=sorted({p["section"] for p in view["parts"].values() if p.get("section")}),  # from the parts' definitions
                area=study.get("version_note") or study["title"], summary=study["summary"],
                observation=observation, measurements=measurements, limitations=limitations, provenance=prov,
                assets=assets, clips=[],
@@ -328,8 +325,7 @@ def record(study, D, manifest_path, checks_dir=CHECKS):
 
 # ------------------------------------------------------------------ package / publish
 def package(manifest_path, study_id):
-    sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
-    from package import scene  # one named node per manifest part, metres, decimated display copy
+    from display_glb import scene  # one named node per manifest part, metres, decimated display copy
     raw = (ROOT / manifest_path).read_bytes()          # one read: the sidecar sha is the sha of what was packaged
     man = json.loads(raw)
     GLB = glb_path(study_id)
@@ -379,7 +375,7 @@ def main():
     a = ap.parse_args()
     D = DEF.load(a.definitions)
     study = pick_study(D, a.study)
-    mp = a.manifest or study.get("manifest") or design()["body_manifest"]
+    mp = a.manifest or study.get("manifest") or bom_config.body_manifest(D)
     if a.action == "package":
         return package(mp, study["study_id"])
     if a.publish:

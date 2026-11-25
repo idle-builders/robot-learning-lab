@@ -131,7 +131,7 @@ _VALUES_CACHE: dict = {}
 
 
 def values_state(root: Path, rel: str) -> str:
-    """State of a "values:joints" / "values:config:<definition>" key (gensite, robot/body/bom/bom_config.py): sha256 of the
+    """State of a "values:joints" / "values:config:<definition>" / "values:body" key (gensite, robot/body/bom/bom_config.py): sha256 of the
     declared joint ranges / the definition's config block, read from the definitions under root."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(f"_defs_{len(_VALUES_CACHE)}", root / "robot/body/bom/definitions.py")
@@ -147,6 +147,8 @@ def values_state(root: Path, rel: str) -> str:
         v = {n: d["range_deg"] for n, d in sorted(D.joints.items())}
     elif what.startswith("config:"):
         v = {k: x.get("value") for k, x in sorted(D.config.get(what[len("config:"):], {}).items())}
+    elif what == "body":                                # the declared robot body (bom_config.body)
+        v = {k: x for k, x in (D.body or {}).items() if k != "file"}
     elif what.startswith("part:"):                      # the claiming entry's declared values (bom_config.part_entry)
         import fnmatch
         n = what[len("part:"):]

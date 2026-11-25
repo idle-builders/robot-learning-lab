@@ -18,6 +18,11 @@ generators:
   - artifacts/robot/body/arm
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+# Files the body reads that no generator can recreate today (schema `pinned`)
+pinned:
+- path: artifacts/robot/body/arm/combined/assembly-parts.json
+  producer: 'robot/body/arm/package_and_render.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'The combined arm section package the assembly generator reads. Its producer needed the truss_box and topopt families (artifacts/robot/body/arm/{truss_box,topopt}) and arm-topopt-fields.npz, which are gone from disk and the bucket, so it cannot be rerun; the file stays as it is. Its part files are the STEPs / meshes it names.'
 # Joint ranges of the arms, and their origins / axes in the assembled body (the arms sit inward of the arm section study's
 # frames, arm/common.py P_*): the single source (owner 2026-11-23/24); see robot/body/bom/bom_config.py.
 joints:
@@ -54,12 +59,7 @@ config:
     decision: legacy-materials 2026-11-25 (was the legacy 1.22 g/cm3 PAHT-CF entry)
   ARM_LOAD_WRENCHES:
     value: {stage1_shoulder_pitch_to_roll: {manip_1p5kg_reach: [4.5, -6.0, -20.5, 980.0, 1450.0, 340.0], support_4kg_1g: [8.0, -12.0, 39.23, 1480.0, 2150.0, 460.0], recovery_4kg_1p5g: [16.0, -20.0, 58.84, 2180.0, 3150.0, 680.0], heavy_6kg_1g: [20.0, -24.0, 58.84, 2450.0, 3480.0, 780.0]}, stage2_shoulder_roll_to_yaw: {manip_1p5kg_reach: [4.0, -5.5, -18.5, 860.0, 1240.0, 310.0], support_4kg_1g: [7.5, -11.0, 39.23, 1320.0, 1890.0, 420.0], recovery_4kg_1p5g: [14.0, -18.0, 58.84, 1920.0, 2760.0, 620.0], heavy_6kg_1g: [18.0, -22.0, 58.84, 2180.0, 3090.0, 710.0]}, stage3_upper_arm_yaw_to_elbow: {manip_1p5kg_reach: [3.5, -5.0, -16.5, 740.0, 980.0, 260.0], support_4kg_1g: [7.0, -10.0, 39.23, 1180.0, 1560.0, 360.0], recovery_4kg_1p5g: [13.0, -16.0, 58.84, 1740.0, 2280.0, 540.0], heavy_6kg_1g: [16.0, -20.0, 58.84, 1980.0, 2580.0, 620.0]}, stage4_forearm_elbow_to_wrist: {manip_1p5kg_reach: [3.0, -4.5, -14.5, 580.0, 780.0, 190.0], support_4kg_1g: [6.0, -9.0, 39.23, 960.0, 1280.0, 290.0], recovery_4kg_1p5g: [11.0, -14.0, 58.84, 1420.0, 1880.0, 430.0], heavy_6kg_1g: [14.0, -18.0, 58.84, 1620.0, 2140.0, 510.0]}}
-    doc: Study load cases (N, N mm at the stage load patch); run_arm_topopt.py loads its topology optimisation with them.
-  # robot/body/arm/package_and_render.py module constants (moved 2026-11-24)
-  STAGE_COLORS:
-    value: {stage1_shoulder_pitch_to_roll: [42, 138, 184, 255], stage2_shoulder_roll_to_yaw: [28, 164, 142, 255], stage3_upper_arm_yaw_to_elbow: [212, 134, 52, 255], stage4_forearm_elbow_to_wrist: [64, 156, 212, 255], sleeve: [215, 222, 230, 255], nut: [220, 185, 75, 255], screw: [210, 218, 226, 255], hard_cover: [231, 222, 201, 255]}
-  PRINT_ORIENTATIONS:
-    value: {stage1_shoulder_pitch_to_roll: XZ Roll-Case Flange Bed (layer normal Y), stage2_shoulder_roll_to_yaw: XZ Roll-Horn Flange Bed (layer normal Y), stage3_upper_arm_yaw_to_elbow: YZ Elbow-Ear Flange Bed (layer normal X), stage4_forearm_elbow_to_wrist: YZ Medial-Spine Bed (layer normal X)}
+    doc: Study load cases (N, N mm at the stage load patch).
   # robot/body/arm/common.py module constants (moved 2026-11-24)
   RIGHT_ARM_SHELL_MOUNTS:
     value: [{id: fore_front_187, stage: stage4_forearm_elbow_to_wrist, shell: fore_front, axis: [0.0, -1.0, 0.0], center: [145.0, -19.4, 187.0], post_span: [-23.0, -13.5], post_r: 4.0, slot_dir: [0.0, 0.0, 1.0], screw_src: fore_front_M3x8_187, screw_dx: 0.0}, {id: fore_front_178, stage: stage4_forearm_elbow_to_wrist, shell: fore_front, axis: [0.0, -1.0, 0.0], center: [145.0, -15.9, 178.0], post_span: [-18.8, -11.5], post_r: 4.0, slot_dir: [0.0, 0.0, -1.0], screw_src: fore_front_M3x8_178, screw_dx: 0.0}, {id: fore_back_187, stage: stage4_forearm_elbow_to_wrist, shell: fore_back, axis: [0.0, 1.0, 0.0], center: [145.0, 13.4, 187.0], post_span: [7.5, 17.0], post_r: 4.0, slot_dir: [0.0, 0.0, 1.0], screw_src: fore_back_M3x8_187, screw_dx: 0.0}, {id: fore_back_178, stage: stage4_forearm_elbow_to_wrist, shell: fore_back, axis: [0.0, 1.0, 0.0], center: [145.0, 9.9, 178.0], post_span: [5.5, 12.3], post_r: 4.0, slot_dir: [0.0, 0.0, -1.0], screw_src: fore_back_M3x8_178, screw_dx: 0.0}]

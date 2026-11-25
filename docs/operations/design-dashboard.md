@@ -4,7 +4,7 @@
 
 ## Explore the robot
 
-Select a joint or body part on the aesthetic drawing, or use the section list beside it. Both controls select the same section. **Design studies** shows the current body: the selected complete printed FDM body, its part studies and the electronics design. Studies named in `robot/design.json` carry a **Selected** mark. Earlier bodies, finished earlier designs and alternatives are in **Archive**, each with the reason it left the current view.
+Select a joint or body part on the aesthetic drawing, or use the section list beside it. Both controls select the same section. **Design studies** shows the current body: the selected complete printed FDM body, its part studies and the electronics design. Earlier bodies, finished earlier designs and alternatives are in **Archive**, each with the reason it left the current view.
 
 A study is **exactly one design variant**, owning its CAD, measurements and simulations. **Git holds its versions.** Opening a study shows its current version; the version menu lists earlier versions by date and commit (`2026-11-09 · commit 8b54a8a`). An earlier version shows its own registered files: the dashboard serves them by SHA-256 from the blob index or from Git history, even after the working files changed or left the tree. Records published before 2026-11-12 keep their old label (`r3`, `v16`) as provenance, shown on hover.
 
@@ -12,7 +12,7 @@ Use a stable, descriptive **mechanism name** as the study title, for example **D
 
 Continue an existing mechanism by editing its sources in place and committing; do not mint a new study because a designer, session or round changed. A genuinely different mechanism gets a separate study. Curate abandoned or superseded branches into Archive with a written reason. Never delete or silently reassign version evidence, preferences or reviews while tidying names.
 
-Each robot section has exactly one selected study, kept in `selected` in `robot/design.json` (section → study_id). One study may be selected for several sections: the complete body covers every section, the arm covers Shoulder and Elbow, and a newer hip study can be selected for Hip while the selected complete body still contains an older hip. Agents record a selection with `infra/dashboard/results_hub.py select-design STUDY_ID --robot-section Hip [--robot-section Knee]`; the owner uses **Select for [section]** on a study. Both write the same file, and opening a study still defaults to its newest version. Selection does not qualify hardware. `section_selections` in the same file is provenance (statements, Idle decisions) and drives nothing.
+The robot is the body declared in `body:` in `robot/body/complete_body.bom.yaml` (its manifest and the study that shows it, `cove50-complete-fdm-body`); every part on it carries its `section` from its definition. There is no selection file. Being in the body does not qualify hardware.
 
 The CAD view supports native joint sliders, play/pause, speed, reset, saved-configuration scrubbing, shell visibility, X/Y/Z section cuts and display-only explosion. Section cuts show open surfaces rather than solid caps. Explosion is a visualization, not a disassembly simulation. Kinematic motion does not simulate contact, loads, flexible cables or attained motor behavior. Unsupported continuous mechanisms offer their exact saved configurations; missing CAD stays explicitly source-only.
 
@@ -32,7 +32,7 @@ CAD BOM line may map those named meshes without implying that they are shoulder 
 
 The record of the selected complete body (`cove50-complete-fdm-body`, the study selected for Whole robot) is generated
 by `robot/body/bom/publish_body.py` from the same source as the BOM (owner 2026-11-22, T-zmmdkm): the body definitions
-(`robot/**/<builder>.bom.yaml`), the selected manifest (`body_manifest` in `robot/design.json`), the BOM and assembly
+(`robot/**/<builder>.bom.yaml`), the body manifest (`body.manifest`, `body:` in `robot/body/complete_body.bom.yaml`), the BOM and assembly
 order of `robot/body/bom/build.py`, and the newest complete check report per check and part on the same manifest sha256.
 The study text (title, sections, summary, observation, measurements, limitations, owner statements, evidence and render
 links) is declared in a `study` block of a definition (`robot/body/complete_body.bom.yaml` for the selected body); the
@@ -254,7 +254,7 @@ This example is an authoring shape, not a purchasing claim. Part IDs must be uni
 
 Costs are shown as **known subtotals by currency**, with no implicit exchange rate. Mass uses grams. Missing quantity, cost, mass and source counts remain visible. `completeness: "complete"` is the author's declaration about the stated assembly scope, never an engineering assessment. Record shipping, tax, labor, print material or machining as explicit cost lines with their assumptions if they should be included. Pack pricing must be converted to the stated quantity unit before entry. No procurement batching, automatic shipping/tax, nesting or lead-time scheduling is inferred.
 
-Open [Robot BOM & costs](http://127.0.0.1:8805/design/?view=bom) from the dashboard header. Add the **exact study version** for each assembly and its positive integer count, then **Save robot BOM & calculate**. One study can appear once, at one version; counts express repeated assemblies. The saved composition persists in `robot_bom` in `data/results.sqlite`. It does not populate from section preferences or change `robot/design.json`.
+Open [Robot BOM & costs](http://127.0.0.1:8805/design/?view=bom) from the dashboard header. Add the **exact study version** for each assembly and its positive integer count, then **Save robot BOM & calculate**. One study can appear once, at one version; counts express repeated assemblies. The saved composition persists in `robot_bom` in `data/results.sqlite`. It does not change the body definitions.
 
 The robot view multiplies each part quantity by the assembly count and shows parts with their owning study/version. A newer design version does not replace a pinned version. Multiple included studies covering the same section are called out for ownership review; all their lines are still counted. A knee BOM that already includes its actuator must not also include that same actuator through another assembly BOM. Whole-robot studies are an alternative to their overlapping subassembly inventories. Missing/empty BOMs, partial inventories, exclusions and sections without an explicitly included study remain visible, so a subtotal cannot imply a complete robot estimate.
 

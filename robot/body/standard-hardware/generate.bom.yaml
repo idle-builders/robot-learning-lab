@@ -8,7 +8,7 @@ generators:
 - id: standard-hardware
   command: [.venv/bin/python, -B, robot/body/standard-hardware/generate.py]
   rebuild: false
-  inputs: [robot/design.json]
+  inputs: [artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json]   # the body manifest (`body.manifest`, robot/body/complete_body.bom.yaml)
   outputs: [.cache/work/bom-hardware]
   notes: Reads the declared specs through robot/body/bom/definitions.py; propose_specs.py next to it drafts specs from names and meshes for definition authors.
 config:

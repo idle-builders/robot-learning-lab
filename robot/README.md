@@ -1,6 +1,6 @@
 # Robot
 
-The current APE0 robot, as the files it is built from. Selection: [design.json](design.json). Outputs go to `artifacts/robot/…` and the private bucket; each part's folder names its build command.
+The current APE0 robot, as the files it is built from. The body manifest is declared in [body/complete_body.bom.yaml](body/complete_body.bom.yaml) (`body:`). Outputs go to `artifacts/robot/…` and the private bucket; each part's folder names its build command.
 
 | Folder | Contents |
 |---|---|

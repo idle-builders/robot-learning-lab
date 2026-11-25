@@ -42,7 +42,7 @@ def main():
     ap.add_argument("--write", action="store_true")
     a = ap.parse_args()
     files = a.files.split(",")
-    man = ROOT / (a.manifest or json.loads((ROOT / "robot/design.json").read_text())["body_manifest"])
+    man = ROOT / (a.manifest or __import__("bom_config").body_manifest())
     names = [p["name"] for p in json.loads(man.read_text())["parts"]]
     D = DEF.load()
     claims = D.claims(names)

@@ -8,7 +8,7 @@
                             its 2 torso anchor screws into the chassis inserts (neck_anchor.json, T-jxshhv)
 
   python3 infra/tools/memguard.py --limit-gb 6 -- .venv/bin/python -B robot/body/neck-head/neck_parts.py connectors neck_yaw_to_pitch_link
-The manifest is robot/design.json body_manifest (an artifact: run this after the manifest is rebuilt). Every number is a
+The manifest is the declared body manifest (bom_config.body_manifest(); an artifact: run this after the manifest is rebuilt). Every number is a
 measurement in mm; nothing here accepts or rejects."""
 from __future__ import annotations
 

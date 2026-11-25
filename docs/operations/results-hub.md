@@ -9,7 +9,7 @@ Start the dashboards with `.venv/bin/python infra/dashboard/results_hub.py serve
 
 Every published record carries `source_commit`, the repository commit it was published from. Name the code and configuration a result depends on in `source` (paths); if they have uncommitted changes the commit is marked `+dirty`. Commit before publishing a result you want to reproduce. Design studies take their version from the commit (see the design guide).
 
-For design registration, CAD/motion metadata, measurements and engineering simulations, use the [design dashboard guide](design-dashboard.md) and `infra/dashboard/results_hub.py design-template --robot-section Knee`. Keep short findings and structured measurements in both dashboards; expand technical detail when needed. The mechanical selection remains `robot/design.json`; presentation does not qualify a mechanical body or prove physical behavior.
+For design registration, CAD/motion metadata, measurements and engineering simulations, use the [design dashboard guide](design-dashboard.md) and `infra/dashboard/results_hub.py design-template --robot-section Knee`. Keep short findings and structured measurements in both dashboards; expand technical detail when needed. The mechanical body is the one the body definitions declare (`body:` in `robot/body/complete_body.bom.yaml`); presentation does not qualify a mechanical body or prove physical behavior.
 
 ## Publish a new result
 
@@ -94,7 +94,7 @@ Mechanical CAD belongs in the [design dashboard](http://127.0.0.1:8805/design/),
 
 The owner's remote host (named in the gitignored `.credentials/remote-dashboard.md`, with its HTTP basic-auth login) serves the current learning and design views, read-only. The login is never committed or kept in Keychain. After one login a device stays signed in through a 180-day session cookie, renewed on every visit; a new password signs every device out (owner, 2026-11-24). The local dashboard stays the only place that writes; selections, reviews, BOM edits, earlier versions and the Archive view are local only.
 
-The remote view is the current state, about fifty files: the selected study of each robot section (`selected` in `robot/design.json`) with its GLB models, and the newest version of each learning skill with one clip. Its web-files bucket (separate from the private archive) is laid out as:
+The remote view is the current state, about fifty files: the body's study (`body.study`, `body:` in `robot/body/complete_body.bom.yaml`) and the other declared studies with their GLB models, and the newest version of each learning skill with one clip. Its web-files bucket (separate from the private archive) is laid out as:
 
 ```
 site/                                    index (the hub's API answers) and UI, copied into the pod every minute

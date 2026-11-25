@@ -1,7 +1,7 @@
 """Shared design check for the printed body. One report per run, a worst-first summary on stdout. No pass/fail.
 
   python3 infra/tools/memguard.py --timeout-s 900 -- .venv/bin/python -B robot/body/checks/run.py \
-      [--manifest PATH  (default: body_manifest in robot/design.json)] \
+      [--manifest PATH  (default: the declared body manifest, bom_config.body_manifest())] \
       [--parts GLOB[,GLOB]] [--section Hip] [--link GLOB] [--role ROLE] [--changed-since REV|last-run] \
       [--checks clearance,gaps,mass,press,render,geometry,fit,static_audit,range_sweep,collision_sweep,shell_offset,fem,fem_setup,print_setup,screws,driver_access] [--fem-variant NAME] [--poses key|library|all|fit] [--exact-press] [--process KEY=VALUE ...] [--label NAME]
 
@@ -481,7 +481,7 @@ def merge_fem(parts_res):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--manifest", help="default: body_manifest in robot/design.json (the selected body)")
+    ap.add_argument("--manifest", help="default: the declared body manifest (`body:` in robot/body/complete_body.bom.yaml)")
     ap.add_argument("--parts", help="comma-separated part names or globs")
     ap.add_argument("--section")
     ap.add_argument("--link", help="comma-separated owning-link names or globs")
@@ -520,7 +520,9 @@ def main(argv=None):
             print(f"{n:10s} {c['doc']}")
         return
     if not a.manifest:
-        a.manifest = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+        sys.path.insert(0, str(ROOT / "robot/body/bom"))
+        import bom_config
+        a.manifest = bom_config.body_manifest()
         argv += ["--manifest", a.manifest]   # children get it explicitly
     man = (ROOT / a.manifest).resolve()
     if a._plan:

@@ -44,7 +44,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
 from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
 import interfaces as I  # noqa: E402  (standard-part instances and their defined holes)
 
-DEFAULT_MANIFEST = ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+
+
+def default_manifest() -> Path:
+    """The declared body manifest (bom_config.body_manifest()); read only when asked, so importing this module reads no
+    body declaration."""
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import bom_config
+    return ROOT / bom_config.body_manifest()
 CHECKS_DATA = Path(__import__("os").environ.get("LAB_CHECKS_DATA") or ROOT / "robot/body/checks/data")
 
 
@@ -80,12 +87,13 @@ def use_relations(body, manifest_path):
 
 def relations():
     """The Relations of this process: set by use_relations (mount_check's own runs), else the checks run's (checks.bodylib),
-    else the selected body's (robot/design.json body_manifest)."""
+    else the declared body's (bom_config.body_manifest())."""
     if _REL is not None:
         return _REL
     rel = getattr(sys.modules.get("checks.bodylib"), "RELATIONS", None)
-    if rel is None:                   # a script that set none (propose_specs): the selected body's
-        rel = use_relations(F.Body(json.loads(DEFAULT_MANIFEST.read_text())), DEFAULT_MANIFEST)
+    if rel is None:                   # a script that set none (propose_specs): the declared body's
+        mp = default_manifest()
+        rel = use_relations(F.Body(json.loads(mp.read_text())), mp)
     return rel
 
 
@@ -1008,12 +1016,12 @@ def reverse_view(body, rows, iface, mesh):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
+    ap.add_argument("--manifest", help="default: the declared body manifest")
     ap.add_argument("--only", default=None, help="regex on screw names")
     ap.add_argument("--out", default=None)
     ap.add_argument("--part", default=None, help=argparse.SUPPRESS)
     a = ap.parse_args()
-    mp = Path(a.manifest).resolve()
+    mp = Path(a.manifest).resolve() if a.manifest else default_manifest()
     out = Path(a.out).resolve() if a.out else ROOT / ".cache/work/mount-check" / mp.stem / ("report.json" if not a.only else "report-only.json")
     run(mp, a.only, out, a.part)
     if not a.only and not a.part:

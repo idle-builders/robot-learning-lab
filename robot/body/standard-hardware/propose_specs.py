@@ -258,7 +258,7 @@ def specs(manifest, with_mesh=True, only=None):
 def main():
     import yaml
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--manifest", default=json.loads((ROOT / "robot/design.json").read_text())["body_manifest"])
+    ap.add_argument("--manifest", default=BOM_CONFIG.body_manifest())
     ap.add_argument("--only", required=True, help="comma-separated part names / globs")
     a = ap.parse_args()
     man = json.loads((ROOT / a.manifest).read_text())

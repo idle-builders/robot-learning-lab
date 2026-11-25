@@ -18,6 +18,14 @@ generators:
   - artifacts/robot/body/neck-head
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+# Files the body reads that no generator can recreate today (schema `pinned`)
+pinned:
+- path: artifacts/robot/body/neck-head/combined/assembly-parts.json
+  producer: 'robot/body/neck-head/package_and_render.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'The combined neck / head section package the assembly generator reads. Its producer needed the truss_box and topopt families and neck-head-topopt-fields.npz, which are gone from disk and the bucket, so it cannot be rerun; the file stays as it is.'
+- path: artifacts/robot/body/neck-head/combined/manifest.json
+  producer: 'robot/body/neck-head/package_and_render.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'Written by the same packager as assembly-parts.json next to it (same missing inputs); the assembly generator reads it.'
 parts:
 - match: combined__neck_root_cradle
   kind: printed
@@ -1108,11 +1116,6 @@ config:
   INSERT_MATERIAL:
     value: Brass CuZn39Pb3 (CW614N)
     doc: Material of the knurled heat-set inserts (was 8.5 g/cm3 in code; the table's datasheet value is 8.47).
-  # robot/body/neck-head/package_and_render.py module constants (moved 2026-11-24)
-  STAGE_COLORS:
-    value: {stage1_neck_root_cradle: [42, 138, 184, 255], stage2_neck_yaw_to_pitch_link: [28, 164, 142, 255], stage3_neck_pitch_to_head_cradle: [212, 134, 52, 255], stage4_head_sensor_compute_carrier: [64, 156, 212, 255], sleeve: [215, 222, 230, 255], shell: [231, 222, 201, 255]}
-  PRINT_ORIENTATIONS:
-    value: {stage1_neck_root_cradle: XZ Cradle & Spine Frame on Build Plate (layer normal Y), stage2_neck_yaw_to_pitch_link: XZ 90-Degree L-Bend & Gusset Webs on Build Plate (layer normal Y), stage3_neck_pitch_to_head_cradle: XY Right-Side U-Cradle Loop on Build Plate (layer normal Z), stage4_head_sensor_compute_carrier: XZ Carrier Plate & Dorsal Ribs Flat on Build Plate (layer normal Y)}
   # robot/body/neck-head/common.py module constants (moved 2026-11-24)
   STAGE_PART_BASENAMES:
     value: {stage1_neck_root_cradle: neck_root_cradle, stage2_neck_yaw_to_pitch_link: neck_yaw_to_pitch_link, stage3_neck_pitch_to_head_cradle: neck_pitch_to_head_cradle, stage4_head_sensor_compute_carrier: head_sensor_compute_carrier}
@@ -1143,7 +1146,7 @@ config:
     doc: T-jxshhv (neck_anchor.json; the length follows screw_plan.choose_length)
   PRINT_AXES:
     value: {stage1_neck_root_cradle: Y, stage2_neck_yaw_to_pitch_link: Y, stage3_neck_pitch_to_head_cradle: Z, stage4_head_sensor_compute_carrier: Y}
-    doc: '---- study load cases (moved from the retired per-study fem_evaluate.py); run_neck_head_topopt.py loads its topology optimisation with them Optimal FDM build-plate normal axis for each stage so primary bending & loop tension lie in-plane (XY) XZ cradle & spine frame in XY plane XZ 90-degree L-bend & side webs in XY plane XY U-cradle loop around +X in XY plane XZ carrier plate & ribs flat on build plate'
+    doc: '---- study load cases (moved from the retired per-study fem_evaluate.py). Optimal FDM build-plate normal axis for each stage so primary bending & loop tension lie in-plane (XY) XZ cradle & spine frame in XY plane XZ 90-degree L-bend & side webs in XY plane XY U-cradle loop around +X in XY plane XZ carrier plate & ribs flat on build plate'
   # robot/body/neck-head/defined_holes.py module constants (moved 2026-11-24)
   RING_MM:
     value: 2.6

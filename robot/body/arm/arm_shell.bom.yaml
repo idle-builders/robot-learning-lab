@@ -28,7 +28,7 @@ generators:
   resources:
     limit_gb: 6
     timeout_s: 1800
-  notes: Writes the selected body (robot/design.json body_manifest) from the shoulder-shells body; only the eight cover rows, the four
+  notes: Writes the body manifest (`body.manifest` in robot/body/complete_body.bom.yaml) from the shoulder-shells body; only the eight cover rows, the four
     elbow-case screws and six sleeve-set rows change. Shape parameters (STATIONS, CAP, SEAM, ELB, FORE_SPLIT, WALL, RUN_CLEAR) are code
     constants fitted by `arm_shell.py fit` (not part of the rebuild); joint ranges from the definitions (bom_config).
   after:

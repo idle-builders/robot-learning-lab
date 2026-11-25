@@ -1,6 +1,6 @@
 # Perception and sensing
 
-Status 2026-11-20. Perception work is paused. Its Idle tree (`T-tr3ec8`) is parked for re-planning on the selected printed body (`robot/design.json`). The reusable modules are in `control/perception/` (README there); the runner chain behind the whole-task numbers is in history (`git checkout history/perception-runners`, `experiments/ape_high_level/`, commit `6fbb278e4`).
+Status 2026-11-20. Perception work is paused. Its Idle tree (`T-tr3ec8`) is parked for re-planning on the printed body (`body:` in `robot/body/complete_body.bom.yaml`). The reusable modules are in `control/perception/` (README there); the runner chain behind the whole-task numbers is in history (`git checkout history/perception-runners`, `experiments/ape_high_level/`, commit `6fbb278e4`).
 
 Scope: cameras, depth, range, IMU and proprioception, audio, touch, captured worlds and localization, as measurements. How the behaviour uses them (belief states, whole-task room results, stop and response policy, owner identity) is in [high-level behaviour](high-level-behaviour.md). Sensor parts, connectors, masses and prices are in [actuators, power and electronics](actuators-power-and-electronics.md).
 

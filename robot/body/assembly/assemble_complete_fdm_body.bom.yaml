@@ -80,6 +80,11 @@ generators:
     timeout_s: 2400
   notes: 'Presentation only: the same build plus the whole-body Z-buffer and engineering figures (renders/). The render phase holds every mesh
     in mm plus a posed copy per panel; it peaked at 10.4 GB on 747 rows (2026-11-22). Not part of the body rebuild.'
+# Files the body reads that no generator can recreate today (schema `pinned`)
+pinned:
+- path: artifacts/cove50-electronics-integration/r1-20261026/assembly-parts.json
+  producer: 'robot/electronics/build/compose.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'The electronics composition (boards, cells, IMU, cameras, head compute) the assembly generator places into the body. Its producer read artifacts/cove50-compute-architecture/head-freeze-20261026/accepted-baseline.json and artifacts/cove50-sensor-integration/selected-v24-20261026/sensor-bom.json (gone from disk and the bucket) and the dashboard BOM API, so it cannot be rerun; the file stays as it is, its part files are the STEPs / meshes it names. Moving the electronics into their own definitions removes this pin.'
 parts:
 - match:
   - Main_precharge_H1_M2x12
