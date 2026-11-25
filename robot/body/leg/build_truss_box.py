@@ -30,7 +30,6 @@ from common import (
     ART,
     MATERIALS,
     PRINTED,
-    ALT_PRINTED,
     rel,
     sha,
     write_json,
@@ -402,7 +401,6 @@ def export_family():
                 "native_solids": len(p_comp.solids()),
                 "volume_mm3": round(poly_vol, 3),
                 "polymer_mass_g_PAHT_CF": round(poly_mass_g, 3),
-                "polymer_mass_g_PETG_CF": round(poly_vol * ALT_PRINTED["density_g_cm3"] * 1e-3, 3),
                 "bounds_mm": [
                     [round(bb.min.X, 3), round(bb.min.Y, 3), round(bb.min.Z, 3)],
                     [round(bb.max.X, 3), round(bb.max.Y, 3), round(bb.max.Z, 3)],

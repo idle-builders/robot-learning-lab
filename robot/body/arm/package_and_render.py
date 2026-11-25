@@ -441,7 +441,6 @@ def package_family(fam: str, hw: dict) -> dict:
 def render_comparison_charts(stage_meshes_by_fam: dict):
     renders_dir = ART / "renders"
     renders_dir.mkdir(parents=True, exist_ok=True)
-    fem_rep = read_json(ART / "fem-evaluation.json")
 
     # 1. Stage-by-stage CAD comparison grid (`baseline_metal` vs `truss_box` vs `topopt` vs `combined` across Stages 1..4)
     canvas = Image.new("RGB", (1920, 1480), "#f3f1eb")
@@ -460,15 +459,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict):
         bm = trimesh.Trimesh(vertices=bv, faces=bf, process=False)
         im = raster_meshes([(st_key, bm, [142, 150, 160, 255])], v_dir, W=480, H=330)
         canvas.paste(im, (c_idx * 480, 35))
-        b_row = next(
-            r for r in fem_rep["rows"]
-            if r["stage"] == st_key and r["family"] == "baseline_metal" and r["case_id"] == "recovery_4kg_1p5g"
-        )
-        draw.text(
-            (c_idx * 480 + 12, 10),
-            f"{st_title} - Baseline Sheet ({b_row['stage_mass_g']:.2f} g)",
-            fill="#22282e",
-        )
+        draw.text((c_idx * 480 + 12, 10), f"{st_title} - Baseline Sheet", fill="#22282e")
 
     row_fams = [
         ("truss_box", "Family 1: Clean-Sheet Truss/Box"),
@@ -497,82 +488,8 @@ def render_comparison_charts(stage_meshes_by_fam: dict):
             )
     canvas.save(renders_dir / "stage-by-stage-cad.png")
 
-    # 2. FEM stress, displacement, and specific stiffness comparison chart (`fem-stress-displacement-comparison.png`)
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5.2), dpi=160)
-    stages = list(STAGE_PART_BASENAMES.keys())
-    short_labels = ["S1: Pitch->Roll", "S2: Roll->Yaw", "S3: Yaw->Elbow", "S4: Forearm->Wrist"]
-    x = np.arange(len(stages))
-    w = 0.20
-
-    fams_plot = [
-        ("baseline_metal", "Baseline Sheet+Carriers", "#7a8694"),
-        ("truss_box", "Family 1: Truss/Box (PAHT-CF)", "#2a8ab8"),
-        ("topopt", "Family 2: SIMP TopOpt (PAHT-CF)", "#1ca48e"),
-        ("combined", "Combined Optimal (PAHT-CF)", "#d48634"),
-    ]
-    for idx, (fk_name, label, col) in enumerate(fams_plot):
-        u_vals = []
-        p99_vals = []
-        km_vals = []
-        for st in stages:
-            row = next(
-                r for r in fem_rep["rows"]
-                if r["stage"] == st and r["family"] == fk_name
-                and (r["material"] == "PAHT_CF_dry" or (fk_name == "baseline_metal" and r["material"] in ("Al5052_H32", "PAHT_CF_dry")))
-                and r["case_id"] == "recovery_4kg_1p5g"
-            )
-            u_vals.append(row["max_displacement_mm"])
-            p99_vals.append(row["von_mises_p99_MPa"])
-            km_vals.append(row["specific_stiffness_N_per_mm_per_g"])
-        axes[0].bar(x + (idx - 1.5) * w, u_vals, width=w, label=label, color=col)
-        axes[1].bar(x + (idx - 1.5) * w, p99_vals, width=w, label=label, color=col)
-        axes[2].bar(x + (idx - 1.5) * w, km_vals, width=w, label=label, color=col)
-
-    axes[0].set_title("Peak Deflection @ 4kg 1.5g Recovery (mm)")
-    axes[0].set_xticks(x, short_labels, rotation=15)
-    axes[0].grid(axis="y", alpha=0.3)
-    axes[0].legend(fontsize=8)
-
-    axes[1].set_title("Von Mises p99 Stress @ 4kg 1.5g (MPa)")
-    axes[1].set_xticks(x, short_labels, rotation=15)
-    axes[1].grid(axis="y", alpha=0.3)
-
-    axes[2].set_title("Specific Stiffness k/m ((N/mm)/g)")
-    axes[2].set_xticks(x, short_labels, rotation=15)
-    axes[2].grid(axis="y", alpha=0.3)
-
-    fig.suptitle("APE0 4-Stage Arm FDM Connectors — Matched 3D Tetrahedral FEM (4 kg @ 1.5g Recovery Wrench)", fontsize=12, fontweight="bold")
-    fig.tight_layout()
-    fig.savefig(renders_dir / "fem-stress-displacement-comparison.png")
-    plt.close(fig)
-
-    # 3. Weight-to-strength & single-arm mass comparison chart (`weight-to-strength-chart.png`)
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5.0), dpi=160)
-    cs = fem_rep["chain_summaries"]
-    names = ["Baseline\n(Sheet+Carriers)", "Family 1\n(Truss/Box)", "Family 2\n(SIMP TopOpt)", "Combined\nOptimal"]
-    keys = ["baseline_metal", "truss_box", "topopt", "combined"]
-    cols = ["#7a8694", "#2a8ab8", "#1ca48e", "#d48634"]
-    masses = [cs[k]["single_arm_4stage_mass_g"] for k in keys]
-    rss_u = [cs[k]["recovery_4kg_1p5g_rss_displacement_mm"] for k in keys]
-
-    axes[0].bar(names, masses, color=cols, width=0.52)
-    axes[0].set_title("Single-Arm 4-Stage Mass Including Shell Mounts & Sleeves (g)")
-    axes[0].set_ylabel("Mass per arm (g)")
-    axes[0].grid(axis="y", alpha=0.3)
-    for i, v in enumerate(masses):
-        axes[0].text(i, v + 1.0, f"{v:.1f} g", ha="center", fontweight="bold", fontsize=9)
-
-    axes[1].bar(names, rss_u, color=cols, width=0.52)
-    axes[1].set_title("4-Stage RSS Chain Deflection @ 4kg 1.5g Recovery (mm)")
-    axes[1].set_ylabel("RSS Displacement (mm)")
-    axes[1].grid(axis="y", alpha=0.3)
-    for i, v in enumerate(rss_u):
-        axes[1].text(i, v + 0.02, f"{v:.3f} mm", ha="center", fontweight="bold", fontsize=9)
-
-    fig.suptitle("APE0 Arm Architecture — Mass Savings (Eliminating Separate Carriers) & Chain Deflection", fontsize=11, fontweight="bold")
-    fig.tight_layout()
-    fig.savefig(renders_dir / "weight-to-strength-chart.png")
-    plt.close(fig)
+    # The FEM comparison and weight-to-strength charts of the retired per-study evaluation (fem-evaluation.json) were removed
+    # 2026-11-25; the published FEM chart (fem-stress-displacement-comparison.png) is drawn by publish_arm_studies.py from fem-evidence.json.
 
     # 4. 3D SIMP Topology Optimization density projection plot (`topopt-density-and-loadpaths.png`)
     topopt_npz = np.load(require(ART / "topopt/arm-topopt-fields.npz"))

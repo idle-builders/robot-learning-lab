@@ -180,7 +180,6 @@ sys.path.insert(0, str(ROOT / "robot/body/bom"))
 import bom_config as BOM_CONFIG  # noqa: E402
 CFG = BOM_CONFIG.section("build-torso-carriers")   # configured values: robot/body/torso/build_torso_carriers.bom.yaml config:
 PRINTED = BOM_CONFIG.material_row(CFG["PRINTED_MATERIAL"])          # study-family carriers no definition entry claims
-ALT_PRINTED = BOM_CONFIG.material_row(CFG["ALT_PRINTED_MATERIAL"])  # the alternative print material reported alongside
 SLEEVE = BOM_CONFIG.material_row(CFG["HARDWARE_MATERIAL"])          # pressed-in steel compression sleeves
 
 # Multi-limb torso loading parameters:

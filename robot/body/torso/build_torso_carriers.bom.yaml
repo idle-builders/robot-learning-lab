@@ -567,10 +567,14 @@ config:
     value: Bambu PAHT-CF
     doc: Material (robot/body/checks/data/materials.json entry) of the printed carriers of the truss_box / topopt study families the
       section builder writes; parts a definition entry claims take its process.material.
-    decision: legacy-materials 2026-11-25 (was torso/common.py MATERIALS PAHT_CF_dry, 1.24 g/cm3; the table is gone)
-  ALT_PRINTED_MATERIAL:
-    value: Bambu PETG-CF
-    doc: The alternative print material the section builder also reports a polymer mass for (was torso/common.py PETG_CF, 1.29 g/cm3).
+    decision: legacy-materials 2026-11-25 (was the torso/common.py PAHT-CF row, 1.24 g/cm3; the table is gone)
   HARDWARE_MATERIAL:
     value: Steel 304 sleeve
     doc: Material of the pressed-in steel compression sleeves (common.build_stage_sleeves; was torso/common.py SS304_sleeve, 7.93 g/cm3).
+  COMBINED_WINNERS:
+    value: {stage1_center_torso_spine_chassis: truss_box, stage2_lower_pelvis_battery_cradle: topopt, stage3_front_power_electronics_carrier: truss_box, stage4_rear_imu_adc_carrier: topopt}
+    doc: Study family of each stage of the combined (selected) torso carriers; build_torso_carriers.py copies these into the combined
+      family and package_and_render.py packages them. A declared constant, not recomputed.
+    decision: selected-body choice of 2026-11-06 (cove50-torso round), made from the per-study FEM comparison whose evaluator and
+      torso-fem-results.json stage_selections are retired (legacy-fem-tables 2026-11-25); robot/body/checks/run.py --checks fem runs
+      the per-part setups on the chosen parts.

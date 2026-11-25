@@ -40,27 +40,24 @@ P50B_SPEC = {
     "max_pack_delta_T_limit_C": 5.0,
 }
 
+# Printed-carrier polymers, keyed by their robot/body/checks/data/materials.json entry: HDT (0.45 / 1.8 MPa) and glass transition
+# from that entry's datasheet values; conductivity, CTE and service temperature are this thermal model's own assumptions
+# (2026-11-25: was a local table with its own PAHT-CF / PETG-CF HDT copies).
+_MATERIALS = json.loads((ROOT / "robot/body/checks/data/materials.json").read_text())
+
+
+def _datasheet_thermal(material: str, **model) -> dict:
+    pr = _MATERIALS[material]["print"]
+    hdt_045, hdt_18 = pr["hdt_C_045_18MPa"]
+    return {"name": material, "hdt_0p45mpa_C": float(hdt_045), "hdt_1p80mpa_C": float(hdt_18),
+            "tg_C": float(pr["glass_transition_C"]), **model}
+
+
 POLYMER_THERMAL_SPECS = {
-    "PAHT_CF": {
-        "name": "Bambu PAHT-CF (PPA/PA12 Carbon Fiber)",
-        "hdt_0p45mpa_C": 194.0,
-        "hdt_1p80mpa_C": 172.0,
-        "tg_C": 78.0,
-        "max_continuous_service_C": 150.0,
-        "k_in_plane_W_mK": 0.95,
-        "k_through_wall_W_mK": 0.42,
-        "alpha_xy_1_K": 14.0e-6,
-    },
-    "PETG_CF": {
-        "name": "PETG-CF (Carbon-Fiber Reinforced PETG)",
-        "hdt_0p45mpa_C": 74.0,
-        "hdt_1p80mpa_C": 66.0,
-        "tg_C": 80.0,
-        "max_continuous_service_C": 65.0,
-        "k_in_plane_W_mK": 0.58,
-        "k_through_wall_W_mK": 0.29,
-        "alpha_xy_1_K": 32.0e-6,
-    },
+    "Bambu PAHT-CF": _datasheet_thermal("Bambu PAHT-CF", max_continuous_service_C=150.0, k_in_plane_W_mK=0.95,
+                                        k_through_wall_W_mK=0.42, alpha_xy_1_K=14.0e-6),
+    "Bambu PETG-CF": _datasheet_thermal("Bambu PETG-CF", max_continuous_service_C=65.0, k_in_plane_W_mK=0.58,
+                                        k_through_wall_W_mK=0.29, alpha_xy_1_K=32.0e-6),
     "PLA_ref": {
         "name": "Standard PLA (Disqualified Reference)",
         "hdt_0p45mpa_C": 55.0,
@@ -263,7 +260,7 @@ def simulate_regime(
     T_wall_max = float(0.82 * T_cell_max + 0.18 * T_air)
     dT_wall = T_wall_max - 25.0
     radial_can_expansion_mm = P50B_SPEC["r_can_mm"] * P50B_SPEC["alpha_thermal_1_K"] * (T_cell_max - 25.0)
-    radial_paht_expansion_mm = 10.95 * POLYMER_THERMAL_SPECS["PAHT_CF"]["alpha_xy_1_K"] * dT_wall
+    radial_paht_expansion_mm = 10.95 * POLYMER_THERMAL_SPECS["Bambu PAHT-CF"]["alpha_xy_1_K"] * dT_wall
     remaining_radial_clearance_mm = (10.95 - 10.75) - radial_can_expansion_mm + radial_paht_expansion_mm
 
     return {

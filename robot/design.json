@@ -84,10 +84,6 @@
       "earlier_version": "8b54a8aeb",
       "source_commit": "44e9b1900acdc30c6a578f0c41b6ff8bdc9f39c3",
       "task": "T-jrnxfn",
-      "evidence": {
-        "report": "artifacts/robot/body/motor-refit/report.json",
-        "self_collision_limits": "artifacts/robot/body/motor-refit/self-collision-limits.json"
-      },
       "open_work": [
         "Re-export the WBC simulation model (R3 kinematics) with the 4 mm wider hips before the whole-body controller uses this body."
       ],

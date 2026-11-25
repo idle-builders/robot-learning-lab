@@ -1118,6 +1118,13 @@ config:
     value: {stage1_neck_root_cradle: neck_root_cradle, stage2_neck_yaw_to_pitch_link: neck_yaw_to_pitch_link, stage3_neck_pitch_to_head_cradle: neck_pitch_to_head_cradle, stage4_head_sensor_compute_carrier: head_sensor_compute_carrier}
   STAGE_LINKS:
     value: {stage1_neck_root_cradle: torso, stage2_neck_yaw_to_pitch_link: neck_yaw, stage3_neck_pitch_to_head_cradle: head, stage4_head_sensor_compute_carrier: head}
+  COMBINED_WINNERS:
+    value: {stage1_neck_root_cradle: topopt, stage2_neck_yaw_to_pitch_link: truss_box, stage3_neck_pitch_to_head_cradle: topopt, stage4_head_sensor_compute_carrier: truss_box}
+    doc: Study family of each stage of the combined (selected) neck / head connectors; build_neck_head_connectors.py copies these into
+      combined__<basename> and package_and_render.py packages them. A declared constant, not recomputed (was read back from the
+      stored combined/manifest.json, which package_and_render.py wrote from the retired FEM evaluation's combined_selection).
+    decision: selected-body choice of 2026-11-04 (cove50-neck-head round), made from the per-study FEM comparison whose evaluator
+      is retired (legacy-fem-tables 2026-11-25); robot/body/checks/run.py --checks fem runs the per-part setups on the chosen parts.
   MATERIALS:
     value: {Al5052_H32: Aluminium 5052-H32, Steel_Sleeve: Steel 304 sleeve}
     doc: Material of each FEM / mass key of this section's scripts that is not a printed part, as its entry in robot/body/checks/data/materials.json (values there). Printed parts take their declared material (bom_config.material / mass_kg; PRINTED_MATERIAL for study-family parts no definition claims); the 1.22 g/cm3 PAHT-CF dry / wet and PETG-CF keys were removed 2026-11-25 (no datasheet entry, wet has none at all).
@@ -1125,10 +1132,7 @@ config:
     value: Bambu PAHT-CF
     doc: Material of the printed parts this section's scripts write that no definition entry claims (truss_box / topopt study families); a
       claimed part takes its entry's process.material. Density and FEM constants from robot/body/checks/data/materials.json.
-    decision: legacy-materials 2026-11-25 (was legacy_fdm_PAHT_CF_dry, 1.22 g/cm3)
-  ALT_PRINTED_MATERIAL:
-    value: Bambu PETG-CF
-    doc: The alternative print material the study builders also report a polymer mass for (was legacy_fdm_PETG_CF).
+    decision: legacy-materials 2026-11-25 (was the legacy 1.22 g/cm3 PAHT-CF entry)
   MIC_TAPER:
     value: {x0: 47.8, z0: 467.2, z1: 472.4}
     doc: '@lore Sleeve length = plate thickness at an XM335 screw site, chosen so a standard screw length reaches the hole''s reference engagement with the tip inside the hole (screw_plan.choose_length): the case M2 holes are 1.8 mm deep from a seat 0.2 mm outside the opening, so a 2.5 mm sleeve took M2x5 (engagement 1.8, tip at the bottom); the horn M2 holes are 4.1 mm deep, reference 3.0, so a 3.5 mm sleeve takes M2x8 (engagement 3.8, tip 0.3 inside). Sleeves are full-thickness and flush (M-evmrv6). The pitch-case cradle has no sleeves since T-acpw7j: plain holes, an ISO 7089 washer under the head, the plate as thick as pitch_case_joint() derives (2.5 mm with M2x5: the full thread ends 0.3 mm short of the 2.0 mm tap bottom, 1.5 mm engaged below the 0.2 mm mouth chamfer; review rv-acpw7j). Head-skin taper cut of the microphone wing''s top (x >= MIC_TAPER["x0"], z in [z0, z1]): builder and sleeve lengths share it'

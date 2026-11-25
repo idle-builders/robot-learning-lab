@@ -53,7 +53,6 @@ from common import (
     ARM_SHELL_DIR,
     ART,
     A_YAW,
-    ALT_PRINTED,
     N_YAW,
     P_ELBOW,
     P_PITCH,
@@ -855,7 +854,6 @@ def build_all(run_verification_gates: bool = True):
     ensure_arm_shell_nut_assets()
 
     rho_paht = PRINTED["density_g_cm3"] * 1e-3      # the definition's PRINTED_MATERIAL (study families no entry claims)
-    rho_petg = ALT_PRINTED["density_g_cm3"] * 1e-3
 
     builders = {
         "stage1_shoulder_pitch_to_roll": build_stage1_shoulder_pitch_to_roll,
@@ -939,7 +937,6 @@ def build_all(run_verification_gates: bool = True):
 
             vol_r = float(sol_r.volume)
             poly_g = round(vol_r * rho_paht, 3)
-            petg_g = round(vol_r * rho_petg, 3)
             slv_g = round(sum(s["mass_g"] for s in slv_r_list), 3)
             tot_g = round(poly_g + slv_g, 3)
             total_poly_r += poly_g
@@ -963,7 +960,6 @@ def build_all(run_verification_gates: bool = True):
                 "manifold_volume_mm3": round(float(mf_r.volume()), 2),
                 "polymer_mass_PAHT_CF_g": poly_g,
                 "polymer_mass_paht_cf_g": poly_g,
-                "polymer_mass_PETG_CF_g": petg_g,
                 "sleeves_mass_g": slv_g,
                 "total_stage_mass_PAHT_CF_g": tot_g,
                 "total_stage_mass_paht_cf_g": tot_g,

@@ -525,12 +525,10 @@ def run_mass():
         parts[side] = {
             "stage4": dict(selected_polymer_g=round(sp[f"{side}_{OLD4}"]["mass_kg"] * 1000, 2), selected_with_sleeves_g=round(old4, 2),
                            roll_flip_polymer_g=n4["polymer_mass_g"], roll_flip_with_sleeves_g=n4["total_stage_mass_g"],
-                           roll_flip_material=n4["polymer_material"],
-                           roll_flip_polymer_g_PETG_CF=n4["polymer_mass_g_PETG_CF"], sleeves=n4["sleeves"]["count"]),
+                           roll_flip_material=n4["polymer_material"], sleeves=n4["sleeves"]["count"]),
             "stage5": dict(selected_polymer_g=round(sp[f"{side}_{OLD5}"]["mass_kg"] * 1000, 2), selected_with_sleeves_g=round(old5, 2),
                            roll_flip_polymer_g=n5["polymer_mass_g"], roll_flip_with_sleeves_g=n5["total_stage_mass_g"],
-                           roll_flip_material=n5["polymer_material"],
-                           roll_flip_polymer_g_PETG_CF=n5["polymer_mass_g_PETG_CF"], sleeves=n5["sleeves"]["count"]),
+                           roll_flip_material=n5["polymer_material"], sleeves=n5["sleeves"]["count"]),
         }
     links = {}
     for link in ("R_pitch_link", "R_roll_link", "L_pitch_link", "L_roll_link"):

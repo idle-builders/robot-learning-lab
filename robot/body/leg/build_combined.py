@@ -1,10 +1,10 @@
-"""Assemble, verify, and publish the Combined Lower-Leg FDM Connector Architecture (`cove50-lower-leg-fdm-combined`).
+"""Assemble and package the Combined Lower-Leg FDM Connector Architecture (`cove50-lower-leg-fdm-combined`).
 
-Combines the best-performing stage from each family:
-- Stage 1 (Shin): Family 1 (`truss_box` — 12.37 g/leg, k/m = 23.2 (N/mm)/g, 15.91x margin)
-- Stage 2 (Ankle Coupler): Family 1 (`truss_box` — 12.06 g/leg, u_max = 0.750 mm, 3.63x dry / 2.79x wet / 2.72x PETG-CF margin)
-- Stage 3 (Foot Monocoque): Family 2 (`topopt` — 19.13 g/leg, u_max = 0.157 mm, k/m = 21.6 (N/mm)/g, 29.36x margin)
-Total mass: 43.56 g/leg (87.12 g bilateral, saving 31.32 g/leg or 62.64 g bilateral vs V16).
+Stage selection (the selected body's choice, fixed here; it was made from the per-study FEM comparison of 2026-11-02, whose
+evaluator is retired: robot/body/checks/run.py --checks fem runs the per-part setups instead; the old numbers are in git history):
+- Stage 1 (Shin): Family 1 (`truss_box`)
+- Stage 2 (Ankle Coupler): Family 1 (`truss_box`)
+- Stage 3 (Foot Monocoque): Family 2 (`topopt`)
 """
 from pathlib import Path
 import copy
@@ -85,36 +85,6 @@ def build_combined():
         },
     }
     write_json(comb_dir / "cad-manifest.json", manifest)
-
-    # Update fem-report.json with combined chain summary
-    fem = read_json(ART / "fem-report.json")
-    chain_sum = fem["chain_summary_recovery_4kg_1p5g"]
-    base_one_leg = chain_sum["baseline_metal__Al5052_H32"]["one_leg_mass_g"]
-
-    for mat_key in ["PAHT_CF_dry", "PETG_CF"]:   # columns of the stored fem-report.json (retired evaluator); the wet column had no consumer left (2026-11-25)
-        tb_chain = chain_sum[f"truss_box__{mat_key}"]
-        to_chain = chain_sum[f"topopt__{mat_key}"]
-        st1 = copy.deepcopy(tb_chain["stages"]["stage1_shin"])
-        st2 = copy.deepcopy(tb_chain["stages"]["stage2_ankle_coupler"])
-        st3 = copy.deepcopy(to_chain["stages"]["stage3_foot_monocoque"])
-        one_leg_mass = round(st1["stage_mass_g"] + st2["stage_mass_g"] + st3["stage_mass_g"], 3)
-        pair_mass = round(2.0 * one_leg_mass, 3)
-        saved_one = round(base_one_leg - one_leg_mass, 3)
-        saved_pair = round(2.0 * saved_one, 3)
-        chain_sum[f"combined__{mat_key}"] = {
-            "variant": "combined",
-            "material": mat_key,
-            "one_leg_mass_g": one_leg_mass,
-            "bilateral_pair_mass_g": pair_mass,
-            "mass_saved_vs_baseline_one_leg_g": saved_one,
-            "mass_saved_vs_baseline_bilateral_g": saved_pair,
-            "stages": {
-                "stage1_shin": st1,
-                "stage2_ankle_coupler": st2,
-                "stage3_foot_monocoque": st3,
-            },
-        }
-    write_json(ART / "fem-report.json", fem)
 
     # The combined family's exact fit is measured by robot/body/checks/run.py (--checks fit), not gated here.
 
