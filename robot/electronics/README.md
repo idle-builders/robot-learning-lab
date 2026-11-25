@@ -14,10 +14,8 @@ Reproduction from the retained source assets:
 .venv/bin/python -B robot/electronics/build/compose.py
 .venv/bin/python -B robot/electronics/build/check_interfaces.py
 .venv/bin/python -B robot/electronics/build/render.py
-.venv/bin/python -B robot/electronics/build/publish.py
-.venv/bin/python -B infra/dashboard/results_hub.py publish artifacts/cove50-electronics-integration/r1-20261026/publication.json
 ```
 
-`compose.py --metadata-only` refreshes source inventories and BOM transfer without regenerating scene meshes. `select.py` explicitly updates the Electronics preference and robot BOM using optimistic concurrency, replacing overlapping subsystem assembly entries.
+`compose.py --metadata-only` refreshes source inventories and BOM transfer without regenerating scene meshes. The composition has no dashboard record of its own (removed 2026-11-25): its parts are in the body (the assembly generator reads `assembly-parts.json`) and show on the body record, generated from the body definitions.
 
 The requested universal policy-learning model is registered separately, dependent on this composition freeze. It must reconcile joint/action interfaces, mass/CoM/inertia, supplier versus identified actuator dynamics, sensor frames and timing, compute delay, and FEM-derived compliance where supported. Static FEM does not identify damping; visual CAD does not establish physical dynamics.

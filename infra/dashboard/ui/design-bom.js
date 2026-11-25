@@ -1,7 +1,7 @@
 import {esc} from './readable.js?v=studies-final-20261020';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 import {assetUrl} from './asset-url.js';
-import {bodyViewMarkup, bindBodyView} from './cad-bom.js?v=bom-ranges-20261123';
+import {bodyViewMarkup, bindBodyView} from './cad-bom.js?v=bom-only-20261125';
 
 const amount = value => value == null ? 'Unknown' : Number(value).toLocaleString(undefined, {maximumFractionDigits: 4});
 const endpoint = id => `/api/design-bom?result=${encodeURIComponent(id)}`;
@@ -23,7 +23,7 @@ function summary(totals) {
 }
 function lineTable(lines, robot = false) {
   if (!lines.length) return '<p class="muted">No part lines recorded. Subtotals do not represent a complete robot.</p>';
-  return `<div class="matrix bom-table"><table><caption>${robot ? 'Included parts across selected assemblies' : 'Parts per one assembly of this study version'}</caption><thead><tr>${robot ? '<th>Study version</th>' : ''}<th>Part</th><th>Quantity</th><th>Unit cost</th><th>Extended cost</th><th>Mass</th><th>Purchase & source details</th></tr></thead><tbody>${lines.map(item => `<tr>${robot ? `<td><a href="/design/?result=${encodeURIComponent(item.result_id)}">${esc(designStudyName({title:item.assembly,study_version:item.study_version}))}</a><small>${esc(item.study_version)} · ×${item.assembly_count} assemblies · BOM r${item.bom_revision}</small></td>` : ''}<td><strong>${esc(item.name)}</strong><small>${esc([item.part_number, item.category, item.material].filter(Boolean).join(' · '))}</small></td><td>${amount(item.quantity)} ${esc(item.unit)}</td><td>${item.unit_cost == null ? 'Unknown' : `${esc(item.currency)} ${amount(item.unit_cost)}`}<small>${esc(item.cost_basis)}</small></td><td>${item.extended_cost == null ? 'Unknown' : `${esc(item.currency)} ${amount(item.extended_cost)}`}</td><td>${amount(item.extended_mass_g)} g<small>${amount(item.unit_mass_g)} g / ${esc(item.unit)}</small></td><td><details><summary>${esc(item.supplier || 'Supplier / evidence')}</summary><p>${esc(item.part_number || 'No part number')}</p><p>Price date: ${esc(item.price_date || 'Unknown')} · Lead time: ${amount(item.lead_time_days)} days</p><p>${links(item.source_refs) || 'No source reference recorded.'}</p><p>${esc(item.notes)}</p></details></td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="matrix bom-table"><table><caption>${robot ? 'Parts of the body' : 'Parts of this record'}</caption><thead><tr>${robot ? '<th>Record</th>' : ''}<th>Part</th><th>Quantity</th><th>Unit cost</th><th>Extended cost</th><th>Mass</th><th>Purchase & source details</th></tr></thead><tbody>${lines.map(item => `<tr>${robot ? `<td><a href="/design/?result=${encodeURIComponent(item.result_id)}">${esc(designStudyName({title:item.assembly,study_version:item.study_version}))}</a><small>${esc(item.study_version)}</small></td>` : ''}<td><strong>${esc(item.name)}</strong><small>${esc([item.part_number, item.category, item.material].filter(Boolean).join(' · '))}</small></td><td>${amount(item.quantity)} ${esc(item.unit)}</td><td>${item.unit_cost == null ? 'Unknown' : `${esc(item.currency)} ${amount(item.unit_cost)}`}<small>${esc(item.cost_basis)}</small></td><td>${item.extended_cost == null ? 'Unknown' : `${esc(item.currency)} ${amount(item.extended_cost)}`}</td><td>${amount(item.extended_mass_g)} g<small>${amount(item.unit_mass_g)} g / ${esc(item.unit)}</small></td><td><details><summary>${esc(item.supplier || 'Supplier / evidence')}</summary><p>${esc(item.part_number || 'No part number')}</p><p>Price date: ${esc(item.price_date || 'Unknown')} · Lead time: ${amount(item.lead_time_days)} days</p><p>${links(item.source_refs) || 'No source reference recorded.'}</p><p>${esc(item.notes)}</p></details></td></tr>`).join('')}</tbody></table></div>`;
 }
 const exclusions = values => values?.length ? `<p><strong>Excluded / not counted:</strong> ${values.map(esc).join(' · ')}</p>` : '';
 const exportsMarkup = url => `<div class="bom-actions"><a href="${url}&format=csv" download>Export parts CSV</a><a href="${url}" download="design-bom.json">Export BOM & context JSON</a></div>`;
@@ -60,7 +60,10 @@ export async function mountStudyBom(host, resultId, current = () => true, view =
   }
   function render() {
     const bom = report.bom;
-    host.innerHTML = `${view ? bodyViewMarkup(view) : ''}<h3>Bill of materials & costs</h3><p>${bom ? esc(bom.scope || 'Assembly scope not stated.') : 'No structured BOM registered for this version. Existing BOM documents remain in its source files.'}</p>${bom ? `<p class="muted">BOM revision ${report.revision} · ${esc(report.updated_at)} UTC · ${bom.completeness === 'complete' ? 'Author declares all parts in stated scope recorded' : 'Partial inventory'}</p>${summary(report.totals)}${bom.notes ? `<p>${esc(bom.notes)}</p>` : ''}${exclusions(bom.exclusions)}${lineTable(report.lines)}${exportsMarkup(endpoint(resultId))}` : ''}${editor(bom)}`;
+    // A section view lists the BOM lines of its parts; the totals stay those of the whole record.
+    const lines = view?.section ? report.lines.filter(line => view.lines[line.id]) : report.lines;
+    const origin = report.generated ? 'Generated by robot/body/bom/build.py from the body definitions (edit the definitions, not this BOM)' : `BOM revision ${report.revision} · ${esc(report.updated_at)} UTC`;
+    host.innerHTML = `${view ? bodyViewMarkup(view) : ''}<h3>Bill of materials & costs</h3><p>${bom ? esc(bom.scope || 'Assembly scope not stated.') : 'No structured BOM registered for this version.'}</p>${bom ? `<p class="muted">${origin} · ${bom.completeness === 'complete' ? 'Author declares all parts in stated scope recorded' : 'Partial inventory'}</p>${summary(report.totals)}${view?.section ? `<p class="muted">Totals: the whole record. Lines below: the ${lines.length} lines with a part in ${esc(view.section)}.</p>` : ''}${bom.notes ? `<p>${esc(bom.notes)}</p>` : ''}${exclusions(bom.exclusions)}${lineTable(lines)}${exportsMarkup(endpoint(resultId))}` : ''}${report.generated ? '' : editor(bom)}`;
     if (view) bindBodyView(host.querySelector('.body-view'), view, onPart);
   }
   host.addEventListener('click', event => {
@@ -100,57 +103,16 @@ export async function mountStudyBom(host, resultId, current = () => true, view =
   return {dispose() {active = false; events.abort();}};
 }
 
+// The robot BOM: the BOM of the body record(s) publish_body.py generated (the robot is the sum of its parts).
 export async function mountRobotBom(host, results, current = () => true) {
-  let active = true, report;
-  const events = new AbortController();
+  let active = true;
   const valid = () => active && current();
-  const choices = results.filter(r => r.record_kind === 'study').sort((a, b) => designStudyName(a).localeCompare(designStudyName(b)) || String(b.study_version).localeCompare(String(a.study_version), undefined, {numeric: true}));
   host.innerHTML = '<p role="status">Loading robot BOM…</p>';
-  function options(query = '') {
-    return choices.filter(r => `${r.title} ${r.study_version} ${r.design_sections?.join(' ')} ${r.id}`.toLowerCase().includes(query.toLowerCase()))
-      .map(r => `<option value="${esc(r.id)}">${esc(r.design_sections?.join(' / '))} · ${esc(designStudyName(r))} · ${esc(r.study_version)}</option>`).join('');
-  }
-  function assemblyRow(assembly) {
-    const row = choices.find(r => r.id === assembly.result_id);
-    const bom = report.assemblies.find(a => a.result_id === assembly.result_id);
-    return `<tr data-result="${esc(assembly.result_id)}"><td><a href="/design/?result=${encodeURIComponent(assembly.result_id)}">${esc(row ? designStudyName(row) : assembly.result_id)}</a><small>${esc(row?.study_version)} · ${esc(row?.design_sections?.join(' · '))}</small></td><td><input aria-label="Assembly count for ${esc(row ? designStudyName(row) : assembly.result_id)}" type="number" min="1" step="1" value="${assembly.count}"></td><td>${bom ? bom.bom ? `${bom.bom.items.length} lines · BOM r${bom.revision}${bom.bom.completeness === 'partial' ? ' · partial' : ''}` : 'No BOM registered' : 'Save to calculate'}</td><td><button type="button" data-remove-assembly>Remove</button></td></tr>`;
-  }
-  function render() {
-    host.innerHTML = `<div class="meta"><span>Whole robot</span><span>Planning composition</span></div><h2>Robot BOM & costs</h2><p>Choose exact study versions and how many assemblies the robot needs (for example, two knees). Preferences and mechanical selection stay separate. Review shared hardware ownership before including overlapping studies.</p><form class="robot-bom-form"><div class="bom-fields">${input('title', 'BOM name', report.plan.title)}<label>Planning notes<textarea name="notes" rows="2">${esc(report.plan.notes)}</textarea></label><label class="bom-wide">Exclusions / unresolved scope (one per line)<textarea name="exclusions" rows="2">${esc(report.plan.exclusions.join('\n'))}</textarea></label></div><div class="bom-add-assembly"><label>Find a study version<input type="search" data-bom-search placeholder="Body section, mechanism, version…"></label><label>Study version<select data-bom-choice>${options()}</select></label><button type="button" data-add-assembly>Add assembly</button></div><div class="matrix"><table><caption>Explicit robot composition · no nested assemblies added automatically</caption><thead><tr><th>Study version</th><th>Assembly count</th><th>BOM coverage</th><th>Action</th></tr></thead><tbody class="bom-assemblies">${report.plan.assemblies.map(assemblyRow).join('')}</tbody></table></div><div class="bom-actions"><button type="submit">Save robot BOM & calculate</button><button type="button" data-reload-plan>Reload saved composition</button><span role="status" class="bom-save-status">${report.revision ? `Saved composition r${report.revision} · ${esc(report.updated_at)} UTC` : 'No composition saved yet'}</span></div></form><section class="bom-saved"><h3>Saved composition totals</h3><p>Subtotals include only recorded parts and known amounts. Changes above appear here after saving. Prices use the latest saved BOM estimate for each pinned design version; exports record those BOM revisions.</p>${summary(report.totals)}${exclusions(report.plan.exclusions)}${report.missing_bom_versions.length ? `<p class="bom-notice">${report.missing_bom_versions.length} included study versions have no BOM. Their parts, costs and mass are uncounted.</p>` : ''}${report.empty_bom_versions.length ? `<p class="bom-notice">${report.empty_bom_versions.length} included BOMs contain no part lines.</p>` : ''}${report.assemblies.filter(a => a.bom?.completeness === 'partial').length ? '<p class="bom-notice">Some included BOMs are partial inventories. Review their scope and exclusions below.</p>' : ''}${report.uncovered_sections.length ? `<p><strong>Sections without an explicitly included study:</strong> ${report.uncovered_sections.map(esc).join(' · ')}. Inclusion in a cross-section study still needs an ownership check.</p>` : ''}${Object.keys(report.overlapping_sections).length ? `<p class="bom-notice"><strong>Review potential overlap:</strong> ${Object.entries(report.overlapping_sections).map(([section, names]) => `${esc(section)} (${names.map(esc).join(' / ')})`).join(' · ')}. Shared parts are counted in every included BOM; remove duplicates at their source.</p>` : ''}${report.assemblies.length ? `<details><summary>Assembly scope, exclusions & assumptions</summary><div class="inside">${report.assemblies.map(a => `<h4>${esc(designStudyName(a))} · ${esc(a.study_version)} ×${a.count}</h4><p>${esc(a.bom?.scope || 'No assembly scope recorded.')}</p><p>${esc(a.bom?.notes || '')}</p>${exclusions(a.bom?.exclusions)}`).join('')}</div></details>` : '<p>No assemblies included yet. Add study versions to build a robot estimate.</p>'}${exportsMarkup('/api/robot-bom?export=1')}${lineTable(report.lines, true)}</section>`;
-  }
-  async function load() {
-    try {report = await request('/api/robot-bom'); if (valid()) render();}
-    catch (error) {if (valid()) host.textContent = `Robot BOM could not load: ${error.message}`;}
-  }
-  host.addEventListener('click', event => {
-    if (event.target.closest('[data-reload-plan]')) load();
-    if (event.target.closest('[data-add-assembly]')) {
-      const id = host.querySelector('[data-bom-choice]').value;
-      if (!id) return;
-      const picked = choices.find(r => r.id === id);
-      const duplicate = [...host.querySelectorAll('[data-result]')].some(row => choices.find(r => r.id === row.dataset.result)?.study_id === picked.study_id);
-      if (duplicate) {host.querySelector('.bom-save-status').textContent = 'This study is already included. Adjust its assembly count, or remove it before choosing another version.'; return;}
-      host.querySelector('.bom-assemblies').insertAdjacentHTML('beforeend', assemblyRow({result_id: id, count: 1}));
-      host.querySelector('.bom-save-status').textContent = 'Unsaved composition changes';
-    }
-    if (event.target.closest('[data-remove-assembly]')) {event.target.closest('tr').remove(); host.querySelector('.bom-save-status').textContent = 'Unsaved composition changes';}
-  }, {signal: events.signal});
-  host.addEventListener('input', event => {
-    if (event.target.matches('[data-bom-search]')) {host.querySelector('[data-bom-choice]').innerHTML = options(event.target.value); return;}
-    if (event.target.closest('.robot-bom-form')) host.querySelector('.bom-save-status').textContent = 'Unsaved composition changes';
-  }, {signal: events.signal});
-  host.addEventListener('submit', async event => {
-    event.preventDefault();
-    const form = event.target, status = form.querySelector('.bom-save-status');
-    const plan = {title: form.elements.title.value, notes: form.elements.notes.value,
-      exclusions: form.elements.exclusions.value.split('\n').map(s => s.trim()).filter(Boolean),
-      assemblies: [...form.querySelectorAll('[data-result]')].map(row => ({result_id: row.dataset.result, count: Number(row.querySelector('input').value)}))};
-    const controls = [...form.querySelectorAll('input,select,textarea,button')];
-    controls.forEach(control => {control.disabled = true;}); status.textContent = 'Saving…';
-    try {const saved = await request('/api/robot-bom', {plan, expected_revision: report.revision}); if (valid()) {report = saved; render();}}
-    catch (error) {if (valid()) status.textContent = `Not saved: ${error.message} Your edits remain here.`;}
-    finally {controls.forEach(control => {control.disabled = false;});}
-  }, {signal: events.signal});
-  await load();
-  return {dispose() {active = false; events.abort();}};
+  try {
+    const report = await request('/api/robot-bom');
+    if (!valid()) return {dispose() {active = false;}};
+    const bodies = report.assemblies.map(a => `<li><a href="/design/?result=${encodeURIComponent(a.id)}">${esc(designStudyName(a))}</a> · version ${esc(a.study_version)} · ${a.bom ? `${a.bom.items.length} lines · ${esc(a.bom.scope || '')}` : 'no BOM in the record'}</li>`).join('');
+    host.innerHTML = `<div class="meta"><span>Body BOM</span><span>Generated from the body definitions</span></div><h2>Robot BOM & costs</h2><p>The robot is the sum of its parts: this is the BOM of the body record, built by <code>robot/body/bom/build.py</code> from the body definitions (<code>robot/**/&lt;builder&gt;.bom.yaml</code>) and the body manifest. Change a part, quantity or supplier in its definition and republish the body (<code>robot/body/bom/publish_body.py --publish</code>).</p>${bodies ? `<ul>${bodies}</ul>` : '<p class="bom-notice">No body record is published yet.</p>'}${summary(report.totals)}${report.missing_bom_versions.length ? `<p class="bom-notice">${report.missing_bom_versions.length} body records carry no BOM.</p>` : ''}${exportsMarkup('/api/robot-bom?export=1')}${lineTable(report.lines, true)}`;
+  } catch (error) { if (valid()) host.textContent = `Robot BOM could not load: ${error.message}`; }
+  return {dispose() {active = false;}};
 }

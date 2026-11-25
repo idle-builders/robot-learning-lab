@@ -1,6 +1,6 @@
 import {designEvidence} from './design-evidence.js?v=fem-pictures-20261024';
 import {briefText, evidenceText} from './readable.js?v=studies-final-20261020';
-import {cadMarkup, mountCadCards} from './cad-catalog.js?v=bom-ranges-20261123';
+import {cadMarkup, mountCadCards} from './cad-catalog.js?v=bom-only-20261125';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 import {assetUrl as asset} from './asset-url.js';
 const judgments = {unreviewed:'Not reviewed',shortlist:'Shortlist',revise:'Needs revision',reject:'Reject'};

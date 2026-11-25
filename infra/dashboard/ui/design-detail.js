@@ -1,9 +1,10 @@
-import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=bom-ranges-20261123';
+import {inspectionMarkup, bindInspectionTools, navigationMarkup} from './cad-catalog.js?v=bom-only-20261125';
 import {designEvidence} from './design-evidence.js?v=fem-pictures-20261024';
 import {esc, briefText, evidenceText, shortText} from './readable.js?v=studies-final-20261020';
-import {mountCatalog} from './catalog.js?v=bom-ranges-20261123';
-import {createCadViewer} from './cad-viewer.js?v=bom-ranges-20261123';
-import {mountStudyBom} from './design-bom.js?v=bom-ranges-20261123';
+import {mountCatalog} from './catalog.js?v=bom-only-20261125';
+import {createCadViewer} from './cad-viewer.js?v=bom-only-20261125';
+import {sectionView} from './cad-bom.js?v=bom-only-20261125';
+import {mountStudyBom} from './design-bom.js?v=bom-only-20261125';
 import {designStudyName} from './design-names.js?v=mechanism-names-20261021';
 // Where this version's sources are: a folder at a commit, or a history tag to check out.
 const sourceLine = row => {
@@ -37,8 +38,7 @@ function withCad(option, assets) {
 export async function mountDesignDetail(host, row, section, widgets, current) {
   let active = true, mounted = null, viewer = null, groupGeneration = 0;
   const events = new AbortController();
-  const groups = row.sections.filter(s => s.payload?.kind === 'design_catalog').flatMap(s => s.payload.groups.map(group => ({...group, catalogTitle: s.payload.title || s.title})))
-    .filter(group => section === 'All' || group.design_sections?.includes(section));
+  const groups = row.sections.filter(s => s.payload?.kind === 'design_catalog').flatMap(s => s.payload.groups.map(group => ({...group, catalogTitle: s.payload.title || s.title})));
   const params = new URLSearchParams(location.search);
   const anchorGroup = location.hash.startsWith('#catalog-group-') ? location.hash.slice('#catalog-group-'.length) : null;
   let group = groups.find(g => g.id === (params.get('group') || anchorGroup)) || groups[0];
@@ -52,11 +52,13 @@ export async function mountDesignDetail(host, row, section, widgets, current) {
   const files = row.assets.filter(item => item.kind === 'data');
   const images = row.assets.filter(item => item.kind === 'image');
   // A generated body view (robot/body/bom/publish_body.py) feeds the part view, the CAD BOM and the CAD part card.
-  const bodyView = row.sections.find(s => s.payload?.kind === 'body_view')?.payload || null;
+  // A section shows the parts whose definition declares it (the same record, filtered); the CAD view isolates them.
+  const fullView = row.sections.find(s => s.payload?.kind === 'body_view')?.payload || null;
+  const bodyView = sectionView(fullView, section);
   const otherSections = row.sections.filter(s => !['design_catalog', 'body_view'].includes(s.payload?.kind));
   host.classList.add('catalog-page', 'single-study');
   host.innerHTML = `<div class="meta"><span>${esc(section === 'All' ? row.design_sections.join(' · ') : section)}</span><span>${row.archived_at ? 'Archived design study' : 'Design study'}</span></div><h2>${esc(designStudyName(row))}</h2>${row.archived_at ? `<div class="card"><strong>Archived · retained for reference</strong><p>${esc(row.archive_reason)}</p></div>` : group?.options[0]?.use_context ? `<div class="card"><strong>Use of this study</strong><p>${esc(group.options[0].use_context)}</p></div>` : ''}<div class="study-strip"><span>One design variant</span><span>${row.versions.length === 1 ? 'One version' : `${row.versions.length} versions`}${row.id === row.study_id ? '' : ' · viewing an earlier version'}</span><span>${models.length} CAD scenes</span><details class="text-more"><summary>Study overview</summary>${evidenceText(row.observation || row.summary,3)}</details>${sourceLine(row)}</div>
-    <div class="exploration-bar"><label for="design-version">Version<select id="design-version">${[...row.versions].sort((a,b)=>String(b.version_at||'').localeCompare(String(a.version_at||''))).map(v=>`<option value="${esc(v.id)}" ${v.id === row.id ? 'selected' : ''} title="${esc(v.legacy_version ? `Published as ${v.legacy_version}` : '')}">${esc(String(v.version_at||'').slice(0,10))} · commit ${esc(String(v.source_commit||v.study_version||'').slice(0,7))}${v.id === row.study_id ? ' · current' : ''}</option>`).join('')}</select></label><div class="preference-actions"><button id="prefer-study" type="button">Select for ${esc(section === 'All' ? row.design_sections[0] : section)}</button><span id="preference-status" role="status"></span></div></div>${groups.length ? '<div id="focused-designs"></div>' : ''}
+    <div class="exploration-bar"><label for="design-version">Version<select id="design-version">${[...row.versions].sort((a,b)=>String(b.version_at||'').localeCompare(String(a.version_at||''))).map(v=>`<option value="${esc(v.id)}" ${v.id === row.id ? 'selected' : ''} title="${esc(v.legacy_version ? `Published as ${v.legacy_version}` : '')}">${esc(String(v.version_at||'').slice(0,10))} · commit ${esc(String(v.source_commit||v.study_version||'').slice(0,7))}${v.id === row.study_id ? ' · current' : ''}</option>`).join('')}</select></label></div>${groups.length ? '<div id="focused-designs"></div>' : ''}
     ${models.length ? `<details class="cad-library" ${groups.length ? '' : 'open'}><summary>CAD model library · ${models.length} published scenes</summary><div class="inside"><label for="study-model">Model / saved configuration</label><select id="study-model">${models.map((m, i) => `<option value="${i}">${esc(m.title)}</option>`).join('')}</select><div class="study-cad-canvas"></div>${navigationMarkup()}${inspectionMarkup()}<p class="study-cad-label" role="status">Open the model library to inspect a scene.</p><button type="button" id="fit-study">Fit view</button><button type="button" id="snapshot-study">Snapshot & annotate</button><a id="download-study" download>Download source model</a></div></details>` : ''}
     ${widgets.videoHost()}${row.clips.length ? `<details id="design-recordings"><summary>Simulation & inspection recordings · ${row.clips.length}</summary><div class="inside clip-list">${row.clips.map(clip=>`<div class="clip"><strong>${esc(clip.title)}</strong>${briefText(clip.observation, 'Recording context')}<button type="button" data-design-video="${esc(clip.id)}">Watch recording</button></div>`).join('')}</div></details>` : ''}<div class="cards study-evidence"><div class="card"><strong>Measured evidence</strong>${evidenceText(row.measurements, 2)}</div><div class="card"><strong>Open engineering questions</strong>${evidenceText(row.limitations, 2)}</div></div>
     ${!groups.length && !models.length ? '<p class="empty-cad">No interactive CAD was published for this study. Inspect its source images and reports below.</p>' : ''}
@@ -87,17 +89,14 @@ export async function mountDesignDetail(host, row, section, widgets, current) {
       {title: group.title, description: '', groups: [{...group, options}]}, {compact: true});
     if (!active || !current() || generation !== groupGeneration) { result.dispose(); return; }
     mounted = result;
+    // Section view: the CAD shows this section's parts (Show assembly restores the whole body).
+    if (bodyView?.section) host.querySelector('#focused-designs .design-option')?.dispatchEvent(new CustomEvent('cad-isolate-parts', {bubbles: true, detail: {names: Object.keys(bodyView.parts)}}));
     const url = new URL(location.href);
     if (section === 'All') url.searchParams.delete('section'); else url.searchParams.set('section', section);
     url.searchParams.set('group', group.id);
     history.replaceState(null, '', url.pathname + url.search + url.hash);
   }
   host.querySelector('#design-version').onchange=event=>widgets.showResult(event.target.value);
-  const prefSection=section==='All'?row.design_sections[0]:section;
-  const prefButton=host.querySelector('#prefer-study');
-  if (row.archived_at) {prefButton.disabled=true;prefButton.textContent='Archived · restore before selecting';}
-  if(widgets.selection[prefSection]===row.study_id){prefButton.textContent=`Selected for ${prefSection}`;prefButton.disabled=true;}
-  prefButton.onclick=async()=>{try{await widgets.select(prefSection,row.study_id);if(current()){prefButton.textContent=`Selected for ${prefSection}`;prefButton.disabled=true;host.querySelector('#preference-status').textContent='Saved to robot/design.json';}}catch(error){host.querySelector('#preference-status').textContent=error.message;}};
   // A part opened in the part view is selected in the study's CAD view too (same names as the GLB nodes).
   const selectInCad = name => host.querySelector('#focused-designs .design-option')?.dispatchEvent(new CustomEvent('cad-select-part', {bubbles: true, detail: {name}}));
   const bomView = await mountStudyBom(host.querySelector('#study-bom'), row.id, () => active && current(), bodyView, selectInCad);
