@@ -463,7 +463,7 @@ def stage4_board_screws(recs: dict) -> list[dict]:
                 name=pl["name"], physical_part_id=pl["name"], bom_group=pl["bom_group"], owning_link=pl["owning_link"], role="fastener_proxy",
                 mesh=str(f.relative_to(ROOT)), mesh_sha256=hashlib.sha256(f.read_bytes()).hexdigest(), mesh_units="mm",
                 bounds_mm=[np.round(m.bounds[0], 3).tolist(), np.round(m.bounds[1], 3).tolist()],
-                volume_mm3=round(float(m.volume), 3), mass_kg=round(float(m.volume) * rho / 1000.0, 7),
+                volume_mm3=round(float(m.volume), 3), mass_kg=round(float(m.volume) * rho * 1e-6, 9),
                 material=f"{pl['head_standard']} {lbl} into {pl['hole_id']} (printed pilot, dia {common.PA2_PILOT_DIA}); head dia "
                          f"{pl['head_dia_mm']} x {pl['head_height_mm']}, shank dia 2, {pl['point_mm']} mm point (envelope)",
                 color=[195, 204, 214, 255], display_group="mechanism", display_groups=["mechanism"],
