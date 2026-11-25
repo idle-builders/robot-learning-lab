@@ -54,7 +54,4 @@ config:
     value: Bambu PAHT-CF
     doc: Material of the printed parts this section's scripts write that no definition entry claims (truss_box / topopt study families); a
       claimed part takes its entry's process.material. Density and FEM constants from robot/body/checks/data/materials.json.
-    decision: legacy-materials 2026-11-25 (was legacy_fdm_PAHT_CF_dry, 1.22 g/cm3)
-  ALT_PRINTED_MATERIAL:
-    value: Bambu PETG-CF
-    doc: The alternative print material the study builders also report a polymer mass for (was legacy_fdm_PETG_CF).
+    decision: legacy-materials 2026-11-25 (was the legacy 1.22 g/cm3 PAHT-CF entry)

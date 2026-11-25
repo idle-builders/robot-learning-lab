@@ -21,7 +21,9 @@ How it was built:
 | Roll-flip | hip-roll STS3250 case moved into the thigh, output bolted to the pitch-to-roll connector; roll axis stays at z 190 (owner D-12 / D-13, `robot/body/hip-shell/DECISIONS.md`) | 2026-11-16 onward |
 | Ape proportions | upper arm 55.6 → 87.2 mm (elbow and hand 32 mm lower), foot monocoque 60 x 86 → 78 x 112 mm (Idle T-gqwdrn) | 2026-11-19 |
 
-Motor refit changes (`artifacts/robot/body/motor-refit/report.json`):
+Motor refit changes (2026-11-12, T-jrnxfn; history: the refit report `artifacts/robot/body/motor-refit/report.json` was
+compiled by `robot/body/motor-refit/report.py` from stored outputs of the retired per-study sweep and FEM scripts and cannot
+be recreated, so both were removed 2026-11-25; the script and these numbers are in git history before that date, e.g. `eb1fccc92`):
 - Hip-pitch output faces +4 mm per side (spacing 118 → 126 mm). Knee and ankle output span 37.2 → 51.0 mm. Lower-pelvis
   cells lie horizontally on the midline.
 - Printed structure 476.3 → 492.0 g. Leg and arm servos 1,100 → 1,685 g. Model mass 3.830 → 4.495 kg
@@ -29,24 +31,15 @@ Motor refit changes (`artifacts/robot/body/motor-refit/report.json`):
 - The neck keeps its XM335 pair (owner, M-revtdr). The neck collar lost its front (6,033 → 2,558 mm³) because the head
   skin sweeps through it over neck pitch.
 
-Refit FEM, linear tetrahedral, p99 strength ratio (strength / p99 von Mises; higher is more margin):
-
-| Part | Worst body case, PAHT-CF dry | At servo stall, PAHT-CF dry | Lowest, PETG-CF | Lowest across layers, PAHT-CF dry |
-|---|---:|---:|---:|---:|
-| Shin | 14.9 | 10.8 | 8.0 | 6.1 |
-| Ankle coupler | 2.35 | 1.56 | 1.18 | 3.43 |
-| Thigh | 3.0 | 10.6 | 2.23 | 5.89 |
-| Hip pitch-to-roll | 2.29 | 1.70 (STS3250 stall, 4.9 N·m) | 1.28 | 2.14 |
-| Hip yaw-to-pitch | 1.91 | 9.38 | 1.43 | 4.59 |
-| Pelvis cradle | 60.6 | - | 45.7 | 44.5 |
-
-Worst body case for the leg parts: 6 kg at 1.5 g. Stall at 3.92 N·m (ST3025) unless noted. These are the pre-roll-flip
-connectors; the roll-flip connectors carry their own setups in `robot/body/checks/data/part_settings.json`.
+The refit's FEM table (pre-roll-flip connectors, retired evaluator, old material keys) is in git history with the report.
+The FEM of the current parts is the shared check, `robot/body/checks/run.py --checks fem,fem_setup`, with each part's
+setup in its body definition and the declared datasheet materials (`robot/body/checks/data/materials.json`).
 
 Joint ranges: the refit kept the per-joint ranges. Corner contacts between limbs, or a limb and the body, are
-handed to the WBC as self-collision limits (owner, 2026-11-12; `artifacts/robot/body/motor-refit/self-collision-limits.json`).
-The final sweeps list 47 such contact pairs over the hip pitch range, 27 over hip roll, 28 over the elbow, 22 over the
-knee.
+handed to the WBC as self-collision limits (owner, 2026-11-12). The refit's final sweeps listed 47 such contact pairs over
+the hip pitch range, 27 over hip roll, 28 over the elbow, 22 over the knee (its `self-collision-limits.json`, written by the
+same removed report script; git history). On the current body the `range_sweep`, `collision_sweep`, `clearance` and `fit`
+checks count and list these pairs (`other_limb_pairs`).
 
 Open on this body:
 - The WBC training plant still uses R3 kinematics; the 4 mm hip shift (and now roll-flip and ape proportions) needs a

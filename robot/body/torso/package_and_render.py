@@ -272,7 +272,7 @@ def should_include_neighbor_part(p: dict) -> bool:
     return True
 
 
-def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
+def package_family(fam: str, cand_man: dict) -> dict:
     fam_dir = common.ARTIFACT_DIR / fam
     fam_dir.mkdir(parents=True, exist_ok=True)
     parts_dir = common.ARTIFACT_DIR / "parts"
@@ -504,7 +504,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
 
     for stg_key in common.STAGES:
         if fam == "combined":
-            sel_fam = fem_rep["families"]["combined"]["stage_selections"][stg_key]["selected_family"]
+            sel_fam = common.CFG["COMBINED_WINNERS"][stg_key]   # the declared selection (build_torso_carriers.bom.yaml config)
         else:
             sel_fam = fam
 
@@ -777,7 +777,7 @@ def package_family(fam: str, cand_man: dict, fem_rep: dict) -> dict:
     }
 
 
-def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
+def render_comparison_charts(stage_meshes_by_fam: dict):
     renders_dir = common.ARTIFACT_DIR / "renders"
     renders_dir.mkdir(parents=True, exist_ok=True)
 
@@ -791,7 +791,8 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
         ("stage4_rear_imu_adc_carrier", "Stage 4: Dorsal IMU/ADC (14 sleeves)", [-0.42, 0.88, 0.22]),
     ]
 
-    # Row 0: Baseline parts
+    # Row 0: Baseline parts (masses from the baseline audit, audit_torso_baseline.py)
+    base_audit = read_json(common.ARTIFACT_DIR / "torso-baseline-audit.json")
     for c_idx, (st_key, st_title, v_dir) in enumerate(stage_titles):
         base_meshes = []
         for p in common.BASELINE_STAGE_SOURCES[st_key]:
@@ -799,7 +800,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
             base_meshes.append((st_key, bm, [142, 150, 160, 255]))
         im = raster_meshes(base_meshes, v_dir, W=480, H=330)
         canvas.paste(im, (c_idx * 480, 35))
-        b_mass = fem_rep["families"]["baseline_metal"]["stages"][st_key]["mass_g"]
+        b_mass = base_audit["stages"][st_key]["mass_g"]
         draw.text(
             (c_idx * 480 + 12, 10),
             f"{st_title} - Baseline ({b_mass:.2f} g)",
@@ -835,73 +836,14 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     out_stage_cad = renders_dir / "stage-by-stage-cad.png"
     canvas.save(out_stage_cad)
 
-    # 2. FEM stress, displacement, and Tsai-Hill index chart (`fem-stress-displacement-comparison.png`)
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5.2), dpi=160)
-    stages = list(common.STAGES)
-    short_labels = ["S1: Torso Spine", "S2: Pelvis Cradle", "S3: Power Tray", "S4: IMU/ADC"]
-    x = np.arange(len(stages))
-    w = 0.20
-
-    fams_plot = [
-        ("baseline_metal", "Baseline (AlSi10Mg + PA12)", "#7a8694"),
-        ("truss_box", "Family 1: Truss/Box (PAHT-CF)", "#2a8ab8"),
-        ("topopt", "Family 2: SIMP TopOpt (PAHT-CF)", "#1ca48e"),
-        ("combined", "Combined Optimal (PAHT-CF)", "#d48634"),
-    ]
-    for idx, (fk_name, label, col) in enumerate(fams_plot):
-        u_vals = []
-        p99_vals = []
-        sf_vals = []
-        for st in stages:
-            st_block = fem_rep["families"][fk_name]["stages"][st]
-            m_key = st_block.get("baseline_material", "PAHT_CF_dry") if fk_name == "baseline_metal" else "PAHT_CF_dry"
-            row = st_block["materials"][m_key]["combined_shoulder_hip_neck_stall"]
-            u_vals.append(row["disp_max_mm"])
-            p99_vals.append(row["vm_p99_mpa"])
-            sf_vals.append(round(1.0 / max(row["tsai_hill_p99"], 0.02), 2))
-        axes[0].bar(x + (idx - 1.5) * w, u_vals, width=w, label=label, color=col)
-        axes[1].bar(x + (idx - 1.5) * w, p99_vals, width=w, label=label, color=col)
-        axes[2].bar(x + (idx - 1.5) * w, sf_vals, width=w, label=label, color=col)
-
-    axes[0].set_title("Peak Deflection @ Multi-Limb Stall (mm)")
-    axes[0].set_xticks(x, short_labels, rotation=15)
-    axes[0].grid(axis="y", alpha=0.3)
-    axes[0].legend(fontsize=8)
-
-    axes[1].set_title("Von Mises p99 Stress @ Stall (MPa)")
-    axes[1].set_xticks(x, short_labels, rotation=15)
-    axes[1].grid(axis="y", alpha=0.3)
-
-    axes[2].set_title("Orthotropic Tsai-Hill Margin (1 / TH_p99)")
-    axes[2].set_xticks(x, short_labels, rotation=15)
-    axes[2].grid(axis="y", alpha=0.3)
-
-    fig.suptitle(
-        "APE0 4-Stage Center-Body Torso FDM Carriers — Matched 3D Tetrahedral FEM (Combined Multi-Limb Stall)",
-        fontsize=12,
-        fontweight="bold",
-    )
-    fig.tight_layout()
-    out_fem = renders_dir / "fem-stress-displacement-comparison.png"
-    fig.savefig(out_fem)
-    plt.close(fig)
-
-    # 3. Weight-to-strength + FDM Print-Bed Footprint comparison (`weight-to-strength-chart.png`)
-    base_audit = read_json(common.ARTIFACT_DIR / "torso-baseline-audit.json")
+    # 3. Mass + FDM print-bed footprint comparison (`weight-to-strength-chart.png`; the chain-deflection panel of the retired FEM
+    # evaluation, torso-fem-results.json, was removed 2026-11-25)
     base_mass_g = float(base_audit["total_baseline_mass_g"])
     man_tb = read_json(common.ARTIFACT_DIR / "truss_box" / "manifest.json")
     man_tp = read_json(common.ARTIFACT_DIR / "topopt" / "manifest.json")
     man_cb = read_json(common.ARTIFACT_DIR / "combined" / "manifest.json")
 
-    def _rss_u(fk: str) -> float:
-        vals = []
-        for st in stages:
-            st_block = fem_rep["families"][fk]["stages"][st]
-            m_key = st_block.get("baseline_material", "PAHT_CF_dry") if fk == "baseline_metal" else "PAHT_CF_dry"
-            vals.append(st_block["materials"][m_key]["combined_shoulder_hip_neck_stall"]["disp_max_mm"] ** 2)
-        return float(np.sqrt(sum(vals)))
-
-    fig, axes = plt.subplots(1, 3, figsize=(16.5, 5.0), dpi=160)
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 5.0), dpi=160)
     names = ["Baseline\n(AlSi10Mg + 6 PA12)", "Family 1\n(Truss/Box)", "Family 2\n(SIMP TopOpt)", "Combined\nOptimal"]
     cols = ["#7a8694", "#2a8ab8", "#1ca48e", "#d48634"]
     masses = [
@@ -910,7 +852,6 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
         man_tp["total_4stage_mass_paht_cf_g"],
         man_cb["total_4stage_mass_paht_cf_g"],
     ]
-    rss_u = [_rss_u("baseline_metal"), _rss_u("truss_box"), _rss_u("topopt"), _rss_u("combined")]
 
     axes[0].bar(names, masses, color=cols, width=0.52)
     axes[0].set_title("4-Stage Torso Mass incl. 56 Sleeves (g)")
@@ -919,14 +860,7 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
     for i, v in enumerate(masses):
         axes[0].text(i, v + 3.0, f"{v:.2f} g", ha="center", fontweight="bold", fontsize=9)
 
-    axes[1].bar(names, rss_u, color=cols, width=0.52)
-    axes[1].set_title("4-Stage RSS Deflection @ Multi-Limb Stall (mm)")
-    axes[1].set_ylabel("RSS Displacement (mm)")
-    axes[1].grid(axis="y", alpha=0.3)
-    for i, v in enumerate(rss_u):
-        axes[1].text(i, v + 0.06, f"{v:.2f} mm", ha="center", fontweight="bold", fontsize=9)
-
-    # Panel 3: Print-bed envelope comparison (max dimension of each stage vs 256 mm and 350 mm FDM print beds)
+    # Panel 2: Print-bed envelope comparison (max dimension of each stage vs 256 mm and 350 mm FDM print beds)
     s1_max = max(man_cb["stages"]["stage1_center_torso_spine_chassis"]["extents_mm"])
     s2_max = max(man_cb["stages"]["stage2_lower_pelvis_battery_cradle"]["extents_mm"])
     s3_max = max(man_cb["stages"]["stage3_front_power_electronics_carrier"]["extents_mm"])
@@ -939,21 +873,21 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
         "Full 4-Stage\n(193.0 mm)",
     ]
     max_dims = [s1_max, s2_max, s3_max, s4_max, 193.0]
-    axes[2].bar(bed_labels, max_dims, color=["#2a8ab8", "#1ca48e", "#d48634", "#409cd4", "#5c6b7a"], width=0.52)
-    axes[2].axhline(256.0, color="#c93b2b", linestyle="--", linewidth=1.8, label="Standard 26x26 cm Bed (256 mm)")
-    axes[2].axhline(350.0, color="#2e7d32", linestyle=":", linewidth=1.8, label="Large 35x35 cm Bed (350 mm)")
-    axes[2].set_ylim(0, 385)
-    axes[2].set_title("Max Span vs 26x26 cm & 35x35 cm FDM Beds (mm)")
-    axes[2].set_ylabel("Max Bounding Dimension (mm)")
-    axes[2].grid(axis="y", alpha=0.3)
-    axes[2].legend(fontsize=8, loc="upper left")
+    axes[1].bar(bed_labels, max_dims, color=["#2a8ab8", "#1ca48e", "#d48634", "#409cd4", "#5c6b7a"], width=0.52)
+    axes[1].axhline(256.0, color="#c93b2b", linestyle="--", linewidth=1.8, label="Standard 26x26 cm Bed (256 mm)")
+    axes[1].axhline(350.0, color="#2e7d32", linestyle=":", linewidth=1.8, label="Large 35x35 cm Bed (350 mm)")
+    axes[1].set_ylim(0, 385)
+    axes[1].set_title("Max Span vs 26x26 cm & 35x35 cm FDM Beds (mm)")
+    axes[1].set_ylabel("Max Bounding Dimension (mm)")
+    axes[1].grid(axis="y", alpha=0.3)
+    axes[1].legend(fontsize=8, loc="upper left")
     for i, v in enumerate(max_dims):
-        axes[2].text(i, v + 6.0, f"{v:.1f} mm", ha="center", fontweight="bold", fontsize=8.5)
+        axes[1].text(i, v + 6.0, f"{v:.1f} mm", ha="center", fontweight="bold", fontsize=8.5)
 
     cb_mass_g = man_cb["total_4stage_mass_paht_cf_g"]
     mass_red_pct = 100.0 * (base_mass_g - cb_mass_g) / base_mass_g
     fig.suptitle(
-        f"APE0 Honeycomb Torso — {mass_red_pct:.1f}% Mass Reduction ({base_mass_g:.2f} g -> {cb_mass_g:.2f} g), Chain Deflection & FDM Bed Fit",
+        f"APE0 Honeycomb Torso — {mass_red_pct:.1f}% Mass Reduction ({base_mass_g:.2f} g -> {cb_mass_g:.2f} g) & FDM Bed Fit",
         fontsize=11,
         fontweight="bold",
     )
@@ -996,15 +930,14 @@ def main():
     a = ap.parse_args()
     fams = [f for f in a.families.split(",") if f]
     cand_man = read_json(common.ARTIFACT_DIR / "torso-candidates-manifest.json")
-    fem_rep = read_json(common.ARTIFACT_DIR / "torso-fem-results.json")
     stage_meshes_by_fam = {}
     for fam in fams:
-        res = package_family(fam, cand_man, fem_rep)
+        res = package_family(fam, cand_man)
         stage_meshes_by_fam[fam] = res["stage_meshes"]
         print(f"Packaged {fam}: {res['glb_path'].name} and {res['step_path'].name}")
     if set(fams) >= {"truss_box", "topopt", "combined"}:
-        # the old three-family comparison; the published FEM chart is drawn by the publisher from fem-evidence.json
-        render_comparison_charts(stage_meshes_by_fam, fem_rep)
+        # the three-family CAD / mass comparison; the published FEM chart is drawn by the publisher from fem-evidence.json
+        render_comparison_charts(stage_meshes_by_fam)
         print("Rendered all comparison figures in", common.ARTIFACT_DIR / "renders")
 
 

@@ -43,7 +43,6 @@ from common import (
     ART,
     MATERIALS,
     PRINTED,
-    ALT_PRINTED,
     write_json,
     rel,
     sha,
@@ -579,7 +578,6 @@ def build_stage6_yaw_to_pitch(family: str, side: str) -> tuple[Solid, list[Solid
 
 def build_all_upper_hip():
     rho_paht = PRINTED["density_g_cm3"] * 1e-3      # the definition's PRINTED_MATERIAL (study families no entry claims)
-    rho_petg = ALT_PRINTED["density_g_cm3"] * 1e-3
     rho_steel = MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3
 
     for family in ("truss_box", "topopt"):
@@ -613,7 +611,6 @@ def build_all_upper_hip():
             vol = float(sol.volume)
             sl_vol = float(sum(s.volume for s in sleeves))
             m_paht = round(vol * rho_paht, 3)
-            m_petg = round(vol * rho_petg, 3)
             m_sl = round(sl_vol * rho_steel, 3)
 
             manifest_parts.append({
@@ -630,7 +627,6 @@ def build_all_upper_hip():
                 "native_solids": len(sol.solids()),
                 "volume_mm3": round(vol, 3),
                 "polymer_mass_g_PAHT_CF": m_paht,
-                "polymer_mass_g_PETG_CF": m_petg,
                 "bounds_mm": [[round(bb.min.X, 3), round(bb.min.Y, 3), round(bb.min.Z, 3)], [round(bb.max.X, 3), round(bb.max.Y, 3), round(bb.max.Z, 3)]],
                 "sleeves": {
                     "name": sl_name,
@@ -1669,7 +1665,7 @@ def build_roll_flip(stage5_only: bool = False):
     """All four roll-flip connectors, or (stage5_only) only Stage 5: the Stage 4 files and its cad-manifest rows stay as
     they are (its STEP is read back for the Stage 4 to Stage 5 clearance)."""
     import json
-    rho = {"PETG_CF": rf_density("Bambu PETG-CF"), "Steel_Sleeve": MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3}
+    rho = {"Steel_Sleeve": MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3}
     parts_dir = RF_ART / "parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
     prev = json.loads((RF_ART / "cad-manifest.json").read_text()) if stage5_only else None
@@ -1704,7 +1700,6 @@ def build_roll_flip(stage5_only: bool = False):
             "centroid_mm": [round(c.X, 3), round(c.Y, 3), round(c.Z, 3)],
             # polymer mass = solid volume x the density of the part's material setting (manifest mass_kg reads this)
             "polymer_material": mat, "polymer_density_g_cm3": round(rho_p * 1e3, 4), "polymer_mass_g": round(vol * rho_p, 3),
-            "polymer_mass_g_PETG_CF": round(vol * rho["PETG_CF"], 3),
             "bounds_mm": [[round(bb.min.X, 3), round(bb.min.Y, 3), round(bb.min.Z, 3)], [round(bb.max.X, 3), round(bb.max.Y, 3), round(bb.max.Z, 3)]],
             "sleeves": {"name": sl_name, "native_step": rel(sl_step), "native_step_sha256": sha(sl_step), "mesh": rel(sl_stl),
                         "mesh_sha256": sha(sl_stl), "count": len(sleeves), "volume_mm3": round(sl_vol, 3),

@@ -72,10 +72,6 @@ study:
     path: robot/body/bom/README.md
   - label: Selected design pointer (body manifest, selections)
     path: robot/design.json
-  - label: 'Motor-refit version (2026-11-12..20, T-jrnxfn): refit report with masses, gaps, FEM and collision sweeps against r1'
-    path: artifacts/robot/body/motor-refit/report.json
-  - label: 'Motor-refit version: self-collision limits for the WBC (corner contacts between limbs, owner decision: controller limits)'
-    path: artifacts/robot/body/motor-refit/self-collision-limits.json
   cad:
     label: Selected complete body (display GLB of the manifest)
     show_shells: true

@@ -421,7 +421,6 @@ def main() -> None:
 
             vol_mm3 = float(exp_info["step_volume_mm3"])
             poly_mass_g = vol_mm3 * 1e-3 * common.PRINTED["density_g_cm3"]
-            petg_mass_g = vol_mm3 * 1e-3 * common.ALT_PRINTED["density_g_cm3"]
             total_mass_g = poly_mass_g + slv_mass_g
 
             curv = common.compute_edge_curvature_metrics(step_path, bevel_info["r_inner_mm"], bevel_info["r_outer_mm"])
@@ -433,7 +432,6 @@ def main() -> None:
                 "sleeve_stl_path": str(slv_stl_path.relative_to(ROOT)),
                 "polymer_volume_mm3": round(vol_mm3, 2),
                 "polymer_mass_paht_cf_g": round(poly_mass_g, 3),
-                "polymer_mass_petg_cf_g": round(petg_mass_g, 3),
                 "sleeve_volume_mm3": round(slv_vol_mm3, 2),
                 "sleeve_mass_ss304_g": round(slv_mass_g, 3),
                 "total_stage_mass_g": round(total_mass_g, 3),
@@ -458,14 +456,8 @@ def main() -> None:
     print(f"Wrote {out_path.relative_to(ROOT)} in {time.monotonic() - t0:.2f}s")
 
 
-# Stage winners of the combined family (the selected body's choice; chosen from the old matched FEM comparison, now retired:
-# robot/body/checks fem runs the per-part setups on the chosen parts).
-COMBINED_WINNERS = {
-    "stage1_center_torso_spine_chassis": "truss_box",
-    "stage2_lower_pelvis_battery_cradle": "topopt",
-    "stage3_front_power_electronics_carrier": "truss_box",
-    "stage4_rear_imu_adc_carrier": "topopt",
-}
+# Stage winners of the combined family: the declared selection (build_torso_carriers.bom.yaml config COMBINED_WINNERS).
+COMBINED_WINNERS = common.CFG["COMBINED_WINNERS"]
 
 
 def assemble_combined() -> None:

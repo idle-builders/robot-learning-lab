@@ -31,6 +31,7 @@ from build123d import (
 from common import (
     ART,
     PRINTED,
+    COMBINED_WINNERS,
     STAGE_LINKS,
     STAGE_PART_BASENAMES,
     bevel_3d_edges,
@@ -771,16 +772,13 @@ def main():
             })
             print(f"Built {part_name:38s}: vol={vol:7.1f} mm^3 | poly={poly_mass:5.2f}g + sleeves={slv_mass:4.2f}g = {poly_mass+slv_mass:5.2f}g ({time.time()-t_s:.2f}s)")
 
-    # Per-stage winners of the combined family: the stored selection of the selected body's combined manifest (it came from the
-    # old FEM comparison, which is retired; robot/body/checks fem runs the per-part setups instead).
-    import json
-    stored = json.loads((ART / "combined" / "manifest.json").read_text())["stages"]
-    fem_rep = {"combined_selection": {k: {"selected_family": v["selected_family"]} for k, v in stored.items()}}
+    # Per-stage winners of the combined family: the declared selection (build_neck_head_connectors.bom.yaml config COMBINED_WINNERS).
+    combined_selection = {k: {"selected_family": COMBINED_WINNERS[k]} for k in STAGE_PART_BASENAMES}
 
     # Copy selected per-stage winners into `combined__<basename>.step/.stl/.npz`
     candidate_steps["combined"] = {}
     for stg_key, bname in STAGE_PART_BASENAMES.items():
-        win_fam = fem_rep["combined_selection"][stg_key]["selected_family"]
+        win_fam = COMBINED_WINNERS[stg_key]
         src_base = f"{win_fam}__{bname}"
         dst_base = f"combined__{bname}"
         for ext in (".step", ".stl", ".npz"):
@@ -792,7 +790,7 @@ def main():
         "elapsed_s": round(time.time() - t0, 2),
         "parts": manifest_parts,
         "sleeves_by_stage": sleeves_by_stage,
-        "combined_selection": fem_rep["combined_selection"],
+        "combined_selection": combined_selection,
     }
     write_json(ART / "neck-head-build-summary.json", summary)
     print(f"Build finished in {time.time() - t0:.1f}s; checks: robot/body/checks/run.py (no gates here).")

@@ -161,7 +161,6 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
 
 MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
 PRINTED = BOM_CONFIG.material_row(CFG["PRINTED_MATERIAL"])          # study-family parts no definition claims; claimed parts: BOM_CONFIG.mass_kg
-ALT_PRINTED = BOM_CONFIG.material_row(CFG["ALT_PRINTED_MATERIAL"])  # the alternative print material the study builders report a mass for
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):

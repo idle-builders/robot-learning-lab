@@ -37,6 +37,7 @@ from common import (
     P_NECK_YAW,
     REPLACED_NECK_HEAD_PARTS,
     ROOT,
+    COMBINED_WINNERS,
     STAGE_LINKS,
     STAGE_PART_BASENAMES,
     classify_neck_head_link,
@@ -133,7 +134,7 @@ def source_part_rgba(p: dict) -> list[int]:
     return [128, 136, 146, 255]
 
 
-def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
+def package_family(fam: str, build_sum: dict) -> dict:
     fam_dir = ART / fam
     fam_dir.mkdir(parents=True, exist_ok=True)
     ec = read_json(EC_MANIFEST)
@@ -220,7 +221,7 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
 
     for stg_key, bname in STAGE_PART_BASENAMES.items():
         if fam == "combined":
-            sel_fam = fem_rep["combined_selection"][stg_key]["selected_family"]
+            sel_fam = COMBINED_WINNERS[stg_key]   # the declared selection (build_neck_head_connectors.bom.yaml config)
         else:
             sel_fam = fam
         p_rec = next(
@@ -441,7 +442,7 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
     }
 
 
-def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
+def render_comparison_charts(stage_meshes_by_fam: dict):
     renders_dir = ART / "renders"
     renders_dir.mkdir(parents=True, exist_ok=True)
 
@@ -455,14 +456,16 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
         ("stage4_head_sensor_compute_carrier", "Stage 4: Sensor/Compute Carrier (14 sleeves)", [0.35, -0.88, 0.25]),
     ]
 
-    # Row 0: Baseline parts
+    # Row 0: Baseline parts (masses from the baseline audit, audit_neck_head_baseline.py)
+    base_audit = read_json(ART / "neck-head-baseline-audit.json")
     for c_idx, (st_key, st_title, v_dir) in enumerate(stage_titles):
         b_sol = import_step(str(require(BASELINE_STEPS[st_key])))
         bv, bf = solid_to_watertight_arrays(b_sol, tol=0.05)
         bm = trimesh.Trimesh(vertices=bv, faces=bf, process=False)
         im = raster_meshes([(st_key, bm, [142, 150, 160, 255])], v_dir, W=480, H=330)
         canvas.paste(im, (c_idx * 480, 35))
-        b_mass = fem_rep["stages"][st_key]["baseline_metal"]["materials"]["Al5052_H32"]["polymer_or_base_mass_g"]
+        b_st = base_audit["stages"][st_key]
+        b_mass = b_st.get("combined_baseline_mass_g", b_st["baseline_mass_g"])
         draw.text(
             (c_idx * 480 + 12, 10),
             f"{st_title} - Baseline ({b_mass:.2f} g)",
@@ -496,66 +499,13 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
             )
     canvas.save(renders_dir / "stage-by-stage-cad.png")
 
-    # 2. FEM stress, displacement, and strength margin chart (`fem-stress-displacement-comparison.png`)
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5.2), dpi=160)
-    stages = list(STAGE_PART_BASENAMES.keys())
-    short_labels = ["S1: Root Cradle", "S2: Yaw->Pitch", "S3: Pitch->Head", "S4: Head Carrier"]
-    x = np.arange(len(stages))
-    w = 0.20
-
-    fams_plot = [
-        ("baseline_metal", "Baseline (Metal/PA12)", "#7a8694"),
-        ("truss_box", "Family 1: Truss/Box (PAHT-CF)", "#2a8ab8"),
-        ("topopt", "Family 2: SIMP TopOpt (PAHT-CF)", "#1ca48e"),
-        ("combined", "Combined Optimal (PAHT-CF)", "#d48634"),
-    ]
-    for idx, (fk_name, label, col) in enumerate(fams_plot):
-        u_vals = []
-        p99_vals = []
-        sf_vals = []
-        for st in stages:
-            m_key = "Al5052_H32" if fk_name == "baseline_metal" else "PAHT_CF_dry"
-            row = fem_rep["stages"][st][fk_name]["materials"][m_key]["load_cases"]["adverse_neck_stall"]
-            u_vals.append(row["max_displacement_mm"])
-            p99_vals.append(row["p99_von_mises_MPa"])
-            sf_vals.append(row["strength_ratio_inplane_p99"])
-        axes[0].bar(x + (idx - 1.5) * w, u_vals, width=w, label=label, color=col)
-        axes[1].bar(x + (idx - 1.5) * w, p99_vals, width=w, label=label, color=col)
-        axes[2].bar(x + (idx - 1.5) * w, sf_vals, width=w, label=label, color=col)
-
-    axes[0].set_title("Peak Deflection @ Dual-Axis Stall (mm)")
-    axes[0].set_xticks(x, short_labels, rotation=15)
-    axes[0].grid(axis="y", alpha=0.3)
-    axes[0].legend(fontsize=8)
-
-    axes[1].set_title("Von Mises p99 Stress @ Stall (MPa)")
-    axes[1].set_xticks(x, short_labels, rotation=15)
-    axes[1].grid(axis="y", alpha=0.3)
-
-    axes[2].set_title("In-Plane p99 Strength Ratio (SF)")
-    axes[2].set_xticks(x, short_labels, rotation=15)
-    axes[2].grid(axis="y", alpha=0.3)
-
-    fig.suptitle("APE0 4-Stage Neck & Head FDM Connectors — Matched 3D Tetrahedral FEM (Dual-Axis Stall Wrench)", fontsize=12, fontweight="bold")
-    fig.tight_layout()
-    fig.savefig(renders_dir / "fem-stress-displacement-comparison.png")
-    plt.close(fig)
-
-    # 3. Weight-to-strength & 4-stage mass comparison chart (`weight-to-strength-chart.png`)
-    base_audit = read_json(ART / "neck-head-baseline-audit.json")
+    # 3. 4-stage mass comparison chart (`weight-to-strength-chart.png`; the chain-deflection panel of the retired FEM evaluation was removed 2026-11-25)
     base_mass_g = float(base_audit["total_baseline_mass_g"])
     man_tb = read_json(ART / "truss_box" / "manifest.json")
     man_tp = read_json(ART / "topopt" / "manifest.json")
     man_cb = read_json(ART / "combined" / "manifest.json")
 
-    def _rss_u(fk: str) -> float:
-        m_key = "Al5052_H32" if fk == "baseline_metal" else "PAHT_CF_dry"
-        return float(np.sqrt(sum(
-            fem_rep["stages"][st][fk]["materials"][m_key]["load_cases"]["adverse_neck_stall"]["max_displacement_mm"] ** 2
-            for st in stages
-        )))
-
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5.0), dpi=160)
+    fig, ax = plt.subplots(1, 1, figsize=(6.5, 5.0), dpi=160)
     names = ["Baseline\n(Legacy 14 Parts)", "Family 1\n(Truss/Box)", "Family 2\n(SIMP TopOpt)", "Combined\nOptimal"]
     cols = ["#7a8694", "#2a8ab8", "#1ca48e", "#d48634"]
     masses = [
@@ -564,23 +514,15 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
         man_tp["total_4stage_mass_paht_cf_g"],
         man_cb["total_4stage_mass_paht_cf_g"],
     ]
-    rss_u = [_rss_u("baseline_metal"), _rss_u("truss_box"), _rss_u("topopt"), _rss_u("combined")]
 
-    axes[0].bar(names, masses, color=cols, width=0.52)
-    axes[0].set_title("4-Stage Neck & Head Connector Mass Including 34 Sleeves (g)")
-    axes[0].set_ylabel("Total 4-stage mass (g)")
-    axes[0].grid(axis="y", alpha=0.3)
+    ax.bar(names, masses, color=cols, width=0.52)
+    ax.set_title("4-Stage Neck & Head Connector Mass Including 34 Sleeves (g)")
+    ax.set_ylabel("Total 4-stage mass (g)")
+    ax.grid(axis="y", alpha=0.3)
     for i, v in enumerate(masses):
-        axes[0].text(i, v + 0.8, f"{v:.2f} g", ha="center", fontweight="bold", fontsize=9)
+        ax.text(i, v + 0.8, f"{v:.2f} g", ha="center", fontweight="bold", fontsize=9)
 
-    axes[1].bar(names, rss_u, color=cols, width=0.52)
-    axes[1].set_title("4-Stage RSS Chain Deflection @ Dual-Axis Stall (mm)")
-    axes[1].set_ylabel("RSS Displacement (mm)")
-    axes[1].grid(axis="y", alpha=0.3)
-    for i, v in enumerate(rss_u):
-        axes[1].text(i, v + 0.02, f"{v:.3f} mm", ha="center", fontweight="bold", fontsize=9)
-
-    fig.suptitle("APE0 Neck & Head Architecture — Mass Savings (14 Legacy Parts -> 4 Monocoque Stages) & Chain Deflection", fontsize=11, fontweight="bold")
+    fig.suptitle("APE0 Neck & Head Architecture — Mass Savings (14 Legacy Parts -> 4 Monocoque Stages)", fontsize=11, fontweight="bold")
     fig.tight_layout()
     fig.savefig(renders_dir / "weight-to-strength-chart.png")
     plt.close(fig)
@@ -608,13 +550,12 @@ def render_comparison_charts(stage_meshes_by_fam: dict, fem_rep: dict):
 
 def main():
     build_sum = read_json(ART / "neck-head-build-summary.json")
-    fem_rep = read_json(ART / "neck-head-fem-evaluation.json")
     stage_meshes_by_fam = {}
     for fam in ("truss_box", "topopt", "combined"):
-        res = package_family(fam, build_sum, fem_rep)
+        res = package_family(fam, build_sum)
         stage_meshes_by_fam[fam] = res["stage_meshes"]
         print(f"Packaged {fam}: {res['glb_path'].name} and {res['step_path'].name}")
-    render_comparison_charts(stage_meshes_by_fam, fem_rep)
+    render_comparison_charts(stage_meshes_by_fam)
     print("Rendered all comparison figures in", ART / "renders")
 
 

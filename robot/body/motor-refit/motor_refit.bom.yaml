@@ -21,8 +21,7 @@ generators:
   - artifacts/robot/body/motor-refit/assembly-parts.json
   - artifacts/robot/body/motor-refit/parts
   manifest_out: artifacts/robot/body/motor-refit/assembly-parts.json
-  notes: Official ST3025 STEP from artifacts/robot/actuators. robot/body/motor-refit/package.py (GLB, skeleton STEP, renders) is presentation
-    only; no later step reads its outputs, so it is not in the chain.
+  notes: Official ST3025 STEP from artifacts/robot/actuators.
   after:
   - assembly
 parts:
@@ -762,14 +761,7 @@ config:
     value: {x: 0, y: 1, z: 2}
   BIG:
     value: 2000.0
-  # robot/body/motor-refit/package.py module constants (moved 2026-11-24)
-  # robot/body/motor-refit/report.py module constants (moved 2026-11-24)
-  LEG:
-    value: [yaw_link, pitch_link, roll_link, shin, ankle_pitch, foot]
   # robot/body/motor-refit/motor_refit.py module constants (moved 2026-11-24)
   RANGE_NOTCHES:
     value: [[R_fore_front_hard_cover, R_upper_arm_hard_cover, [R_elbow, R_shoulder_yaw], 5.0], [L_fore_front_hard_cover, L_upper_arm_hard_cover, [L_elbow, L_shoulder_yaw], 5.0], [head_neck_collar, original_profile_head_skin_v23, [neck_pitch], 2.5], [head_neck_collar, combined__neck_pitch_to_head_cradle, [neck_pitch], 2.5], [original_profile_head_skin_v23, combined__neck_yaw_to_pitch_link, [neck_pitch], 2.5], [R_shin_front_hard_cover, R_B13_C047_foot_roll_case, [R_ankle_pitch, R_ankle_roll], 5.0], [L_shin_front_hard_cover, L_B13_C047_foot_roll_case, [L_ankle_pitch, L_ankle_roll], 5.0]]
     doc: '(target shell, tool part, joints swept, grid step deg): contacts inside one limb''s own range (r1)'
-  # robot/body/motor-refit/report.py module constants (moved 2026-11-24)
-  INTERFACES:
-    value: [[R_thigh_combined, R_knee_ST3025_case], [R_shin_combined, R_knee_ST3025_output], [R_shin_combined, R_ankle_pitch_ST3025_case], [R_ankle_coupler_combined, R_ankle_pitch_ST3025_output], [R_hip_pitch_to_roll_combined, R_hip_pitch_ST3025_output], [R_hip_yaw_to_pitch_combined, R_hip_pitch_ST3025_case]]
