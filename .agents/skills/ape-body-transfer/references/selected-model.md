@@ -2,8 +2,8 @@
 
 Resolve `robot/model/current-model.json` at the start of work on the
 selected robot. Record that pointer's SHA and the exact referenced inputs in
-the run. It is the model selector; `robot/design.json` identifies
-the selected mechanical/electronics CAD source. Historical checkpoint body
+the run. It is the model selector; the mechanical/electronics CAD source is the BOM
+body declared in `body:` in `robot/body/complete_body.bom.yaml` (the model is not generated from it yet). Historical checkpoint body
 overrides in the September shelf (`skills/ape/registry.json`, commit `6fbb278e4`) describe those checkpoints' source
 embodiments, not the current transfer target.
 

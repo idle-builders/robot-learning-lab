@@ -4,8 +4,6 @@ The tree holds the current robot, the current control system and the infrastruct
 
 ```
 robot/          the current robot, as code
-  design.json   what is selected, part by part
-  inputs.json   pinned outputs of earlier designs that the current build reads
   body/         printed FDM structure: leg, arm, neck-head, torso, assembly, motor-refit
   actuators/    catalog, joint bank, selection (tier pick), source geometry
   electronics/  integration build, power, sensing, compute (head)
@@ -41,7 +39,7 @@ Not checked in: generated geometry, renders, FEM fields, traces, checkpoints and
 
 - **Design.** One folder per part, named by content, edited in place. A version is a commit. Publish with `results_hub.py publish` naming the folder in `source`; the dashboard keeps the previous version as `study_id@commit` and shows each version's own outputs.
 - **Control.** The training setup is in Git. A run is the commit plus the configuration, and its outputs are kept under its run id. Promoting a policy is a commit that updates that part's `registry.json`.
-- **Inputs from earlier designs.** `robot/inputs.json` pins each output of an earlier design that the current build reads: path, SHA-256, the tag of the design that made it and its build command. A fresh clone restores these from the bucket, or rebuilds them by checking out the tag.
+- **Inputs from earlier designs.** Every file the body reads is a declared generator input or output, or, where no generator can recreate it any more, a `pinned` entry of a body definition (path, producer, why it cannot be rerun). A fresh clone restores them from the bucket by path.
 - **History.** Designs that are no longer current exist only in Git history. Each kept dashboard version has an annotated tag `design/<study>` on the commit where its sources exist as built; `git checkout design/<study>` gives the full tree of that time. The `history/*` tags are listed in `git-and-bookkeeping.md`. These tags and the history before 2026-11-20 are on the owner's computer only, not in the public repository (`public-upstream.md`).
 
 ## Fresh clone

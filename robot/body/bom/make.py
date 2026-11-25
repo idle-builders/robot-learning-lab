@@ -5,7 +5,7 @@ The scripts are the source of truth; generated files are momentary, built when s
 
   .venv/bin/python -B robot/body/bom/make.py status TARGET   # what TARGET needs: reused / out of date, and why (seconds)
   .venv/bin/python -B robot/body/bom/make.py TARGET ...      # restore or run only TARGET and the generators it needs
-     TARGET: a generator id (neck-collar), `body` (the selected body manifest), an artifact path, or a part name of the
+     TARGET: a generator id (neck-collar), `body` (the declared body manifest), an artifact path, or a part name of the
      selected body (R_thigh_shell_front); checks/run.py prints the out-of-date generators behind the manifest it checks
   .venv/bin/python -B robot/body/bom/make.py status          # every generator
   .venv/bin/python -B robot/body/bom/make.py                 # restore or run every generator in order, in this checkout
@@ -46,6 +46,7 @@ ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import definitions as DEF  # noqa: E402
 import gencache as GC  # noqa: E402
+import bom_config  # noqa: E402
 
 GENSITE = HERE / "gensite"
 DEFAULT_RES = dict(limit_gb=6, timeout_s=900)
@@ -281,7 +282,7 @@ def make(status_only=False, run_sections=(), only=None, upto=None, quiet=False, 
     n = {k: sum(s["action"] == k for s in summary) for k in ("reused", "ran", "runs", "as-is")}
     print(f"make{' status' if status_only else ''}: {n['reused']} reused, {n['ran'] if not status_only else n['runs']} "
           f"{'ran' if not status_only else 'would run'}, {n['as-is']} section builders as they are; {time.time() - t_all:.0f} s; "
-          f"selected body {json.loads((ROOT / 'robot/design.json').read_text())['body_manifest']}")
+          f"body {bom_config.body_manifest()}")
     return 0, summary
 
 
@@ -334,11 +335,11 @@ def generator_deps(D) -> dict:
 
 def targets(words):
     """({generator ids incl. everything upstream}, [what each word resolved to]). A word is a generator id, `body` (the
-    selected body manifest of robot/design.json), a repository path (file or folder) or a part name of the selected body."""
+    declared body manifest, bom_config.body_manifest()), a repository path (file or folder) or a part name of the body."""
     D = DEF.load()
     order = D.generator_order()
     deps = generator_deps(D)
-    body = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    body = bom_config.body_manifest(D)
     parts = None
     want, named = set(), []
     for w in words:
@@ -415,7 +416,7 @@ def report():
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("words", nargs="*", metavar="[make|status|gc] [TARGET ...]",
-                    help="targets: generator ids, `body` (the selected body manifest), artifact paths or manifest part names; "
+                    help="targets: generator ids, `body` (the declared body manifest), artifact paths or manifest part names; "
                          "each brings in the generators it needs; none = every generator")
     ap.add_argument("--run", default="", help="section builders (rebuild false) to run here too, comma-separated ids")
     ap.add_argument("--only", default="", help="only these generator ids (assumes the others are current)")

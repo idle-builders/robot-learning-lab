@@ -1,29 +1,22 @@
-# The selected complete body as a design-dashboard study (schema robot/body/bom/schema.json `study`).
-# robot/body/bom/publish_body.py generates the record from this block, the selected manifest (robot/design.json
-# body_manifest), every body definition and the rebuild outputs (BOM, assembly order, check reports). It declares no
-# parts: they come from the builders' definitions. Edit the text here when the study's story changes; a redesign needs
-# no edit here.
+# The robot body (schema robot/body/bom/schema.json `body`) and its design-dashboard study (`study`).
+# `body.manifest` is the body every tool uses by default (make.py body, the checks, the BOM, publish_body.py), read through
+# robot/body/bom/bom_config.py body_manifest(); the robot is the sum of the parts the definitions declare in it.
+# robot/body/bom/publish_body.py generates the record from the study block, that manifest, every body definition and the
+# rebuild outputs (BOM, assembly order, check reports). It declares no parts: they come from the builders' definitions.
+# Edit the text here when the study's story changes; a redesign needs no edit here.
 schema: cove50-body-definition/1
 definition: complete-body-study
 owner: BOM / dashboard (T-zmmdkm)
-doc: Study metadata of the selected complete printed body; no generators, parts or steps of its own.
+doc: The robot body manifest and the study metadata of the complete printed body; no generators, parts or steps of its own.
+body:
+  manifest: artifacts/robot/body/arm/arm-shell/assembly-parts-arm-shell.json
+  study: cove50-complete-fdm-body
+  doc: The manifest_out of the last generator of the body chain (arm-shell, robot/body/arm/arm_shell.bom.yaml).
 study:
   study_id: cove50-complete-fdm-body
   title: Complete printed body
-  robot_sections:
-  - Whole robot
-  - Waist / pelvis
-  - Hip
-  - Knee
-  - Ankle / foot
-  - Torso / shell
-  - Shoulder
-  - Elbow
-  - Neck / head
-  - Hand / wrist
-  - Electronics
   workspace: Body
-  summary: 'The selected APE0 body (robot/design.json body_manifest): every part with its BOM line, files, generator, assembly step and latest
+  summary: 'The APE0 body (the declared body manifest): every part with its BOM line, files, generator, assembly step and latest
     check measurements, generated from the body definitions.'
   maturity: CAD of the selected body with design-check measurements; printed and assembled hardware unmeasured.
   version_note: 'Selected complete printed body, generated from the body definitions. Earlier versions stay in the version menu: r1 (commit 48c38ceda,
@@ -70,8 +63,8 @@ study:
   evidence:
   - label: 'BOM start page: how the BOM, assembly order and checks are regenerated'
     path: robot/body/bom/README.md
-  - label: Selected design pointer (body manifest, selections)
-    path: robot/design.json
+  - label: The body declaration (body manifest) and this study block
+    path: robot/body/complete_body.bom.yaml
   cad:
     label: Selected complete body (display GLB of the manifest)
     show_shells: true

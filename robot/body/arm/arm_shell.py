@@ -36,7 +36,7 @@ R_fore_{front,back}_hard_cover_steel_sleeves.
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/arm/arm_shell.py apply
   python3 infra/tools/memguard.py --limit-gb 6 --timeout-s 1800 -- .venv/bin/python -B robot/body/arm/arm_shell.py views
 `apply` is the generator arm-shell (robot/body/arm/arm_shell.bom.yaml, after shoulder-shells): it reads the shoulder-shells
-body (shoulder_shells.CANDIDATE) and writes its own body, MANIFEST_OUT (the selected body, robot/design.json body_manifest):
+body (shoulder_shells.CANDIDATE) and writes its own body, MANIFEST_OUT (the body manifest, `body.manifest` in robot/body/complete_body.bom.yaml):
 the eight cover rows, the four elbow-case screws and six sleeve-set rows change. Joint ranges come from the body
 definitions (robot/body/bom/bom_config.py). Measurements only; nothing accepts or rejects.
 """

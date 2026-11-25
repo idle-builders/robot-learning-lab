@@ -1,6 +1,6 @@
 # Finished designs kept in Git history
 
-The selected robot is the complete printed FDM body (`robot/design.json`, sources in `robot/body/`). Earlier designs that the owner accepted or that reached a finished, published state are kept in Git history at the exact paths and names they were built with. Intermediate rounds that were never marked finished are not kept.
+The selected robot is the complete printed FDM body (declared in `robot/body/complete_body.bom.yaml`, sources in `robot/body/`). Earlier designs that the owner accepted or that reached a finished, published state are kept in Git history at the exact paths and names they were built with. Intermediate rounds that were never marked finished are not kept.
 
 These commits and tags are in the private history on the owner's computer, not in the public repository (`docs/operations/public-upstream.md`). Their sources are in commit `427b0e980` ("Snapshot sources of finished designs …") unless the table says otherwise. Their dashboard studies also have tags: `design/hip-direct-serial-low-roll`, `design/neck-double-moving-case-C`, `design/cove50-ankle-foot-fixed-roll`, `design/cove50-hand-symmetric-geared`, `design/cove50-bent-aluminium-upper-body`, `design/cove50-simple-sheet-leg-chains` (`git tag -l 'design/*'` lists every kept version). Their bulky outputs (STEP, GLB, renders, FEM fields) are in the private bucket and restore by path through `data/blob-store.sqlite` (see `docs/operations/storage-lifecycle.md`, "Fresh clone").
 

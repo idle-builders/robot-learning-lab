@@ -4,7 +4,7 @@ A private hobby project: a 50 cm ape robot that moves in an agile, playful way, 
 
 ## Current state
 
-- **Body:** the complete 3D-printed FDM body is selected ([robot/design.json](robot/design.json)); its parts are built in [robot/body/](robot/body/README.md). Nothing has been printed or loaded yet.
+- **Body:** the robot is the complete 3D-printed FDM body, the sum of the parts its definitions declare ([robot/body/complete_body.bom.yaml](robot/body/complete_body.bom.yaml)); its parts are built in [robot/body/](robot/body/README.md). Nothing has been printed or loaded yet.
 - **Control:** the whole-body controller ([control/wbc/](control/wbc/)), trained with MJLab on the GPU and judged by agility across all motions. The per-skill policies ([control/skills/](control/skills/README.md)) stay until it supersedes them; perception is in [control/perception/](control/perception/README.md).
 - **Model:** [robot/model/current-model.json](robot/model/current-model.json) names the current `cove50_description` MJCF and URDF.
 - **Results:** the dashboards (`.venv/bin/python infra/dashboard/results_hub.py serve`): [learning](http://127.0.0.1:8805/) and [design](http://127.0.0.1:8805/design/). Findings by topic are in [docs/research](docs/README.md).

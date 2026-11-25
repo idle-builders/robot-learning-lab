@@ -7,9 +7,8 @@ its references are in `hip-shell-covering.md`; motors, power and electronics are
 
 ## 1. Current body (2026-11-20)
 
-The selected robot is the complete printed FDM body refitted to the locked three-tier servos: `robot/design.json`
-(`body: robot/body/motor-refit`, selected by the owner 2026-11-12, Idle M-zh6fxd). Design checks run on its manifest
-`artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json`.
+The robot is the complete printed FDM body refitted to the locked three-tier servos (owner 2026-11-12, Idle M-zh6fxd).
+Its manifest is declared in `body:` of `robot/body/complete_body.bom.yaml`; design checks run on it.
 
 How it was built:
 
@@ -194,8 +193,8 @@ Current (2026-11-06, refit 2026-11-12): 7-cell honeycomb torso spine with hip / 
 with the battery retention lid and 6-bolt waist U-clevis; front power supervisor and precharge frame; dorsal body-IMU
 and foot-ADC carrier. Nine 21700 cells (3S3P) with nine 6063-T5 fin strips, two-piece centre shell plus chest
 indicator. 178.2 g printed (r1), min safety factor 1.55 (1 g upright, 3 g gait, 6 g fall, multi-limb stall). The refit
-lays the lower-pelvis cells horizontally on the midline. A lumped 12-node thermal model exists
-(`robot/body/torso/thermal_evaluate.py`); enclosed-shell thermal cycling under gait is not measured.
+lays the lower-pelvis cells horizontally on the midline. A lumped 12-node thermal model existed
+(torso `thermal_evaluate.py`, removed 2026-11-25; the `heat` check keeps its HDT margin); enclosed-shell thermal cycling under gait is not measured.
 
 ## 11. Packaging facts for the selected servos
 
@@ -235,7 +234,7 @@ Print setup, material limits and printability results are in `design-checks.md`.
   optimisation, physics in the loop) responded to the load case locally; the direct density baseline had lower
   compliance than the neural family. Literature: topology-derived FDM brackets about 20% lighter at similar
   displacement; CF/PLA FEM overpredicted stiffness by 14-52%. Measure printed assemblies and fixture compliance
-  separately. The topology and truss families stay in `robot/body/leg/build_topopt.py` and `build_truss_box.py`.
+  separately. The truss family stays in `robot/body/leg/build_truss_box.py`; the topology family builder is in Git history.
 
 ## 14. Open questions, ordered by what changes decisions
 

@@ -1,6 +1,6 @@
 # High-level behaviour
 
-Owner interaction, search, routes, belief and the near-body stop policy. Status 2026-11-20: paused; the perception and behaviour Idle tree (`T-tr3ec8`) is parked for re-planning on the selected printed body (`robot/design.json`). Code: `control/behaviour/` (frozen option head and viewpoint routing) on top of `control/perception/`; the whole-task harness is in history (`git checkout history/perception-runners`). Sensor measurements are in [perception and sensing](perception-and-sensing.md).
+Owner interaction, search, routes, belief and the near-body stop policy. Status 2026-11-20: paused; the perception and behaviour Idle tree (`T-tr3ec8`) is parked for re-planning on the printed body (`body:` in `robot/body/complete_body.bom.yaml`). Code: `control/behaviour/` (frozen option head and viewpoint routing) on top of `control/perception/`; the whole-task harness is in history (`git checkout history/perception-runners`). Sensor measurements are in [perception and sensing](perception-and-sensing.md).
 
 ## What these results are
 

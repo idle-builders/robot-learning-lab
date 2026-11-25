@@ -14,7 +14,6 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACTS = ROOT / "artifacts"
 FEATURED = ROOT / "infra" / "dashboard" / "session-inspector-ui" / "featured.json"
-CURRENT_DESIGN = ROOT / "robot" / "design.json"
 MEDIA = {".mp4": "videos", ".webm": "videos", ".glb": "models", ".png": "images", ".jpg": "images", ".jpeg": "images", ".webp": "images"}
 DATA = {".json", ".jsonl", ".csv", ".md"}
 
@@ -57,9 +56,6 @@ def catalog():
         return candidate.relative_to(ROOT).as_posix() in cold if candidate.is_relative_to(ROOT) else False
 
     featured = json.loads(FEATURED.read_text()) if FEATURED.exists() else {}
-    current = json.loads(CURRENT_DESIGN.read_text()) if CURRENT_DESIGN.exists() else {}
-    current_root = current.get("evidence", {}).get("artifact_root", "").removeprefix("artifacts/")
-    design_rejected = current.get("status", "").startswith("rejected")
     sessions = []
     if not ARTIFACTS.exists():
         return sessions
@@ -95,19 +91,12 @@ def catalog():
                 except (OSError, ValueError):
                     pass
             preferred = sorted(groups["images"], key=lambda x: (not any(t in x["name"] for t in ("first-frame", "preview", "thumbnail", "front", "robot")), x["name"]))
-            is_rejected = design_rejected and folder.name == current_root
-            is_current = folder.name == current_root and not design_rejected
-            if is_rejected:
-                metadata.update(title=f"{current.get('name', folder.name)} — rejected historical design",
-                                summary="Rejected in the morphology-first reset. No mechanical candidate is currently selected.",
-                                featured=False)
             session = {
                 "id": folder.name,
-                "title": current.get("name") if is_current else metadata.get("title") or title_from_name(folder.name),
+                "title": metadata.get("title") or title_from_name(folder.name),
                 "summary": metadata.get("summary", ""),
                 "kind": metadata.get("kind") or kind_from_name(folder.name),
-                "featured": bool(metadata.get("featured")) or is_current,
-                "current": is_current,
+                "featured": bool(metadata.get("featured")),
                 "updated": int(folder.stat().st_mtime),
                 "landing": artifact_url(folder.name, landing) if landing else None,
                 "thumbnail": preferred[0]["url"] if preferred else None,

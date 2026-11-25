@@ -45,7 +45,7 @@ generators:
   resources:
     timeout_s: 1800
   notes: 'Applies the shoulder U connectors to the roll-flip body: per side a roll idler, generated M3x8 x4, M3x6 x4, M2x12 x4; removes the roll
-    case''s 4 PA2 and the two upper-arm cover posts with their M3 screws and nuts. body_manifest_chain in robot/design.json.'
+    case''s 4 PA2 and the two upper-arm cover posts with their M3 screws and nuts.'
   after:
   - shoulder-clevis-cad
 parts:
@@ -1050,8 +1050,6 @@ assembly:
 study:
   study_id: shoulder-roll-u-connectors
   title: Shoulder roll held on both faces (arc blue U and green U)
-  robot_sections:
-  - Shoulder
   workspace: Body
   summary: 'Roll servo held on both faces: blue U (pitch link) on the roll horn + idler (a bearing), its bar now an arc about the roll axis
     (route D, owner 2026-11-23 / 24); green U (roll link) on the 2 + 2 far case holes. Recovery envelope, PAHT-CF: blue U strength ratio min

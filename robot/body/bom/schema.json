@@ -164,6 +164,32 @@
     "$ref": "#/$defs/generator"
    }
   },
+  "pinned": {
+   "type": "array",
+   "description": "Files the body depends on that no generator can recreate today (their producer's own inputs are gone): kept as they are, as declared inputs of the definitions. A pinned file counts as written for the generators that read it; a missing one is a finding (pinned_missing). Redesigning the part that needs it removes the pin.",
+   "items": {
+    "type": "object",
+    "required": [
+     "path",
+     "doc"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Repository path of the pinned file."
+     },
+     "producer": {
+      "type": "string",
+      "description": "The script that wrote it and the commit that still holds it, if any."
+     },
+     "doc": {
+      "type": "string",
+      "description": "Why it cannot be regenerated (which inputs are gone)."
+     }
+    }
+   }
+  },
   "parts": {
    "type": "array",
    "items": {
@@ -223,13 +249,34 @@
     }
    }
   },
+  "body": {
+   "type": "object",
+   "required": [
+    "manifest"
+   ],
+   "additionalProperties": false,
+   "description": "The robot body: declared once over all definitions. Every tool's default body (make.py body, the checks, the BOM, publish_body.py) is read through robot/body/bom/bom_config.py body() / body_manifest().",
+   "properties": {
+    "manifest": {
+     "type": "string",
+     "description": "Repository path of the body manifest: the manifest_out of the last generator of the chain."
+    },
+    "study": {
+     "type": "string",
+     "pattern": "^[a-z0-9][a-z0-9-]*$",
+     "description": "study_id of the declared study that shows the whole body (publish_body.py default)."
+    },
+    "doc": {
+     "type": "string"
+    }
+   }
+  },
   "study": {
    "type": "object",
    "description": "Dashboard study metadata (robot/body/bom/publish_body.py): the design-dashboard record of this study is generated from it, the selected manifest, the definitions and the rebuild outputs. Declared once per study_id over all definitions.",
    "required": [
     "study_id",
     "title",
-    "robot_sections",
     "summary"
    ],
    "additionalProperties": false,
@@ -241,13 +288,6 @@
     },
     "title": {
      "type": "string"
-    },
-    "robot_sections": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     },
-     "minItems": 1
     },
     "workspace": {
      "type": "string"
@@ -268,7 +308,7 @@
     },
     "manifest": {
      "type": "string",
-     "description": "Body manifest the study shows; default robot/design.json body_manifest (the selected body)."
+     "description": "Body manifest the study shows; default the declared body manifest (`body.manifest`)."
     },
     "scope": {
      "type": "object",

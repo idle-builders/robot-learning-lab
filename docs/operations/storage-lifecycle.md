@@ -138,11 +138,11 @@ How "what reads it" was measured, per file under `artifacts/` (paths resolved th
 
 - **build**: inputs of the declared generators (`robot/body/bom/rebuild_chain.py --dry-run`),
   the selected manifest's `native_step` / `mesh`, the `reads` of every generator-cache entry
-  (`.cache/work/gen-cache/entries/*/*.json`, all chain generators covered) and `robot/inputs.json`;
+  (`.cache/work/gen-cache/entries/*/*.json`, all chain generators covered) and the pinned inputs of the time;
 - **code**: any artifact path written in tracked `*.py`, `*.sh`, `*.yaml`, `*.json` (a folder
   path keeps everything under it; deliberately broad);
 - **dashboard**: `assets` and clip `source_path` of the records in `data/results.sqlite`, split into
-  current (selected design per section, newest record of each skill: 25 records) and older (99 records);
+  current (the body's studies, newest record of each skill: 25 records) and older (99 records);
 - **regenerable**: registered in `data/regenerable-artifacts.json` (recreated by
   `python -m infra.storage.regenerable_artifacts PATH`).
 

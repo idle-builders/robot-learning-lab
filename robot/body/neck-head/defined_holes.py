@@ -35,14 +35,14 @@ def connectors() -> dict:
 
 
 def manifest_path() -> Path:
-    return ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    return ROOT / BOM_CONFIG.body_manifest()
 
 
-# The default manifest of the neck / head hole readers is the declared upstream shell-pass manifest, not the selected body
-# (robot/design.json): that is this chain's final output, so reading it made roll-flip-manifest (NP.apply -> head_screws) and the neck
+# The default manifest of the neck / head hole readers is the declared upstream shell-pass manifest, not the body manifest
+# (bom_config.body_manifest()): that is this chain's final output, so reading it made roll-flip-manifest (NP.apply -> head_screws) and the neck
 # connector builds circular in a clean rebuild. The neck servos, the head carrier's supplier spacers / nuts / boards and the skin sit
 # there as supplied: seat_sites of the three neck connectors and head_holes posts / threaded_posts / screw_plans / plate_faces are
-# identical from both manifests (max difference 0.0, 2026-11-22). The neck_parts CLI still edits the selected body (manifest_path).
+# identical from both manifests (max difference 0.0, 2026-11-22). The neck_parts CLI still edits the body manifest (manifest_path).
 SHELL_PASS = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts.json"
 
 

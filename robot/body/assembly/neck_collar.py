@@ -511,7 +511,7 @@ def sweep(rounds=4):
     from checks import bodylib as BL, core as CORE
     from build123d import Solid, export_stl
     import cad_ops as C
-    man = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    man = BOM_CONFIG.body_manifest()
     man = json.loads((ROOT / man).read_text())
     B = BL.Body(man)
     poses = _head_poses(B)

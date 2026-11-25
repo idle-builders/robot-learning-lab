@@ -2,7 +2,7 @@
 
 The ordered builder steps are derived from the body definitions (robot/**/<builder>.bom.yaml: each generator's command,
 inputs, outputs, `after` and resources; robot/body/bom/definitions.py), followed by the assembly check, the BOM, the bom
-check of the target (robot/design.json body_manifest) and the design-dashboard record written to a file
+check of the target (the declared body manifest, `body:` in robot/body/complete_body.bom.yaml) and the design-dashboard record written to a file
 (robot/body/bom/publish_body.py; the main checkout publishes it with `publish_body.py --publish`). This script
 
   setup [--commit REV]  makes WORK/repo (code from REV via git archive when given, else the working tree): a copy of the working tree's code (rsync, without artifacts/, .cache/, .venv*, data/, .git,
@@ -54,7 +54,7 @@ def derived_chain():
     generators with rebuild true in the order their declared inputs and outputs give; read-only section folders = outputs of
     generators with rebuild false; produced folders = the shortest folder of each rebuild output under artifacts/robot/body
     that neither holds nor lies in a read-only output; writable copies = their `writes_into`. Then the BOM tool's own steps on
-    the target (robot/design.json body_manifest): the assembly check, the BOM, the bom check, and the dashboard record
+    the target (the declared body manifest, bom_config.body_manifest()): the assembly check, the BOM, the bom check, and the dashboard record
     (robot/body/bom/publish_body.py --out; publishing happens from the main checkout with --publish)."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import definitions as DEF
@@ -81,7 +81,8 @@ def derived_chain():
                     produced.append(pre)
                 break
         copied += [w for w in g.get("writes_into", []) if w not in copied]
-    target = json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    import bom_config
+    target = bom_config.body_manifest(D)
     M = ["--manifest", target]
     steps += [dict(id="assembly-check", command=[".venv/bin/python", "-B", "robot/body/checks/run.py"] + M + ["--checks", "assembly", "--label", "assembly"],
                    inputs=[target], outputs=[".cache/work/cad-speed/checks/assembly/report.json"], in_place_edits=[], manifest_out=None, timeout_s=1800, file="(BOM tool)"),

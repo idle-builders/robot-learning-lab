@@ -66,6 +66,8 @@ class Definitions:
         self.studies = {}                # study_id -> dict(study block, file, definition): dashboard metadata (publish_body.py)
         self.joints = {}                 # joint name -> dict(range_deg, doc, decision, file, definition): declared joint ranges
         self.config = {}                 # definition id -> {NAME: dict(value, unit, doc, decision, file)}: configured values
+        self.pinned = []                 # dict(path, producer, doc, file): files kept as they are (no generator can recreate them)
+        self.body = None                 # dict(manifest, study, doc, file): the robot body, declared once (bom_config.body)
         for rank, p in enumerate(paths if paths is not None else discover()):
             f = rel(p)
             if strip and f.startswith(strip):
@@ -81,6 +83,7 @@ class Definitions:
                 continue
             self.files.append(dict(file=f, rank=rank, definition=doc["definition"], owner=doc.get("owner"), doc=doc))
             gens = doc.get("generators", [])
+            self.pinned += [dict(x, file=f) for x in doc.get("pinned", [])]
             for g in gens:
                 self.generators.append(dict(g, file=f))
             for c in doc.get("compose", []):
@@ -120,6 +123,11 @@ class Definitions:
                                            file=f, definition=doc["definition"], entry=f"joints[{i}]", **frame)
             if doc.get("config"):
                 self.config[doc["definition"]] = {k: dict(v, file=f) for k, v in doc["config"].items()}
+            if doc.get("body"):
+                if self.body:
+                    self.find("body_declared_twice", f, "body", f"also declared in {self.body['file']}")
+                else:
+                    self.body = dict(doc["body"], file=f)
             if doc.get("study"):
                 sid = doc["study"]["study_id"]
                 if sid in self.studies:
@@ -305,8 +313,8 @@ class Definitions:
         return False
 
     def external_inputs(self):
-        """Inputs no generator writes: (generator, path, exists on disk)."""
-        outs = [o for g in self.generators for o in g.get("outputs", [])]
+        """Inputs no generator writes and no definition pins: (generator, path, exists on disk)."""
+        outs = [o for g in self.generators for o in g.get("outputs", [])] + [x["path"] for x in self.pinned]
         res = []
         for g in self.generators:
             for inp in g.get("inputs", []):

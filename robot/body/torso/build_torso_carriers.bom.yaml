@@ -18,6 +18,14 @@ generators:
   - artifacts/robot/body/torso
   notes: 'Section builder: the body rebuild links its outputs read-only and does not rerun it (command recorded by the BOM migration from the
     producer table; confirm before running).'
+# Files the body reads that no generator can recreate today (schema `pinned`)
+pinned:
+- path: artifacts/robot/body/torso/combined/assembly-parts.json
+  producer: 'robot/body/torso/package_and_render.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'The combined torso carrier package the assembly generator reads. Its producer read the combined candidate STEPs of artifacts/cove50-strength/torso-fdm-carrier-20261105/candidates (torso-candidates-manifest.json), which are gone from disk and the bucket, so it cannot be rerun; the file stays as it is.'
+- path: artifacts/robot/body/torso/combined/manifest.json
+  producer: 'robot/body/torso/package_and_render.py, removed 2026-11-25 (branch bom-only-body); git history holds it (last at commit 27caa49e4)'
+  doc: 'Written by the same packager as assembly-parts.json next to it (same missing inputs); the assembly generator reads it.'
 parts:
 - match: Main_H2_2mm_front_spacer
   kind: printed

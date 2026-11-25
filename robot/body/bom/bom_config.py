@@ -33,6 +33,20 @@ def _defs(defs=None, key="values:joints"):
     return hook(key, DEF.load) if hook else DEF.load()
 
 
+def body(defs=None):
+    """The robot body as declared (`body:` in one definition, robot/body/complete_body.bom.yaml): dict(manifest, study, doc,
+    file). The default body of every tool (make.py body, the checks, the BOM, publish_body.py)."""
+    b = _defs(defs, "values:body").body
+    if not b:
+        raise Undeclared("no definition declares `body:` (manifest, study); declare it once, in robot/body/complete_body.bom.yaml")
+    return b
+
+
+def body_manifest(defs=None):
+    """Repository path of the body manifest (`body.manifest`)."""
+    return body(defs)["manifest"]
+
+
 def joints(defs=None):
     """{joint: dict(range_deg, doc, decision, file, definition, entry)} as declared."""
     return _defs(defs).joints

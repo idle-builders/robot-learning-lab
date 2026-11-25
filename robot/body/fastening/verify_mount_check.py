@@ -75,7 +75,7 @@ def radial(d):
 
 
 def main():
-    man = json.loads(MC.DEFAULT_MANIFEST.read_text())
+    man = json.loads(MC.default_manifest().read_text())
     body = MC.F.Body(man)
     kh, kd = screw_frame(body, KNEE)
     rh, rd = screw_frame(body, ROLL)
@@ -98,7 +98,7 @@ def main():
     ]
     out = []
     for tag, screw, edits, expect in cases:
-        mp = variant(man, body, tag, edits) if edits else MC.DEFAULT_MANIFEST
+        mp = variant(man, body, tag, edits) if edits else MC.default_manifest()
         rep = MC.run(mp, f"^{screw}$", WORK / f"{tag}-report.json")
         r = rep["rows"][0]
         t = r.get("terminal") or {}

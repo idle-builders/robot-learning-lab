@@ -1,16 +1,21 @@
 # Body
 
-The selected complete 3D-printed FDM body is `motor-refit/`: the assembly refitted to the locked three-tier motors (ST3025, STS3250, ST3215-C047; `robot/model/motor-map/`). Each part folder holds its build, FEM and publish scripts; outputs go to `artifacts/robot/body/<part>/`.
+The robot body is the sum of the parts its definitions declare: one `<builder>.bom.yaml` next to each builder script
+(schema [bom/schema.json](bom/schema.json)), with the builder's generators, the parts it owns and its assembly steps. The
+body manifest is declared once, in `body:` of [complete_body.bom.yaml](complete_body.bom.yaml) (the output of the last
+generator of the chain); `.venv/bin/python -B robot/body/bom/make.py body` builds it, `make.py status body` shows what is out
+of date. Generated files go to `artifacts/robot/body/<folder>/`.
 
-| Folder | Part |
+| Folder | Builders |
 |---|---|
-| `leg/` | Foot-to-hip connectors (lower leg, upper leg and hip; combined, topology-optimised and space-truss families) |
-| `arm/` | Shoulder-to-wrist connectors |
-| `neck-head/` | Torso-to-head connectors and the head sensor/compute carrier |
-| `torso/` | Centre-body torso, pelvis and the repeated 9-cell battery carrier |
-| `assembly/` | The r1 complete body assembly from the part outputs (input to the refit) |
-| `motor-refit/` | **The current body:** the assembly refitted to the selected servos (FEM, fit check) |
-| `loads/` | Load cases used by the FEM |
-| `bom/` | **The robot BOM and assembly order, start here for hardware** ([bom/README.md](bom/README.md)): generated per line with files, producer scripts, print setup, hardware specs, assembly steps and open defects, plus the build sequence per subassembly (`build.py`, from the `<builder>.bom.yaml` definition next to each builder) |
+| `assembly/` | The first body manifest from the section packages, held parts and the neck collar |
+| `motor-refit/` | Refit to the locked three-tier servos (ST3025, STS3250, ST3215-C047), hip-yaw and ankle-coupler screws |
+| `ape-proportions/` | Ape proportions and the shell pass |
+| `leg/`, `arm/`, `neck-head/`, `torso/` | Section connectors and shells; the section builders (`rebuild: false`) and their pinned packages |
+| `hip-shell/`, `design_kit/` | Hip shell work and the shared shell / connector kit |
+| `fastening/`, `standard-hardware/` | Screw measurement and generated standard hardware |
+| `checks/` | The shared design check (`run.py`) |
+| `bom/` | **The BOM tooling, start here for hardware** ([bom/README.md](bom/README.md)): definitions, make, BOM, publish |
 
-Static FEM and collision sweeps may run locally, one heavy job at a time under `infra/tools/memguard.py`. Publish to the design dashboard with `source` naming the part folder; its commit is the version.
+CAD verification runs locally under `infra/tools/memguard.py`. A dashboard study is a `study` block in a definition,
+published by `bom/publish_body.py`; its commit is the version.

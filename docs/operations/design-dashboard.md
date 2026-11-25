@@ -22,7 +22,7 @@ After a redesign edit the definitions (parts, steps, study text), commit and pub
 
 ## Sections
 
-A record's sections are the distinct `section` values its parts' definitions declare (part view `body_view.parts[*].section`); `results_hub.py` derives them when it publishes and serves the record, whatever the study block's `robot_sections` say. The names are the definitions' own (`Hip`, `Knee`, `Ankle / foot`, `Shoulder`, `Elbow`, `Hand / wrist`, `Neck / head`, `Torso`, `Waist / pelvis`); there is no "Whole robot", "Electronics" or alias section. A part without a section belongs to no section view; fix its definition.
+A record's sections are the distinct `section` values its parts' definitions declare (part view `body_view.parts[*].section`); `results_hub.py` derives them when it publishes and serves the record. The names are the definitions' own (`Hip`, `Knee`, `Ankle / foot`, `Shoulder`, `Elbow`, `Hand / wrist`, `Neck / head`, `Torso`, `Waist / pelvis`); there is no "Whole robot", "Electronics" or alias section. A part without a section belongs to no section view; fix its definition.
 
 Choosing a section on the drawing or in the list opens the same records filtered by part section: the part view, its subassemblies and steps, the CAD BOM table and the cost lines list only the parts whose definition declares that section, and the CAD view isolates them (**Show assembly** restores the whole body). There is no selection: nothing is "selected for" a section, and no command or button writes one.
 

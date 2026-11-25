@@ -128,7 +128,6 @@ def main() -> None:
         "schema": "robot-learning-lab.cove50-squat-teacher-bc.v1",
         "method": "behavior_cloning_of_scripted_joint_target_teacher",
         "task": TASK,
-        "selected_design_pointer_sha256": sha(ROOT / "robot/design.json"),
         "body_xml": str(body.relative_to(ROOT)),
         "body_sha256": sha(body),
         "checkpoint": str(checkpoint.relative_to(ROOT)),

@@ -133,7 +133,7 @@ def s_ankle(sid):
     from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
     import interfaces as I
     import mount_check as MC
-    man = json.loads(MC.DEFAULT_MANIFEST.read_text()); body = F.Body(man)
+    man = json.loads(MC.default_manifest().read_text()); body = F.Body(man)
     sub = type(body).__new__(type(body)); sub.__dict__.update(body.__dict__)
     sub.parts = {n: body.parts[n] for n in ANKLE.split(",")}
     inst = I.instances(sub, man)["instances"]          # the cached registrations run.py used

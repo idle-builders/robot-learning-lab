@@ -37,10 +37,10 @@ function renderList() {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'session-item'; button.setAttribute('role','option');
     button.setAttribute('aria-selected', session.id === selected?.id ? 'true' : 'false');
-    const icon = document.createElement('span'); icon.className = 'session-icon'; icon.textContent = session.current ? '★' : categoryIcon(session.kind);
+    const icon = document.createElement('span'); icon.className = 'session-icon'; icon.textContent = categoryIcon(session.kind);
     const copy = document.createElement('span');
     const name = document.createElement('strong'); name.textContent = session.title;
-    const detail = document.createElement('small'); detail.textContent = `${session.current ? 'Current design · ' : ''}${session.kind} · ${stamp(session.updated)}`;
+    const detail = document.createElement('small'); detail.textContent = `${session.kind} · ${stamp(session.updated)}`;
     copy.append(name, detail); button.append(icon, copy);
     button.addEventListener('click', () => selectSession(session.id));
     $('session-list').append(button);

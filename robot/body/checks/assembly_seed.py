@@ -471,7 +471,7 @@ def cmd_propose(a):
     import yaml
     sys.path.insert(0, str(ROOT / "robot/body/bom"))
     import definitions as DEF
-    man = Path(a.manifest) if a.manifest else ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]
+    man = Path(a.manifest) if a.manifest else ROOT / __import__("bom_config").body_manifest()
     D = DEF.load()
     names0 = [p["name"] for p in json.loads(Path(man).read_text())["parts"]]
     A.use_claims(names0, D)

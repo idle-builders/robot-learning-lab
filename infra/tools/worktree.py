@@ -41,7 +41,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve()
 LINKS = (".venv", "data", ".tools", ".artifact-store")
-BODY_FILES = ("robot/body/", "robot/design.json", "robot/electronics/", "robot/actuators/")
+BODY_FILES = ("robot/body/", "robot/electronics/", "robot/actuators/")
 
 
 def git(*a, cwd, check=True):

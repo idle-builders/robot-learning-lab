@@ -845,9 +845,6 @@ defects:
 study:
   study_id: shoulder-shells-parametric
   title: Arm shell · one parametric surface from shoulder to wrist
-  robot_sections:
-  - Shoulder
-  - Torso / shell
   workspace: Body
   summary: The whole arm's covers as one continuous parametric surface (route D hood about the roll axis, arc blue U), cut into four covers
     per arm; owner-approved 2026-11-24 (M-eb6cxz).

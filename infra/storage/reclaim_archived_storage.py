@@ -28,19 +28,17 @@ def stamp():
     return datetime.now(timezone.utc).isoformat()
 
 
-def selected_directories():
-    """Keep every directory directly named by the live design pointer local."""
-    def paths(value):
-        if isinstance(value, dict):
-            for item in value.values():
-                yield from paths(item)
-        elif isinstance(value, list):
-            for item in value:
-                yield from paths(item)
-        elif isinstance(value, str) and value.startswith("artifacts/"):
-            path = Path(value)
-            yield (path if (ROOT / path).is_dir() or not path.suffix else path.parent).as_posix()
-    return set(paths(json.loads((ROOT / "robot/design.json").read_text())))
+def declared_paths():
+    """Keep local every artifact the body definitions declare: the body manifest and each generator's inputs and outputs
+    and pinned files (robot/**/<builder>.bom.yaml, robot/body/bom/definitions.py)."""
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import definitions
+    D = definitions.load()
+    paths = {D.body["manifest"]} if D.body else set()
+    for g in D.generators:
+        paths.update(g.get("inputs", []) + g.get("outputs", []) + g.get("in_place_edits", []) + g.get("writes_into", []))
+    paths.update(x["path"] for x in D.pinned)
+    return {x.rstrip("/") for x in paths if x.startswith("artifacts/")}
 
 
 def verify_range(s3, row):
@@ -110,7 +108,7 @@ def main(plan_path, fresh_readback=False):
     open_files = {line[1:] for line in subprocess.run(
         ["lsof", "-nP", "-Fn"], capture_output=True, text=True).stdout.splitlines()
                   if line.startswith("n/")}
-    protected = selected_directories()
+    protected = declared_paths()
     allowed = ("artifacts/cove50-strength/", "artifacts/cove50-power-integration/",
                "artifacts/cove50-engineering-competition/")
     total = 0

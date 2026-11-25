@@ -30,7 +30,9 @@ MEMGUARD = str(ROOT / "infra/tools/memguard.py")
 
 
 def selected_manifest() -> Path:
-    return (ROOT / json.loads((ROOT / "robot/design.json").read_text())["body_manifest"]).resolve()
+    sys.path.insert(0, str(ROOT / "robot/body/bom"))
+    import bom_config
+    return (ROOT / bom_config.body_manifest()).resolve()
 
 
 # ------------------------------------------------------------------------------------------------ manifest mutations

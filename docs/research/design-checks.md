@@ -11,7 +11,7 @@ Laptop cost: **s** = seconds per part, **min** = minutes for a region, **heavy**
 ## Current state (2026-11-20)
 
 - One shared tool, `robot/body/checks/run.py`, with 31 registered checks (`--list-checks`; command, scopes and the
-  per-check table in `docs/operations/working-rules.md`). It runs on the selected manifest named in `robot/design.json`.
+  per-check table in `docs/operations/working-rules.md`). It runs on the declared body manifest (`body:` in `robot/body/complete_body.bom.yaml`).
   The per-section check scripts it replaced are gone; `robot/body/leg/fast_check.py` and `roll_flip_checks.py` call the
   same checks.
 - Built from the catalogue below: geometry hygiene, plate fit, print setup and coverage, overhang and bridges, walls
@@ -84,7 +84,7 @@ micro-edges, wedges, tangent continuity, L/R mirror, sleeve counts), per-section
 screw and captive-nut insertion rays (arm), `robot/body/leg/fast_check.py` (poses, gaps, mass, press, render),
 per-study FEM scripts, and motor-refit range / collision sweeps and static audit. Their logic now lives in
 `robot/body/checks/`. Still separate: `robot/body/fastening/mount_check.py` (per screw, called by `screws`; servo
-tapped holes from `fastening/interfaces.py`) and `robot/body/torso/thermal_evaluate.py` (coupled battery thermal model).
+tapped holes from `fastening/interfaces.py`); the coupled battery thermal model (torso `thermal_evaluate.py`) was removed 2026-11-25.
 None of the old scripts looked at printability: plate fit, overhangs, wall thickness against the nozzle, bed contact,
 warping, holes that print undersize, or slicer output.
 
@@ -333,7 +333,7 @@ STEPs (47 on the 20 Nov body), all with the exact bytes recorded in the bucket w
 `dangling` (T-ysavyb); 0 unexplained. `bom` check 4.4 s, 0.6 GiB.
 
 The chain that writes the selected manifest is data (`robot/body/bom/chain.json`, 15 steps, ending at the shoulder-U body
-of `robot/design.json`) and `rebuild_chain.py` reruns it in an isolated copy (Idle T-be4dt7, 2026-11-20). Run times (s /
+of `body:` in `robot/body/complete_body.bom.yaml`) and `rebuild_chain.py` reruns it in an isolated copy (Idle T-be4dt7, 2026-11-20). Run times (s /
 peak GB): assembly 323 / 8.2 (data complete, render phase over its then 8 GB cap, now 10), motor-refit 583 / 3.5,
 ape-proportions 264 / 4.4, shell-pass 334 / 3.6, foot-screws 46 / 1.5, hip-yaw-screws 11 / 0.7, torso-screws 5 / 0.6,
 roll-flip-cad 220 / 1.1, roll-flip bootstrap 13, ankle-coupler-screws 17, roll-flip manifest 13, thigh-shell 46 / 2.6,
@@ -923,7 +923,7 @@ Verification (`--parts L_knee_ST3025_case,R_upper_arm_hard_cover,L_fore_front_ha
 
 ## Heat contact screen (2026-11-19)
 
-`heat` migrates the HDT margin of the torso `thermal_evaluate.py` (HDT minus the carrier wall temperature) into the shared tool as a screen; the coupled cell / air simulation stays in that script. Per scoped printed part at standing it measures, against every heat source (manifest roles `motor`, `actuator`, `battery_cell`, `source_power_board`; `data/heat_sources.json`), the contact area (surface within 0.3 mm), the closest distance, the area within 3 mm, the source's worst-case temperature, the material's HDT at 0.45 / 1.8 MPa and Tg (`materials.json` `print.*`, resolved per part by `process.effective`, so `--process material=...` changes every margin) and the margin in C (limit minus source temperature). Source temperatures: servo case 70 C (Feetech internal torque-off limit [S8], taken as the surface worst case: an assumption that over-states the surface), battery cell 60 C (P50B continuous limit from the old script's `P50B_SPEC`), power board 85 C (assumption, no data). The 0.3 mm contact distance also catches the 0.2 mm bore clearance of a cell in its honeycomb pocket; distances read up to ~0.3 mm high (sample spacing). Margins to Tg are shown next to HDT: the data sheets give PAHT-CF Tg 70 C, so a 70 C source reads 0 C to Tg but 100+ C to HDT.
+`heat` migrates the HDT margin of the torso `thermal_evaluate.py` (HDT minus the carrier wall temperature) into the shared tool as a screen; the coupled cell / air simulation went with that script (Git history). Per scoped printed part at standing it measures, against every heat source (manifest roles `motor`, `actuator`, `battery_cell`, `source_power_board`; `data/heat_sources.json`), the contact area (surface within 0.3 mm), the closest distance, the area within 3 mm, the source's worst-case temperature, the material's HDT at 0.45 / 1.8 MPa and Tg (`materials.json` `print.*`, resolved per part by `process.effective`, so `--process material=...` changes every margin) and the margin in C (limit minus source temperature). Source temperatures: servo case 70 C (Feetech internal torque-off limit [S8], taken as the surface worst case: an assumption that over-states the surface), battery cell 60 C (P50B continuous limit from the old script's `P50B_SPEC`), power board 85 C (assumption, no data). The 0.3 mm contact distance also catches the 0.2 mm bore clearance of a cell in its honeycomb pocket; distances read up to ~0.3 mm high (sample spacing). Margins to Tg are shown next to HDT: the data sheets give PAHT-CF Tg 70 C, so a 70 C source reads 0 C to Tg but 100+ C to HDT.
 
 Verification: synthetic two blocks (`test_heat.py`): 10 x 10 mm face on a 20 mm block reads 107 mm2 contact (100 true; the rim's side faces within 0.3 mm add 7 %) at distance 0, and 2.0 mm at a 2 mm gap. Real: `combined__stage2_lower_pelvis_battery_cradle` to cell 05 closest 0.27 mm against an exact manifold `min_gap` of 0.275 mm; to `R_hip_pitch_ST3025_case` 2.49 mm against exact 2.25 mm (sampling reads 0.24 high).
 Through `run.py` on `L_thigh_roll_flip`: 352 mm2 on `L_knee_ST3025_case` at distance 0 (866 mm2 within 3 mm; the gaps check read touching, exact overlap 0); margin to HDT 0.45 / 1.8 MPa +124 / +100 C in PAHT-CF and +4 / -2 C in PETG-CF (`--process material=Bambu PETG-CF`). The cradle touches the nine cells (about 30-47 mm2 each for the seven upper ones) and sits 2.5 mm from the two hip-pitch cases: against 60 C cells +134 / +110 C (PAHT-CF), +14 / +8 C (PETG-CF). The cradle's `run.py` call is slow only because run.py's own reference-volume tessellation of that part takes minutes; the check itself takes 15 s.
@@ -940,7 +940,7 @@ Through `run.py` on `L_thigh_roll_flip`: 352 mm2 on `L_knee_ST3025_case` at dist
 - Wrench origins are derived: `origin_mm` takes `{"joint": J | "joints": [A, B], "offset_mm": [...]}` (resolved in `fem_core.origin_of` from the manifest joints; two joints give their midpoint). The three setups still typed (roll-flip thigh and hip pitch-to-roll, pelvis cradle) are converted; derived equals the typed value exactly (thigh [32, 4, 141.65] from R_knee, hip pitch-to-roll [37, 7.2, 190] from R_hip_roll, cradle [0, 6, 231.35] from the R/L hip pitch midpoint). The `legacy_coordinates` variants keep their typed old-body points, which lie 12 mm further out in x than the derived ones (the old legs were 12 mm narrower), except the cradle (0 mm).
 - `fem_setup` coverage counts printed body shells (role `body_shell`) next to connectors and carriers.
 - The four left arm connectors carry the mirror (x -> -x: Fx, My, Mz flipped) of the right setups. `fem_setup`: every patch of all 8 arm parts lands on holes of the part (L vs R patch areas within 1.5 mm2 (0.3 %), node counts within 0.5 %, no mating part without contact, 0 shared support / load nodes). `fem` on the shoulder pitch-to-roll pair at h 1.2: PAHT-CF p99 recovery 197.6 (L) vs 196.2 MPa (R), heavy 222.1 vs 220.9 MPa; the whole arm L vs R in the evidence (each part along its print direction, all load cases): PAHT-CF p99 -1.30 % to +0.78 %, up to 2.88 % across the three materials; peak displacement L lower than R by 0.2-3.14 %.
-- Published FEM evidence (the publishers `publish_{arm,neck_head,torso}_studies.py` build the FEM section of their record from `fem-evidence.json` only; `--fem-section` prints it without publishing): `fem_evidence.py --study cove50-{arm,neck-head,torso}-fdm-combined` prints the `run.py --checks fem,fem_setup` command and turns its report into `fem-evidence.json` (per part and per load case / material the p99 and peak stress, layer tension, ratios, displacement; per chain the RSS displacement). Arm 8 parts, neck 4 parts, torso stage 1 only: stage 2 is mesh-only in the manifest (setup not checked) and stages 3 and 4 have no setup. The old multi-family tables (baseline / truss / topopt) of the study publishers are not recreated: those families are not in the tree.
+- Published FEM evidence of the per-section studies (`fem_evidence.py`, the `publish_*_studies.py` publishers) was removed 2026-11-25 with those studies; FEM runs through `run.py --checks fem,fem_setup` on the body.
 
 ## Screw connections and driver access (2026-11-19)
 
