@@ -49,6 +49,9 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
 sys.path.insert(0, str(ROOT / "robot/body"))
 sys.path.insert(0, str(ROOT / "robot/body/fastening"))
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("torso-screws")   # configured values: robot/body/torso/torso_screws.bom.yaml config:
 
 OUT = ROOT / "artifacts/robot/body/torso/torso-screws"
 VARIANT = ROOT / "artifacts/robot/body/ape-proportions/shell-pass/assembly-parts-roll-flip.json"
@@ -70,14 +73,14 @@ def build():
     sleeves, _, _ = common.build_stage_sleeves(STAGE3)
     recs = {PART: MR.save(PART, body.wrapped, "printed"),
             SLEEVES: MR.save(SLEEVES, sleeves.wrapped, "purchased")}
-    recs[SLEEVES]["mass_kg"] = round(recs[SLEEVES]["volume_mm3"] * 7.93e-6, 6)
-    recs[SLEEVES]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    recs[SLEEVES].update(BOM_CONFIG.mass_record(SLEEVES, recs[SLEEVES]["volume_mm3"], "torso-screws", fallback="HARDWARE_MATERIAL",
+                                                basis="native STEP volume"))
     body4, _ = B.BUILDERS[STAGE4]("topopt")          # COMBINED_WINNERS: stage 4 is the topopt family
     sleeves4, _, _ = common.build_stage_sleeves(STAGE4)
     recs[PART4] = MR.save(PART4, body4.wrapped, "printed")
     recs[SLEEVES4] = MR.save(SLEEVES4, sleeves4.wrapped, "purchased")
-    recs[SLEEVES4]["mass_kg"] = round(recs[SLEEVES4]["volume_mm3"] * 7.93e-6, 6)
-    recs[SLEEVES4]["mass_basis"] = "native STEP volume x 7.93 g/cm3 (304 SS)"
+    recs[SLEEVES4].update(BOM_CONFIG.mass_record(SLEEVES4, recs[SLEEVES4]["volume_mm3"], "torso-screws", fallback="HARDWARE_MATERIAL",
+                                                 basis="native STEP volume"))
     recs[PART1] = MR.save(PART1, stage1_neck_anchor(stage1_moved_rails(common)).wrapped, "printed")
     new_parts, joints = build_interface_joints(MR, common, recs[PART4])
     recs.update({k: v for k, v in new_parts.items() if k == STAGE1_SLEEVES})
@@ -282,9 +285,11 @@ def build_interface_joints(MR, common, rec4=None):
     out[STAGE1_SLEEVES]["sleeve_source"] = (f"{src} minus the {len(placed)} threaded interface positions (T-bv7bwe), the {len(legacy)} "
                                             f"old stage 4 rail sites (T-htfaaz) and the {len(old_anchor)} old neck anchor sleeves, plus the "
                                             f"{len(inserts)} brass M3 heat-set inserts of the neck anchor pad (T-jxshhv)")
-    out[STAGE1_SLEEVES]["mass_kg"] = round(steel_vol * 7.93e-6 + sum(s.volume for s in inserts) * 8.5e-6, 6)
-    out[STAGE1_SLEEVES]["mass_basis"] = ("native STEP volume per solid: sleeves x 7.93 g/cm3 (304 SS), neck anchor inserts x 8.5 g/cm3 (brass, "
-                                         "modelled as the 4.0 mm hole with the M3 minor diameter as bore)")
+    steel, brass = BOM_CONFIG.material_row(CFG["HARDWARE_MATERIAL"]), BOM_CONFIG.material_row(CFG["INSERT_MATERIAL"])
+    out[STAGE1_SLEEVES]["mass_kg"] = round((steel_vol * steel["density_g_cm3"] + sum(s.volume for s in inserts) * brass["density_g_cm3"]) * 1e-6, 6)
+    out[STAGE1_SLEEVES]["mass_basis"] = (f"native STEP volume per solid: sleeves x {steel['density_g_cm3']:g} g/cm3 ({steel['name']}), neck anchor "
+                                         f"inserts x {brass['density_g_cm3']:g} g/cm3 ({brass['name']}, modelled as the 4.0 mm hole with the M3 "
+                                         "minor diameter as bore); declared in robot/body/torso/torso_screws.bom.yaml config")
     for j, p in zip(pairs, plans):
         if p["status"] != "placed":
             continue
@@ -297,7 +302,7 @@ def build_interface_joints(MR, common, rec4=None):
                        hardware_spec=dict(kind="threaded_sleeve", thread=th["thread"], outer_dia_mm=round(2 * b["r_od"], 2),
                                           length_mm=b["length"], material="304 stainless steel (as the clearance sleeves)",
                                           press_fit="same outer diameter as the clearance sleeve it replaces"))
-        out[sn]["mass_kg"] = round(out[sn]["volume_mm3"] * 7.93e-6, 6)
+        out[sn].update(BOM_CONFIG.mass_record(sn, out[sn]["volume_mm3"], "torso-screws", fallback="HARDWARE_MATERIAL", basis="native STEP volume"))
         L = p["screw_length_mm"]
         head_c = (x, j["seat"] - d * th["head_h"] / 2, z)
         shank_c = (x, j["seat"] + d * L / 2, z)

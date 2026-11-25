@@ -34,7 +34,7 @@ from common import (
     ARM_SHELL_DIR,
     ART,
     A_YAW,
-    MATERIALS,
+    PRINTED,
     N_YAW,
     P_ELBOW,
     P_PITCH,
@@ -353,8 +353,8 @@ def solve_simp_3d(dom: dict, target_vol_frac: float = 0.28, n_iters: int = 26, p
     zs_n = dom["bmin"][2] + uz * dz
     node_xyz = np.column_stack([xs_n, ys_n, zs_n])
 
-    # Orthotropic Hooke matrix for PAHT-CF dry
-    m = MATERIALS["PAHT_CF_dry"]
+    # Orthotropic Hooke matrix of the printed material (the definition's PRINTED_MATERIAL, robot/body/checks/data/materials.json)
+    m = PRINTED
     E_vec = [m["E_inplane_MPa"], m["E_inplane_MPa"], m["E_inplane_MPa"]]
     E_vec[dom["layer_axis"]] = m["E_layer_MPa"]
     D = orthotropic_matrix_MPa(E_vec[0], E_vec[1], E_vec[2], nu=m["nu"], G=m["G_MPa"])

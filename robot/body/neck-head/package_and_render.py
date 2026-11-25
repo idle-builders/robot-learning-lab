@@ -238,6 +238,8 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
         rgba = STAGE_COLORS[stg_key]
         p_orient = PRINT_ORIENTATIONS[stg_key]
 
+        mass = BOM_CONFIG.mass_record(part_name, p_rec["volume_mm3"], "build-neck-head-connectors")   # declared material
+        poly_g = round(mass["mass_kg"] * 1000.0, 3)
         poly_entry = {
             "name": part_name,
             "owning_link": owner,
@@ -252,9 +254,8 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "bounds_mm": [m_mm.bounds[0].round(3).tolist(), m_mm.bounds[1].round(3).tolist()],
             "native_solid_count": 1,
             "native_validity": [True],
-            "material": f"Bambu PAHT-CF / PA12-CF ({MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3) or PETG-CF ({MATERIALS['PETG_CF']['density_g_cm3']:g} g/cm3) FDM",
-            "mass_kg": round(p_rec["polymer_mass_PAHT_CF_g"] / 1000.0, 6),
-            "mass_basis": f"Exact native STEP volume * {MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3 ({MATERIALS['PAHT_CF_dry']['name']})",
+            "material": f"{BOM_CONFIG.material(part_name, 'build-neck-head-connectors')} FDM",
+            **mass,
             "color": rgba,
             "display_group": "mechanism",
             "display_groups": ["mechanism"],
@@ -316,10 +317,10 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "selected_family": sel_fam,
             "owning_link": owner,
             "volume_mm3": p_rec["volume_mm3"],
-            "polymer_mass_paht_cf_g": p_rec["polymer_mass_PAHT_CF_g"],
+            "polymer_mass_paht_cf_g": poly_g,
             "sleeves_count": p_rec["sleeve_count"],
             "sleeves_mass_g": p_rec["sleeve_mass_g"],
-            "total_stage_mass_paht_cf_g": p_rec["total_stage_mass_g"],
+            "total_stage_mass_paht_cf_g": round(poly_g + p_rec["sleeve_mass_g"], 3),
             "step": ref(step_p),
             "mesh": ref(npz_p),
             "sleeves_step": ref(slv_comp_step),
@@ -333,8 +334,8 @@ def package_family(fam: str, build_sum: dict, fem_rep: dict) -> dict:
             "category": "Produced parts (FDM 3D printed)",
             "quantity": 1,
             "unit": "ea",
-            "material": "Bambu PAHT-CF / PA12-CF (or PETG-CF)",
-            "unit_mass_g": p_rec["polymer_mass_PAHT_CF_g"],
+            "material": BOM_CONFIG.material(part_name, "build-neck-head-connectors"),
+            "unit_mass_g": poly_g,
             "process": f"Home-lab FDM 3D print ({p_orient})",
             "notes": f"One-piece 3D-printed structural connector with {p_rec['sleeve_count']} pressed-in 304 SS compression sleeve seats and asymmetric 3D bevels (r_inner > r_outer).",
         })

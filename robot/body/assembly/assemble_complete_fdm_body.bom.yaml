@@ -2206,6 +2206,11 @@ joints:
   origin_mm: {R_left_finger_opening: [121.5, 1.0, 141.45], L_left_finger_opening: [-121.5, 1.0, 141.45]}
   axis: {R_left_finger_opening: [0.0, -1.0, 0.0], L_left_finger_opening: [0.0, 1.0, 0.0]}
 config:
+  PRINTED_MATERIAL:
+    value: Bambu PAHT-CF
+    doc: Material of the printed parts the assembler writes a mass for that no definition entry claims (the thigh-override connectors a
+      later generator replaces); claimed parts (the hand) take their entry's process.material. Density from robot/body/checks/data/materials.json.
+    decision: legacy-materials 2026-11-25 (was a 1.22 g/cm3 literal in the script)
   # robot/body/assembly/assemble_complete_fdm_body.py module constants (moved 2026-11-24)
   PALETTE:
     value: {combined__stage1_center_torso_spine_chassis: [52, 134, 198, 255], combined__stage2_lower_pelvis_battery_cradle: [46, 168, 126, 255], combined__stage3_front_power_electronics_carrier: [218, 148, 48, 255], combined__stage4_rear_imu_adc_carrier: [146, 98, 196, 255], combined__neck_root_cradle: [42, 138, 184, 255], combined__neck_yaw_to_pitch_link: [28, 164, 142, 255], combined__neck_pitch_to_head_cradle: [212, 134, 52, 255], combined__head_sensor_compute_carrier: [64, 156, 212, 255], shoulder_pitch_to_roll_combined: [42, 138, 184, 255], shoulder_roll_to_yaw_combined: [28, 164, 142, 255], upper_arm_yaw_to_elbow_combined: [212, 134, 52, 255], forearm_elbow_to_wrist_combined: [64, 156, 212, 255], hand_palm_lower: [48, 152, 138, 255], hand_palm_upper: [62, 168, 152, 255], hand_right_finger: [216, 138, 56, 255], hand_left_finger: [216, 138, 56, 255], hip_yaw_to_pitch_combined: [46, 178, 136, 255], hip_pitch_to_roll_combined: [228, 118, 68, 255], thigh_combined: [64, 156, 212, 255], shin_combined: [42, 138, 184, 255], ankle_coupler_combined: [28, 164, 142, 255], foot_monocoque_combined: [212, 134, 52, 255], sleeve: [215, 222, 230, 255], shell: [231, 222, 201, 255], sole_shell: [120, 115, 110, 255], chest_indicator: [205, 120, 76, 255], battery_cell: [56, 136, 98, 255], battery_fin: [196, 206, 218, 255], actuator_case: [64, 72, 82, 255], actuator_horn: [182, 190, 198, 255], fastener: [205, 212, 220, 255], captive_nut: [220, 185, 75, 255], pcb: [46, 116, 78, 255]}

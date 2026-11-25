@@ -172,9 +172,9 @@ def plate_rows(by, rec, srec):
                   display_groups=["mechanism"], overlay_id=stand.get("overlay_id"), inspection_reference=False,
                   held_parts=f"{TASK}: fan bridge plate between the bridge standoffs and their nuts")
     rows = [dict(name=PLATE, role="printed_structural_connector", color=[64, 156, 212, 255],
-                 material="Bambu PAHT-CF (1.22 g/cm3) FDM", **common, **rec),
+                 material=f"{BOM_CONFIG.material(PLATE, 'held-parts')} FDM", **common, **rec),
             dict(name=PLATE_SLEEVES, role="compression_limit_sleeves", color=[215, 222, 230, 255],
-                 material="304 Stainless Steel compression sleeves (7.93 g/cm3)", **common, **srec)]
+                 material=f"{BOM_CONFIG.material(PLATE_SLEEVES, 'held-parts', fallback='HARDWARE_MATERIAL')} compression sleeves", **common, **srec)]
     g = by[GUIDE_SCREW]
     gm = BL.load_mesh(g["mesh"])
     gh, _ = _screw_axis(by, GUIDE_SCREW)

@@ -30,7 +30,7 @@ from build123d import (
 
 from common import (
     ART,
-    MATERIALS,
+    PRINTED,
     STAGE_LINKS,
     STAGE_PART_BASENAMES,
     bevel_3d_edges,
@@ -736,7 +736,7 @@ def main():
             })
 
     # Build and export all 4 stages for Family 1 (`truss_box`) and Family 2 (`topopt`)
-    rho_paht = MATERIALS["PAHT_CF_dry"]["density_g_cm3"]
+    rho_paht = PRINTED["density_g_cm3"]   # study families: the definition's PRINTED_MATERIAL (no entry claims them)
     for fam_key in ("truss_box", "topopt"):
         for stg_key, bname in STAGE_PART_BASENAMES.items():
             t_s = time.time()

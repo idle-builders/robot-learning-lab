@@ -70,6 +70,12 @@ def _npz(m, f: Path):
     np.savez_compressed(f, vertices=np.asarray(m.vertices, np.float32), faces=np.asarray(m.faces, np.int32))
 
 
+def printed_g_cm3(name: str) -> float:
+    """Density of a printed connector from its declared material (its definition entry's process.material; the
+    definition's PRINTED_MATERIAL when no entry claims it), robot/body/checks/data/materials.json."""
+    return BOM_CONFIG.density_kg_mm3(name, "build-neck-head-connectors") * 1e6
+
+
 def rebuild(connector: str, man: dict) -> None:
     import trimesh
     from build123d import Compound, export_step
@@ -83,7 +89,7 @@ def rebuild(connector: str, man: dict) -> None:
     export_step(sol, str(step))
     C.save_solid_npz(sol, npz, tol=0.05)
     z = np.load(npz); mesh = trimesh.Trimesh(z["vertices"], z["faces"], process=False)
-    rho = C.MATERIALS["PAHT_CF_dry"]["density_g_cm3"]
+    rho = printed_g_cm3(name)
     e = _entry(man, name)
     e.update(native_step=_rel(step), native_step_sha256=_sha(step), mesh=_rel(npz), mesh_sha256=_sha(npz),
              bounds_mm=[np.round(mesh.bounds[0], 3).tolist(), np.round(mesh.bounds[1], 3).tolist()],
@@ -115,10 +121,10 @@ def apply(man: dict) -> list[str]:
     Connectors whose files are not built here are left as they are, with a warning (run `neck_parts.py connectors ...`)."""
     import trimesh
     log, built = [], []
-    rho = C.MATERIALS["PAHT_CF_dry"]["density_g_cm3"]
     for conn, stage in STAGE.items():
         bname = C.STAGE_PART_BASENAMES[stage]
         name = f"combined__{bname}"
+        rho = printed_g_cm3(name)
         files = (C.ART / "parts" / f"{name}.step", C.ART / "parts" / f"{name}.npz",
                  C.ART / "combined" / f"{bname}_sleeves.step", C.ART / "combined" / f"{bname}_sleeves.npz")
         if not all(f.exists() for f in files):

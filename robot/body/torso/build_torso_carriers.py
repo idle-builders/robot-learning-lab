@@ -420,8 +420,8 @@ def main() -> None:
             export_stl(sleeves_comp, str(slv_stl_path), tolerance=0.04, angular_tolerance=0.15)
 
             vol_mm3 = float(exp_info["step_volume_mm3"])
-            poly_mass_g = vol_mm3 * 1e-3 * common.MATERIALS["PAHT_CF_dry"]["density_g_cm3"]
-            petg_mass_g = vol_mm3 * 1e-3 * common.MATERIALS["PETG_CF"]["density_g_cm3"]
+            poly_mass_g = vol_mm3 * 1e-3 * common.PRINTED["density_g_cm3"]
+            petg_mass_g = vol_mm3 * 1e-3 * common.ALT_PRINTED["density_g_cm3"]
             total_mass_g = poly_mass_g + slv_mass_g
 
             curv = common.compute_edge_curvature_metrics(step_path, bevel_info["r_inner_mm"], bevel_info["r_outer_mm"])

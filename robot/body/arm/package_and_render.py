@@ -238,9 +238,8 @@ def package_family(fam: str, hw: dict) -> dict:
             "bounds_mm": [m_mm.bounds[0].round(3).tolist(), m_mm.bounds[1].round(3).tolist()],
             "native_solid_count": 1,
             "native_validity": [True],
-            "material": f"Bambu PAHT-CF / PA12-CF ({MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3) or PETG-CF ({MATERIALS['PETG_CF']['density_g_cm3']:g} g/cm3) FDM",
-            "mass_kg": round(item["polymer_mass_paht_cf_g"] / 1000.0, 6),
-            "mass_basis": f"Exact native STEP volume * {MATERIALS['PAHT_CF_dry']['density_g_cm3']:g} g/cm3 ({MATERIALS['PAHT_CF_dry']['name']})",
+            "material": f"{BOM_CONFIG.material(pname, 'build-arm-connectors')} FDM",
+            **BOM_CONFIG.mass_record(pname, item["volume_mm3"], "build-arm-connectors"),   # declared material
             "color": rgba,
             "display_group": "mechanism",
             "display_groups": ["mechanism"],
@@ -289,8 +288,8 @@ def package_family(fam: str, hw: dict) -> dict:
                 "category": "Produced parts (FDM 3D printed)",
                 "quantity": 2,
                 "unit": "ea",
-                "material": "Bambu PAHT-CF / PA12-CF (or PETG-CF)",
-                "unit_mass_g": item["polymer_mass_paht_cf_g"],
+                "material": BOM_CONFIG.material(pname, "build-arm-connectors"),
+                "unit_mass_g": round(BOM_CONFIG.mass_kg(pname, item["volume_mm3"], "build-arm-connectors") * 1000.0, 3),
                 "process": f"Home-lab FDM 3D print ({p_orient})",
                 "notes": f"Integrates dual-cheek C047 clamping & 2-screw hard-shell mounts on Stages 1 & 4; {item['sleeves_count']} steel sleeve seats.",
             })

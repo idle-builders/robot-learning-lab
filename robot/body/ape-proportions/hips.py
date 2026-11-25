@@ -14,8 +14,14 @@ from __future__ import annotations
 
 import itertools
 
+import sys
+from pathlib import Path
+
 import numpy as np
 import trimesh
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402  (declared materials: robot/body/checks/data/materials.json)
 
 LEG_IN = 12.0
 FOOT_IN = 4.0
@@ -70,9 +76,10 @@ def apply(new, h):
         # on the same topology (the open edges are the same before and after)
         ratio = float(trimesh.Trimesh(v, f, process=False).volume / before.volume)
         v_step = float(pr["volume_mm3"])
-        pr["volume_mm3"] = round(v_step * ratio, 1); pr["mass_kg"] = round(v_step * ratio * 1.22e-6, 6)
-        pr["mass_basis"] = (f"native STEP volume {v_step:.0f} mm3 x {ratio:.4f} (signed-volume ratio of the open mesh before and "
-                            "after the wheel-plate stretch) * 1.22 g/cm3 (PAHT-CF); exact in the CAD pass")
+        pr["volume_mm3"] = round(v_step * ratio, 1)
+        pr.update(BOM_CONFIG.mass_record(pr["name"], v_step * ratio, "ape-proportions-build",
+                                         basis=f"native STEP volume {v_step:.0f} mm3 x {ratio:.4f} (signed-volume ratio of the open mesh "
+                                               "before and after the wheel-plate stretch; exact in the CAD pass)"))
         pr["native_step_unmodified"] = pr.pop("native_step", None); pr.pop("native_step_sha256", None); pr.pop("native_step_offset_mm", None)
         pr["mesh_note"] = f"wheel plate stays at the hip-pitch servo's original place ({out:+.0f} mm relative to the {LEG_IN:.0f} mm inward leg), stretched back to the roll-servo mount (mesh until the CAD pass)"
         log.append((pr["name"], f"wheel plate {out:+.0f} mm"))
@@ -102,7 +109,7 @@ def apply(new, h):
     v0, v1 = cm.volume, keep.volume
     cradle.update(h["save_mesh"](cradle["name"], keep))
     cradle["native_step_unmodified"] = cradle.pop("native_step", None); cradle.pop("native_step_sha256", None)
-    cradle["volume_mm3"] = round(float(v1), 1); cradle["mass_kg"] = round(float(v1) * 1.22e-6, 6)
+    cradle["volume_mm3"] = round(float(v1), 1); cradle.update(BOM_CONFIG.mass_record(cradle["name"], float(v1), "ape-proportions-build", basis="mesh volume"))
     cradle["mesh_note"] = "selected cradle minus the swept narrower hips; the floor under the lower cell is gone, hold that cell at its ends (mesh until the CAD pass)"
     log.append((cradle["name"], f"cleared for the narrower hips: volume {v0:.0f} -> {v1:.0f} mm3, {len(parts)} pieces"))
 

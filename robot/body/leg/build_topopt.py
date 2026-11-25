@@ -32,6 +32,8 @@ from build123d import (
 from common import (
     ART,
     MATERIALS,
+    PRINTED,
+    ALT_PRINTED,
     rel,
     sha,
     write_json,
@@ -332,7 +334,7 @@ def export_family():
     coupler_r, coupler_sleeves_r, vf_coupler = build_ankle_coupler_topopt()
     foot_r, foot_sleeves_r, vf_foot = build_foot_monocoque_topopt()
 
-    rho_poly = MATERIALS["PAHT_CF_dry"]["density_g_cm3"] * 1e-3
+    rho_poly = PRINTED["density_g_cm3"] * 1e-3
     rho_steel = MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3
 
     parts_meta = []
@@ -384,7 +386,7 @@ def export_family():
                 "volume_mm3": round(poly_vol, 3),
                 "simp_high_density_fraction": round(vf, 4),
                 "polymer_mass_g_PAHT_CF": round(poly_mass_g, 3),
-                "polymer_mass_g_PETG_CF": round(poly_vol * MATERIALS["PETG_CF"]["density_g_cm3"] * 1e-3, 3),
+                "polymer_mass_g_PETG_CF": round(poly_vol * ALT_PRINTED["density_g_cm3"] * 1e-3, 3),
                 "bounds_mm": [
                     [round(bb.min.X, 3), round(bb.min.Y, 3), round(bb.min.Z, 3)],
                     [round(bb.max.X, 3), round(bb.max.Y, 3), round(bb.max.Z, 3)],
