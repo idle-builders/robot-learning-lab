@@ -34,7 +34,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 HIP = ROOT / "robot/body/hip-shell"
 sys.path.insert(0, str(HIP)); sys.path.insert(0, str(HIP / "sections"))
-import kit  # noqa: E402  (puts robot/body/motor-refit first on sys.path: fit_check there is the motor-refit one)
+import kit  # noqa: E402  (the hip-shell kit: leg motion helpers, kit.F = checks/bodylib)
 from leg_motion import GRID, J, library_poses, solid  # noqa: E402
 
 sys.path.append(str(HERE))
@@ -50,7 +50,7 @@ def _load(name, path):
 
 sys.path.insert(0, str(ROOT / "robot/body"))
 from checks import brep as LFIT  # noqa: E402                    # B-rep helpers (common volume, distance, transform, boxes)
-F = kit.F                                                       # motor-refit fit_check shim of checks/bodylib (Body, load_mesh, src)
+F = kit.F                                                       # checks/bodylib (Body, load_mesh, src)
 
 OUT = B.RF_ART
 REPORT = OUT / "report.json"

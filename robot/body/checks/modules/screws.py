@@ -135,7 +135,7 @@ def run(ctx):
             if i < len(cat[kk]):
                 cases.append(cat[kk][i])
     # reverse view in scope: sleeves of scoped parts, defined holes of scoped standard parts
-    import fit_check as F
+    from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
     import json
     man = json.loads(open(ctx.manifest).read())
     fbody = F.Body(man)

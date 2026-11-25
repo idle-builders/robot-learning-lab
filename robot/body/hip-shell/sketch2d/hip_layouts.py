@@ -79,7 +79,7 @@ def rot_about(p, a, deg):
 
 
 def link_T(lay, q):
-    """Neutral-frame axes composed parent first (as fit_check.Body.link_T). q: pitch, roll, yaw, knee."""
+    """Neutral-frame axes composed parent first (as checks/bodylib.Body.link_T). q: pitch, roll, yaw, knee."""
     Ts = {"torso": np.eye(4)}
     T = np.eye(4)
     for k, j in enumerate(lay.order):

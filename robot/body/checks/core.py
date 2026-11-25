@@ -1,4 +1,4 @@
-"""Shared body model for the checks: manifest + one forward kinematics (motor-refit fit_check.Body.link_T, from joints[]),
+"""Shared body model for the checks: manifest + one forward kinematics (bodylib.Body.link_T, from joints[]),
 sha256-keyed caches, true-shape solids (native STEP tessellation, else closed mesh), pose sets as data.
 Moved from leg/fast_check.py without changing the maths; fast_check imports it from here."""
 from __future__ import annotations

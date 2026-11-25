@@ -1,5 +1,5 @@
 """Drafting aid for the hardware specs of a body definition (robot/**/<builder>.bom.yaml): proposes kind, thread, nominal
-length and head standard for screws, nuts, washers and spacers from the part name (fastening/mount_check.nominal), the
+length and head standard for screws, nuts, washers and spacers from the part name (nominal() here), the
 screw_plan a builder recorded, and a measurement of the mesh, snapped to the standard sizes in
 robot/body/checks/data/hardware.json. The BOM never runs this: the owner of the definition decides the spec and writes it
 there. Prints YAML `spec:` blocks to paste.
@@ -20,7 +20,23 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "robot/body")); sys.path.insert(0, str(ROOT / "robot/body/fastening"))
-from mount_check import kind as hw_kind, nominal  # noqa: E402
+from mount_check import kind as hw_kind  # noqa: E402
+
+NOMINAL_RE = re.compile(r"(?:^|_)(M\d(?:p\d)?|B?PA\d)(?:x(\d+(?:p\d+)?))?", re.I)
+
+
+def nominal(name: str) -> dict:
+    """Thread family and nominal length from a name token such as R_knee_ST3025_PA2x8_0: a drafting hint only, for a person
+    to confirm in the definition (the checks never read a name; they take kind and spec from the definition / screw_plan)."""
+    m = NOMINAL_RE.search(name)
+    if not m:
+        return {}
+    g = m.group(1).upper()
+    fam = g.replace("P", ".") if g.startswith("M") else g.lstrip("B")
+    d = dict(thread=fam)
+    if m.group(2):
+        d["nominal_length_mm"] = float(m.group(2).replace("p", "."))
+    return d
 sys.path.insert(0, str(ROOT / "robot/body/bom"))
 import bom_config as BOM_CONFIG  # noqa: E402
 CFG = BOM_CONFIG.section("standard-hardware")   # thread, nut, washer, countersink sizes: robot/body/standard-hardware/generate.bom.yaml config (shared with generate.py)

@@ -130,7 +130,7 @@ def s_ankle(sid):
     per = ((r["report"] or {}).get("checks", {}).get("screws", {}).get("per_part") or {})
     faces = {n: [(f["face"], f["holes"], f["used"]) for f in (d.get("reverse") or {}).get("interface_faces", [])] for n, d in per.items()}
     sys.path.insert(0, str(ROOT / "robot/body/fastening")); sys.path.insert(0, str(ROOT / "robot/body/motor-refit"))
-    import fit_check as F
+    from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
     import interfaces as I
     import mount_check as MC
     man = json.loads(MC.DEFAULT_MANIFEST.read_text()); body = F.Body(man)

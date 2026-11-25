@@ -45,7 +45,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "robot/body/bom"))
 import bom_config as BOM_CONFIG  # noqa: E402  (declared values: materials, joint ranges)
 import cad_ops as C  # noqa: E402
-import fit_check as F  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "robot/body"))
+from checks import bodylib as F  # noqa: E402  (body model: Body, load_mesh, src, ...)
 
 SRC = ROOT / "artifacts/robot/body/motor-refit/assembly-parts.json"
 OUT = Path(os.environ.get("APE_OUT", ROOT / "artifacts/robot/body/ape-proportions"))  # APE_OUT: a variant build elsewhere
