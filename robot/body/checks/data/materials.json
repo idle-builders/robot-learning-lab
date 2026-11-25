@@ -1,5 +1,5 @@
 {
- "_doc": "Material table, manufacturer standard datasheet values (owner decision 2026-11-18: material is a per-part setting; parts may differ). density in g/cm3. nozzle_mm_default = manufacturer recommendation. 'fem' = elastic constants and reference strengths for the FEM check: orthotropic FDM {E_inplane_MPa, E_layer_MPa, G_MPa, nu, tensile_XY_MPa, tensile_Z_layer_MPa} (the layer-normal axis is a per-part setting) or isotropic {E_MPa, nu, reference_strength_MPa}. Datasheet entries (Bambu ...) are the standard; the three legacy_fdm_* entries are read only by the leg / arm / neck-head builders' MATERIALS config for their own mass figures (no check or FEM setup uses them since 2026-11-24) and are named so they are never picked by accident. For the Bambu data sheets G and nu are not published: nu 0.35 (as the legacy FDM sets) and G = E_inplane / (2 (1 + nu)) are our assumptions. 'print' = manufacturer printing limits and thermal values from the same data sheets (temperatures in C, overhang angle as the data sheet states it (its angle convention is fixed by the overhang check), bridge length mm, HDT at 0.45 / 1.8 MPa): the printability checks read them, so a material change or a run override (--process material=...) changes every result that depends on it. bambu_studio_filament: the Bambu Studio system filament profile per nozzle for the slicer check. Optional per entry: 'impact_charpy_kJ_m2' {xy_unnotched, xy_notched, z} (ISO 179 as the data sheet states it), 'elongation_break_pct' [X-Y, Z] (ISO 527), print.vicat_C (ISO 306) and print.water_absorption_pct (saturated, 25 C 55 % RH); context for material choices, no check reads them yet. Bambu ABS is the body shell material (2026-11-22, compared against PETG Basic / HF, PETG-CF, ASA, PC and PolyMide CoPA on these data sheet values; the comparison is in the commit that added it).",
+ "_doc": "Material table, manufacturer standard datasheet values (owner decision 2026-11-18: material is a per-part setting; parts may differ). density in g/cm3. nozzle_mm_default = manufacturer recommendation. 'fem' = elastic constants and reference strengths for the FEM check: orthotropic FDM {E_inplane_MPa, E_layer_MPa, G_MPa, nu, tensile_XY_MPa, tensile_Z_layer_MPa} (the layer-normal axis is a per-part setting) or isotropic {E_MPa, nu, reference_strength_MPa}. Datasheet entries (Bambu ...) are the standard (the three legacy_fdm_* entries, 1.22 / 1.25 g/cm3 from the old study scripts, were removed 2026-11-25). For the Bambu data sheets G and nu are not published: nu 0.35 and G = E_inplane / (2 (1 + nu)) are our assumptions. 'print' = manufacturer printing limits and thermal values from the same data sheets (temperatures in C, overhang angle as the data sheet states it (its angle convention is fixed by the overhang check), bridge length mm, HDT at 0.45 / 1.8 MPa): the printability checks read them, so a material change or a run override (--process material=...) changes every result that depends on it. bambu_studio_filament: the Bambu Studio system filament profile per nozzle for the slicer check. Optional per entry: 'impact_charpy_kJ_m2' {xy_unnotched, xy_notched, z} (ISO 179 as the data sheet states it), 'elongation_break_pct' [X-Y, Z] (ISO 527), print.vicat_C (ISO 306) and print.water_absorption_pct (saturated, 25 C 55 % RH); context for material choices, no check reads them yet. Bambu ABS is the body shell material (2026-11-22, compared against PETG Basic / HF, PETG-CF, ASA, PC and PolyMide CoPA on these data sheet values; the comparison is in the commit that added it).",
  "Bambu PAHT-CF": {
   "density_g_cm3": 1.06,
   "nozzle_mm_default": 0.6,
@@ -239,42 +239,6 @@
    "0.6": "Bambu ABS @BBL X2D",
    "0.8": "Bambu ABS @BBL X2D 0.8 nozzle"
   }
- },
- "legacy_fdm_PAHT_CF_dry": {
-  "density_g_cm3": 1.22,
-  "fem": {
-   "E_inplane_MPa": 7550.0,
-   "E_layer_MPa": 3290.0,
-   "G_MPa": 1100.0,
-   "nu": 0.35,
-   "tensile_XY_MPa": 92.0,
-   "tensile_Z_layer_MPa": 43.0
-  },
-  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
- },
- "legacy_fdm_PAHT_CF_wet": {
-  "density_g_cm3": 1.22,
-  "fem": {
-   "E_inplane_MPa": 6570.0,
-   "E_layer_MPa": 2700.0,
-   "G_MPa": 950.0,
-   "nu": 0.35,
-   "tensile_XY_MPa": 71.0,
-   "tensile_Z_layer_MPa": 37.0
-  },
-  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
- },
- "legacy_fdm_PETG_CF": {
-  "density_g_cm3": 1.25,
-  "fem": {
-   "E_inplane_MPa": 5800.0,
-   "E_layer_MPa": 2850.0,
-   "G_MPa": 1000.0,
-   "nu": 0.35,
-   "tensile_XY_MPa": 68.0,
-   "tensile_Z_layer_MPa": 34.0
-  },
-  "source": "leg/arm/neck-head common.py MATERIALS (identical in the three)"
  },
  "Aluminium 6061-T6": {
   "density_g_cm3": 2.7,

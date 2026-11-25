@@ -70,9 +70,9 @@ What this means for the checks [inferred]:
   strength; PETG-CF keeps 64 % / 75 %. Print orientation is a first-class input for FEM and for any strength screen.
 - Heat: PETG-CF softens at about 68-74 °C, and the Feetech STS3215 turns its torque off above 70 °C internal temperature
   (STS3250 rated -20..60 °C ambient) [S8]. A PETG-CF part clamped to a hot servo case is at risk; PAHT-CF is not.
-- **Density mismatch:** the old `fast_check.py` and the manifest use 1.22 g/cm3 for PAHT-CF; Bambu's sheet says
-  1.06 g/cm3. The shared `mass` check uses the data-sheet value only (the legacy comparison was removed 2026-11-24); PAHT-CF masses from
-  1.22 read about 15 % high (open question below).
+- **Density:** the old study scripts used 1.22 g/cm3 for PAHT-CF; Bambu's sheet says 1.06 g/cm3. Since 2026-11-25 every builder
+  and the `mass` check take the data-sheet value of the part's declared material (the legacy entries and the builders' 1.22 / wet
+  keys are gone); a weighed printed sample is still the open question below.
 - Printer data in the manifest is prose today: in the selected `motor-refit` manifest 36 of 63 printed parts carry a `print_orientation` string and 12 a
   `manufacturing` string, and materials are free text such as "PAHT-CF ... or PETG-CF" [repo]. Most printability checks
   need a machine-readable print direction and material key per part.
@@ -162,7 +162,7 @@ data, ori = print orientation, mat = material, prn = printer and nozzle); cost; 
 
 | Check | Catches | Inputs | Cost | Have | Value | Src |
 |---|---|---|---|---|---|---|
-| Static FEM per part | stress and deflection under the part's load cases, dry / wet / PETG-CF | STEP, FEM setup, mat, ori | heavy | `fem` | P4 | S45 |
+| Static FEM per part | stress and deflection under the part's load cases, per datasheet material (PAHT-CF, PETG-CF; no wet-conditioned entry) | STEP, FEM setup, mat, ori | heavy | `fem` | P4 | S45 |
 | FEM setup still matches the part | supports and loads on screw holes that moved; parts with no setup | STEP, FEM setup | s | `fem_setup` | P4/P3 | parent task |
 | FEM mesh quality and convergence | slivers in the tet mesh, stress that changes with mesh size | FEM mesh | min | convergence via `--fem-mesh-h` (`checks/fem_convergence.py`); no mesh-quality statistics | P4 | S45 S46 |
 | Collision over motion | contact over the pose library and joint ranges | man, poses | min | `clearance`, `fit`, `collision_sweep`, `fastener_motion` | P4 | [repo] |
@@ -1011,8 +1011,8 @@ serviceability (parts to remove before a servo swap) would be a walk of the orde
 - Bambu's official X2D spec page could not be fetched; the bed maximum (120 °C) and nozzle list rest on resellers.
 - Which X2D nozzle prints the CF parts (direct-drive left is likely) and whether the Bowden right nozzle should print
   only support: affects the usable plate width (256 vs 235.5 mm).
-- Density: 1.06 g/cm3 in Bambu's PAHT-CF sheet (used by `mass`) vs 1.22 g/cm3 in the legacy code and manifest masses.
-  A weighed printed sample decides.
+- Density: 1.06 g/cm3 in Bambu's PAHT-CF sheet, used by `mass` and by every builder since 2026-11-25 (the 1.22 of the old study
+  scripts is gone). A weighed printed sample decides.
 - Nozzle: the checks default to 0.6 mm (Bambu's recommendation for PAHT-CF); older build notes say 0.4 mm. The
   minimum-wall numbers depend on it (`--process nozzle_mm=0.4` gives the other reading).
 - Hole offset and fit-class bands: no coupon printed yet, so press and slide margins are CAD margins only.

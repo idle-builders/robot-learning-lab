@@ -2483,8 +2483,8 @@ def build_complete_assembly() -> dict:
                 skeleton_compound_solids.append(sol)
                 base_key = pname[2:]
                 c_rec = next(r for r in leg_cad["parts"] if r["name"] == pname)
-                poly_g = round(vol_mm3 * 1e-3 * 1.22, 3)
-                p_meta["mass_kg"] = round(poly_g / 1000.0, 6)
+                p_meta.update(BOM_CONFIG.mass_record(pname, vol_mm3, "assemble-complete-fdm-body"))   # declared material
+                poly_g = round(p_meta["mass_kg"] * 1000.0, 3)
                 printed_brep_solids.append({
                     "name": pname,
                     "subsystem": "Lower Body (Legs, Hips & Feet)",
@@ -2577,14 +2577,15 @@ def build_complete_assembly() -> dict:
         m_mm = save_solid_step_and_npz(sol, out_step, out_npz, tol=0.05)
         skeleton_compound_solids.append(sol)
         vol_mm3 = float(sol.volume)
-        poly_g = round(vol_mm3 * 1e-3 * 1.22, 3)
+        mass = BOM_CONFIG.mass_record(pname, vol_mm3, "assemble-complete-fdm-body")   # declared material
+        poly_g = round(mass["mass_kg"] * 1000.0, 3)
         p_entry = {
             "name": pname,
             "owning_link": owning_lk,
             "role": "printed_structural_connector",
-            "material": "PAHT-CF",
+            "material": BOM_CONFIG.material(pname, "assemble-complete-fdm-body"),
             "volume_mm3": round(vol_mm3, 2),
-            "mass_kg": round(poly_g / 1000.0, 6),
+            **mass,
             "native_step": rel_path(out_step),
             "native_step_sha256": sha256_file(out_step),
             "mesh": rel_path(out_npz),

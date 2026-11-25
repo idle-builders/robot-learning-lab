@@ -48,5 +48,13 @@ config:
     value: {stage1_shin: YZ Cheek / Oblique Bed (layer normal Z/X), stage2_ankle_coupler: YZ Oblique Arch Bed (layer normal X), stage3_foot_monocoque: XY Flat Sole Bed (layer normal Z), stage4_thigh: YZ Medial Cheek Bed (layer normal X), stage5_hip_pitch_to_roll: XY Corridor Bridge Bed (layer normal Z), stage6_hip_yaw_to_pitch: YZ Lateral Wall / XY Top Deck Bed (layer normal X)}
   # robot/body/leg/common.py module constants (moved 2026-11-24)
   MATERIALS:
-    value: {Al5052_H32: Aluminium 5052-H32, Al6061_T6: Aluminium 6061-T6, PAHT_CF_dry: legacy_fdm_PAHT_CF_dry, PAHT_CF_wet: legacy_fdm_PAHT_CF_wet, PETG_CF: legacy_fdm_PETG_CF, Steel_Sleeve: Steel 304 sleeve}
-    doc: Material of each legacy FEM / mass key of this section's scripts, as its entry in robot/body/checks/data/materials.json (values there; same numbers as the table this replaced, 2026-11-24)
+    value: {Al5052_H32: Aluminium 5052-H32, Al6061_T6: Aluminium 6061-T6, Steel_Sleeve: Steel 304 sleeve}
+    doc: Material of each FEM / mass key of this section's scripts that is not a printed part, as its entry in robot/body/checks/data/materials.json (values there). Printed parts take their declared material (bom_config.material / mass_kg; PRINTED_MATERIAL for study-family parts no definition claims); the 1.22 g/cm3 PAHT-CF dry / wet and PETG-CF keys were removed 2026-11-25 (no datasheet entry, wet has none at all).
+  PRINTED_MATERIAL:
+    value: Bambu PAHT-CF
+    doc: Material of the printed parts this section's scripts write that no definition entry claims (truss_box / topopt study families); a
+      claimed part takes its entry's process.material. Density and FEM constants from robot/body/checks/data/materials.json.
+    decision: legacy-materials 2026-11-25 (was legacy_fdm_PAHT_CF_dry, 1.22 g/cm3)
+  ALT_PRINTED_MATERIAL:
+    value: Bambu PETG-CF
+    doc: The alternative print material the study builders also report a polymer mass for (was legacy_fdm_PETG_CF).

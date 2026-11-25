@@ -53,12 +53,13 @@ from common import (
     ARM_SHELL_DIR,
     ART,
     A_YAW,
-    MATERIALS,
+    ALT_PRINTED,
     N_YAW,
     P_ELBOW,
     P_PITCH,
     P_ROLL,
     P_YAW,
+    PRINTED,
     REPLACED_ARM_PARTS,
     RIGHT_ARM_SHELL_MOUNTS,
     ROOT,
@@ -853,8 +854,8 @@ def build_all(run_verification_gates: bool = True):
     t0 = time.time()
     ensure_arm_shell_nut_assets()
 
-    rho_paht = MATERIALS["PAHT_CF_dry"]["density_g_cm3"] * 1e-3
-    rho_petg = MATERIALS["PETG_CF"]["density_g_cm3"] * 1e-3
+    rho_paht = PRINTED["density_g_cm3"] * 1e-3      # the definition's PRINTED_MATERIAL (study families no entry claims)
+    rho_petg = ALT_PRINTED["density_g_cm3"] * 1e-3
 
     builders = {
         "stage1_shoulder_pitch_to_roll": build_stage1_shoulder_pitch_to_roll,

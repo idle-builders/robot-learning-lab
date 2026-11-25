@@ -169,7 +169,7 @@ def build_complete_combined_cad_and_fem():
         "stages": b_stages,
     }
 
-    for mat in ["PAHT_CF_dry", "PAHT_CF_wet", "PETG_CF"]:
+    for mat in ["PAHT_CF_dry", "PETG_CF"]:   # columns of the stored FEM summaries (retired evaluators); the wet column had no consumer left (2026-11-25)
         # Full truss_box (6 stages)
         t_low = lower_cs[f"truss_box__{mat}"]
         t_up = upper_cs[f"truss_box__{mat}"]
@@ -333,9 +333,8 @@ def package_upper_and_complete_studies():
                 "bounds_mm": item["bounds_mm"],
                 "native_solid_count": item["native_solids"],
                 "native_validity": [item["native_valid"]],
-                "material": "Bambu PAHT-CF / PA12-CF (1.22 g/cm3) or PETG-CF (1.25 g/cm3) FDM",
-                "mass_kg": round(item["polymer_mass_g_PAHT_CF"] / 1000.0, 6),
-                "mass_basis": "Exact native STEP volume * 1.22 g/cm3 (PAHT-CF)",
+                "material": f"{BOM_CONFIG.material(item['name'], 'package-complete-leg-hip')} FDM",
+                **BOM_CONFIG.mass_record(item["name"], item["volume_mm3"], "package-complete-leg-hip"),   # declared material
                 "color": col_stage,
                 "display_group": "mechanism",
                 "display_groups": ["mechanism"],
@@ -398,8 +397,8 @@ def package_upper_and_complete_studies():
                         "category": "Produced parts (FDM 3D printed)",
                         "quantity": 2,
                         "unit": "ea",
-                        "material": "Bambu PAHT-CF / PA12-CF (or PETG-CF)",
-                        "unit_mass_g": item["polymer_mass_g_PAHT_CF"],
+                        "material": BOM_CONFIG.material(item["name"], "package-complete-leg-hip"),
+                        "unit_mass_g": round(BOM_CONFIG.mass_kg(item["name"], item["volume_mm3"], "package-complete-leg-hip") * 1000.0, 3),
                         "unit_cost": None,
                         "currency": "",
                         "cost_basis": "unknown",

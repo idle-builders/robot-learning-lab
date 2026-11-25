@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -173,74 +174,14 @@ FDM_PRINT_BEDS_MM = {
     "large_350x350x350": (350.0, 350.0, 350.0),
 }
 
-MATERIALS = {
-    "AlSi10Mg_LPBF": {
-        "label": "AlSi10Mg LPBF (Baseline Stage 1 Metal Spine)",
-        "E_xy_mpa": 68000.0,
-        "E_z_mpa": 68000.0,
-        "nu": 0.33,
-        "G_mpa": 25560.0,
-        "sigma_xy_allow_mpa": 230.0,
-        "sigma_z_allow_mpa": 210.0,
-        "tau_allow_mpa": 130.0,
-        "density_g_cm3": 2.67,
-    },
-    "PA12_SLS": {
-        "label": "PA12 SLS (Baseline Stages 2-4 Trays/Cradles)",
-        "E_xy_mpa": 1750.0,
-        "E_z_mpa": 1650.0,
-        "nu": 0.39,
-        "G_mpa": 630.0,
-        "sigma_xy_allow_mpa": 46.0,
-        "sigma_z_allow_mpa": 40.0,
-        "tau_allow_mpa": 26.0,
-        "density_g_cm3": 1.01,
-    },
-    "PAHT_CF_dry": {
-        "label": "Bambu PAHT-CF (PPA-CF15, Dry Annealed)",
-        "E_xy_mpa": 5200.0,
-        "E_z_mpa": 2400.0,
-        "nu": 0.35,
-        "G_mpa": 1450.0,
-        "sigma_xy_allow_mpa": 95.0,
-        "sigma_z_allow_mpa": 32.0,
-        "tau_allow_mpa": 28.0,
-        "density_g_cm3": 1.24,
-    },
-    "PAHT_CF_wet": {
-        "label": "Bambu PAHT-CF (PPA-CF15, 50% RH Conditioned)",
-        "E_xy_mpa": 4300.0,
-        "E_z_mpa": 2050.0,
-        "nu": 0.36,
-        "G_mpa": 1200.0,
-        "sigma_xy_allow_mpa": 80.0,
-        "sigma_z_allow_mpa": 27.0,
-        "tau_allow_mpa": 24.0,
-        "density_g_cm3": 1.24,
-    },
-    "PETG_CF": {
-        "label": "PETG-CF15 (Low-Creep Stiff Reference)",
-        "E_xy_mpa": 3800.0,
-        "E_z_mpa": 1900.0,
-        "nu": 0.35,
-        "G_mpa": 1100.0,
-        "sigma_xy_allow_mpa": 65.0,
-        "sigma_z_allow_mpa": 22.0,
-        "tau_allow_mpa": 20.0,
-        "density_g_cm3": 1.29,
-    },
-    "SS304_sleeve": {
-        "label": "304 Stainless Steel Pressed-In Compression Sleeve",
-        "E_xy_mpa": 193000.0,
-        "E_z_mpa": 193000.0,
-        "nu": 0.29,
-        "G_mpa": 74800.0,
-        "sigma_xy_allow_mpa": 215.0,
-        "sigma_z_allow_mpa": 215.0,
-        "tau_allow_mpa": 124.0,
-        "density_g_cm3": 7.93,
-    },
-}
+# Materials: entries of robot/body/checks/data/materials.json named by the definition's config (build_torso_carriers.bom.yaml);
+# the old per-study table here (AlSi10Mg / PA12 baselines, PAHT-CF dry / wet 1.24, PETG-CF 1.29, SS304 7.93 g/cm3) was removed 2026-11-25.
+sys.path.insert(0, str(ROOT / "robot/body/bom"))
+import bom_config as BOM_CONFIG  # noqa: E402
+CFG = BOM_CONFIG.section("build-torso-carriers")   # configured values: robot/body/torso/build_torso_carriers.bom.yaml config:
+PRINTED = BOM_CONFIG.material_row(CFG["PRINTED_MATERIAL"])          # study-family carriers no definition entry claims
+ALT_PRINTED = BOM_CONFIG.material_row(CFG["ALT_PRINTED_MATERIAL"])  # the alternative print material reported alongside
+SLEEVE = BOM_CONFIG.material_row(CFG["HARDWARE_MATERIAL"])          # pressed-in steel compression sleeves
 
 # Multi-limb torso loading parameters:
 # - Bilateral C047 shoulder pitch actuators: 2 x 4.0 Nm peak stall (8.0 Nm combined pitch moment)
@@ -523,7 +464,7 @@ def build_stage_sleeves(stage: str) -> tuple[Compound, float, float]:
         for sol in sleeve.solids():
             sleeves.append(sol)
             vol_mm3 += float(sol.volume)
-    mass_g = vol_mm3 * 1e-3 * MATERIALS["SS304_sleeve"]["density_g_cm3"]
+    mass_g = vol_mm3 * 1e-3 * SLEEVE["density_g_cm3"]
     return Compound(children=sleeves), vol_mm3, mass_g
 
 

@@ -77,12 +77,10 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
     return D
 
 
-# Material definitions used across matched FEM comparisons:
-# - Aluminium 5052-H32 / 6061-T6 baseline sheet/plate
-# - PAHT-CF / PA12-CF dry & conditioned (orthotropic FDM, print layer normal customizable per part)
-# - PETG-CF / PLA-CF home-lab stiff filament sensitivity
-# - 304 Stainless / Alloy Steel compression sleeves & cross-bolts
+# Materials: entries of robot/body/checks/data/materials.json named by the definition's config (MATERIALS, PRINTED_MATERIAL)
 MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
+PRINTED = BOM_CONFIG.material_row(CFG["PRINTED_MATERIAL"])          # study-family parts no definition claims; claimed parts: BOM_CONFIG.mass_kg
+ALT_PRINTED = BOM_CONFIG.material_row(CFG["ALT_PRINTED_MATERIAL"])  # the alternative print material the study builders report a mass for
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):

@@ -42,6 +42,8 @@ from common import (
     ROOT,
     ART,
     MATERIALS,
+    PRINTED,
+    ALT_PRINTED,
     write_json,
     rel,
     sha,
@@ -576,8 +578,8 @@ def build_stage6_yaw_to_pitch(family: str, side: str) -> tuple[Solid, list[Solid
 
 
 def build_all_upper_hip():
-    rho_paht = MATERIALS["PAHT_CF_dry"]["density_g_cm3"] * 1e-3
-    rho_petg = MATERIALS["PETG_CF"]["density_g_cm3"] * 1e-3
+    rho_paht = PRINTED["density_g_cm3"] * 1e-3      # the definition's PRINTED_MATERIAL (study families no entry claims)
+    rho_petg = ALT_PRINTED["density_g_cm3"] * 1e-3
     rho_steel = MATERIALS["Steel_Sleeve"]["density_g_cm3"] * 1e-3
 
     for family in ("truss_box", "topopt"):

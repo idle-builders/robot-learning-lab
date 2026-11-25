@@ -91,7 +91,7 @@ def build_combined():
     chain_sum = fem["chain_summary_recovery_4kg_1p5g"]
     base_one_leg = chain_sum["baseline_metal__Al5052_H32"]["one_leg_mass_g"]
 
-    for mat_key in ["PAHT_CF_dry", "PAHT_CF_wet", "PETG_CF"]:
+    for mat_key in ["PAHT_CF_dry", "PETG_CF"]:   # columns of the stored fem-report.json (retired evaluator); the wet column had no consumer left (2026-11-25)
         tb_chain = chain_sum[f"truss_box__{mat_key}"]
         to_chain = chain_sum[f"topopt__{mat_key}"]
         st1 = copy.deepcopy(tb_chain["stages"]["stage1_shin"])

@@ -62,7 +62,7 @@ Z_UPPER_COVER_CUT = CFG["Z_UPPER_COVER_CUT"]
 FOOT_PLANES = dict(toe=16.5, heel=37.5, lateral=16.0, medial=36.5)  # mm from the ankle-roll origin
 BOOT_BLEND_Z = CFG["BOOT_BLEND_Z"]
 # Upper-arm beam: the stage 3 connector is a 3 x 6.5 mm bar between the yaw and elbow horns; bending across its 3 mm
-# side carried the 4 kg support case at ~160 MPa (fem_arm.py). The longer arm leaves free space between the elbow
+# side carried the 4 kg support case at ~160 MPa (fem_arm.py, retired 2026-11-25). The longer arm leaves free space between the elbow
 # servo and the yaw horn, so the bar becomes a solid beam there (right side; the left side is its mirror in x).
 SHELL_PASS = bool(int(os.environ.get("APE_SHELL_PASS", "0")))  # T-czv2d8 runs as its own step: shells.py MANIFEST OUT_DIR (memory)
 NARROW_HIPS = CFG["NARROW_HIPS"]

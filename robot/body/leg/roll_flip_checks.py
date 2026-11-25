@@ -540,7 +540,7 @@ def run_mass():
         print(f"{link}: {a['mass_g']} g COM {a['com_world_neutral_mm']} -> {b['mass_g']} g COM {b['com_world_neutral_mm']}"
               f"  (missing masses: {b['parts_without_mass']})")
     merge("mass", dict(parts=parts, links=links,
-                       basis="manifest masses (motors: catalogue; printed: native STEP volume x 1.22 g/cm3 PAHT-CF; sleeves 304 SS); "
+                       basis="manifest masses (motors: catalogue; printed: native STEP volume x the density of the part's declared material, checks/data/materials.json; sleeves 304 SS); "
                              "part COM / inertia from the closed (voxel-filled where open) mesh at uniform density; frame = "
                              "world at zero joint angles (mm); the URDF is not changed here",
                        note="Roll horn and idler have no mass in the manifest (null) and are not counted on either link."))

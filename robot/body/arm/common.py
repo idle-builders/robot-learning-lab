@@ -160,6 +160,8 @@ def orthotropic_matrix_MPa(Ex: float, Ey: float, Ez: float, nu: float = 0.35, G:
 
 
 MATERIALS = BOM_CONFIG.material_table(CFG["MATERIALS"])
+PRINTED = BOM_CONFIG.material_row(CFG["PRINTED_MATERIAL"])          # study-family parts no definition claims; claimed parts: BOM_CONFIG.mass_kg
+ALT_PRINTED = BOM_CONFIG.material_row(CFG["ALT_PRINTED_MATERIAL"])  # the alternative print material the study builders report a mass for
 
 
 def fillet_2d_face(f, r_default: float = 2.0, skip_xy=(), r_inner: float | None = None):
@@ -1102,7 +1104,7 @@ def ensure_arm_shell_nut_assets() -> dict:
     return {"dir": out_dir, "nuts": nuts, "screws": screws}
 
 
-# ---- helpers the arm study builders use (moved from the retired per-study fit_check.py / fem_evaluate.py)
+# ---- helpers the arm study builders use (moved from the retired per-study fit_check.py)
 def rot_mat(axis, deg: float) -> np.ndarray:
     u = np.asarray(axis, dtype=float)
     u = u / np.linalg.norm(u)
@@ -1187,21 +1189,6 @@ def build_poses() -> list[tuple[str, dict[str, float]]]:
             "R_elbow": e,
         }))
     return poses
-
-
-ELAST = load_elasticity()
-VON_MISES = ELAST.reference_namespace()["von_mises"]
-
-
-def build_material_hooke(mat_key: str, layer_normal_axis: int = 0) -> np.ndarray:
-    m = MATERIALS[mat_key]
-    if "E_MPa" in m:
-        return ELAST.isotropic(m["E_MPa"], m["nu"])
-    E_in = m["E_inplane_MPa"]
-    E_lay = m["E_layer_MPa"]
-    E_vec = [E_in, E_in, E_in]
-    E_vec[layer_normal_axis] = E_lay
-    return orthotropic_matrix_MPa(E_vec[0], E_vec[1], E_vec[2], nu=m["nu"], G=m["G_MPa"])
 
 
 # Study load cases (N, N mm at the stage load patch); run_arm_topopt.py loads its topology optimisation with them.
