@@ -171,7 +171,7 @@ def move_blobs(moves) -> int:
 def json_columns(db):
     for table, key, column in (("sections", "rowid", "payload_json"), ("source_payload", "rowid", "payload_json"),
                                ("design_boms", "rowid", "payload_json"), ("design_bom_history", "rowid", "payload_json"),
-                               ("robot_bom", "rowid", "payload_json"), ("results", "rowid", "provenance"),
+                               ("results", "rowid", "provenance"),
                                ("results", "rowid", "matrix_json"), ("results", "rowid", "summary"),
                                ("results", "rowid", "observation"), ("results", "rowid", "measurements"),
                                ("results", "rowid", "limitations"), ("results", "rowid", "body"),

@@ -27,8 +27,6 @@ let modelViewerKind = null;
 let catalogView = null, viewGeneration = 0;
 let curveViews = [];
 function disposeCurveViews() { curveViews.forEach(view => view.dispose()); curveViews = []; }
-let selection = {};  // robot section -> the one selected study (robot/design.json)
-const selectedFor = studyId => Object.keys(selection).filter(section => selection[section] === studyId);
 const versionOrder = (a,b) => {
   const byDate = String(b.version_at || b.updated_at || '').localeCompare(String(a.version_at || a.updated_at || ''));
   if (byDate) return byDate;
@@ -138,7 +136,8 @@ function qualityInfo(row) {
 function latestStudies() {
   const map = new Map();
   for (const row of [...results].sort(versionOrder)) if (!map.has(row.study_id || row.id)) map.set(row.study_id || row.id, row);
-  return [...map.values()].sort((a,b)=>selectedFor(b.study_id).length-selectedFor(a.study_id).length || (b.model_count>0)-(a.model_count>0) || designStudyName(a).localeCompare(designStudyName(b)));
+  // The body record (every section) first, then the scoped views of it.
+  return [...map.values()].sort((a,b)=>(b.design_sections?.length||0)-(a.design_sections?.length||0) || designStudyName(a).localeCompare(designStudyName(b)));
 }
 
 function latestSkills() {
@@ -155,7 +154,7 @@ const SKILL_CATEGORIES = ['Locomotion', 'Posture & Balance', 'Arm Control', 'Ski
 
 const belongs = (row, name) => {
   if (name === 'All') return true;
-  if (isDesign) return (row.design_sections || ['Whole robot']).includes(name);
+  if (isDesign) return (row.design_sections || []).includes(name);
   if (mode === 'archive' || page === 'archive') return (row.workspace || row.kind || 'Other') === name;
   return (row.area || 'Other') === name;
 };
@@ -176,7 +175,7 @@ function renderList() {
   const all = records();
   let spaces;
   if (isDesign) {
-    spaces = [...new Set(all.flatMap(row => row.design_sections || ['Whole robot']))];
+    spaces = [...new Set(all.flatMap(row => row.design_sections || []))];  // the parts' definition sections
   } else if (page === 'policies') {
     spaces = SKILL_CATEGORIES.filter(cat => all.some(row => row.area === cat));
   } else if (page === 'archive') {
@@ -191,8 +190,7 @@ function renderList() {
     $('body-map')?.querySelectorAll('[data-section]').forEach(marker => marker.classList.toggle('active', marker.dataset.section === workspace));
     const selectedRow = results.find(r => r.id === selected);
     const current = records().find(row => (row.id === selected || (row.study_id && row.study_id === selectedRow?.study_id)) && belongs(row, workspace));
-    const chosen = records().find(row => row.study_id === selection[workspace] && belongs(row, workspace));
-    const first = current || chosen || records().find(row => belongs(row, workspace));
+    const first = current || records().find(row => belongs(row, workspace));
     if (first) (mode === 'archive' || page === 'archive') ? showSession(first.id) : showResult(first.id);
     else { selected = null; renderList(); renderEmptyState(); }
   });
@@ -264,12 +262,12 @@ function renderList() {
       return `<button type="button" title="${escapeHtml(name)} · ${escapeHtml(versionLabel(row))}" data-id="${escapeHtml(verId || row.id)}" class="${isActive ? 'active' : ''}"><div class="skill-card-top"><strong>${escapeHtml(shortText(name, 68))}</strong>${qBadge}</div>${qBar}${qFocus}<span>${escapeHtml(versionLabel(row))} · ${escapeHtml(row.area)} · ${vCount} ${vCount === 1 ? 'version' : 'versions'}</span></button>`;
     }
     const version = (row.version_at || row.source_commit) ? ` · ${versionLabel(row).slice(0, isDesign ? 10 : 16)}` : '';
-    return `<button type="button" title="${escapeHtml(name)}" data-id="${escapeHtml(!isDesign && row.version_id ? row.version_id : row.id)}" class="${isActive ? 'active' : ''}">${escapeHtml(shortText(name, 105))}${isDesign && (workspace === 'All' ? selectedFor(row.study_id).length : selection[workspace] === row.study_id) ? `<b class="preferred-mark" title="Selected for ${escapeHtml(selectedFor(row.study_id).join(', '))}">Selected</b>` : ''}<span>${escapeHtml(isDesign ? row.design_sections?.join(' · ') : (row.area || row.workspace))}${escapeHtml(version)}${mode === 'published' && page !== 'archive' && row.clip_count ? ` · ${row.uploaded_clips || 0}/${row.clip_count} videos` : ''}${mode === 'published' && page !== 'archive' && row.asset_count ? ` · ${row.asset_count} files` : ''}</span></button>`;
+    return `<button type="button" title="${escapeHtml(name)}" data-id="${escapeHtml(!isDesign && row.version_id ? row.version_id : row.id)}" class="${isActive ? 'active' : ''}">${escapeHtml(shortText(name, 105))}<span>${escapeHtml(isDesign ? row.design_sections?.join(' · ') : (row.area || row.workspace))}${escapeHtml(version)}${mode === 'published' && page !== 'archive' && row.clip_count ? ` · ${row.uploaded_clips || 0}/${row.clip_count} videos` : ''}${mode === 'published' && page !== 'archive' && row.asset_count ? ` · ${row.asset_count} files` : ''}</span></button>`;
   }).join('');
   if (filtered.length > 120) $('results').insertAdjacentHTML('beforeend', '<p class="muted">Showing 120. Search to narrow the list.</p>');
   if (isDesign) $('body-map')?.querySelectorAll('[data-section]').forEach(marker => {marker.classList.toggle('active',marker.dataset.section===workspace);marker.setAttribute('aria-pressed',String(marker.dataset.section===workspace));marker.onclick = () => {
     const button = [...$('workspaces').querySelectorAll('button')].find(b=>b.dataset.workspace===marker.dataset.section);
-    if (button) button.click(); else {workspace=marker.dataset.section;renderList();$('detail').innerHTML='<h2>'+escapeHtml(workspace)+'</h2><p>No variant studies registered for this section yet.</p>'; }
+    if (button) button.click(); else {workspace=marker.dataset.section;renderList();$('detail').innerHTML='<h2>'+escapeHtml(workspace)+'</h2><p>No part of the body declares this section.</p>'; }
   };});
   $('results').querySelectorAll('button').forEach(button => button.onclick = () => (mode === 'archive' || page === 'archive') ? showSession(button.dataset.id) : showResult(button.dataset.id));
 }
@@ -401,12 +399,7 @@ async function showResult(target, options = {}) {
   renderList(); $('detail').innerHTML = '<p>Loading result…</p>';
   const response = await fetch(`/api/result?${apiQuery}`);
   if (generation !== viewGeneration) return;
-  if (!response.ok) {
-    if (isDesign && response.status === 410) {
-      $('detail').innerHTML = '<h2>This design study was deleted</h2><p>It was removed at the user’s request.</p><a href="/design/">View the robot design bench</a>';
-    } else $('detail').textContent = 'Result unavailable.';
-    return;
-  }
+  if (!response.ok) { $('detail').textContent = 'Result unavailable.'; return; }
   const row = await response.json();
   const id = row.id;
   selected = row.id;
@@ -436,30 +429,10 @@ async function showResult(target, options = {}) {
   }
   renderList();
 
-  if (isDesign && row.record_kind === 'collection') {
-    if (row.variants?.length) {
-      const group = row.sections.flatMap(s=>s.payload?.groups || []).find(g=>g.id===requestedGroup);
-      const memberIds = new Set((group?.options || []).flatMap(option=>[option.id, `${row.id}:${option.id}`]));
-      const memberStudies = new Set(row.variants.filter(v=>!memberIds.size || memberIds.has(v.id)).map(v=>v.study_id));
-      const currentVariants = results.filter(v=>memberStudies.has(v.study_id));
-      const groupVariants = currentVariants.length ? currentVariants : row.variants;
-      const groupSection = group?.design_sections?.[0] || results.find(r=>memberIds.has(r.id))?.design_sections?.[0];
-      if (groupSection) workspace=groupSection;
-      const contextual = groupVariants.filter(v => belongs(results.find(r=>r.id===v.id) || v, workspace));
-      const candidates = contextual.length ? contextual : groupVariants;
-      const variant = [...candidates].sort((a,b)=>a.study_id.localeCompare(b.study_id) || versionOrder(a,b))[0];
-      return showResult(variant.id);
-    }
-    mode='archive'; await loadArchive(); return showSession(row.id);
-  }
   if (isDesign) {
-    const {mountDesignDetail} = await import('./design-detail.js?v=bom-ranges-20261123');
+    const {mountDesignDetail} = await import('./design-detail.js?v=bom-only-20261125');
     if (generation !== viewGeneration) return;
-    const mounted = await mountDesignDetail($('detail'), row, workspace, {evidenceText, briefText, renderMatrix, renderGrades, imageWidget, fileWidget, modelWidget, modelHost, bindCommon, videoHost, playVideo, showResult, selection, async select(section,study_id) {
-      const response = await fetch('/api/design-selection',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({section,study_id})});
-      if(!response.ok) throw new Error((await response.json()).error);
-      selection=await response.json();renderList();
-    }}, () => generation === viewGeneration);
+    const mounted = await mountDesignDetail($('detail'), row, workspace, {evidenceText, briefText, renderMatrix, renderGrades, imageWidget, fileWidget, modelWidget, modelHost, bindCommon, videoHost, playVideo, showResult}, () => generation === viewGeneration);
     if(generation !== viewGeneration) {mounted.dispose();return;}
     catalogView=mounted;
     return;
@@ -602,7 +575,7 @@ async function showResult(target, options = {}) {
   if (catalogs.length) {
     const host = document.createElement('div');
     $('detail').querySelector('.cards').before(host);
-    const {mountCatalog} = await import('./catalog.js?v=bom-ranges-20261123');
+    const {mountCatalog} = await import('./catalog.js?v=bom-only-20261125');
     if (generation !== viewGeneration) return;
     const mounted = await mountCatalog(host, id, catalogs[0].payload);
     if (generation !== viewGeneration) { mounted.dispose(); return; }
@@ -692,24 +665,23 @@ async function setMode(next) {
   if (isDesign && next==='published' && !requested && requestedSection) {
     const first=records().find(row=>belongs(row,workspace));
     if(first) return showResult(first.id);
-    $('detail').innerHTML='<h2>'+escapeHtml(workspace)+'</h2><p>No current studies in this section. Earlier work is retained in Archive.</p>';
+    $('detail').innerHTML='<h2>'+escapeHtml(workspace)+'</h2><p>No part of the body declares this section.</p>';
     return;
   }
   if (isDesign && next==='published' && !requested) {
     $('results').innerHTML='<p class="muted">Choose a body section to see its design studies.</p>';
-    $('detail').innerHTML='<div class="design-welcome"><span class="eyebrow">DESIGN EXPLORER</span><h2>Start with a part of the robot.</h2><p>Select a joint or body part on the drawing, or choose its name in the section list.</p><div class="cards"><div class="card"><strong>Current body</strong>Design studies show the selected complete printed body and its electronics. Studies marked Selected are the owner’s choice for that part.</div><div class="card"><strong>Versions from Git</strong>Each study opens its current version. Earlier versions are named by date and commit.</div><div class="card"><strong>History</strong>Earlier bodies, finished earlier designs and alternatives are in Archive, each with its reason.</div></div><img src="/body-map.png" alt="APE0 aesthetic reference, showing front, side and articulated views"></div>';
+    $('detail').innerHTML='<div class="design-welcome"><span class="eyebrow">DESIGN EXPLORER</span><h2>Start with a part of the robot.</h2><p>Select a joint or body part on the drawing, or choose its name in the section list.</p><div class="cards"><div class="card"><strong>The robot is its parts</strong>The body record is generated from the body definitions (robot/**/*.bom.yaml). A section shows the parts whose definition declares it.</div><div class="card"><strong>Versions from Git</strong>Each study opens its current version. Earlier versions are named by date and commit.</div><div class="card"><strong>Bill of materials</strong>Robot BOM & costs lists the body BOM built from the same definitions.</div></div><img src="/body-map.png" alt="APE0 aesthetic reference, showing front, side and articulated views"></div>';
     return;
   }
-  const initial = records().find(row => row.id === requested) || (isDesign && workspace !== 'All' ? records().find(row => belongs(row, workspace)) : null) || (next === 'published' ? results.find(row => row.id === 'cove50-cad-competition-20261016') : null) || records()[0];
+  const initial = records().find(row => row.id === requested) || (isDesign && workspace !== 'All' ? records().find(row => belongs(row, workspace)) : null) || records()[0];
   if (initial) next === 'archive' ? showSession(initial.id) : showResult(initial.id);
   else $('detail').textContent = 'No evidence records yet.';
 }
 
 async function start() {
   if (isDesign) {
-    selection = await (await fetch('/api/design-selection')).json();
-    $('design-status').textContent = `${new Set(Object.values(selection)).size} selected studies cover ${Object.keys(selection).length} sections`;
     results = await (await fetch(`/api/results?dashboard=${dashboard}`)).json();
+    $('design-status').textContent = `${results.length} records generated from the body definitions · ${new Set(results.flatMap(r => r.design_sections || [])).size} sections from the parts`;
     await setMode(new URLSearchParams(location.search).has('session') ? 'archive' : 'published');
     return;
   }
@@ -728,7 +700,7 @@ async function showRobotBom() {
   renderList();
   $('detail').classList.remove('single-study');
   $('detail').classList.add('catalog-page');
-  const {mountRobotBom} = await import('./design-bom.js?v=bom-ranges-20261123');
+  const {mountRobotBom} = await import('./design-bom.js?v=bom-only-20261125');
   if (generation !== viewGeneration) return;
   const view = await mountRobotBom($('detail'), results, () => generation === viewGeneration);
   if (generation !== viewGeneration) {view.dispose(); return;}
