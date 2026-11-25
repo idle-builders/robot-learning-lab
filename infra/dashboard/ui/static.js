@@ -53,8 +53,6 @@ globalThis.fetch = async (input, init = {}) => {
       return clip ? json(clip) : json({error: 'Video not uploaded'}, 404);
     }
     case '/api/preview': return preview(q);
-    case '/api/design': return file(manifest.design);
-    case '/api/design-selection': return file(manifest.design_selection);
     case '/api/design-reviews': return manifest.design_reviews[q.get('result')] ? file(manifest.design_reviews[q.get('result')]) : missing();
     case '/api/design-bom':
       if (q.get('revision')) return json({error: 'Earlier BOM revisions are in the local dashboard'}, 404);

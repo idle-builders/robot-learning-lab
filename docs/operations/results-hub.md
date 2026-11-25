@@ -5,11 +5,11 @@ Start the dashboards with `.venv/bin/python infra/dashboard/results_hub.py serve
 - **[Policies](http://127.0.0.1:8805/)** (`/`): the control system: the whole-body controller and its analyses, and the skill policies until the controller supersedes them. Each opens its newest run; earlier runs are in the version menu, listed by date and commit.
 - **[Perception](http://127.0.0.1:8805/perception)** and **[Planning](http://127.0.0.1:8805/planning)**: perception and planning results (`workspace: "Perception"` / `"Planning"`).
 - **[Archive](http://127.0.0.1:8805/archive)** (`/archive`): history. Diagnostics, setup probes and superseded lines, each with the reason it left the current view (`archived_at`, `archive_reason`). See [Archive](#archive) below.
-- **[Robot design](http://127.0.0.1:8805/design/)** (`/design/`): CAD-first inspection of the current body, by part.
+- **[Robot design](http://127.0.0.1:8805/design/)** (`/design/`): the body generated from its part definitions, by section, with its BOM.
 
-Every published record carries `source_commit`, the repository commit it was published from. Name the code and configuration a result depends on in `source` (paths); if they have uncommitted changes the commit is marked `+dirty`. Commit before publishing a result you want to reproduce. Design studies take their version from the commit (see the design guide).
+Every published record carries `source_commit`, the repository commit it was published from. Name the code and configuration a result depends on in `source` (paths); if they have uncommitted changes the commit is marked `+dirty`. Commit before publishing a result you want to reproduce. Design records take their version from the commit of the definitions they were built from (see the design guide).
 
-For design registration, CAD/motion metadata, measurements and engineering simulations, use the [design dashboard guide](design-dashboard.md) and `infra/dashboard/results_hub.py design-template --robot-section Knee`. Keep short findings and structured measurements in both dashboards; expand technical detail when needed. The mechanical body is the one the body definitions declare (`body:` in `robot/body/complete_body.bom.yaml`); presentation does not qualify a mechanical body or prove physical behavior.
+Design records are not hand-published: `robot/body/bom/publish_body.py` builds them from the body definitions (see the [design dashboard guide](design-dashboard.md)); `results_hub.py publish` refuses a design record without its generated body view. Keep short findings and structured measurements in both dashboards; expand technical detail when needed. Presentation does not qualify a mechanical body or prove physical behavior.
 
 ## Publish a new result
 
@@ -86,19 +86,19 @@ Keep representative smooth, rough, recovering, and severe clips and describe whe
 
 **Archive** in [Robot learning](http://127.0.0.1:8805/archive) holds learning and reference runs; **Archive** in [Robot design](http://127.0.0.1:8805/design/) holds retained CAD, engineering and source comparisons. Both browse native files without copying them. Search narrows the retained runs; each run can show saved video, images, a standalone GLB, text evidence (previews capped at 120 KB), and an original interactive page inside the dashboard. The Archive omits folders that already have a published row, so a run appears only once. Port 8804 (`infra/dashboard/session_inspector.py`) is only a compatibility redirect for old `?view=results&skill=...` and `?view=archive&session=...` links and for previously linked local video paths.
 
-## Robot design studies
+## Robot design
 
-Mechanical CAD belongs in the [design dashboard](http://127.0.0.1:8805/design/), not the learning table: one-variant studies per body section, versions from Git. See [design registration](design-dashboard.md). Comments and judgments use the conflict-aware `design_reviews` / `design_review_history` tables. Shortlists and section preferences are human choices, not mechanical qualification or whole-robot selection.
+The design dashboard shows only records `robot/body/bom/publish_body.py` generated from a `study` block of a body definition: the body record (every part of the body manifest) and scoped views of it. Sections are the parts' declared `section`; there is no selection state and no robot composition. See [the design dashboard guide](design-dashboard.md). Comments and judgments use the conflict-aware `design_reviews` / `design_review_history` tables.
 
 ## Remote read-only view
 
-The owner's remote host (named in the gitignored `.credentials/remote-dashboard.md`, with its HTTP basic-auth login) serves the current learning and design views, read-only. The login is never committed or kept in Keychain. After one login a device stays signed in through a 180-day session cookie, renewed on every visit; a new password signs every device out (owner, 2026-11-24). The local dashboard stays the only place that writes; selections, reviews, BOM edits, earlier versions and the Archive view are local only.
+The owner's remote host (named in the gitignored `.credentials/remote-dashboard.md`, with its HTTP basic-auth login) serves the current learning and design views, read-only. The login is never committed or kept in Keychain. After one login a device stays signed in through a 180-day session cookie, renewed on every visit; a new password signs every device out (owner, 2026-11-24). The local dashboard stays the only place that writes; reviews, earlier versions and the Archive view are local only.
 
-The remote view is the current state, about fifty files: the body's study (`body.study`, `body:` in `robot/body/complete_body.bom.yaml`) and the other declared studies with their GLB models, and the newest version of each learning skill with one clip. Its web-files bucket (separate from the private archive) is laid out as:
+The remote view is the current state, about fifty files: the current version of each design record `publish_body.py` generated (the body and its scoped views) with its display GLB and part manifest, the body BOM, and the newest version of each learning skill with one clip. Its web-files bucket (separate from the private archive) is laid out as:
 
 ```
 site/                                    index (the hub's API answers) and UI, copied into the pod every minute
-files/design/<study>/<version>/<file>    GLB models (gltfpack web copies) of the selected studies
+files/design/<study>/<version>/<file>    GLB models (gltfpack web copies) and part manifests of the design records
 files/videos/<result>/<clip>.mp4         one clip per current run, copied inside object storage from the private archive
 ```
 

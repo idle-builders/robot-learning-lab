@@ -7,8 +7,8 @@ the remote dashboard shows:
 
     site/                                       index (the hub's API answers) and UI;
                                                 the pod copies this in every minute
-    files/design/<study>/<version>/<file>       3D models, images and viewer data of
-                                                the current design studies
+    files/design/<study>/<version>/<file>       3D models and viewer data of the current
+                                                design records (publish_body.py, BOM-based)
     files/videos/<result>/<clip>.mp4            learning videos
 
 The pod serves site/ itself and streams files/ from the bucket. Files are uploaded
@@ -169,12 +169,8 @@ class Index:
     def build(self):
         with Hub() as api:
             for dashboard in ("learning", "design"):
+                # design: the current version of each record publish_body.py generated (every design record is one)
                 rows = current(api.get("/api/results", dashboard=dashboard))
-                if dashboard == "design":  # the selected study of each section, nothing else
-                    chosen = set(api.get("/api/design-selection").values())
-                    # studies the owner wants to review remotely before selecting them (robot/design.json "remote_review")
-                    chosen |= set(json.loads((ROOT / "robot/design.json").read_text()).get("remote_review") or [])
-                    rows = [row for row in rows if row.get("study_id") in chosen]
                 self.manifest["lists"][dashboard] = self.write_json("list", dashboard, rows)
                 for row in rows:
                     result = api.get("/api/result", id=row["id"])
@@ -189,8 +185,7 @@ class Index:
                             value = api.get(endpoint, result=row["id"])
                             if value is not None:
                                 self.manifest[bucket][row["id"]] = self.write_json(bucket, row["id"], value)
-            for endpoint, key in (("/api/design", "design"), ("/api/design-selection", "design_selection"),
-                                  ("/api/robot-bom", "robot_bom")):
+            for endpoint, key in (("/api/robot-bom", "robot_bom"),):
                 value = api.get(endpoint)
                 self.manifest[key] = self.write_json("misc", key, value) if value is not None else None
         with hub.connect() as db:

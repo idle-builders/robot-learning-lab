@@ -1,5 +1,5 @@
 import {evidenceText} from './readable.js?v=studies-final-20261020';
-import {bomMarkup, bindBom} from './cad-bom.js?v=bom-ranges-20261123';
+import {bomMarkup, bindBom} from './cad-bom.js?v=bom-only-20261125';
 import {assetUrl as asset} from './asset-url.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function inspectionMarkup() { return `<details class="cad-inspect-tools"><summary>Expose, cut & explode</summary><div class="inspect-tools"><label>Explode parts<input type="range" class="cad-explode" aria-label="Explode parts" min="0" max="100" value="0"><output>0%</output></label><label class="cut-enable"><input type="checkbox" class="cad-cut-enabled"> Cut through assembly</label><label>Section axis<select class="cad-cut-axis"><option value="x">X · side</option><option value="y">Y · front</option><option value="z" selected>Z · height</option></select></label><label>Section position<input type="range" class="cad-cut-position" aria-label="Section position" min="0" max="100" value="50"><output>50%</output></label><label class="cut-enable"><input type="checkbox" class="cad-cut-reverse"> Reverse cut direction</label><p>Display separation and open section surfaces; source geometry stays intact.</p></div></details>`; }
@@ -82,7 +82,7 @@ export function mountCadCards(host,options,{resultId=null}={}){
   async function initialize(state){
     if(state.viewer||state.loading||!active)return;state.loading=true;const request=++state.generation;
     try{
-      const {createCadViewer}=await import('./cad-viewer.js?v=bom-ranges-20261123');
+      const {createCadViewer}=await import('./cad-viewer.js?v=bom-only-20261125');
       if(!state.metadata&&state.option.cad.parts_path){const response=await fetch(asset(state.option.cad.parts_path));if(!response.ok)throw new Error('Native part manifest unavailable');state.metadata=await response.json();}
       if(state.metadata && state.option.cad.motion_contract_path && !state.option.cad.motion_limits) {
         const responses=await Promise.all([fetch(asset(state.option.cad.motion_contract_path)),fetch(asset(state.option.cad.report_path))]);
